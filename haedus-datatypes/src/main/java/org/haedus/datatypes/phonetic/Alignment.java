@@ -12,30 +12,25 @@ public class Alignment {
 
 	private final Sequence left;
 	private final Sequence right;
-	private       double   score;
 
 	public Alignment(Sequence l, Sequence r) {
 		left  = l;
 		right = r;
-		score = -1.0;
 	}
 
 	public Alignment(Segment l, Segment r) {
 		left  = new Sequence(l);
 		right = new Sequence(r);
-		score = -1.0;
     }
 
     public Alignment() {
         left = new Sequence();
         right = new Sequence();
-        score = -1;
     }
 
 	public Alignment(Alignment alignment) {
 		left  = new Sequence(alignment.getLeft());
 		right = new Sequence(alignment.getRight());
-		score = 1.0;
 	}
 
     public void add(Segment a, Segment b) {
@@ -52,9 +47,9 @@ public class Alignment {
         return left.size();
     }
 
+	@Deprecated
     public double score(FeatureModel aModel) {
-        score = aModel.computeScore(left, right);
-        return score;
+        return aModel.computeScore(left, right);
     }
 
     @Override
@@ -72,10 +67,16 @@ public class Alignment {
         return get(size()-1);
     }
 
-    public boolean equals(Alignment other) {
-        return (other.getLeft().equals(left) &&
-                other.getRight().equals(right));
-    }
+	@Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+		if (obj.getClass() != getClass()) return false;
+
+		Alignment alignment = (Alignment) obj;
+
+		return alignment.getLeft().equals(left) &&
+		       alignment.getRight().equals(right);
+	}
 
     public Sequence getLeft() {
         return left;

@@ -29,13 +29,18 @@ public class SoundChangeApplier {
 
 	private static final String COMMENT_STRING = "%";
 
+	private static final String NORMALIZATION = "NORMALIZATION";
+	private static final String SEGMENTATION  = "SEGMENTATION";
+
 	private final FeatureModel  model;
 	private final Queue<Rule>   rules;
 
 	private final Map<String, List<Sequence>> lexicons;
 
-	private VariableStore variables;
-	private Normalizer.Form normalizerMode;
+	// Adjustable Flags (non-final)
+	private Normalizer.Form normalizerForm = Normalizer.Form.NFC; // By Default
+	private VariableStore   variables;
+	private boolean         useSegmentation;
 
 	public SoundChangeApplier() {
 		rules     = new ArrayDeque<Rule>();
@@ -49,12 +54,14 @@ public class SoundChangeApplier {
 		this(script.split("\\r?\\n"));
 	}
 
-	public SoundChangeApplier(Iterable<String> rules) throws RuleFormatException {
+	// Package-private
+	SoundChangeApplier(Iterable<String> rules) throws RuleFormatException {
 		this();
 		parse(rules);
 	}
 
-	public SoundChangeApplier(String[] array) throws RuleFormatException {
+	// Package-private
+	SoundChangeApplier(String[] array) throws RuleFormatException {
 		this();
 		Collection<String> list = new ArrayList<String>();
 		Collections.addAll(list,array);
@@ -75,14 +82,12 @@ public class SoundChangeApplier {
 		lexicons.put("DEFAULT", lexicon);
 
 		for (String item : list) {
-			lexicon.add(new Sequence(item, model, variables));
+			lexicon.add(new Sequence(item, model, variables, normalizerForm));
 		}
-
 		// Should test later if this is better than for-each
 		while (!rules.isEmpty()) {
 			rules.remove().execute(this);
 		}
-
 		return lexicon;
 	}
 
@@ -90,6 +95,7 @@ public class SoundChangeApplier {
 		for (String command : commands) {
 			if (!command.startsWith(COMMENT_STRING)) {
 				String cleanCommand = command.replaceAll(COMMENT_STRING + ".*", "");
+
 				if (cleanCommand.contains("=")) {
 					String[] commandParts = cleanCommand.trim().split("\\s+=\\s+");
 					String   key          = commandParts[0];
@@ -99,9 +105,30 @@ public class SoundChangeApplier {
 					variables.add(key, elements);
 				} else if (cleanCommand.contains(">")) {
 					rules.add(new Rule(command, variables));
+				} else if (cleanCommand.startsWith("USE ")) {
+
+					String use = cleanCommand.replaceAll("^USE ","").toUpperCase();
+
+					if (use.startsWith(NORMALIZATION)) {
+
+						use = use.replaceAll(NORMALIZATION+": ?","");
+						try
+						{
+							normalizerForm = Normalizer.Form.valueOf(use);
+						} catch (IllegalArgumentException e) {
+							LOGGER.error("Invalid Command: no such normalization mode {}", use, e);
+							throw new RuleFormatException(e.getMessage());
+						}
+
+					} else if (use.startsWith(SEGMENTATION)) {
+						use = use.replaceAll(SEGMENTATION+": ?","");
+
+					}
+
+
+
 				} else {
-					// TODO:
-					LOGGER.warn("Unreckognized Command: {}", command);
+					LOGGER.warn("Unrecognized Command: {}", command); // get rekt
 				}
 			}
 		}

@@ -22,6 +22,36 @@ import static org.junit.Assert.assertEquals;
  */
 public class SoundChangeApplierTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SoundChangeApplierTest.class);
+
+
+	@Test(expected = RuleFormatException.class)
+	public void testNormalizerBadMode() throws RuleFormatException
+	{
+		String[] commands = {"USE NORMALIZATION:XXX"};
+		new SoundChangeApplier(commands);
+	}
+
+	@Test
+	public void testNormalizerNFD() throws RuleFormatException
+	{
+		String[] commands = {"USE NORMALIZATION:NFD"};
+
+		List<String> lexicon  = new ArrayList<String>();
+		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
+
+		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
+
+		List<Sequence> sequences = soundChangeApplier.processLexicon(lexicon);
+	}
+
+	@Test
+	public void testNormalizerNFC() throws RuleFormatException {
+		String[] commands = {"USE NORMALIZATION:NFC"};
+		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
+
+
+	}
+
 	@Test
 	public void simpleRuleTest01() throws RuleFormatException
 	{

@@ -19,24 +19,24 @@ import java.util.List;
 public class Segmenter {
 
 	public static List<String> segment(CharSequence word) {
-	    return segment(word, new ArrayList<String>(), "NFC");
+	    return segment(word, new ArrayList<String>(), Normalizer.Form.NFC);
 	}
 
 	public static List<String> segment(CharSequence word, Iterable<String> keys) {
-		return segment(word, keys, "NFC");
+		return segment(word, keys, Normalizer.Form.NFC);
 	}
 
 	/**
 	 *
 	 * @param word
 	 * @param keys
-	 * @param mode should be either NFC or NFD
+	 * @param form should be either NFC or NFD
 	 * @return
 	 */
-	public static List<String> segment(CharSequence word , Iterable<String> keys, String mode) {
+	public static List<String> segment(CharSequence word , Iterable<String> keys, Normalizer.Form form) {
 		List<String>  segments = new ArrayList<String>();
 
-		String string = Normalizer.normalize(word, Normalizer.Form.valueOf(mode));
+		String string = Normalizer.normalize(word, form);
 
 		StringBuilder buffer = new StringBuilder();
 		int length = string.length();

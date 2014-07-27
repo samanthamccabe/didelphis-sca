@@ -3,6 +3,7 @@ package org.haedus.datatypes.phonetic;
 import org.apache.commons.lang3.ArrayUtils;
 import org.haedus.datatypes.Segmenter;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,12 +33,16 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence(CharSequence word) {
-		this(word, new FeatureModel(), new VariableStore());
+		this(word, new FeatureModel());
 	}
 
-	private Sequence(Collection<Segment> segments) {
-		this();
-		sequence.addAll(segments);
+	public Sequence(CharSequence word, FeatureModel featureTable) {
+		sequence = new LinkedList<Segment>();
+		features = featureTable;
+		// Split and traverse
+		for (String s : Segmenter.segment(word)) {
+			sequence.add(new Segment(s));
+		}
 	}
 
 	public Sequence(CharSequence word, FeatureModel featureTable, VariableStore variables) {
@@ -47,6 +52,20 @@ public class Sequence implements Iterable<Segment> {
 		for (String s : Segmenter.segment(word, variables.getKeys())) {
 			sequence.add(new Segment(s));
 		}
+	}
+
+	public Sequence(CharSequence word, FeatureModel featureTable, VariableStore variables, Normalizer.Form form) {
+		sequence = new LinkedList<Segment>();
+		features = featureTable;
+		// Split and traverse
+		for (String s : Segmenter.segment(word, variables.getKeys(), form)) {
+			sequence.add(new Segment(s));
+		}
+	}
+
+	private Sequence(Collection<Segment> segments) {
+		this();
+		sequence.addAll(segments);
 	}
 
 	public void add(Segment s) {

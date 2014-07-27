@@ -32,10 +32,6 @@ public class AlignCognates {
         String weightsPath  = rootPath + "feature_optimal.weights";
         String outputPath   = rootPath + "iir_aligned_optimal.csv";
 
-//        FileStream lexiconReader  = new FileStream(lexiconPath);
-//        FileStream outputWriter   = new FileStream(outputPath);
-//        String[] lexicon   = lexiconReader.read();
-
 		List<String> lexicon = FileUtils.readLines(new File(lexiconPath));
 
         FeatureModel model = new FeatureModel(featuresPath, weightsPath);
@@ -44,8 +40,6 @@ public class AlignCognates {
 		List<Alignment> alignments = alignLexicon(model, lexicon, correspondences);
 
 		FileUtils.writeLines(new File(outputPath), alignments);
-
-//        outputWriter.write(alignLexicon(model,lexicon,correspondences),"\n");
     }
 
     public static Alignment alignSequences(Sequence left, Sequence right,
