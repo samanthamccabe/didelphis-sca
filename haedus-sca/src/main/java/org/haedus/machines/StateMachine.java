@@ -26,7 +26,7 @@ public class StateMachine {
 		startNode = new Node(0);
 	}
 
-	public StateMachine(CharSequence expression, VariableStore store, boolean isForward) {
+	public StateMachine(String expression, VariableStore store, boolean isForward) {
 		variableStore = store;
 		startNode = parseCharSequence(expression, isForward);
 	}
@@ -89,7 +89,7 @@ public class StateMachine {
     }
 
     //
-	private Node parseCharSequence(CharSequence string, boolean isForward) {
+	private Node parseCharSequence(String string, boolean isForward) {
 		List<String> list = Segmenter.segment(string, variableStore.getKeys());
 
 		Node root;

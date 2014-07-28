@@ -1,6 +1,7 @@
 package org.haedus.soundchange;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
@@ -32,15 +33,16 @@ public class SoundChangeApplier {
 	private static final String NORMALIZATION = "NORMALIZATION";
 	private static final String SEGMENTATION  = "SEGMENTATION";
 
-	private final FeatureModel  model;
-	private final Queue<Rule>   rules;
+	private final FeatureModel model;
+	private final Queue<Rule>  rules;
 
 	private final Map<String, List<Sequence>> lexicons;
 
 	// Adjustable Flags (non-final)
-	private Normalizer.Form normalizerForm = Normalizer.Form.NFC; // By Default
+	private boolean         useSegmentation = true;
+	private Normalizer.Form normalizerForm  = Normalizer.Form.NFD; // By Default
 	private VariableStore   variables;
-	private boolean         useSegmentation;
+
 
 	public SoundChangeApplier() {
 		rules     = new ArrayDeque<Rule>();
@@ -49,8 +51,7 @@ public class SoundChangeApplier {
 		variables = new VariableStore();
 	}
 
-	public SoundChangeApplier(String script) throws RuleFormatException
-	{
+	public SoundChangeApplier(String script) throws RuleFormatException {
 		this(script.split("\\r?\\n"));
 	}
 
@@ -64,7 +65,7 @@ public class SoundChangeApplier {
 	SoundChangeApplier(String[] array) throws RuleFormatException {
 		this();
 		Collection<String> list = new ArrayList<String>();
-		Collections.addAll(list,array);
+		Collections.addAll(list, array);
 		parse(list);
 	}
 
@@ -82,7 +83,18 @@ public class SoundChangeApplier {
 		lexicons.put("DEFAULT", lexicon);
 
 		for (String item : list) {
-			lexicon.add(new Sequence(item, model, variables, normalizerForm));
+			String word = Normalizer.normalize(item, normalizerForm);
+
+			Sequence sequence;
+			if (useSegmentation) {
+				sequence = new Sequence(word, model, variables);
+			} else { // No Segmentation
+				sequence = new Sequence();
+				for (int i = 0; i < word.length(); i++) {
+					sequence.add(new Segment(word.substring(i, i+1)));
+				}
+			}
+			lexicon.add(sequence);
 		}
 		// Should test later if this is better than for-each
 		while (!rules.isEmpty()) {
@@ -101,36 +113,43 @@ public class SoundChangeApplier {
 					String   key          = commandParts[0];
 					String[] elements     = commandParts[1].split("\\s+");
 
+					// TODO: when parsing rules, normalization and segmentation have to be used
 					variables = new VariableStore(variables);
 					variables.add(key, elements);
 				} else if (cleanCommand.contains(">")) {
 					rules.add(new Rule(command, variables));
 				} else if (cleanCommand.startsWith("USE ")) {
-
-					String use = cleanCommand.replaceAll("^USE ","").toUpperCase();
-
+					String use = cleanCommand.replaceAll("^USE ", "").toUpperCase();
 					if (use.startsWith(NORMALIZATION)) {
-
-						use = use.replaceAll(NORMALIZATION+": ?","");
-						try
-						{
-							normalizerForm = Normalizer.Form.valueOf(use);
-						} catch (IllegalArgumentException e) {
-							LOGGER.error("Invalid Command: no such normalization mode {}", use, e);
-							throw new RuleFormatException(e.getMessage());
-						}
-
+						setNormalization(use);
 					} else if (use.startsWith(SEGMENTATION)) {
-						use = use.replaceAll(SEGMENTATION+": ?","");
-
+						setSegmentation(use);
 					}
-
-
-
 				} else {
-					LOGGER.warn("Unrecognized Command: {}", command); // get rekt
+					LOGGER.warn("Unrecognized Command: {}", command);
 				}
 			}
+		}
+	}
+
+	private void setNormalization(String use) throws RuleFormatException {
+		use = use.replaceAll(NORMALIZATION + ": *", "");
+		try {
+			normalizerForm = Normalizer.Form.valueOf(use);
+		}
+		catch (IllegalArgumentException e) {
+			throw new RuleFormatException("Invalid Command: no such normalization mode \"" + use + "\"");
+		}
+	}
+
+	private void setSegmentation(String use) throws RuleFormatException {
+		use = use.replaceAll(SEGMENTATION + ": *", "");
+		if (use.startsWith("FALSE")) {
+			useSegmentation = false;
+		} else if (use.startsWith("TRUE")) {
+			useSegmentation = true;
+		} else {
+			throw new RuleFormatException("Unrecognized segmentation mode \"" + use + "\"");
 		}
 	}
 }

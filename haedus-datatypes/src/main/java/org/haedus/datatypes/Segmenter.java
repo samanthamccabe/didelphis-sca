@@ -18,44 +18,31 @@ import java.util.List;
  */
 public class Segmenter {
 
-	public static List<String> segment(CharSequence word) {
-	    return segment(word, new ArrayList<String>(), Normalizer.Form.NFC);
+	public static List<String> segment(String word) {
+		return segment(word, new ArrayList<String>());
 	}
 
-	public static List<String> segment(CharSequence word, Iterable<String> keys) {
-		return segment(word, keys, Normalizer.Form.NFC);
-	}
-
-	/**
-	 *
-	 * @param word
-	 * @param keys
-	 * @param form should be either NFC or NFD
-	 * @return
-	 */
-	public static List<String> segment(CharSequence word , Iterable<String> keys, Normalizer.Form form) {
+	public static List<String> segment(String word , Iterable<String> keys) {
 		List<String>  segments = new ArrayList<String>();
 
-		String string = Normalizer.normalize(word, form);
-
 		StringBuilder buffer = new StringBuilder();
-		int length = string.length();
+		int length = word.length();
 		for (int i = 0; i < length; i++) {
-			String key = getBestMatch(string.substring(i), keys);
+			String key = getBestMatch(word.substring(i), keys);
 			if (i == 0) {
 				if (key.isEmpty()) {
-					buffer.append(string.charAt(0));
+					buffer.append(word.charAt(0));
 				} else {
 					buffer.append(key);
 					i += key.length() - 1;
 				}
 			} else {
-				char c = string.charAt(i);
+				char c = word.charAt(i);
 				if (isAttachable(c)) {
 					buffer.append(c);
 					if (isDoubleWidthBinder(c) && i < length - 1) {
 						i++;
-						buffer.append(string.charAt(i));
+						buffer.append(word.charAt(i));
 					}
 				} else {
 					if (key.isEmpty()) {

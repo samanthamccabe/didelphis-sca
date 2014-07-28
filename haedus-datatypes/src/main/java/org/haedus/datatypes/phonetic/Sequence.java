@@ -32,11 +32,11 @@ public class Sequence implements Iterable<Segment> {
 		features = q.getFeatures();
 	}
 
-	public Sequence(CharSequence word) {
+	public Sequence(String word) {
 		this(word, new FeatureModel());
 	}
 
-	public Sequence(CharSequence word, FeatureModel featureTable) {
+	public Sequence(String word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		features = featureTable;
 		// Split and traverse
@@ -45,20 +45,11 @@ public class Sequence implements Iterable<Segment> {
 		}
 	}
 
-	public Sequence(CharSequence word, FeatureModel featureTable, VariableStore variables) {
+	public Sequence(String word, FeatureModel featureTable, VariableStore variables) {
 		sequence = new LinkedList<Segment>();
 		features = featureTable;
 		// Split and traverse
 		for (String s : Segmenter.segment(word, variables.getKeys())) {
-			sequence.add(new Segment(s));
-		}
-	}
-
-	public Sequence(CharSequence word, FeatureModel featureTable, VariableStore variables, Normalizer.Form form) {
-		sequence = new LinkedList<Segment>();
-		features = featureTable;
-		// Split and traverse
-		for (String s : Segmenter.segment(word, variables.getKeys(), form)) {
 			sequence.add(new Segment(s));
 		}
 	}

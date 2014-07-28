@@ -39,7 +39,7 @@ public class SegmenterTest
 	@Test
 	public void testModifierLetters() {
 		List<String> expected = new ArrayList<String>();
-		List<String> received = Segmenter.segment("");
+		List<String> received = Segmenter.segment("pˠtˡtˢtˣpˤtˀpˁkʰgʱdʲtʳtʴtʵgʶkʷnʸ");
 
 		Collections.addAll(expected, "pˠ","tˡ","tˢ","tˣ","pˤ","tˀ","pˁ","kʰ","gʱ","dʲ","tʳ","tʴ","tʵ","gʶ","kʷ","nʸ");
 
