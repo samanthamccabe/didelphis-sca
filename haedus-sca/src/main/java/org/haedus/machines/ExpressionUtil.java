@@ -10,7 +10,6 @@ import java.util.Map;
  */
 public class ExpressionUtil {
 
-
 	public static String getGML(Expression root) {
 
 		StringBuilder sb = new StringBuilder("graph [");

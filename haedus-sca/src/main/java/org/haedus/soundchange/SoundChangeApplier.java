@@ -120,7 +120,6 @@ public class SoundChangeApplier {
 					String   key      = parts[0];
 					String[] elements = parts[1].split("\\s+");
 
-					// TODO: when parsing rules, normalization and segmentation have to be used
 					variables = new VariableStore(variables);
 					variables.put(key, elements, useSegmentation);
 				} else if (cleanedCommand.contains(">")) {

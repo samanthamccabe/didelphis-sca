@@ -569,14 +569,6 @@ public class ConditionTest {
 		testFalse(condition, "xc",  0);
 	}
 
-	@Test
-	public void testCompareStar01() throws RuleFormatException {
-		Condition c1 = new Condition("_ab(ab)*");
-		Condition c2 = new Condition("_(ab)*ab");
-
-
-	}
-
 	private Iterable<String> toList(String... strings) {
 		Collection<String> list = new ArrayList<String>();
 

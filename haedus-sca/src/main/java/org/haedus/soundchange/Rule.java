@@ -88,15 +88,6 @@ public class Rule {
 		return sb.toString();
 	}
 
-	private void correctDeletion() {
-		if (source.size() > target.size() && target.size() == 1) {
-			Sequence zero = target.get(0);
-			while (source.size() > target.size()) {
-				target.add(zero);
-			}
-		}
-	}
-
 	public void execute(SoundChangeApplier sca) {
 		for (List<Sequence> lexicon : sca.getLexicons()) {
 
@@ -134,26 +125,6 @@ public class Rule {
 			}
 		}
 		return output;
-	}
-
-	private int applyAndAdvance(Sequence output, int index, int i) {
-		Sequence sourceSequence = source.get(i);
-		Sequence targetSequence = target.get(i);
-
-		if (index < output.size()) {
-			Sequence subsequence = output.getSubsequence(index);
-			if (subsequence.startsWith(sourceSequence)) {
-				int size = sourceSequence.size();
-
-				if (condition.isEmpty() || condition.isMatch(output, index, index + size)) {
-					output.remove(index, index + size);
-					if (!targetSequence.equals(new Sequence("0")))
-						output.insert(targetSequence, index);
-				}
-				index = (size > 1) ? index + targetSequence.size() - 1 : index; // update based on the NEW segment
-			}
-		}
-		return index;
 	}
 
 	private List<String> toList(String string) {

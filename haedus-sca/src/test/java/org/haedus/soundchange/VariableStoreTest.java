@@ -17,7 +17,8 @@ public class VariableStoreTest {
 		vs.put("R", "r l".split(" +"));
 		vs.put("C", "p t k R".split(" +"));
 
-		String expected = "C = p t k r l\nR = r l";
+		String expected = "C = p t k r l\n" +
+		                  "R = r l";
 
 		assertEquals(expected, vs.toString());
 	}
