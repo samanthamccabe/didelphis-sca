@@ -24,12 +24,10 @@ public class VariableStore {
 	public VariableStore() {
 		model         = new FeatureModel();
 		assignmentMap = new HashMap<String, List<Sequence>>();
-//		orderedKeys   = new ArrayList<String>();
 	}
 
 	public VariableStore(VariableStore otherStore) {
 		assignmentMap = new HashMap<String, List<Sequence>>();
-//		orderedKeys   = new ArrayList<String>();
 
 		assignmentMap.putAll(otherStore.assignmentMap);
 		model = otherStore.model;
@@ -39,26 +37,40 @@ public class VariableStore {
 		return assignmentMap.get(key);
 	}
 
-	public void add(String key, Iterable<String> values) {
+	public void put(String key, Iterable<String> values, boolean useSegmentation) {
 
 		List<Sequence> expanded = new ArrayList<Sequence>();
 
 		for (String value : values) {
-			expanded.addAll(expandVariables(value));
+			expanded.addAll(expandVariables(value, useSegmentation));
 		}
 		assignmentMap.put(key,expanded);
 	}
 
-	public void add(String key, String... values) {
-		Collection<String> list = new ArrayList<String>();
-		Collections.addAll(list,values);
-		add(key,list);
+	// testing only
+	public void put(String key, String[] values) {
+		put(key, values, true);
 	}
 
-	public List<Sequence> expandVariables(String element) {
+	public void put(String key, String[] values, boolean useSegmentation) {
+		Collection<String> list = new ArrayList<String>();
+		Collections.addAll(list,values);
+		put(key, list, useSegmentation);
+	}
+
+	public List<Sequence> expandVariables(String element, boolean useSegmentation) {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
-		list.add(new Sequence(element,model,this));
+
+        if (useSegmentation) {
+            list.add(new Sequence(element, model, this));
+        } else {
+            Sequence sequence = new Sequence();
+            for (int i = 0; i < element.length(); i++) {
+                sequence.add(new Segment(element.substring(i, i+1)));
+            }
+            list.add(sequence);
+        }
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -71,7 +83,15 @@ public class VariableStore {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 
 					if (contains(symbol)) {
-						Sequence best = new Sequence(symbol,model,this);
+                        Sequence best;
+                        if (useSegmentation) {
+                             best = new Sequence(symbol, model, this);
+                        } else {
+                            best = new Sequence();
+                            for (int j = 0; j < symbol.length(); j++) {
+                                sequence.add(new Segment(symbol.substring(j, j+1)));
+                            }
+                        }
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
@@ -131,15 +151,5 @@ public class VariableStore {
 			sb.append("\n");
 		}
 		return sb.toString().trim();
-	}
-
-	public void set(String key, List<String> elements)
-	{
-		List<Sequence> expanded = new ArrayList<Sequence>();
-
-		for (String element : elements) {
-			expanded.addAll(expandVariables(element));
-		}
-		assignmentMap.put(key, expanded);
 	}
 }

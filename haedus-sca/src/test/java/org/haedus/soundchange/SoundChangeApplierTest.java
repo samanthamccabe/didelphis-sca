@@ -1,8 +1,9 @@
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +111,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -131,7 +132,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -160,7 +161,7 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -190,7 +191,7 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -211,7 +212,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -229,7 +230,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -246,16 +247,12 @@ public class SoundChangeApplierTest {
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-		List<String> words = toList(
-				"pʰapʰa"
-		                           );
-		List<String> expected = toList(
-				"bapʰa"
-		                              );
+		List<String> words    = toList("pʰapʰa");
+		List<String> expected = toList("bapʰa");
 
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -299,7 +296,7 @@ public class SoundChangeApplierTest {
 	}
 
 	private void testExpansion(VariableStore vs, String key, String terminals) {
-		assertEquals(toSequences(terminals), vs.get(key));
+		assertEquals(toSequences(terminals, new SoundChangeApplier()), vs.get(key));
 	}
 
 	@Test
@@ -522,7 +519,7 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
 	@Test
@@ -562,20 +559,79 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(list);
 
-		assertEquals(toSequences(expected), received);
+		assertEquals(toSequences(expected, sca), received);
 	}
 
-	private List<Sequence> toSequences(List<String> strings) {
+    @Test
+    public void simpleNoSegmentation() throws RuleFormatException {
+        String[] commands = {
+                "USE NORMALIZATION: NONE",
+                "USE SEGMENTATION: FALSE",
+                "ḱʰ ḱ ǵ > cʰ c ɟ",
+                "cʰs cs ɟs > ks ks ks",
+                "s > 0 / {cʰ  c  ɟ}_",
+                "tk tʰkʰ ct ɟt ck  > ks ks ɕt ɕt ɕk",
+                "tc dc tcʰ tʰcʰ > cc"
+        };
+
+        SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+        List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
+        List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
+
+        List<Sequence> received = sca.processLexicon(words);
+
+        assertEquals(toSequences(expected, sca), received);
+    }
+
+    @Test
+    public void simpleNoSegmentation01() throws RuleFormatException {
+        String[] commands = {
+                "USE NORMALIZATION: NONE",
+                "USE SEGMENTATION: FALSE",
+                "ḱ  > ɟ",
+                "ḱʰ > cʰ",
+                "ǵ  > j"
+        };
+
+        SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+        List<String> words    = toList("ruḱo", "ḱʰeh", "oḱto", "arǵos");
+        List<String> expected = toList("ruɟo", "ɟʰeh", "oɟto", "arjos");
+
+        List<Sequence> received = sca.processLexicon(words);
+
+        assertEquals(toSequences(expected, sca), received);
+    }
+
+	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
-		for (String s : strings) {
-			list.add(new Sequence(s));
+        NormalizerMode mode = sca.getNormalizerMode();
+        for (String s : strings) {
+            String s2;
+            if (mode == NormalizerMode.NONE) {
+                s2 = s;
+            } else {
+                Normalizer.Form form = Normalizer.Form.valueOf(mode.toString());
+                s2 = Normalizer.normalize(s, form);
+            }
+
+            if (sca.usesSegmentation()) {
+                list.add(new Sequence(s2));
+            } else {
+                Sequence sequence = new Sequence();
+                for (int i = 0; i < s2.length(); i++) {
+                    sequence.add(new Segment(s2.substring(i, i+1)));
+                }
+                list.add(sequence);
+            }
 		}
 		return list;
 	}
 
-	private List<Sequence> toSequences(String string) {
-		return toSequences(toList(string.split("\\s+")));
+	private List<Sequence> toSequences(String string, SoundChangeApplier sca) {
+		return toSequences(toList(string.split("\\s+")), sca);
 	}
 
 	private List<String> toList(String... strings) {

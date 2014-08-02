@@ -209,7 +209,7 @@ public class FeatureModel {
 			}
 		}
 		Segment segment = get(head);                // Initialize the segment
-		for (int j = l; j > i; j--) {               // Loop over the rest to add the diacritics.
+		for (int j = l; j > i; j--) {               // Loop over the rest to put the diacritics.
 			String slice = w.substring(i, j);
 			if (containsKey(slice)) {
 				List<Float> featureArray = getFeatureArray(slice);

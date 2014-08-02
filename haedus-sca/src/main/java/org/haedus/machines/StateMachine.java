@@ -90,6 +90,7 @@ public class StateMachine {
 
     //
 	private Node parseCharSequence(String string, boolean isForward) {
+        // TODO: alter to handle SCA config correctly.
 		List<String> list = Segmenter.segment(string, variableStore.getKeys());
 
 		Node root;

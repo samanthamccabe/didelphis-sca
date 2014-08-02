@@ -29,10 +29,10 @@ public class Rule {
 
 	public Rule(String rule) throws RuleFormatException
 	{
-		this(rule, new VariableStore());
+		this(rule, new VariableStore(), true);
 	}
 
-	public Rule(String rule, VariableStore variables) throws RuleFormatException {
+	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText = rule;
 		variableStore = variables;
 		featureModel = new FeatureModel();
@@ -55,7 +55,7 @@ public class Rule {
 			condition = new Condition();
 		}
 
-		parseTransform(transform);
+		parseTransform(transform, useSegmentation);
 	}
 
 	public List<Sequence> getTarget() {
@@ -112,7 +112,25 @@ public class Rule {
 
 		for (int index = 0; index < output.size(); index++) {
 			for (int i = 0; i < source.size(); i++) {
-				index = applyAndAdvance(output, index, i);
+                Sequence sourceSequence = source.get(i);
+                Sequence targetSequence = target.get(i);
+
+                if (index < output.size()) {
+                    Sequence subsequence = output.getSubsequence(index);
+                    if (subsequence.startsWith(sourceSequence)) {
+                        int size = sourceSequence.size();
+
+                        if (condition.isEmpty() || condition.isMatch(output, index, index + size)) {
+                            output.remove(index, index + size);
+                            if (!targetSequence.equals(new Sequence("0")))
+                                output.insert(targetSequence, index);
+                        }
+
+	                    if (i < source.size() - 1) {
+		                    index = index + 1;
+	                    }
+                    }
+                }
 			}
 		}
 		return output;
@@ -147,7 +165,7 @@ public class Rule {
 		return list;
 	}
 
-	private void parseTransform(String transform) throws RuleFormatException {
+	private void parseTransform(String transform, boolean useSegmentation) throws RuleFormatException {
 		if (transform.contains(">")) {
 			String[] array = transform.split("\\s*>\\s*");
 
@@ -160,8 +178,8 @@ public class Rule {
 				balanceTransform(s, t);
 
 				for (int i = 0; i < s.size(); i++) {
-					List<Sequence> expS = variableStore.expandVariables(s.get(i));
-					List<Sequence> expT = variableStore.expandVariables(t.get(i));
+					List<Sequence> expS = variableStore.expandVariables(s.get(i), useSegmentation);
+					List<Sequence> expT = variableStore.expandVariables(t.get(i), useSegmentation);
 
 					if (expT.size() < expS.size()) {
 						Sequence last = expT.get(expT.size() - 1);

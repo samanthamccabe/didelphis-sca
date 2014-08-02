@@ -133,10 +133,6 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_a*b");
 
-//		LOGGER.info(ExpressionUtil.getGML(condition.getPostCondition()));
-
-		LOGGER.info("\n{}",condition.getPostCondition().getGml());
-
 		assertTrue("xb", condition.isMatch(new Sequence("xb"), 0));
 		assertTrue("xab	", condition.isMatch(new Sequence("xab"), 0));
 		assertTrue("xaab", condition.isMatch(new Sequence("xaab"), 0));
@@ -150,8 +146,6 @@ public class ConditionTest {
 	public void testStar02() throws RuleFormatException {
 
 		Condition condition = new Condition("_aa*b");
-
-//		condition.getPostCondition()
 
 		assertFalse("xb", condition.isMatch(new Sequence("xb"), 0));
 		assertTrue("xab	", condition.isMatch(new Sequence("xab"), 0));
@@ -294,10 +288,6 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_(a+l(ham+b)+ra)*");
 
-//		System.out.println(condition.getPostCondition().printGraph());
-
-//		ExpressionUtil.getGML(condition.getPostCondition());
-
 		String[] positive = {
 				"xalhambra",         "xalhammmmmbra",
 				"xalhammbra",        "xalhammmmmmbra",
@@ -435,8 +425,6 @@ public class ConditionTest {
 	public void testSet04()  throws RuleFormatException {
 		Condition condition = new Condition("_{ab* cd+ ef}tr");
 
-//		LOGGER.info("\n{}",ExpressionUtil.getGML(condition.getPostCondition()));
-
 		testTrue(condition,  "xabtr", 0);
 		testTrue(condition,  "xcdtr", 0);
 		testTrue(condition,  "xeftr", 0);
@@ -455,8 +443,6 @@ public class ConditionTest {
 	@Test
 	public void testSet05()  throws RuleFormatException {
 		Condition condition = new Condition("_{ab* (cd?)+ ((ae)*f)+}tr");
-
-//		LOGGER.info(ExpressionUtil.getGML(condition.getPostCondition()));
 
 		testTrue(condition,  "xabtr",0);
 
@@ -521,7 +507,7 @@ public class ConditionTest {
 		};
 		VariableStore vs = new VariableStore();
 
-		vs.add("C", toList(terminals));
+		vs.put("C", toList(terminals), true);
 		Condition condition = new Condition("_C+#",vs);
 
 		testTrue(condition,  "abaptk",  2);

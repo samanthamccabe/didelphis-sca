@@ -14,8 +14,8 @@ public class VariableStoreTest {
 	public void testVariableExpansion01() {
 		VariableStore vs = new VariableStore();
 
-		vs.add("R", "r", "l");
-		vs.add("C", "p", "t", "k", "R");
+		vs.put("R", "r l".split(" +"));
+		vs.put("C", "p t k R".split(" +"));
 
 		String expected = "C = p t k r l\nR = r l";
 
@@ -26,10 +26,10 @@ public class VariableStoreTest {
 	public void testVariableExpansion02() {
 		VariableStore vs = new VariableStore();
 
-		vs.add("N", "n", "m");
-		vs.add("R", "r", "l");
-		vs.add("L", "R", "w", "y");
-		vs.add("C", "p", "t", "k", "L", "N");
+		vs.put("N", "n m".split(" +"));
+		vs.put("R", "r l".split(" +"));
+		vs.put("L", "R w y".split(" +"));
+		vs.put("C", "p t k L N".split(" +"));
 
 		String expected = "" +
 				"C = p t k r l w y n m\n" +
@@ -44,10 +44,10 @@ public class VariableStoreTest {
 	public void testVariableExpansion03() {
 		VariableStore vs = new VariableStore();
 
-		vs.add("C", "p", "t", "k");
-		vs.add("H", "x", "ɣ");
-		vs.add("CH", "pʰ", "tʰ", "kʰ");
-		vs.add("[CONS]", "CH", "C", "H" );
+		vs.put("C", "p t k".split(" +"));
+		vs.put("H", "x ɣ".split(" +"));
+		vs.put("CH", "pʰ tʰ kʰ".split(" +"));
+		vs.put("[CONS]", "CH C H".split(" +"));
 
 		String expected = "" +
 				"[CONS] = pʰ tʰ kʰ p t k x ɣ\n" +

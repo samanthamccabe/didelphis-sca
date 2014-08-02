@@ -122,10 +122,10 @@ public class RuleTest {
 	public void testExpansion01() throws RuleFormatException {
 		VariableStore vs = new VariableStore();
 
-		vs.add("[E]", "e ē é ê".split(SPACES));
-		vs.add("[A]", "a ā á â".split(SPACES));
+		vs.put("[E]", "e ē é ê".split(SPACES));
+		vs.put("[A]", "a ā á â".split(SPACES));
 
-		Rule rule = new Rule("[E] > [A] / {x ʕ}_", vs);
+		Rule rule = new Rule("[E] > [A] / {x ʕ}_", vs, true);
 
 		String expected = "e ē é ê > a ā á â / {x ʕ}_";
 
@@ -137,10 +137,10 @@ public class RuleTest {
 
 		VariableStore vs = new VariableStore();
 
-		vs.add("@VS", "a e i o u ə á é í ó ú".split(SPACES));
-		vs.add("@VL", "ā ē ī ō ū ə̄  â ê î ô û".split(SPACES));
+		vs.put("@VS", "a e i o u ə á é í ó ú".split(SPACES));
+		vs.put("@VL", "ā ē ī ō ū ə̄  â ê î ô û".split(SPACES));
 
-		Rule rule = new Rule("@VSī @VSū > @VLi @VLu / _{C #}", vs);
+		Rule rule = new Rule("@VSī @VSū > @VLi @VLu / _{C #}", vs, true);
 
 		String expected = "" +
 				"aī eī iī oī uī əī áī éī íī óī úī " +
@@ -178,9 +178,9 @@ public class RuleTest {
 		Sequence expected = new Sequence("blan");
 
 		VariableStore vs = new VariableStore();
-		vs.add("V", "a e i o u".split(SPACES));
+		vs.put("V", "a e i o u".split(SPACES),true);
 
-		Rule rule = new Rule("ml > bl / #_V", vs);
+		Rule rule = new Rule("ml > bl / #_V", vs, true);
 
 		assertEquals(expected, rule.apply(original));
 	}
@@ -201,25 +201,24 @@ public class RuleTest {
 		Sequence expected = new Sequence("tə̄rwe");
 
 		VariableStore vs = new VariableStore();
-		vs.add("X", "h₁ h₂ h₃ h₄".split(SPACES));
+		vs.put("X", "h₁ h₂ h₃ h₄".split(SPACES));
 
-		vs.add("A", "r l m n".split(SPACES));
-		vs.add("W", "y w".split(SPACES));
+		vs.put("A", "r l m n".split(SPACES));
+		vs.put("W", "y w".split(SPACES));
 
-		vs.add("Q", "kʷʰ kʷ gʷ".split(SPACES));
-		vs.add("K", "kʰ  k  g".split(SPACES));
-		vs.add("KY", "cʰ  c  ɟ".split(SPACES));
-		vs.add("T", "pʰ  p  b".split(SPACES));
-		vs.add("P", "tʰ  t  d".split(SPACES));
-		vs.add("[PLOSIVE]", "P T K KY Q".split(SPACES));
-		vs.add("[OBSTRUENT]", "[PLOSIVE] s".split(SPACES));
-		vs.add("C", "[OBSTRUENT] A W".split(SPACES));
+		vs.put("Q", "kʷʰ kʷ gʷ".split(SPACES));
+		vs.put("K", "kʰ  k  g".split(SPACES));
+		vs.put("KY", "cʰ  c  ɟ".split(SPACES));
+		vs.put("T", "pʰ  p  b".split(SPACES));
+		vs.put("P", "tʰ  t  d".split(SPACES));
+		vs.put("[PLOSIVE]", "P T K KY Q".split(SPACES));
+		vs.put("[OBSTRUENT]", "[PLOSIVE] s".split(SPACES));
+		vs.put("C", "[OBSTRUENT] A W".split(SPACES));
 
-		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs);
-		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs);
-		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", vs);
-		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", vs);
-
+		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, true);
+		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs, true);
+		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", vs, true);
+		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", vs, true);
 
 		Sequence sequence = rule1.apply(original);
 
@@ -228,6 +227,17 @@ public class RuleTest {
 		sequence = rule4.apply(sequence);
 
 		assertEquals(expected, sequence);
+	}
+
+	@Test
+	public void testDebug03() throws RuleFormatException {
+		Sequence original = new Sequence("pʰabopa");
+		Sequence expected = new Sequence("papoba");
+
+		Rule rule = new Rule("pʰ p b > p b p");
+
+		Sequence received = rule.apply(original);
+		assertEquals(expected, received);
 	}
 
 	/*======================================================================+
