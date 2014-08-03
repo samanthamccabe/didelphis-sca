@@ -1,0 +1,25 @@
+[E] = e ē
+[A] = a ā
+[O] = o ō
+[I] = i ī
+[U] = u ū
+
+@X = x ʔ
+N = m n
+R = r l
+A = N R
+W = j w
+
+@Q  = kʷʰ kʷ gʷ
+@K  = kʰ  k  g
+@KY = cʰ  c  ɟ
+@P  = pʰ  p  b
+@T  = tʰ  t  d
+[PLOSIVE]   = @P @T @KY @K @Q
+[OBSTRUENT] = [PLOSIVE] s
+C   = [OBSTRUENT] A W
+@VS = a e i o u ə
+@VL = ā ē ī ō ū ə̄
+@AE = [A] [E] [O]
+V   = @VS @VL
+@IU = i u;

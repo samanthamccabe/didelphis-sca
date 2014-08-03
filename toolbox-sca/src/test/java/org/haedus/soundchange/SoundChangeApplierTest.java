@@ -1,5 +1,6 @@
 package org.haedus.soundchange;
 
+import org.apache.commons.io.FileUtils;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -7,6 +8,9 @@ import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import sun.misc.IOUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -225,8 +229,23 @@ public class SoundChangeApplierTest {
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-		List<String> words = toList("epet", "epete", "et", "eto", "om", "elon", "tet");
-		List<String> expected = toList("ipet", "ipete", "it", "ito", "um", "ilon", "tet");
+		List<String> words = toList(
+				"epet",
+				"epete",
+				"et",
+				"eto",
+				"om",
+				"elon",
+				"tet");
+
+		List<String> expected = toList(
+				"ipet",
+				"ipete",
+				"it",
+				"ito",
+				"um",
+				"ilon",
+				"tet");
 
 		List<Sequence> received = sca.processLexicon(words);
 
@@ -256,33 +275,10 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testExpansion01() throws RuleFormatException {
-		String commands = "" +
-		                  "[E] = e ē\n" +
-		                  "[A] = a ā\n" +
-		                  "[O] = o ō\n" +
-		                  "[I] = i ī\n" +
-		                  "[U] = u ū\n" +
+	public void testExpansion01() throws Exception {
 
-		                  "@X = x ʔ\n" +
-		                  "N = m n\n" +
-		                  "R = r l\n" +
-		                  "A = N R\n" +
-		                  "W = j w\n" +
-
-		                  "@Q  = kʷʰ kʷ gʷ\n" +
-		                  "@K  = kʰ  k  g\n" +
-		                  "@KY = cʰ  c  ɟ\n" +
-		                  "@P  = pʰ  p  b\n" +
-		                  "@T  = tʰ  t  d\n" +
-		                  "[PLOSIVE]   = @P @T @KY @K @Q\n" +
-		                  "[OBSTRUENT] = [PLOSIVE] s\n" +
-		                  "C   = [OBSTRUENT] A W\n" +
-		                  "@VS = a e i o u ə\n" +
-		                  "@VL = ā ē ī ō ū ə̄\n" +
-		                  "@AE = [A] [E] [O]\n" +
-		                  "V   = @VS @VL \n" +
-		                  "@IU = i u";
+		Resource resource = new ClassPathResource("testExpansion01.txt");
+		String commands = FileUtils.readFileToString(resource.getFile());
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		sca.processLexicon(new ArrayList<String>());
@@ -300,198 +296,10 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void ruleTestUltra() throws RuleFormatException {
-		String commands = "" +
-		                  "y w > i u\n" +
+	public void testRuleLarge01() throws Exception {
 
-		                  "C P T K V R > k p t k a r\n" +
-
-		                  "ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û\n" +
-		                  "á  é  í  ó  ú  > á é í ó ú\n" +
-
-		                  "[E] = e ē é ê\n" +
-		                  "[A] = a ā á â\n" +
-		                  "[O] = o ō ó ô\n" +
-		                  "[I] = i ī í î\n" +
-		                  "[U] = u ū ú û\n" +
-
-		                  "X = x ʔ\n" +
-		                  "N = m n\n" +
-		                  "R = r l\n" +
-		                  "A = N R\n" +
-		                  "W = y w\n" +
-
-		                  "@Q  = kʷʰ kʷ gʷ\n" +
-		                  "@K  = kʰ  k  g\n" +
-		                  "@KY = cʰ  c  ɟ\n" +
-		                  "@P  = pʰ  p  b\n" +
-		                  "@T  = tʰ  t  d\n" +
-		                  "[PLOSIVE]   = @P @T @KY @K @Q\n" +
-		                  "[OBSTRUENT] = [PLOSIVE] s\n" +
-		                  "C   = [OBSTRUENT] A W\n" +
-		                  "@VS = a e i o u ə á é í ó ú\n" +
-		                  "@VL = ā ē ī ō ū ə̄  â ê î ô û\n" +
-		                  "@AE = [A] [E] [O]\n" +
-		                  "V   = @VS @VL \n" +
-		                  "@IU = i u í ú\n" +
-
-		                  "ʜ > ʔ\n" +
-
-		                  "% Szemerenyi's law\n" +
-		                  "@VS > @VL / _m-m#\n" +
-		                  "a e o á é ó > ā ē ō â ê ô / _{s n?t r l m}-s#\n" +
-		                  "-m > 0 / m_#\n" +
-		                  "-s > 0 / {s t r l m}_#\n" +
-
-		                  "% For correct handling of negation prefix\n" +
-		                  "n- > n̩ / #_\n" +
-
-		                  "ā́  > â\n" +
-
-		                  "ee eo oe ea ae > ē ō ō ā ā\n" +
-		                  "ée eé éo eó óe oé > ê ê ô ô ô ô\n" +
-		                  "éa eá áe aé > â â â â\n" +
-
-		                  "- > 0\n" +
-
-		                  "%%%% PHASE 01 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-		                  "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-
-		                  "h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ\n" +
-		                  "hₓ hₐ > ʔ ʕ\n" +
-
-		                  "b  d  ǵ  g  gʷ  > bʰ dʰ ǵʰ gʰ gʷʰ / _{x ɣ}\n" +
-		                  "p  t  ḱ  k  kʷ  > pʰ tʰ ḱʰ kʰ kʷʰ / _{x ɣ}\n" +
-		                  "bʰ dʰ ǵʰ gʰ gʷʰ > pʰ tʰ ḱʰ kʰ kʷʰ\n" +
-
-		                  "ḱʰ ḱ ǵ > cʰ c ɟ\n" +
-
-		                  "[E] > [A] / {x ʕ}_\n" +
-		                  "[E] > [A] / _{x ʕ}\n" +
-		                  "[E] > [O] / ɣ_\n" +
-		                  "[E] > [O] / _ɣ\n" +
-		                  "ɣ ʕ > x ʔ\n" +
-		                  "X > 0 / _X\n" +
-		                  "X > 0 / _{i y í}\n" +
-		                  "iX uX > ī ū\n" +
-
-		                  "au eu ou am em om > ā ē ō ā ē ō / _m#\n" +
-		                  "áu éu óu ám ém óm > â ê ô â ê ô / _m#\n" +
-
-		                  "%%%% PHASE 02 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-		                  "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-
-		                  "u i > w y / X?_V\n" +
-
-		                  "mr wr ml wl > br br bl bl / #_V\n" +
-
-		                  "mX nX > mə nə / #_C\n" +
-
-		                  "rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_\n" +
-
-		                  "n m > n̩ m̩ / C_#\n" +
-		                  "r l > r̩ l̩ / [OBSTRUENT]_{C #}\n" +
-		                  "m n > m̩ n̩ / [OBSTRUENT]_{C #}\n" +
-		                  "r̩ l̩ > r l / C_N{C #}\n" +
-
-		                  "n̩X m̩X > ə̄    / _C\n" +
-		                  "n̩X m̩X > ə̄n ə̄m / _{V #}\n" +
-
-		                  "n̩ m̩ > ə     / _C\n" +
-		                  "n̩ m̩ > ən əm / _{V #}\n" +
-
-		                  "r̩X l̩X > ə̄r ə̄l   / _{C #}\n" +
-		                  "r̩X l̩X > ər əl / _V\n" +
-		                  "r̩ l̩ > ər əl\n" +
-
-		                  "ə̄ > ū / {@K @Q}_\n" +
-		                  "ə > u / {@K @Q}_\n" +
-
-		                  "% LABIOVELAR SPLIT\n" +
-		                  "@Q > @K / _{[O] [U] w [OBSTRUENT]}\n" +
-		                  "@Q > @K /  {[O] [U] w [OBSTRUENT]}_\n" +
-		                  "@Q > @P\n" +
-
-		                  "%%%% PHASE 03 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-		                  "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-
-		                  "@VS > @VL / _X{C #}\n" +
-		                  "@VS > @VL / _X{[I] [U] y w}V\n" +
-		                  "@VS > @VL / _XV\n" +
-		                  "X  > 0   / @VL_{C # u}\n" +
-		                  "X  > 0   / [Obstruent]_V\n" +
-		                  "X  > 0   / VA_V\n" +
-		                  "xa xə > 0 / @VL_\n" +
-		                  "xu xo > u / @VL_\n" +
-
-		                  "ʔ > y / [E]_{[A] [O]}\n" +
-		                  "ʔ > w / [O]_{[A] [E]}\n" +
-		                  "x > w / [A]_[O]\n" +
-		                  "x > w / [O]_[A]\n" +
-
-		                  "% Desyllabification of Semivowels\n" +
-		                  "i u > y w / _VC\n" +
-		                  "iuiX uiuX > iwī uyū / C_\n" +
-
-		                  "i u > y w / #_{@IUX @AE}\n" +
-		                  "i u > y w / _@AE\n" +
-		                  "i u > y w / @AE_@VL\n" +
-
-		                  "i u > y w / {X C}_V\n" +
-		                  "y w > i u / _{C X #}\n" +
-
-		                  "@VSī @VSū > @VLi @VLu / _{C #}\n" +
-		                  "@VSī @VSū > @VLy @VLw / _V\n" +
-		                  "@VSī @VSū > @VLi @VLu / _{y w}\n" +
-
-		                  "X > ə / {# [OBSTRUENT]}_C\n" +
-		                  "X > ə / C_#\n" +
-		                  "X > ə / A_A#\n" +
-		                  "X > 0 / _{C #}\n" +
-		                  "X > 0 / C_\n" +
-		                  "ʔ  > 0 / #_\n" +
-
-		                  "iʔə uʔə > ī ū\n" +
-		                  "Xə > 0  / @VL_\n" +
-
-		                  "% GRASSMANN'S LAW\n" +
-		                  "@CH = pʰ tʰ cʰ kʰ\n" +
-		                  "@J  = b  d  ɟ  g\n" +
-		                  "@CH > @J / _R?VV?C*@CH\n" +
-
-		                  "% Consonant Clusters\n" +
-		                  "@Ks > ks\n" +
-		                  "s > 0 / @KY_\n" +
-		                  "tk tʰkʰ ct ɟt ck  > ks ks ɕt ɕt ɕk\n" +
-		                  "tc dc tcʰ tʰcʰ > cc\n" +
-
-		                  "s > 0 / _sss?\n" +
-		                  "s > 0 / _s+C\n" +
-
-		                  "oʔ@AE @AEʔo > ō ō\n" +
-		                  "ʔ > 0  / {[E] [A] [O]}_{[I] [U]}\n" +
-
-		                  "eʔe aʔa eʔa aʔe > ē ā ā ē\n" +
-		                  "éʔe áʔa éʔa áʔe > ê â â ê\n" +
-		                  "eʔé aʔá eʔá aʔá > ê â â ê\n" +
-
-		                  "@WY = @IU W\n" +
-		                  "aʔ eʔ oʔ > ā ē ō /_@WY\n" +
-		                  "áʔ éʔ óʔ > â ê ô /_@WY\n" +
-
-		                  "ēʔə êʔə   > ē ê\n" +
-		                  "ēʔe êʔ[E] > ē ê\n" +
-		                  "āʔe âʔ[E] > ā â\n" +
-		                  "āʔa âʔ[A] > ā â\n" +
-		                  "āxa âx[A] > ā â\n" +
-
-		                  "oi ōi eu ēu > ai ei au ou\n" +
-		                  "ói ôi éu êu > ái éi áu óu\n" +
-
-		                  "n m > ən əm / CCC*_V\n" +
-		                  "y w > iy uw / CCC*_V\n" +
-
-		                  "ə̄  ə > ū u   / @K_K_";
+		Resource resource = new ClassPathResource("testRuleLarge01.txt");
+		String commands = FileUtils.readFileToString(resource.getFile());
 
 		List<String> words = toList(
 				"h₂oḱ-ri-",        "bʰaḱehₐ-",

@@ -17,8 +17,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
-	public static final String SPACES = " +";
-
 	@Test
 	public void testRule01() throws RuleFormatException
 	{
@@ -122,8 +120,8 @@ public class RuleTest {
 	public void testExpansion01() throws RuleFormatException {
 		VariableStore vs = new VariableStore();
 
-		vs.put("[E]", "e ē é ê".split(SPACES));
-		vs.put("[A]", "a ā á â".split(SPACES));
+		vs.put("[E]", new String[]{ "e","ē","é","ê" });
+		vs.put("[A]", new String[]{ "a","ā","á","â" });
 
 		Rule rule = new Rule("[E] > [A] / {x ʕ}_", vs, true);
 
@@ -137,8 +135,8 @@ public class RuleTest {
 
 		VariableStore vs = new VariableStore();
 
-		vs.put("@VS", "a e i o u ə á é í ó ú".split(SPACES));
-		vs.put("@VL", "ā ē ī ō ū ə̄  â ê î ô û".split(SPACES));
+		vs.put("@VS", new String[]{ "a","e","i","o","u","ə","á","é","í","ó","ú" });
+		vs.put("@VL", new String[]{ "ā","ē","ī","ō","ū","ə̄","","â","ê","î","ô","û" });
 
 		Rule rule = new Rule("@VSī @VSū > @VLi @VLu / _{C #}", vs, true);
 
@@ -178,7 +176,7 @@ public class RuleTest {
 		Sequence expected = new Sequence("blan");
 
 		VariableStore vs = new VariableStore();
-		vs.put("V", "a e i o u".split(SPACES),true);
+		vs.put("V", new String[]{ "a e i o u" },true);
 
 		Rule rule = new Rule("ml > bl / #_V", vs, true);
 
@@ -201,19 +199,19 @@ public class RuleTest {
 		Sequence expected = new Sequence("tə̄rwe");
 
 		VariableStore vs = new VariableStore();
-		vs.put("X", "h₁ h₂ h₃ h₄".split(SPACES));
+		vs.put("X", new String[]{ "h₁ h₂ h₃ h₄"});
 
-		vs.put("A", "r l m n".split(SPACES));
-		vs.put("W", "y w".split(SPACES));
+		vs.put("A", new String[]{ "r l m n"});
+		vs.put("W", new String[]{ "y w"});
 
-		vs.put("Q", "kʷʰ kʷ gʷ".split(SPACES));
-		vs.put("K", "kʰ  k  g".split(SPACES));
-		vs.put("KY", "cʰ  c  ɟ".split(SPACES));
-		vs.put("T", "pʰ  p  b".split(SPACES));
-		vs.put("P", "tʰ  t  d".split(SPACES));
-		vs.put("[PLOSIVE]", "P T K KY Q".split(SPACES));
-		vs.put("[OBSTRUENT]", "[PLOSIVE] s".split(SPACES));
-		vs.put("C", "[OBSTRUENT] A W".split(SPACES));
+		vs.put("Q",  new String[]{ "kʷʰ kʷ gʷ" });
+		vs.put("K",  new String[]{ "kʰ  k  g" });
+		vs.put("KY", new String[]{ "cʰ  c  ɟ" });
+		vs.put("T",  new String[]{ "pʰ  p  b" });
+		vs.put("P",  new String[]{ "tʰ  t  d" });
+		vs.put("[PLOSIVE]",    new String[]{ "P T K KY Q" });
+		vs.put("[OBSTRUENT]",  new String[]{ "[PLOSIVE] s" });
+		vs.put("C",            new String[]{ "[OBSTRUENT] A W" });
 
 		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, true);
 		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs, true);
