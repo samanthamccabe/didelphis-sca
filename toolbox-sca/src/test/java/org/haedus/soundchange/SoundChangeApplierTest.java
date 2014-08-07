@@ -1,6 +1,6 @@
 package org.haedus.soundchange;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import sun.misc.IOUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -278,9 +277,11 @@ public class SoundChangeApplierTest {
 	public void testExpansion01() throws Exception {
 
 		Resource resource = new ClassPathResource("testExpansion01.txt");
-		String commands = FileUtils.readFileToString(resource.getFile());
+        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+        LOGGER.info("{}",commands);
+
+        SoundChangeApplier sca = new SoundChangeApplier(commands);
 		sca.processLexicon(new ArrayList<String>());
 
 		VariableStore vs = sca.getVariables();
@@ -299,7 +300,7 @@ public class SoundChangeApplierTest {
 	public void testRuleLarge01() throws Exception {
 
 		Resource resource = new ClassPathResource("testRuleLarge01.txt");
-		String commands = FileUtils.readFileToString(resource.getFile());
+        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
 		List<String> words = toList(
 				"h₂oḱ-ri-",        "bʰaḱehₐ-",

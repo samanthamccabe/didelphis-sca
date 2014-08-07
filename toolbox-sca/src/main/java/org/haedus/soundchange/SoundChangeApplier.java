@@ -50,7 +50,7 @@ public class SoundChangeApplier {
 	}
 
 	public SoundChangeApplier(String script) throws RuleFormatException {
-		this(script.split("\\r?\\n"));
+		this(script.split("\\s*\\r?\\n\\s*"));
 	}
 
     // Package-private: for tests only
@@ -111,7 +111,7 @@ public class SoundChangeApplier {
 
 	private void parse(Iterable<String> commands) throws RuleFormatException {
 		for (String command : commands) {
-			if (!command.startsWith(COMMENT_STRING)) {
+			if (!command.startsWith(COMMENT_STRING) && !command.isEmpty()) {
                 String trimmedCommand = command.replaceAll(COMMENT_STRING + ".*", "");
                 String cleanedCommand = normalize(trimmedCommand);
 
@@ -132,6 +132,10 @@ public class SoundChangeApplier {
 					} else if (use.startsWith(SEGMENTATION)) {
 						setSegmentation(use);
 					}
+				} else if (cleanedCommand.startsWith("RESERVE")) {
+					String reserve = cleanedCommand.replace("RESERVE: ?", "");
+
+					String[] symbols = reserve.split(" +");
 				} else {
 					LOGGER.warn("Unrecognized Command: {}", command);
 				}

@@ -122,7 +122,6 @@ public class FeatureModel {
         return featureMap.containsKey(key);
     }
 
-
     public Segment gap() {
         return get("_");
     }

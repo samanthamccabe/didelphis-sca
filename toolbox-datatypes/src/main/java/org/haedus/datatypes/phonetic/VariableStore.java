@@ -1,5 +1,8 @@
 package org.haedus.datatypes.phonetic;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +20,8 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 public class VariableStore {
+
+    private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
 	private final FeatureModel model;
 	private final Map<String, List<Sequence>> assignmentMap;
@@ -93,6 +98,7 @@ public class VariableStore {
                             }
                         }
 						for (Sequence terminal : get(best)) {
+                            LOGGER.info("Replacing {} with {} in {}", best, terminal, sequence);
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
 					}
