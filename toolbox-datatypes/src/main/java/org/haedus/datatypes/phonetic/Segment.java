@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author Samuel McCabe, Haedus FC
+ * @author 
  */
 public class Segment {
 
@@ -50,25 +50,23 @@ public class Segment {
 
 	public boolean equals(Object obj) {
 
-		if (obj == null)                        return false;
-		if (!getClass().equals(obj.getClass())) return false;
+		if (obj == null)                  return false;
+		if (getClass() != obj.getClass()) return false;
 
 		Segment object = (Segment) obj;
 
-		return getSymbol().equals(object.getSymbol()) &&
-			   getFeatures().equals(object.getFeatures());
+		return symbol.equals(object.symbol) &&
+			   features.equals(object.features);
 	}
 
     public int hashCode() {
-        int hashCode = 29217;
+        int hashCode = 19;
 
 	    for (int i = 0; i < features.size(); i++) {
-		    double number = (Math.pow(features.get(i), i + 1) + 1) * 7;
-		    hashCode += number;
+		    double number = (i + 1) * features.get(i);
+		    hashCode *= number;
 	    }
-	    hashCode += symbol.hashCode() * 23 + 1;
-
-        return hashCode ;
+        return hashCode * symbol.hashCode() * 23 - 1;
     }
 
 	public String getSymbol() {

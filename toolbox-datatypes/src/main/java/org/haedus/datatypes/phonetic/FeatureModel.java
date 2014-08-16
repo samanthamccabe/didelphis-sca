@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Haedus FC 2012
@@ -67,19 +68,45 @@ public class FeatureModel {
 		}
     }
 
+    public Set<String> getSymbols() {
+    	return featureMap.keySet();
+    }
+    
+	public void addSegment(String symbol, List<Float> features) {
+		featureMap.put(symbol, features);
+	}
+
+	public void addSegment(String symbol) {
+		addSegment(symbol, new ArrayList<Float>());
+	}
+	
+	@Override
+	public String toString() {
+		return featureMap.toString();
+	}
+	
 	@Override
 	public int hashCode() {
-		return 7543 * featureMap.hashCode() * weightTable.hashCode();
+		int code = 7543;
+		if (featureMap != null) {
+			code *= featureMap.hashCode();
+		}
+		if (weightTable != null) {
+			code *= weightTable.hashCode();
+		}
+		return code;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) return false;
+		if (obj == null)                  return false;
 		if (obj.getClass() != getClass()) return false;
 
 		FeatureModel other = (FeatureModel) obj;
 
-		return featureMap.equals(other.getFeatureMap()) && weightTable.equals(other.getWeights());
+		boolean featureEquals = featureMap.equals(other.featureMap);
+		boolean weightsEquals = weightTable.equals(other.weightTable);
+		return featureEquals && weightsEquals;
 	}
 
     public float computeScore(Alignment alignment) {
@@ -112,6 +139,7 @@ public class FeatureModel {
         return score;
     }
 
+    @Deprecated
 	public float computeScore(String l, String r) {
 		Sequence left  = new Sequence(l);
 		Sequence right = new Sequence(r);

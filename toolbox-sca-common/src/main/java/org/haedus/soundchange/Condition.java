@@ -1,5 +1,6 @@
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -18,6 +19,7 @@ public class Condition {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
+	private final FeatureModel  featureModel;
 	private final String        conditionText;
 	private final StateMachine  preCondition;
 	private final StateMachine  postCondition;
@@ -28,6 +30,7 @@ public class Condition {
 		preCondition  = new StateMachine();
 		postCondition = new StateMachine();
 		variableStore = new VariableStore();
+		featureModel  = new FeatureModel();
 	}
 
 	public Condition(String condition) throws RuleFormatException
@@ -35,16 +38,18 @@ public class Condition {
 		this(condition, new VariableStore());
 	}
 
-	public Condition(String condition, VariableStore variables) throws RuleFormatException {
+	public Condition(String condition, VariableStore variables, FeatureModel model) throws RuleFormatException {
 		condition = cleanup(condition);
 		conditionText = condition;
 		variableStore = variables;
+		featureModel  = model;		
 
 		if (condition.contains("_")) {
 			String[] conditions = condition.split("_");
 			if (conditions.length == 1) {
 				preCondition  = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine();
+
 			} else if (conditions.length == 2) {
 				preCondition  = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine(conditions[1], variableStore, true);
@@ -56,7 +61,11 @@ public class Condition {
 			}
 		} else {
 			throw new RuleFormatException("Malformed Condition, no _ character");
-		}
+		}		
+	}
+
+	public Condition(String condition, VariableStore variables) throws RuleFormatException {
+		this(condition, variables, new FeatureModel());
 	}
 
 	@Override
@@ -90,9 +99,10 @@ public class Condition {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 
-			head.addFirst(new Segment("#"));
-			tail.add(new Segment("#"));
-
+//			head.addFirst(new Segment("#"));
+//			tail.add(new Segment("#"));
+			// The above is currently handled within the matches() call
+			
 			preconditionMatch = preCondition.matches(head.getReverseSequence());
 			postconditionMatch = postCondition.matches(tail);
 		}

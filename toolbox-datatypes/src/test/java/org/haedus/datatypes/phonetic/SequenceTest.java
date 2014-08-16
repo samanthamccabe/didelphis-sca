@@ -6,12 +6,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * User: goats
- * Date: 4/5/13
- * Time: 11:20 PM
- * To change this template use File | Settings | File Templates.
- */
 public class SequenceTest {
 
 	@Test
@@ -192,7 +186,8 @@ public class SequenceTest {
 		Sequence sequence = new Sequence("abcdefghijk");
 		Sequence expected = new Sequence("cdefghijk");
 
-		Sequence received = sequence.copy();
+//		Sequence received = sequence.copy();
+		Sequence received = new Sequence(sequence);
 		Sequence removed = received.remove(0, 2);
 
 		assertEquals(expected, received);
@@ -204,7 +199,7 @@ public class SequenceTest {
 		Sequence sequence = new Sequence("abcdefghijk");
 		Sequence expected = new Sequence("defghijk");
 
-		Sequence received = sequence.copy();
+		Sequence received = new Sequence(sequence);
 		Sequence removed = received.remove(0, 3);
 
 		assertEquals(expected, received);
@@ -216,7 +211,7 @@ public class SequenceTest {
 		Sequence sequence = new Sequence("abcdefghijk");
 		Sequence expected = new Sequence("adefghijk");
 
-		Sequence received = sequence.copy();
+		Sequence received = new Sequence(sequence);
 		Sequence removed = received.remove(1, 3);
 
 		assertEquals(expected, received);
@@ -228,7 +223,7 @@ public class SequenceTest {
 		Sequence sequence = new Sequence("abcdefghijk");
 		Sequence expected = new Sequence("abcghijk");
 
-		Sequence received = sequence.copy();
+		Sequence received = new Sequence(sequence);
 		Sequence removed = received.remove(3, 6);
 
 		assertEquals(expected, received);
@@ -240,7 +235,7 @@ public class SequenceTest {
 		Sequence sequence = new Sequence("abcdefghijk");
 		Sequence expected = new Sequence("abcdhijk");
 
-		Sequence received = sequence.copy();
+		Sequence received = new Sequence(sequence);
 		Sequence removed = received.remove(4, 7);
 
 		assertEquals(expected, received);

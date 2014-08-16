@@ -1,5 +1,6 @@
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.Segmenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,32 +25,34 @@ public class VariableStore {
     private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
 	private final FeatureModel model;
-	private final Map<String, List<Sequence>> assignmentMap;
+	private final Map<String, List<Sequence>> variables;
 
 	public VariableStore() {
-		model         = new FeatureModel();
-		assignmentMap = new HashMap<String, List<Sequence>>();
+		model     = new FeatureModel();
+		variables = new HashMap<String, List<Sequence>>();
 	}
 
+	public VariableStore(FeatureModel featureModel) {
+		model     = featureModel;
+		variables = new HashMap<String, List<Sequence>>();
+	}
+	
 	public VariableStore(VariableStore otherStore) {
-		assignmentMap = new HashMap<String, List<Sequence>>();
-
-		assignmentMap.putAll(otherStore.assignmentMap);
+		variables = new HashMap<String, List<Sequence>>();
+		variables.putAll(otherStore.variables);
 		model = otherStore.model;
 	}
 
 	public List<Sequence> get(String key) {
-		return assignmentMap.get(key);
+		return variables.get(key);
 	}
 
 	public void put(String key, Iterable<String> values, boolean useSegmentation) {
-
 		List<Sequence> expanded = new ArrayList<Sequence>();
-
 		for (String value : values) {
 			expanded.addAll(expandVariables(value, useSegmentation));
 		}
-		assignmentMap.put(key,expanded);
+		variables.put(key,expanded);
 	}
 
 	// testing only
@@ -68,37 +71,29 @@ public class VariableStore {
 		List<Sequence> swap = new ArrayList<Sequence>();
 
         if (useSegmentation) {
-            list.add(new Sequence(element, model, this));
+        	Sequence sequence = Segmenter.getSequence(element, model, this);
+        	list.add(sequence);
         } else {
-            Sequence sequence = new Sequence();
-            for (int i = 0; i < element.length(); i++) {
-                sequence.add(new Segment(element.substring(i, i+1)));
-            }
-            list.add(sequence);
+        	// TODO: except, this contains model too...
+        	Sequence sequence = Segmenter.getSequenceNaively(element, model, this);
+        	list.add(sequence);
         }
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
 		while (wasModified) {
 			wasModified = false;
-
 			for (Sequence sequence : list) {
 				for (int i = 0; i < sequence.size(); i++) {
-
 					String symbol = getBestMatch(sequence.getSubsequence(i));
-
 					if (contains(symbol)) {
                         Sequence best;
                         if (useSegmentation) {
-                             best = new Sequence(symbol, model, this);
+                        	best = Segmenter.getSequence(symbol, model, this);
                         } else {
-                            best = new Sequence();
-                            for (int j = 0; j < symbol.length(); j++) {
-                                sequence.add(new Segment(symbol.substring(j, j+1)));
-                            }
+                        	best = Segmenter.getSequenceNaively(symbol, model, this);
                         }
 						for (Sequence terminal : get(best)) {
-                            LOGGER.info("Replacing {} with {} in {}", best, terminal, sequence);
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
 					}
@@ -124,10 +119,10 @@ public class VariableStore {
 	}
 
 	public Set<String> getKeys() {
-		if (assignmentMap.isEmpty()) {
+		if (variables.isEmpty()) {
 			return new HashSet<String>();
 		} else {
-			return assignmentMap.keySet();
+			return variables.keySet();
 		}
 	}
 
@@ -136,7 +131,7 @@ public class VariableStore {
 	}
 
 	public boolean contains(String symbol) {
-		return assignmentMap.containsKey(symbol);
+		return variables.containsKey(symbol);
 	}
 
 	public boolean contains(Sequence symbol) {
@@ -147,7 +142,7 @@ public class VariableStore {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		for (Map.Entry<String, List<Sequence>> entry : assignmentMap.entrySet()) {
+		for (Map.Entry<String, List<Sequence>> entry : variables.entrySet()) {
 			sb.append(entry.getKey());
 			sb.append(" =");
 			for (Sequence sequence : entry.getValue()) {

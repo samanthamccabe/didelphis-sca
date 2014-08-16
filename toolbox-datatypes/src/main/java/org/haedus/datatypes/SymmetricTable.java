@@ -76,7 +76,7 @@ public class SymmetricTable<T> {
 		if (obj == null) return false;
 		if (obj.getClass() != getClass()) return false;
 
-		SymmetricTable other = (SymmetricTable) obj;
+		SymmetricTable<?> other = (SymmetricTable<?>) obj;
 
 		return (dimension == other.getDimension()) &&  array.equals(other.getArray());
     }
@@ -88,14 +88,11 @@ public class SymmetricTable<T> {
 
     @Override
     public int hashCode() {
-		int tableHash = 0;
+		int hashCode = 33;
 		for (int i = 0; i < array.size(); i++) {
-			int factor = dimension * (i + 1);
-			tableHash += factor * array.get(i).hashCode();
+			hashCode += array.get(i).hashCode() + i;
 		}
-		int hashCode = (tableHash * 837);
-		hashCode += dimension * 43;
-		return hashCode;
+		return hashCode * dimension;
 	}
 
     public int getDimension() {

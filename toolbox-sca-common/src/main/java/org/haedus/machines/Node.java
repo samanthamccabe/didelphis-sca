@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -38,13 +39,32 @@ public class Node {
 
 	@Override
 	public boolean equals(Object obj) {
-		boolean equal = obj.getClass().equals(getClass());
-		return equal && obj.hashCode() == hashCode();
+		if (obj == null) return false;
+		if (obj.getClass().equals(getClass())) return false;
+
+		Node other = (Node) obj;
+		
+		return other.id == id && arcs.equals(other.arcs);
 	}
 
 	@Override
 	public String toString() {
-		return super.toString();
+		StringBuilder sb = new StringBuilder("Node " + id + "\n");
+		
+		for (Entry<Sequence, List<Node>> entry : arcs.entrySet()) {
+			Sequence   key   = entry.getKey();
+			List<Node> value = entry.getValue();
+			
+			sb.append(key);
+			sb.append(" > [ ");
+			for (Node n : value) {
+				sb.append(n.id);
+				sb.append(" ");
+			}
+			sb.append("]");
+		}
+		
+		return sb.toString();
 	}
 
 	@Override

@@ -5,23 +5,65 @@
 
 package org.haedus.datatypes;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Segment;
+import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.VariableStore;
+
 /**
  * Segmenter provides functionality to split strings into an an array where each element
- * represents a series of characters grouped according to their functional value as diacritic
+ * represents a series of characters grouped according to their functional value as diacritical
  * marks or combining marks.
- * @author Goats
+ * @author 
  */
 public class Segmenter {
 
+	public static Sequence getSequenceNaively(String word , FeatureModel model, VariableStore variables) {
+		List<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+		
+		List<String> list = segmentNaively(word, keys);
+		
+		return new Sequence(list, model);
+	}
+	
+	public static List<String> segmentNaively(String word, Iterable<String> keys) {
+		List<String> segments = new ArrayList<String>();
+		for (int i = 0; i < word.length(); i++) {
+
+			String key = getBestMatch(word.substring(i), keys);
+
+			if (key.isEmpty()) {
+				segments.add(word.substring(i,i+1));					
+			} else {
+				segments.add(key);
+				i = i + key.length() - 1;
+			}
+		}
+		return segments;
+	}
+
+	@Deprecated
 	public static List<String> segment(String word) {
 		return segment(word, new ArrayList<String>());
 	}
 
+	public static Sequence getSequence(String word , FeatureModel model, VariableStore variables) {
+		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
+		List<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+		
+		List<String> list = segment(word, keys);
+		
+		return new Sequence(list, model);
+	}
+	
 	public static List<String> segment(String word , Iterable<String> keys) {
 		List<String>  segments = new ArrayList<String>();
 

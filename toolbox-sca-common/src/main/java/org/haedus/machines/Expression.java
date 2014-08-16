@@ -55,10 +55,8 @@ public class Expression {
 
 	public Expression(List<String> list, Expression sibling, boolean repeatable, boolean optional) {
 		subexpressions = parse(new LinkedList<String>(list));
-//		rightSibling = sibling;
 
-		segment = new Segment();
-
+		segment    = new Segment();
 		isNegative = false;
 		isParallel = false;
 		isRepeatable = repeatable;
@@ -131,7 +129,6 @@ public class Expression {
 						// Avoids redundant nodes
 						if (subExpressions.size() == 1) {
 							Expression expression = subExpressions.get(0);
-//							expression.setRightSibling(lastSibling);
 							bracketed.add(expression);
 							lastSibling = expression;
 						} else {

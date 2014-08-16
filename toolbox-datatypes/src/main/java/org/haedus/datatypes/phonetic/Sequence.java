@@ -3,7 +3,6 @@ package org.haedus.datatypes.phonetic;
 import org.apache.commons.lang3.ArrayUtils;
 import org.haedus.datatypes.Segmenter;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,11 +30,13 @@ public class Sequence implements Iterable<Segment> {
 		sequence = new ArrayList<Segment>(q.getSegments());
 		features = q.getFeatures();
 	}
-
+	
+	@Deprecated
 	public Sequence(String word) {
 		this(word, new FeatureModel());
 	}
 
+	@Deprecated
 	public Sequence(String word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		features = featureTable;
@@ -44,19 +45,19 @@ public class Sequence implements Iterable<Segment> {
 			sequence.add(new Segment(s));
 		}
 	}
-
-	public Sequence(String word, FeatureModel featureTable, VariableStore variables) {
+	
+	public Sequence(List<String> word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		features = featureTable;
-		// Split and traverse
-		for (String s : Segmenter.segment(word, variables.getKeys())) {
-			sequence.add(new Segment(s));
+		
+		for (String element : word) {
+			sequence.add(new Segment(element, features.getValue(element)));
 		}
 	}
 
-	private Sequence(Collection<Segment> segments) {
-		this();
-		sequence.addAll(segments);
+	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {
+		sequence = new LinkedList<Segment>(segments);
+		features = featureTable;
 	}
 
 	public void add(Segment s) {
@@ -116,13 +117,8 @@ public class Sequence implements Iterable<Segment> {
 		return sequence.size();
 	}
 
-	public Sequence copy() {
-		return new Sequence(sequence);
-	}
-
 	public Sequence getSubsequence(int i) {
-		int endIndex = sequence.size();
-		return getSubsequence(i, endIndex);
+		return getSubsequence(i, sequence.size());
 	}
 
 	/**
@@ -136,7 +132,7 @@ public class Sequence implements Iterable<Segment> {
 
 		int index = (k <= size()) ? k : size();
 
-		return new Sequence(sequence.subList(i, index));
+		return new Sequence(sequence.subList(i, index), features);
 	}
 
 	public int indexOf(Segment s) {
@@ -202,7 +198,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence replaceFirst(Sequence source, Sequence target) {
-		Sequence result = copy();
+		Sequence result = new Sequence(this);
 		int index = result.indexOf(source);
 		result.remove(index, index + source.size());
 		result.insert(target, index);
@@ -211,7 +207,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence replaceAll(Sequence source, Sequence target) {
-		Sequence result = copy();
+		Sequence result = new Sequence(this);
 
 		int index = result.indexOf(source);
 
@@ -233,9 +229,9 @@ public class Sequence implements Iterable<Segment> {
 
 	@Override
 	public int hashCode() {
-		int hash = 7741;
+		int hash = 23;
 		for (Segment segment : sequence) {
-			hash = hash * 31 + segment.hashCode() + 3;
+			hash *= segment.hashCode() + 1;
 		}
 		return hash;
 	}
@@ -248,8 +244,10 @@ public class Sequence implements Iterable<Segment> {
 
 		Sequence object = (Sequence) obj;
 
-		return sequence.equals(object.getSegments()) &&
-			   features.equals(object.getFeatures());
+		boolean sequenceEquals = sequence.equals(object.sequence);
+		boolean featuresEquals = features.equals(object.features);
+		return sequenceEquals &&
+			   featuresEquals;
 	}
 
 	public boolean isEmpty() {

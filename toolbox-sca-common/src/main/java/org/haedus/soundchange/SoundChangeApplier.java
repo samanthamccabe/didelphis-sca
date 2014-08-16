@@ -1,5 +1,6 @@
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -35,7 +36,8 @@ public class SoundChangeApplier {
 	private final FeatureModel model;
 	private final Queue<Rule>  rules;
 
-	private final Map<String, List<Sequence>> lexicons;
+	private final Map<String, List<Sequence>> lexicons;    // Key: File-Handle; Value: List of Words
+//	private final Map<String, String>         outputPaths; // Key: File-Handle; Value: File Path 
 
 	// Adjustable Flags (non-final), with defaults
 	private boolean        useSegmentation = true;
@@ -46,11 +48,11 @@ public class SoundChangeApplier {
 		rules     = new ArrayDeque<Rule>();
 		model     = new FeatureModel();
 		lexicons  = new HashMap<String, List<Sequence>>();
-		variables = new VariableStore();
+		variables = new VariableStore(model); // TODO: indicative of excess coupling
 	}
 
 	public SoundChangeApplier(String script) throws RuleFormatException {
-		this(script.split("\\s*\\r?\\n\\s*"));
+		this(script.split("\\s*\\r?\\n\\s*")); // Splits newlines and removes padding whitespace
 	}
 
     // Package-private: for tests only
@@ -67,6 +69,11 @@ public class SoundChangeApplier {
 		parse(list);
 	}
 
+	// Package-private, testing only
+	FeatureModel getFeatureModel() {
+		return model;
+	}
+	
 	public VariableStore getVariables() {
 		return variables;
 	}
@@ -87,18 +94,13 @@ public class SoundChangeApplier {
 
 		List<Sequence> lexicon = new ArrayList<Sequence>();
 		lexicons.put("DEFAULT", lexicon);
-
 		for (String item : list) {
 			String word = normalize(item);
-
 			Sequence sequence;
 			if (useSegmentation) {
-				sequence = new Sequence(word, model, variables);
-			} else { // No Segmentation
-				sequence = new Sequence();
-				for (int i = 0; i < word.length(); i++) {
-					sequence.add(new Segment(word.substring(i, i+1)));
-				}
+				sequence = Segmenter.getSequence(word, model, variables);
+			} else {
+				sequence = Segmenter.getSequenceNaively(word, model, variables);
 			}
 			lexicon.add(sequence);
 		}
@@ -119,13 +121,11 @@ public class SoundChangeApplier {
 					String[] parts    = cleanedCommand.trim().split("\\s+=\\s+");
 					String   key      = parts[0];
 					String[] elements = parts[1].split("\\s+");
-
 					variables = new VariableStore(variables);
 					variables.put(key, elements, useSegmentation);
 				} else if (cleanedCommand.contains(">")) {
 					rules.add(new Rule(cleanedCommand, variables, useSegmentation));
 				} else if (cleanedCommand.startsWith("USE ")) {
-
 					String use = cleanedCommand.replaceAll("^USE ", "").toUpperCase();
 					if (use.startsWith(NORMALIZATION)) {
 						setNormalization(use);
@@ -133,9 +133,13 @@ public class SoundChangeApplier {
 						setSegmentation(use);
 					}
 				} else if (cleanedCommand.startsWith("RESERVE")) {
-					String reserve = cleanedCommand.replace("RESERVE: ?", "");
-
+					String reserve = cleanedCommand.replaceAll("RESERVE:? *", "");
 					String[] symbols = reserve.split(" +");
+
+					for (int i = 0; i < symbols.length; i++) {
+						String symbol = symbols[i];
+						model.addSegment(symbol);
+					}
 				} else {
 					LOGGER.warn("Unrecognized Command: {}", command);
 				}
@@ -153,7 +157,6 @@ public class SoundChangeApplier {
 
 	private void setNormalization(String command) throws RuleFormatException {
 		String mode = command.replaceAll(NORMALIZATION + ": *", "");
-
          try {
              normalizerMode = NormalizerMode.valueOf(mode);
          } catch (IllegalArgumentException e) {
@@ -163,7 +166,6 @@ public class SoundChangeApplier {
 
 	private void setSegmentation(String command) throws RuleFormatException {
 		String mode = command.replaceAll(SEGMENTATION + ": *", "");
-
 		if (mode.startsWith("FALSE")) {
 			useSegmentation = false;
 		} else if (mode.startsWith("TRUE")) {

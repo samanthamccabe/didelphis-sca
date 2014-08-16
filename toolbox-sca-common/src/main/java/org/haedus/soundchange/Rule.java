@@ -24,7 +24,7 @@ public class Rule {
 	private final List<Sequence> source;
 	private final List<Sequence> target;
 	private final Condition      condition;
-	private final VariableStore variableStore;
+	private final VariableStore  variableStore;
 	private final FeatureModel   featureModel;
 
 	public Rule(String rule) throws RuleFormatException
@@ -32,30 +32,32 @@ public class Rule {
 		this(rule, new VariableStore(), true);
 	}
 
-	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText = rule;
+	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		ruleText      = rule;
 		variableStore = variables;
-		featureModel = new FeatureModel();
-		source = new ArrayList<Sequence>();
-		target = new ArrayList<Sequence>();
+		featureModel  = new FeatureModel();
+		source        = new ArrayList<Sequence>();
+		target        = new ArrayList<Sequence>();
 
 		String transform;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
 			String[] array = ruleText.split("/");
-
 			if (array.length <= 1) {
 				throw new RuleFormatException("Condition was empty!");
 			} else {
 				transform = array[0].trim();
-				condition = new Condition(array[1].trim(), variableStore);
+				condition = new Condition(array[1].trim(), variableStore, model);
 			}
 		} else {
 			transform = ruleText;
 			condition = new Condition();
 		}
-
 		parseTransform(transform, useSegmentation);
+	}
+
+	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		this(rule, new FeatureModel(), variables, useSegmentation);
 	}
 
 	public List<Sequence> getTarget() {
@@ -74,14 +76,11 @@ public class Rule {
 			sb.append(sequence.toStringClean());
 			sb.append(" ");
 		}
-
 		sb.append("> ");
-
 		for (Sequence sequence : getTarget()) {
 			sb.append(sequence.toStringClean());
 			sb.append(" ");
 		}
-
 		sb.append("/ ");
 		sb.append(condition.toString());
 
@@ -99,15 +98,19 @@ public class Rule {
 	}
 
 	public Sequence apply(Sequence input) {
-		Sequence output = input.copy();
+//		Sequence output = input.copy();
+		Sequence output = new Sequence(input);
 
+		assert(output.equals(input));
+		
 		for (int index = 0; index < output.size(); index++) {
+			
 			for (int i = 0; i < source.size(); i++) {
                 Sequence sourceSequence = source.get(i);
                 Sequence targetSequence = target.get(i);
 
                 if (index < output.size()) {
-                    Sequence subsequence = output.getSubsequence(index);
+                	Sequence subsequence = output.getSubsequence(index);        
                     if (subsequence.startsWith(sourceSequence)) {
                         int size = sourceSequence.size();
 
@@ -116,7 +119,6 @@ public class Rule {
                             if (!targetSequence.equals(new Sequence("0")))
                                 output.insert(targetSequence, index);
                         }
-
 	                    if (i < source.size() - 1) {
 		                    index = index + 1;
 	                    }
@@ -149,17 +151,17 @@ public class Rule {
 				balanceTransform(s, t);
 
 				for (int i = 0; i < s.size(); i++) {
-					List<Sequence> expS = variableStore.expandVariables(s.get(i), useSegmentation);
-					List<Sequence> expT = variableStore.expandVariables(t.get(i), useSegmentation);
+					List<Sequence> expandedSource = variableStore.expandVariables(s.get(i), useSegmentation);
+					List<Sequence> expandedTarget = variableStore.expandVariables(t.get(i), useSegmentation);
 
-					if (expT.size() < expS.size()) {
-						Sequence last = expT.get(expT.size() - 1);
-						while (expT.size() < expS.size()) {
-							expT.add(last);
+					if (expandedTarget.size() < expandedSource.size()) {
+						Sequence last = expandedTarget.get(expandedTarget.size() - 1);
+						while (expandedTarget.size() < expandedSource.size()) {
+							expandedTarget.add(last);
 						}
 					}
-					source.addAll(expS);
-					target.addAll(expT);
+					source.addAll(expandedSource);
+					target.addAll(expandedTarget);
 				}
 			}
 		} else {
@@ -169,7 +171,7 @@ public class Rule {
 
 	private void balanceTransform(List<String> s, List<String> t) throws RuleFormatException {
 		if (t.size() > s.size()) {
-			throw new RuleFormatException("Source/Target size error! " + s + " > " + t);
+			throw new RuleFormatException("Source/Target size error! " + s + " < " + t);
 		}
 
 		if (t.size() < s.size()) {
@@ -179,7 +181,7 @@ public class Rule {
 					t.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Source/Target size error! " + s + " > " + t);
+				throw new RuleFormatException("Source/Target size error! " + s + " > " + t + " and target size is greater than 1!");
 			}
 		}
 	}

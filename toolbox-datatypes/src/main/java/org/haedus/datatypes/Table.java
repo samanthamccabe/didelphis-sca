@@ -110,7 +110,7 @@ public class Table<T> {
 		if (obj == null) return false;
 		if (obj.getClass() != getClass()) return false;
 
-		Table other = (Table) obj;
+		Table<?> other = (Table<?>) obj;
 
 		return (numberOfColumns == other.getNumberOfColumns()) &&
 				numberOfRows == other.getNumberRows() &&
@@ -124,14 +124,11 @@ public class Table<T> {
 
 	@Override
 	public int hashCode() {
-		int tableHash = 0;
+		int hashCode = 33;
 		for (int i = 0; i < table.size(); i++) {
-			int factor = (int) Math.pow(i, i) - 1;
-			tableHash += factor * table.get(i).hashCode();
+			hashCode += table.get(i).hashCode() + i;
 		}
-		int hashCode = (tableHash * 837);
-		hashCode += (int) Math.pow(numberOfColumns, numberOfRows) * 31;
-		return hashCode;
+		return hashCode * numberOfColumns * numberOfRows * 31;
 	}
 
 	public int getNumberRows() {

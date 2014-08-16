@@ -145,7 +145,6 @@ public class ExpressionTest {
 		List<String> segments = Segmenter.segment(original);
 		Expression expression = new Expression(segments);
 		String s = removeParentheses(expression);
-		LOGGER.info(s);
 		assertEquals(expected, s);
 	}
 

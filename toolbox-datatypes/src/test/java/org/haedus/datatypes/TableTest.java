@@ -4,14 +4,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Class TableTest
- * <p/>
- * Description:
- *
- * <p/>
- * Created: 09/19/2013
- */
 public class TableTest
 {
 

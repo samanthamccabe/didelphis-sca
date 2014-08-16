@@ -8,7 +8,7 @@
 
 	<modules>
 		<module>toolbox-datatypes</module>
-		<module>toolbox-sca</module>
+		<module>toolbox-sca-common</module>
 	</modules>
 
 	<packaging>pom</packaging>

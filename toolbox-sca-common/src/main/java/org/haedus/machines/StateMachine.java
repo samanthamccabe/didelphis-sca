@@ -1,5 +1,6 @@
 package org.haedus.machines;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -7,6 +8,7 @@ import org.haedus.datatypes.phonetic.VariableStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,17 +20,25 @@ public class StateMachine {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	private final Node startNode;
+	private final Node          startNode;
 	private final VariableStore variableStore;
+	private final FeatureModel  featureModel;
 
 	public StateMachine() {
 		variableStore = new VariableStore();
-		startNode = new Node(0);
+		startNode     = new Node(0);
+		featureModel  = new FeatureModel();
+	}
+
+	public StateMachine(String expression, VariableStore store, FeatureModel model, boolean isForward) {
+		variableStore = store;
+		featureModel  = model;
+		
+		startNode = parseCharSequence(expression, isForward);
 	}
 
 	public StateMachine(String expression, VariableStore store, boolean isForward) {
-		variableStore = store;
-		startNode = parseCharSequence(expression, isForward);
+		this(expression, store, new FeatureModel(), isForward);
 	}
 
     // Determines if the Sequence is accepted by this machine
@@ -72,7 +82,6 @@ public class StateMachine {
 
         for (Sequence symbol : currentNode.getKeys()) {
             for (Node nextNode : currentNode.getNodes(symbol)) {
-
                 if (variableStore.contains(symbol)) {
                     for (Sequence s : variableStore.get(symbol)) {
                         if (tail.startsWith(s)) {
@@ -90,8 +99,14 @@ public class StateMachine {
 
     //
 	private Node parseCharSequence(String string, boolean isForward) {
-        // TODO: alter to handle SCA config correctly.
-		List<String> list = Segmenter.segment(string, variableStore.getKeys());
+		// TODO: segmenter just takes a list of reserved symbols
+		// so we can add the variable keys to the segments defined in the feature model
+		Collection<String> keys = new ArrayList<String>();
+		
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(featureModel.getSymbols());
+		
+		List<String> list = Segmenter.segment(string, keys);
 
 		Node root;
 		if (list.isEmpty()) {
@@ -201,6 +216,16 @@ public class StateMachine {
 
 		public Node getNode() {
 			return node;
+		}
+		
+		@Override
+		public String toString() {
+			return "<" + index + ", " + node.getId() + ">";
+		}
+		
+		@Override
+		public int hashCode() {
+			return 13 * index.hashCode() * node.hashCode();
 		}
 	}
 }

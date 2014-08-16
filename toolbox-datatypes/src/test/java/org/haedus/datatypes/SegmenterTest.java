@@ -8,12 +8,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * User: goats
- * Date: 9/21/13
- * Time: 7:26 PM
- * To change this template use File | Settings | File Templates.
- */
 public class SegmenterTest
 {
 	@Test
@@ -76,6 +70,7 @@ public class SegmenterTest
 
 	@Test
 	public void testBasicVariables01() {
+		// TODO: refactor to use correct segmentation call
 		List<String> expected  = new ArrayList<String>();
 		List<String> variables = new ArrayList<String>();
 		Collections.addAll(variables, "CH", "C", "V" );
@@ -88,6 +83,7 @@ public class SegmenterTest
 
 	@Test
 	public void testBasicVariables02() {
+		// TODO: refactor to use correct segmentation call
 		List<String> expected  = new ArrayList<String>();
 		List<String> variables = new ArrayList<String>();
 		Collections.addAll(variables, "CH", "C", "V", "H" );
@@ -101,6 +97,7 @@ public class SegmenterTest
 
 	@Test
 	public void testBasicVariables03() {
+		// TODO: refactor to use correct segmentation call
 		List<String> expected  = new ArrayList<String>();
 		List<String> variables = new ArrayList<String>();
 		Collections.addAll(variables, "CH", "C", "[+Approximant]", "H" );
@@ -108,6 +105,23 @@ public class SegmenterTest
 		List<String> received = Segmenter.segment("CHatVa[+Approximant]oC", variables);
 
 		Collections.addAll(expected, "CH", "a", "t", "V", "a", "[+Approximant]", "o", "C");
+
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testNaive01() {
+		List<String> expected = new ArrayList<String>();
+		List<String> reserved = new ArrayList<String>();
+
+		Collections.addAll(reserved, "CH", "C", "H", "ts", "th");
+
+		String word = "arstCHoCotssptsuthetHrCCHHstrest";
+
+		List<String> received = Segmenter.segmentNaively(word, reserved);
+
+		Collections.addAll(expected, "a", "r", "s", "t", "CH", "o", "C", "o", "ts", "s", "p", "ts", "u", "th",
+			"e", "t", "H", "r", "C", "CH", "H", "s", "t", "r", "e", "s", "t");
 
 		assertEquals(expected, received);
 	}

@@ -1,6 +1,7 @@
 package org.haedus.soundchange;
 
 import org.apache.commons.io.IOUtils;
+import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -13,8 +14,11 @@ import org.springframework.core.io.Resource;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -147,7 +151,8 @@ public class SoundChangeApplierTest {
 				"b  d  ǵ  g  gʷ  > bʰ dʰ ǵʰ gʰ gʷʰ / _{ x ɣ }",
 				"p  t  ḱ  k  kʷ  > pʰ tʰ ḱʰ kʰ kʷʰ / _{x ɣ}",
 				"bʰ dʰ ǵʰ gʰ gʷʰ > pʰ tʰ ḱʰ kʰ kʷʰ",
-				"ḱ ḱʰ ǵ ǵʰ > c cʰ ɟ ɟʰ" };
+				"ḱ ḱʰ ǵ > c cʰ ɟ"
+				};
 
 		List<String> words = toList(
 				"h₂oḱ-ri-", "bʰaḱehₐ-",
@@ -164,7 +169,13 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 
-		assertEquals(toSequences(expected, sca), received);
+		List<Sequence> sequences = toSequences(expected, sca);
+		
+		assertEquals(sequences.size(), received.size());
+		
+		for (int i = 0; i < sequences.size(); i++) {
+			assertEquals(sequences.get(i), received.get(i));
+		}
 	}
 
 	@Test
@@ -279,15 +290,10 @@ public class SoundChangeApplierTest {
 		Resource resource = new ClassPathResource("testExpansion01.txt");
         List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
-        LOGGER.info("{}",commands);
-
         SoundChangeApplier sca = new SoundChangeApplier(commands);
 		sca.processLexicon(new ArrayList<String>());
 
 		VariableStore vs = sca.getVariables();
-
-		LOGGER.info(vs.get("[PLOSIVE]").toString());
-
 		testExpansion(vs, "V", "a e i o u ə ā ē ī ō ū ə̄");
 		testExpansion(vs, "C", "pʰ p b tʰ t d cʰ c ɟ kʰ k g kʷʰ kʷ gʷ s m n r l j w");
 	}
@@ -412,7 +418,59 @@ public class SoundChangeApplierTest {
 
         assertEquals(toSequences(expected, sca), received);
     }
+    
+    @Test
+    public void reserveTest() throws RuleFormatException {
+       	String[] commands = {
+    			"USE SEGMENTATION: FALSE",
+    			"RESERVE ph th kh"
+    	};
+       	SoundChangeApplier sca = new SoundChangeApplier(commands);
+       	
+       	Collection<String> received = sca.getFeatureModel().getSymbols();
+       	Collection<String> expected = new HashSet<String>();
+       	expected.add("ph");
+       	expected.add("th");
+       	expected.add("kh");
+       	assertEquals(expected, received);
+    }
+    
+    @Test
+    public void reserveNaiveSegmentationTest() throws RuleFormatException {
+    	String[] commands = {
+    			"USE SEGMENTATION: FALSE",
+    			"RESERVE ph th kh",
+//    			"ph th kh > f h x"
+    			"kh > x"
+    	};
+    	
+    	SoundChangeApplier sca = new SoundChangeApplier(commands);
+    	
+        List<String> words    = toList("kho");
+        List<String> expected = toList("xo");
 
+        List<Sequence> received = sca.processLexicon(words);
+        List<Sequence> sequences = toSequences(expected, sca);
+		assertEquals(sequences, received);
+    }
+
+    @Test
+    public void reserveDefaultSegmentationTest() throws RuleFormatException {
+    	String[] commands = {
+    			"USE SEGMENTATION: TRUE",
+    			"RESERVE ph th kh",
+    			"ph th kh > f h x"
+    	};
+    	
+    	SoundChangeApplier sca = new SoundChangeApplier(commands);
+    	
+        List<String> words    = toList("rukho", "khek", "ophto", "arthos", "taphos");
+        List<String> expected = toList("ruxo",  "xek",  "ofto",  "arhos",  "tafos");
+
+        List<Sequence> received = sca.processLexicon(words);
+        assertEquals(toSequences(expected, sca), received);
+    }
+    
 	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
@@ -427,13 +485,9 @@ public class SoundChangeApplierTest {
             }
 
             if (sca.usesSegmentation()) {
-                list.add(new Sequence(s2));
+            	list.add(Segmenter.getSequence(s2, sca.getFeatureModel(), sca.getVariables()));
             } else {
-                Sequence sequence = new Sequence();
-                for (int i = 0; i < s2.length(); i++) {
-                    sequence.add(new Segment(s2.substring(i, i+1)));
-                }
-                list.add(sequence);
+            	list.add(Segmenter.getSequenceNaively(s2, sca.getFeatureModel(), sca.getVariables()));
             }
 		}
 		return list;
