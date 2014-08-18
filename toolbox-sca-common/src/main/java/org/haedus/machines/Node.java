@@ -20,9 +20,7 @@ import java.util.Set;
 public class Node {
 
 	private boolean isAccepting;
-
 	private final int id;
-
 	private final HashMap<Sequence, List<Node>> arcs;
 
 	protected Node(int i) {
@@ -39,12 +37,11 @@ public class Node {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj.getClass().equals(getClass())) return false;
+		if (obj == null)                  return false;
+		if (obj.getClass() != getClass()) return false;
 
 		Node other = (Node) obj;
-		
-		return other.id == id && arcs.equals(other.arcs);
+		return other.id == id && arcs.equals(other.arcs) && (isAccepting == other.isAccepting);
 	}
 
 	@Override
@@ -69,9 +66,7 @@ public class Node {
 
 	@Override
 	public int hashCode() {
-		int code = 65402751;
-		int moss = id * 5 - arcs.keySet().hashCode();
-		return code * moss;
+		return id * arcs.keySet().hashCode() * ((isAccepting) ? 1 : 3);
 	}
 
 	public boolean isEmpty() {
@@ -89,10 +84,6 @@ public class Node {
 	}
 
 	public void add(Sequence sequence, Node node) {
-		addPositive(sequence, node);
-	}
-
-	public void addPositive(Sequence sequence, Node node) {
 		List<Node> someNodes;
 		if (arcs.containsKey(sequence)) {
 			someNodes = arcs.get(sequence);
@@ -110,7 +101,6 @@ public class Node {
 		return arcs.get(s);
 	}
 
-
 	public Set<Sequence> getKeys() {
 		return arcs.keySet();
 	}
@@ -121,10 +111,6 @@ public class Node {
 
 	public void setAccepting(boolean isAccepting) {
 		this.isAccepting = isAccepting;
-	}
-
-	public boolean isDead() {
-		return id == Integer.MIN_VALUE;
 	}
 
 	public int getId() {
@@ -176,8 +162,6 @@ public class Node {
 		}
 
 		sb.append("\n]");
-
-
 		return sb.toString();
 	}
 

@@ -61,7 +61,6 @@ public class Segment {
 
     public int hashCode() {
         int hashCode = 19;
-
 	    for (int i = 0; i < features.size(); i++) {
 		    double number = (i + 1) * features.get(i);
 		    hashCode *= number;

@@ -22,9 +22,9 @@ import java.util.Set;
  */
 public class VariableStore {
 
-    private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
-	private final FeatureModel model;
+	private final FeatureModel                model;
 	private final Map<String, List<Sequence>> variables;
 
 	public VariableStore() {
@@ -36,7 +36,7 @@ public class VariableStore {
 		model     = featureModel;
 		variables = new HashMap<String, List<Sequence>>();
 	}
-	
+
 	public VariableStore(VariableStore otherStore) {
 		variables = new HashMap<String, List<Sequence>>();
 		variables.putAll(otherStore.variables);
@@ -52,7 +52,7 @@ public class VariableStore {
 		for (String value : values) {
 			expanded.addAll(expandVariables(value, useSegmentation));
 		}
-		variables.put(key,expanded);
+		variables.put(key, expanded);
 	}
 
 	// testing only
@@ -62,7 +62,7 @@ public class VariableStore {
 
 	public void put(String key, String[] values, boolean useSegmentation) {
 		Collection<String> list = new ArrayList<String>();
-		Collections.addAll(list,values);
+		Collections.addAll(list, values);
 		put(key, list, useSegmentation);
 	}
 
@@ -70,14 +70,14 @@ public class VariableStore {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-        if (useSegmentation) {
-        	Sequence sequence = Segmenter.getSequence(element, model, this);
-        	list.add(sequence);
-        } else {
-        	// TODO: except, this contains model too...
-        	Sequence sequence = Segmenter.getSequenceNaively(element, model, this);
-        	list.add(sequence);
-        }
+		if (useSegmentation) {
+			Sequence sequence = Segmenter.getSequence(element, model, this);
+			list.add(sequence);
+		} else {
+			// TODO: except, this contains model too...
+			Sequence sequence = Segmenter.getSequenceNaively(element, model, this);
+			list.add(sequence);
+		}
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -87,12 +87,12 @@ public class VariableStore {
 				for (int i = 0; i < sequence.size(); i++) {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
-                        Sequence best;
-                        if (useSegmentation) {
-                        	best = Segmenter.getSequence(symbol, model, this);
-                        } else {
-                        	best = Segmenter.getSequenceNaively(symbol, model, this);
-                        }
+						Sequence best;
+						if (useSegmentation) {
+							best = Segmenter.getSequence(symbol, model, this);
+						} else {
+							best = Segmenter.getSequenceNaively(symbol, model, this);
+						}
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}

@@ -99,8 +99,6 @@ public class StateMachine {
 
     //
 	private Node parseCharSequence(String string, boolean isForward) {
-		// TODO: segmenter just takes a list of reserved symbols
-		// so we can add the variable keys to the segments defined in the feature model
 		Collection<String> keys = new ArrayList<String>();
 		
 		keys.addAll(variableStore.getKeys());
@@ -113,9 +111,10 @@ public class StateMachine {
 			root = NodeFactory.getEmptyNode();
 		} else {
 			root = NodeFactory.getNode();
-			Expression ex   = new Expression(list,null);
+			Expression ex   = new Expression(list);
 			Node       last = parse(ex, root, isForward);
 			last.setAccepting(true);
+			LOGGER.trace(ExpressionUtil.getGML(ex));
 		}
 		return root;
 	}
@@ -129,7 +128,7 @@ public class StateMachine {
             if (expression.isNegative()) {
                 for (Expression ex : expression.getSubExpressions(forward)) {
                     Node next = getNode(forward, current, ex);
-                    next.add        (tail);
+                    next.add(tail);
                 }
             } else {
 

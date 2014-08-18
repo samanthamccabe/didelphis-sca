@@ -474,9 +474,10 @@ public class ConditionTest {
 
 	@Test
 	public void testSet07() throws RuleFormatException {
-		Condition condition = new Condition("_{ x ɣ }");
-
-		testTrue(condition, "pxi");
+//		Condition condition = new Condition("_{ x ɣ }");
+		Condition condition = new Condition("_{ x y }");
+//		LOGGER.info(condition.getPostCondition().getGml());
+//		testTrue(condition,  "pxi");
 		testFalse(condition, "paxi");
 	}
 
@@ -513,12 +514,12 @@ public class ConditionTest {
 		testTrue(condition,  "abaptk",  2);
 		testTrue(condition,  "abapppp", 2);
 		testTrue(condition,  "ababdg",  2);
-//		testTrue(condition,  "abatʰkʰ", 2); // ???
+		testTrue(condition,  "abatʰkʰ", 2);
 
 		testTrue(condition,  "abaptk",  3);
 		testTrue(condition,  "abapppp", 3);
 		testTrue(condition,  "ababdg",  3);
-//		testTrue(condition,  "abapʰtʰkʰ", 3);
+		testTrue(condition,  "abapʰtʰkʰ", 3);
 
 		testFalse(condition,  "abatʰkʰ", 1);
 		testFalse(condition,  "abatʰkʰ", 0);

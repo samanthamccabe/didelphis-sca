@@ -27,21 +27,18 @@ public class Expression {
 
 	private final LinkedList<Expression> subexpressions;
 
-//	private Expression rightSibling;
-
 	public Expression() {
 		subexpressions = new LinkedList<Expression>();
-//		rightSibling = null;
 
 		segment = new Segment();
 
-		isNegative = false;
-		isParallel = false;
+		isNegative   = false;
+		isParallel   = false;
 		isRepeatable = false;
-		isOptional = false;
+		isOptional   = false;
 	}
 
-	private Expression(Segment terminal, Expression sibling, boolean repeatable, boolean optional) {
+	private Expression(Segment terminal, boolean repeatable, boolean optional) {
 		subexpressions = new LinkedList<Expression>();
 //		rightSibling = sibling;
 
@@ -53,7 +50,7 @@ public class Expression {
 		isOptional = optional;
 	}
 
-	public Expression(List<String> list, Expression sibling, boolean repeatable, boolean optional) {
+	public Expression(List<String> list, boolean repeatable, boolean optional) {
 		subexpressions = parse(new LinkedList<String>(list));
 
 		segment    = new Segment();
@@ -64,11 +61,7 @@ public class Expression {
 	}
 
 	public Expression(List<String> list) {
-		this(list, null);
-	}
-
-	public Expression(List<String> list, Expression sibling) {
-		this(list, sibling, false, false);
+		this(list, false, false);
 	}
 
 	private LinkedList<Expression> parse(LinkedList<String> list) {
@@ -93,36 +86,33 @@ public class Expression {
 					repeatable = true;
 				}
 
-			} else {
+			} else if (!currentString.isEmpty()) {
 				if (")".equals(currentString)) {
 					int index = getIndex(list, "(", ")", i);
 					List<String> subList = list.subList(index + 1, i);
-					Expression sibling = (expressionList.isEmpty()) ? null : expressionList.getFirst();
-					expressionList.addFirst(new Expression(subList, sibling, repeatable, optional));
+					expressionList.addFirst(new Expression(subList, repeatable, optional));
 					i = index;
 
 				} else if ("}".equals(currentString)) {
 					int index = getIndex(list, "{", "}", i);
 					List<String> subList = list.subList(index + 1, i);
 
-					Expression sibling = (expressionList.isEmpty()) ? null : expressionList.getFirst();
 					Expression bracketed;
 					if (repeatable || optional) {
-						Expression meta = new Expression(new Segment(), sibling, repeatable, optional);
-						bracketed = new Expression(new Segment(), null, false, false);
+						Expression meta = new Expression(new Segment(), repeatable, optional);
+						bracketed = new Expression(new Segment(), false, false);
 						meta.add(bracketed);
 						expressionList.addFirst(meta);
 					} else {
-						bracketed = new Expression(new Segment(), sibling, false, false);
+						bracketed = new Expression(new Segment(), false, false);
 						expressionList.addFirst(bracketed);
 					}
 					bracketed.setParallel(true);
 
 					// Parses the parallel branches of the OR
-					Expression lastSibling = null;
 					for (List<String> l : getLists(subList)) {
 
-						Expression ex = new Expression(l,lastSibling);
+						Expression ex = new Expression(l);
 
 						List<Expression> subExpressions = ex.getSubExpressions();
 
@@ -130,26 +120,22 @@ public class Expression {
 						if (subExpressions.size() == 1) {
 							Expression expression = subExpressions.get(0);
 							bracketed.add(expression);
-							lastSibling = expression;
 						} else {
 							bracketed.add(ex);
-							lastSibling = ex;
 						}
 					}
 					i = index;
 
 				} else {
-					Expression sibling = (expressionList.isEmpty()) ? null : expressionList.getFirst();
 					Expression terminal;
-
 					if (repeatable || optional) {
-						Expression meta = new Expression(new Segment(), sibling, repeatable, optional);
+						Expression meta = new Expression(new Segment(),  repeatable, optional);
 
-						terminal = new Expression(new Segment(currentString), null, false, false);
+						terminal = new Expression(new Segment(currentString), false, false);
 						meta.add(terminal);
 						expressionList.addFirst(meta);
 					} else {
-						terminal = new Expression(new Segment(currentString), sibling, false, false);
+						terminal = new Expression(new Segment(currentString), false, false);
 						expressionList.addFirst(terminal);
 					}
 				}
@@ -169,6 +155,7 @@ public class Expression {
 
 	private Iterable<List<String>> getLists(List<String> list) {
 		String space = " |";
+
 		int spaceIndex = list.size();
 
 		Collection<List<String>> lists = new LinkedList<List<String>>();
@@ -200,7 +187,7 @@ public class Expression {
 	 * @param i        location of the current right-bracket
 	 * @return the index where the matching left-bracket is found
 	 */
-	private int getIndex(LinkedList<String> segments, String left, String right, int i) {
+	private int getIndex(List<String> segments, String left, String right, int i) {
 		int count = 0;
 		int index = i;
 
@@ -273,14 +260,6 @@ public class Expression {
 		return subexpressions.getFirst();
 	}
 
-//	public boolean hasSibling() {
-//		return rightSibling != null;
-//	}
-
-//	public Expression getNextSibling() {
-//		return rightSibling;
-//	}
-
 	private List<Expression> getSubExpressions() {
 		return subexpressions;
 	}
@@ -296,11 +275,6 @@ public class Expression {
 	public int subexpressionSize() {
 		return subexpressions.size();
 	}
-
-//	private void setRightSibling(Expression sibling)
-//	{
-//		rightSibling = sibling;
-//	}
 
 	public int getSize() {
 		return subexpressions.size();

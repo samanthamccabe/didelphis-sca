@@ -30,7 +30,7 @@ public class Sequence implements Iterable<Segment> {
 		sequence = new ArrayList<Segment>(q.getSegments());
 		features = q.getFeatures();
 	}
-	
+
 	@Deprecated
 	public Sequence(String word) {
 		this(word, new FeatureModel());
@@ -45,11 +45,11 @@ public class Sequence implements Iterable<Segment> {
 			sequence.add(new Segment(s));
 		}
 	}
-	
+
 	public Sequence(List<String> word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		features = featureTable;
-		
+
 		for (String element : word) {
 			sequence.add(new Segment(element, features.getValue(element)));
 		}
@@ -156,7 +156,7 @@ public class Sequence implements Iterable<Segment> {
 	 * @return
 	 */
 	public int indexOf(Sequence subsequence) {
-		int size  = subsequence.size();
+		int size = subsequence.size();
 		int index = -1;
 
 		if (size <= size() && !subsequence.isEmpty()) {
@@ -168,7 +168,6 @@ public class Sequence implements Iterable<Segment> {
 				}
 			}
 		}
-
 		return index;
 	}
 
@@ -210,15 +209,13 @@ public class Sequence implements Iterable<Segment> {
 		Sequence result = new Sequence(this);
 
 		int index = result.indexOf(source);
-
 		while (index >= 0) {
-			if ( index + source.size() <= result.size()) {
+			if (index + source.size() <= result.size()) {
 				result.remove(index, index + source.size());
 				result.insert(target, index);
 			}
 			index = result.indexOf(source, index + target.size());
 		}
-
 		return result;
 	}
 
@@ -238,16 +235,15 @@ public class Sequence implements Iterable<Segment> {
 
 	@Override
 	public boolean equals(Object obj) {
-
-		if (obj == null)                  return false;
-		if (obj.getClass() != getClass()) return false;
-
+		if (obj == null)
+			return false;
+		if (obj.getClass() != getClass())
+			return false;
 		Sequence object = (Sequence) obj;
-
 		boolean sequenceEquals = sequence.equals(object.sequence);
 		boolean featuresEquals = features.equals(object.features);
 		return sequenceEquals &&
-			   featuresEquals;
+		       featuresEquals;
 	}
 
 	public boolean isEmpty() {
@@ -275,7 +271,6 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public boolean startsWith(Segment segment) {
-
 		return !isEmpty() && sequence.get(0).equals(segment);
 	}
 

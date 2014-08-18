@@ -33,23 +33,21 @@ public class Condition {
 		featureModel  = new FeatureModel();
 	}
 
-	public Condition(String condition) throws RuleFormatException
-	{
+	// package-private: testing only
+	Condition(String condition) throws RuleFormatException {
 		this(condition, new VariableStore());
 	}
 
 	public Condition(String condition, VariableStore variables, FeatureModel model) throws RuleFormatException {
-		condition = cleanup(condition);
-		conditionText = condition;
+		conditionText = cleanup(condition);
 		variableStore = variables;
-		featureModel  = model;		
+		featureModel  = model;
 
-		if (condition.contains("_")) {
-			String[] conditions = condition.split("_");
+		if (conditionText.contains("_")) {
+			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
 				preCondition  = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine();
-
 			} else if (conditions.length == 2) {
 				preCondition  = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine(conditions[1], variableStore, true);
@@ -61,11 +59,20 @@ public class Condition {
 			}
 		} else {
 			throw new RuleFormatException("Malformed Condition, no _ character");
-		}		
+		}
 	}
 
 	public Condition(String condition, VariableStore variables) throws RuleFormatException {
 		this(condition, variables, new FeatureModel());
+	}
+
+
+	public StateMachine getPostCondition() {
+		return postCondition;
+	}
+
+	public StateMachine getPreCondition() {
+		return preCondition;
 	}
 
 	@Override
@@ -74,10 +81,9 @@ public class Condition {
 	}
 
 	private String cleanup(String s) {
-		s = s.replaceAll("\\s+", " ");
-		s = s.replaceAll("([\\[\\{\\(]) ", "$1");
-		s = s.replaceAll(" ([\\]\\}\\)])", "$1");
-		return s;
+		return s.replaceAll("\\s+", " ")
+		        .replaceAll("([\\[\\{\\(]) ", "$1")
+		        .replaceAll(" ([\\]\\}\\)])", "$1");
 	}
 
 	public boolean isMatch(Sequence word, int index) {
@@ -86,24 +92,21 @@ public class Condition {
 
 	/**
 	 * Checks if this condition is applicable to the Sequence at the provided index
+	 *
 	 * @param word       the Sequence to check
 	 * @param startIndex the first index of the targeted Sequence; cannot be negative
 	 * @param endIndex   the last index of the targeted Sequence (exclusive); cannot be negative
 	 * @return Returns true if the condition isMatch
 	 */
 	public boolean isMatch(Sequence word, int startIndex, int endIndex) {
-		boolean preconditionMatch = false;
+		boolean preconditionMatch  = false;
 		boolean postconditionMatch = false;
 
 		if (endIndex <= word.size() && startIndex < endIndex) {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 
-//			head.addFirst(new Segment("#"));
-//			tail.add(new Segment("#"));
-			// The above is currently handled within the matches() call
-			
-			preconditionMatch = preCondition.matches(head.getReverseSequence());
+			preconditionMatch  = preCondition.matches(head.getReverseSequence());
 			postconditionMatch = postCondition.matches(tail);
 		}
 		return preconditionMatch && postconditionMatch;

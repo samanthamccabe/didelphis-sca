@@ -2,7 +2,6 @@ package org.haedus.soundchange;
 
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;

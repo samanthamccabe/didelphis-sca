@@ -98,11 +98,8 @@ public class Rule {
 	}
 
 	public Sequence apply(Sequence input) {
-//		Sequence output = input.copy();
 		Sequence output = new Sequence(input);
 
-		assert(output.equals(input));
-		
 		for (int index = 0; index < output.size(); index++) {
 			
 			for (int i = 0; i < source.size(); i++) {

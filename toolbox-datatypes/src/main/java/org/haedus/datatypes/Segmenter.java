@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 
@@ -124,9 +123,9 @@ public class Segmenter {
 	private static boolean isAttachable(Character c) {
 		int type = Character.getType(c);
 		int value = c;
-		return	isSuperscriptAsciiDigit(value)   ||
-				isMathematicalSubOrSuper(value)  ||
-				isCombingNOS(value)              ||
+		return	isSuperscriptAsciiDigit(value)  ||
+				isMathematicalSubOrSuper(value) ||
+				isCombingNOS(value)             ||
 				isCombiningClass(type);
 	}
 
@@ -149,9 +148,9 @@ public class Segmenter {
 	}
 
 	private static boolean isCombiningClass(int type) {
-		return	(type == Character.MODIFIER_LETTER)			|| // LM
-				(type == Character.MODIFIER_SYMBOL)			|| // SK
-				(type == Character.COMBINING_SPACING_MARK)	|| // MC
-				(type == Character.NON_SPACING_MARK);          // MN
+		return	(type == Character.MODIFIER_LETTER)        || // LM
+				(type == Character.MODIFIER_SYMBOL)        || // SK
+				(type == Character.COMBINING_SPACING_MARK) || // MC
+				(type == Character.NON_SPACING_MARK);         // MN
 	}
 }

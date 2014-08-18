@@ -24,6 +24,7 @@ public class NodeFactory {
 	}
 
     public static Node getDeadState() { return DEADSTATE; }
+
 	public static Node getEmptyNode() {
 		return EMPTYNODE;
 	}
