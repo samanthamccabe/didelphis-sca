@@ -192,16 +192,16 @@ public class SoundChangeApplierTest {
 				"ix iʔ ux uʔ > ī ī ū ū" };
 
 		List<String> words = toList(
-				"xocri", "pʰaceʕ",
-				"tʰʔileʕ", "ɟenʔtriʕ",
+				"xocri",    "pʰaceʕ",
+				"tʰʔileʕ",  "ɟenʔtriʕ",
 				"xrɟicuon", "xwetʰx",
-				"tʰcʰuʔ", "tʰʔileʕ");
+				"tʰcʰuʔ",   "tʰʔileʕ");
 
 		List<String> expected = toList(
-				"xocri", "pʰacaʔ",
-				"tʰilaʔ", "ɟenʔtrī",
+				"xocri",    "pʰacaʔ",
+				"tʰilaʔ",   "ɟenʔtrī",
 				"xrɟicuon", "xwetʰx",
-				"tʰcʰū", "tʰilaʔ");
+				"tʰcʰū",    "tʰilaʔ");
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
@@ -392,8 +392,8 @@ public class SoundChangeApplierTest {
 
         SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-        List<String> words    = toList("ruḱso"/*, "tkeh", "oḱto", "artḱos"*/);
-        List<String> expected = toList("rukso"/*, "kseh", "oɕto", "arccos"*/);
+        List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
+        List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
 
 	    List<Sequence> received  = sca.processLexicon(words);
 	    List<Sequence> sequences = toSequences(expected, sca);
@@ -441,8 +441,7 @@ public class SoundChangeApplierTest {
     	String[] commands = {
     			"USE SEGMENTATION: FALSE",
     			"RESERVE ph th kh",
-//    			"ph th kh > f h x"
-    			"kh > x"
+    			"ph th kh > f h x"
     	};
     	
     	SoundChangeApplier sca = new SoundChangeApplier(commands);

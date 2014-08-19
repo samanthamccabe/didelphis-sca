@@ -474,10 +474,8 @@ public class ConditionTest {
 
 	@Test
 	public void testSet07() throws RuleFormatException {
-//		Condition condition = new Condition("_{ x ɣ }");
-		Condition condition = new Condition("_{ x y }");
-//		LOGGER.info(condition.getPostCondition().getGml());
-//		testTrue(condition,  "pxi");
+		Condition condition = new Condition("_{ x ɣ }");
+		testTrue(condition,  "pxi");
 		testFalse(condition, "paxi");
 	}
 
