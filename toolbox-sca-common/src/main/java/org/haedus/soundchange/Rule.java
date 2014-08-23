@@ -100,8 +100,8 @@ public class Rule {
 	public Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
 
-		for (int index = 0; index < output.size(); index++) {
-			
+		for (int index = 0; index < output.size();) {
+			boolean wasDeleted = false;
 			for (int i = 0; i < source.size(); i++) {
                 Sequence sourceSequence = source.get(i);
                 Sequence targetSequence = target.get(i);
@@ -113,15 +113,21 @@ public class Rule {
 
                         if (condition.isEmpty() || condition.isMatch(output, index, index + size)) {
                             output.remove(index, index + size);
-                            if (!targetSequence.equals(new Sequence("0")))
+                            if (!targetSequence.equals(new Sequence("0"))) {
                                 output.insert(targetSequence, index);
+                            } else {
+                                wasDeleted = true;
+                            }
                         }
-	                    if (i < source.size() - 1) {
-		                    index = index + 1;
+	                    if (i < source.size() - 1 && !wasDeleted) {
+		                    index++;
 	                    }
                     }
                 }
 			}
+            if (!wasDeleted) {
+                index++;
+            }
 		}
 		return output;
 	}
