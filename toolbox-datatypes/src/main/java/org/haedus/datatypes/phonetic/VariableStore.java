@@ -56,7 +56,7 @@ public class VariableStore {
 	}
 
 	// testing only
-	public void put(String key, String[] values) {
+	public void put(String key, String... values) {
 		put(key, values, true);
 	}
 

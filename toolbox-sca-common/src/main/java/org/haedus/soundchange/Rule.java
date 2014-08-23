@@ -7,9 +7,7 @@ import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: goats
@@ -20,15 +18,13 @@ public class Rule {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
-	private final String         ruleText;
-	private final List<Sequence> source;
-	private final List<Sequence> target;
-	private final Condition      condition;
-	private final VariableStore  variableStore;
-	private final FeatureModel   featureModel;
+	private final String                  ruleText;
+	private final Map<Sequence, Sequence> transform;
+	private final Condition               condition;
+	private final VariableStore           variableStore;
+	private final FeatureModel            featureModel;
 
-	public Rule(String rule) throws RuleFormatException
-	{
+	public Rule(String rule) throws RuleFormatException {
 		this(rule, new VariableStore(), true);
 	}
 
@@ -36,8 +32,7 @@ public class Rule {
 		ruleText      = rule;
 		variableStore = variables;
 		featureModel  = new FeatureModel();
-		source        = new ArrayList<Sequence>();
-		target        = new ArrayList<Sequence>();
+		transform     = new LinkedHashMap<Sequence, Sequence>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -60,24 +55,16 @@ public class Rule {
 		this(rule, new FeatureModel(), variables, useSegmentation);
 	}
 
-	public List<Sequence> getTarget() {
-		return Collections.unmodifiableList(target);
-	}
-
-	public List<Sequence> getSource() {
-		return Collections.unmodifiableList(source);
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		for (Sequence sequence : getSource()) {
+		for (Sequence sequence : transform.keySet()) {
 			sb.append(sequence.toStringClean());
 			sb.append(" ");
 		}
 		sb.append("> ");
-		for (Sequence sequence : getTarget()) {
+		for (Sequence sequence : transform.values()) {
 			sb.append(sequence.toStringClean());
 			sb.append(" ");
 		}
@@ -102,9 +89,11 @@ public class Rule {
 
 		for (int index = 0; index < output.size();) {
 			boolean wasDeleted = false;
-			for (int i = 0; i < source.size(); i++) {
-                Sequence sourceSequence = source.get(i);
-                Sequence targetSequence = target.get(i);
+			int i = 0;
+			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
+
+				Sequence sourceSequence = entry.getKey();
+                Sequence targetSequence = entry.getValue();
 
                 if (index < output.size()) {
                 	Sequence subsequence = output.getSubsequence(index);        
@@ -119,11 +108,12 @@ public class Rule {
                                 wasDeleted = true;
                             }
                         }
-	                    if (i < source.size() - 1 && !wasDeleted) {
+	                    if (i < transform.size() - 1 && !wasDeleted) {
 		                    index++;
 	                    }
                     }
                 }
+				i++;
 			}
             if (!wasDeleted) {
                 index++;
@@ -163,8 +153,12 @@ public class Rule {
 							expandedTarget.add(last);
 						}
 					}
-					source.addAll(expandedSource);
-					target.addAll(expandedTarget);
+
+					for (int k = 0; k < expandedSource.size(); k++) {
+						this.transform.put(
+								expandedSource.get(k),
+								expandedTarget.get(k));
+					}
 				}
 			}
 		} else {
