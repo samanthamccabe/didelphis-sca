@@ -19,7 +19,6 @@ package org.haedus.soundchange;
 import org.apache.commons.io.FileUtils;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.exceptions.ParseException;
-import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

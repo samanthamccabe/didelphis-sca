@@ -34,7 +34,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>Main</mainClass>
+							<mainClass>org.haedus.soundchange.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
