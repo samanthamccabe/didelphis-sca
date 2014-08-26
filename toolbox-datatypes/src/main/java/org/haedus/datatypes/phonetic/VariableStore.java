@@ -17,6 +17,7 @@
 package org.haedus.datatypes.phonetic;
 
 import org.haedus.datatypes.Segmenter;
+import org.haedus.exceptions.VariableDefinitionFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,5 +169,18 @@ public class VariableStore {
 			sb.append("\n");
 		}
 		return sb.toString().trim();
+	}
+
+	public void add(String command, boolean useSegmentation) throws VariableDefinitionFormatException {
+		String[] parts = command.trim().split("\\s+=\\s+");
+
+		if (parts.length == 2) {
+			String   key      = parts[0];
+			String[] elements = parts[1].split("\\s+");
+
+			put(key, elements, useSegmentation);
+		} else {
+			throw new VariableDefinitionFormatException(command);
+		}
 	}
 }

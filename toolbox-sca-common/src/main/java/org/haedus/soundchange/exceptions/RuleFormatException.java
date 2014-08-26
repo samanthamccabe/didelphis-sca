@@ -16,6 +16,8 @@
 
 package org.haedus.soundchange.exceptions;
 
+import org.haedus.exceptions.ParseException;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Samantha Fiona Morrigan McCabe
@@ -23,7 +25,7 @@ package org.haedus.soundchange.exceptions;
  * Time: 3:41 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RuleFormatException extends Exception {
+public class RuleFormatException extends ParseException {
 
 	public RuleFormatException() {
 		super();

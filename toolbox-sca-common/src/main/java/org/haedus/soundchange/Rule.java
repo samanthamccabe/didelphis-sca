@@ -45,10 +45,10 @@ public class Rule {
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText      = rule;
+		ruleText = rule;
 		variableStore = variables;
-		featureModel  = new FeatureModel();
-		transform     = new LinkedHashMap<Sequence, Sequence>();
+		featureModel = new FeatureModel();
+		transform = new LinkedHashMap<Sequence, Sequence>();
 
 		String transform;
 		// Check-and-parse for conditions

@@ -18,6 +18,7 @@ package org.haedus.soundchange;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.exceptions.ParseException;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ import java.util.List;
 public class Main {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) throws IOException, RuleFormatException
+	public static void main(String[] args) throws IOException, ParseException
 	{
 
 		double startTime = System.nanoTime();

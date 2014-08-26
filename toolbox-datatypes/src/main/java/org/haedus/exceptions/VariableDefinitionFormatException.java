@@ -14,12 +14,12 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.soundchange.exceptions;
+package org.haedus.exceptions;
 
 /**
  * Samantha Fiona Morrigan McCabe
  */
-public class VariableDefinitionFormatException extends Exception {
+public class VariableDefinitionFormatException extends ParseException {
 
 	public VariableDefinitionFormatException() {
 		super();

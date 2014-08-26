@@ -18,7 +18,7 @@ package org.haedus.soundchange;
 
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
-import org.haedus.soundchange.exceptions.RuleFormatException;
+import org.haedus.exceptions.ParseException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -34,53 +34,53 @@ import static org.junit.Assert.assertEquals;
 public class RuleTest {
 
     @Test
-    public void testDeletion01() throws RuleFormatException {
+    public void testDeletion01() throws ParseException {
         Rule rule = new Rule("∅ - > 0");
         testRule(rule, "∅-s-irentu-pʰen", "sirentupʰen");
     }
 
     @Test
-    public void testDeletion02() throws RuleFormatException {
+    public void testDeletion02() throws ParseException {
         Rule rule = new Rule("a > 0");
         testRule(rule, "aaaabbba", "bbb");
     }
 
     @Test
-    public void testDeletion03() throws RuleFormatException {
+    public void testDeletion03() throws ParseException {
         Rule rule = new Rule("a b > 0");
         testRule(rule, "aaaaccbbccbba", "cccc");
     }
 
     @Test
-    public void testRule01() throws RuleFormatException {
+    public void testRule01() throws ParseException {
         Rule rule = new Rule("a > b");
 
         testRule(rule, "aaaaaaccca", "bbbbbbcccb");
     }
 
     @Test
-    public void testRule02() throws RuleFormatException {
+    public void testRule02() throws ParseException {
         Rule rule = new Rule("a e > æ ɛ");
 
         testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
     }
 
     @Test
-    public void testRule03() throws RuleFormatException {
+    public void testRule03() throws ParseException {
         Rule rule = new Rule("a b c d e f g > A B C D E F G");
 
         testRule(rule, "abcdefghijk", "ABCDEFGhijk");
     }
 
     @Test
-    public void testConditionalRule01() throws RuleFormatException {
+    public void testConditionalRule01() throws ParseException {
         Rule rule = new Rule("a > o / g_");
 
         testRule(rule, "adamagara", "adamagora");
     }
 
     @Test
-    public void testConditionalRule02() throws RuleFormatException {
+    public void testConditionalRule02() throws ParseException {
         Rule rule = new Rule("a > e / _c");
         testRule(rule, "abacaba", "abecaba");
         testRule(rule, "ababaca", "ababeca");
@@ -89,7 +89,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule03() throws RuleFormatException {
+    public void testConditionalRule03() throws ParseException {
         Rule rule = new Rule("a > e / _c+#");
         testRule(rule, "abac", "abec");
         testRule(rule, "abacc", "abecc");
@@ -99,7 +99,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule04() throws RuleFormatException {
+    public void testConditionalRule04() throws ParseException {
         Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
         testRule(rule, "keʔe", "kē");
         testRule(rule, "kaʔa", "kā");
@@ -108,14 +108,14 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule05() throws RuleFormatException {
+    public void testConditionalRule05() throws ParseException {
         Rule rule = new Rule("rˌh lˌh > ər əl / _a");
         testRule(rule, "krˌha", "kəra");
         testRule(rule, "klˌha", "kəla");
     }
 
     @Test
-    public void testConditionalRule06() throws RuleFormatException {
+    public void testConditionalRule06() throws ParseException {
         Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
 
         testRule(rule, "pʰāḱʰus", "bāḱʰus");
@@ -127,7 +127,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule07() throws RuleFormatException {
+    public void testConditionalRule07() throws ParseException {
         Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
 
         testRule(rule, "pʰaḱʰus", "baḱʰus");
@@ -135,7 +135,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule08() throws RuleFormatException {
+    public void testConditionalRule08() throws ParseException {
         Rule rule = new Rule("d > t / _#");
 
         testRule(rule, "abad", "abat");
@@ -143,14 +143,14 @@ public class RuleTest {
     }
 
     @Test
-    public void testLoop01() throws RuleFormatException {
+    public void testLoop01() throws ParseException {
         Rule rule = new Rule("q > qn");
 
         testRule(rule, "aqa", "aqna");
     }
 
     @Test
-    public void testExpansion01() throws RuleFormatException {
+    public void testExpansion01() throws ParseException {
         VariableStore vs = new VariableStore();
 
         vs.put("[E]", "e", "ē", "é", "ê");
@@ -164,7 +164,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testExpansion02() throws RuleFormatException {
+    public void testExpansion02() throws ParseException {
 
         VariableStore vs = new VariableStore();
 
@@ -185,7 +185,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testUnconditional() throws RuleFormatException {
+    public void testUnconditional() throws ParseException {
         Sequence word = new Sequence("h₁óh₁es-");
         Sequence expected = new Sequence("ʔóʔes-");
 
@@ -195,7 +195,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testUnconditional02() throws RuleFormatException {
+    public void testUnconditional02() throws ParseException {
         Sequence expected = new Sequence("telə");
 
         Rule rule = new Rule("eʔé > ê");
@@ -204,7 +204,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testDebug01() throws RuleFormatException {
+    public void testDebug01() throws ParseException {
         Sequence original = new Sequence("mlan");
         Sequence expected = new Sequence("blan");
 
@@ -217,7 +217,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testUnconditional03() throws RuleFormatException {
+    public void testUnconditional03() throws ParseException {
         Rule rule = new Rule("ox > l");
 
         testRule(rule, "oxoxoxox", "llll");
@@ -227,7 +227,7 @@ public class RuleTest {
 
     // "trh₂-we"
     @Test
-    public void testDebug02() throws RuleFormatException {
+    public void testDebug02() throws ParseException {
         Sequence original = new Sequence("trh₂we");
         Sequence expected = new Sequence("tə̄rwe");
 
@@ -260,7 +260,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testDebug03() throws RuleFormatException {
+    public void testDebug03() throws ParseException {
         Sequence original = new Sequence("pʰabopa");
         Sequence expected = new Sequence("papoba");
 
@@ -273,28 +273,28 @@ public class RuleTest {
     /*======================================================================+
      | Exception Tests                                                      |
      +======================================================================*/
-    @Test(expected = RuleFormatException.class)
-    public void testRuleException01() throws RuleFormatException {
+    @Test(expected = ParseException.class)
+    public void testRuleException01() throws ParseException {
         new Rule(" > ");
     }
 
-    @Test(expected = RuleFormatException.class)
-    public void testRuleException02() throws RuleFormatException {
+    @Test(expected = ParseException.class)
+    public void testRuleException02() throws ParseException {
         new Rule("a > b /");
     }
 
-    @Test(expected = RuleFormatException.class)
-    public void testRuleException03() throws RuleFormatException {
+    @Test(expected = ParseException.class)
+    public void testRuleException03() throws ParseException {
         new Rule("a > / b");
     }
 
-    @Test(expected = RuleFormatException.class)
-    public void testRuleException04() throws RuleFormatException {
+    @Test(expected = ParseException.class)
+    public void testRuleException04() throws ParseException {
         new Rule(" > a / b");
     }
 
-    @Test(expected = RuleFormatException.class)
-    public void testRuleException05() throws RuleFormatException {
+    @Test(expected = ParseException.class)
+    public void testRuleException05() throws ParseException {
         new Rule(" > / b");
     }
 

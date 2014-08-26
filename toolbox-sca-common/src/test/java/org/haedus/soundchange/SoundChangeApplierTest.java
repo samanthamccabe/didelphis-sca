@@ -20,7 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
-import org.haedus.soundchange.exceptions.RuleFormatException;
+import org.haedus.exceptions.ParseException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,18 +47,35 @@ public class SoundChangeApplierTest {
 		assertFalse(expected.equals(received));
 	}
 
-	@Test(expected = RuleFormatException.class)
-	public void testNormalizerBadMode() throws RuleFormatException {
+	@Test(expected = ParseException.class)
+	public void testNormalizerBadMode() throws ParseException {
 		new SoundChangeApplier(new String[]{ "USE NORMALIZATION:XXX" });
 	}
 
-	@Test(expected = RuleFormatException.class)
-	public void testSegmentationBadMode() throws RuleFormatException {
+	@Test(expected = ParseException.class)
+	public void testSegmentationBadMode() throws ParseException {
 		new SoundChangeApplier(new String[]{ "USE SEGMENTATION:XXX" });
 	}
 
 	@Test
-	public void testNormalizerNFD() throws RuleFormatException {
+	public void testDebug01() throws ParseException {
+		String commands = "" +
+		                  "K = k g ng\n" +
+		                  "T = m p b f v n t d s z c j r l ny y\n" +
+		                  "N = ḿ ń ŋ ñ ññ\n" +
+		                  "C = T K\n" +
+		                  " \n" +
+		                  "V = i ì e è a aì u aa o ou\n" +
+		                  "\n" +
+		                  "l > 0 / V_ % Postvocalic l is lost.\n" +
+		                  "om on ong ony onny > ḿ ń ŋ ñ ññ / _ % Relabeling the syllabic nasals.\n" +
+		                  "i ì e è a aì > u u o o aa ou / K?_(K{T N #})? % Front vowels back after syllable-initial velars and before syllable-final velars.\n" +
+		                  "u aa > ì a / {c j Cy}?_({c j Cy}{T N #})? % Back vowels front after syllable-initial 'palatals' and before syllable-final 'palatals'.";
+		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
+	}
+
+	@Test
+	public void testNormalizerNFD() throws ParseException {
 		String[] commands = { "USE NORMALIZATION:NFD" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -77,7 +94,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testNormalizerNFC() throws RuleFormatException {
+	public void testNormalizerNFC() throws ParseException {
 		String[] commands = { "USE NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -96,7 +113,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void TestNormalizerNFCvsNFD() throws RuleFormatException {
+	public void TestNormalizerNFCvsNFD() throws ParseException {
 		String[] commands = { "USE NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -115,7 +132,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest01() throws RuleFormatException {
+	public void simpleRuleTest01() throws ParseException {
 		String[] commands = {
 				"a > e",
 				"d > t / _#"
@@ -132,7 +149,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest02() throws RuleFormatException {
+	public void simpleRuleTest02() throws ParseException {
 		String[] commands = {
 				"USE NORMALIZATION: NFD",
 				"ḱʰ ḱ ǵ > cʰ c ɟ",
@@ -153,7 +170,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest03() throws RuleFormatException {
+	public void simpleRuleTest03() throws ParseException {
 		String[] commands = {
 				"- > 0",
 				"h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ",
@@ -190,7 +207,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest04() throws RuleFormatException {
+	public void simpleRuleTest04() throws ParseException {
 		String[] commands = {
 				"e é ē ê > a á ā â / {x ʕ}_",
 				"e é ē ê > a á ā â / _{x ʕ}",
@@ -220,7 +237,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void reassignmentTest01() throws RuleFormatException {
+	public void reassignmentTest01() throws ParseException {
 		String[] commands = {
 				"% Comment",
 				"C = p t k pʰ tʰ kʰ n m r l",
@@ -241,7 +258,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void ruleTest01() throws RuleFormatException {
+	public void ruleTest01() throws ParseException {
 		String[] commands = {
 				"% Comment",
 				"C = p t k pʰ tʰ kʰ n m r l",
@@ -274,7 +291,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void ruleTest02() throws RuleFormatException {
+	public void ruleTest02() throws ParseException {
 		String commands =
 				"% Comment\n" +
 				"C  = p t k pʰ tʰ kʰ n m r l\n" +
@@ -349,7 +366,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testLoop01() throws RuleFormatException {
+	public void testLoop01() throws ParseException {
 		String commands =
 				"P = pw p t k\n" +
 				"B = bw b d g\n" +
@@ -365,7 +382,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testDebug002() throws RuleFormatException {
+	public void testDebug002() throws ParseException {
 		String commands =
 				"AT = î\n" +
 				"C  = þ s n\n" +
@@ -389,7 +406,7 @@ public class SoundChangeApplierTest {
 	}
 
     @Test
-    public void simpleNosegmentation() throws RuleFormatException {
+    public void simpleNosegmentation() throws ParseException {
         String[] commands = {
                 "USE NORMALIZATION: NONE",
                 "USE SEGMENTATION: FALSE",
@@ -411,7 +428,7 @@ public class SoundChangeApplierTest {
     }
 
     @Test
-    public void simpleNoSegmentation01() throws RuleFormatException {
+    public void simpleNoSegmentation01() throws ParseException {
         String[] commands = {
                 "USE NORMALIZATION: NONE",
                 "USE SEGMENTATION: FALSE",
@@ -431,7 +448,7 @@ public class SoundChangeApplierTest {
     }
     
     @Test
-    public void reserveTest() throws RuleFormatException {
+    public void reserveTest() throws ParseException {
        	String[] commands = {
     			"USE SEGMENTATION: FALSE",
     			"RESERVE ph th kh"
@@ -447,7 +464,7 @@ public class SoundChangeApplierTest {
     }
     
     @Test
-    public void reserveNaiveSegmentationTest() throws RuleFormatException {
+    public void reserveNaiveSegmentationTest() throws ParseException {
     	String[] commands = {
     			"USE SEGMENTATION: FALSE",
     			"RESERVE ph th kh",
@@ -465,7 +482,7 @@ public class SoundChangeApplierTest {
     }
 
     @Test
-    public void reserveDefaultSegmentationTest() throws RuleFormatException {
+    public void reserveDefaultSegmentationTest() throws ParseException {
     	String[] commands = {
     			"USE SEGMENTATION: TRUE",
     			"RESERVE ph th kh",

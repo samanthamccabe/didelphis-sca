@@ -17,7 +17,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.machines.StateMachine;
@@ -42,10 +41,10 @@ public class Condition {
 
 	public Condition() {
 		conditionText = "";
-		preCondition  = new StateMachine();
+		preCondition = new StateMachine();
 		postCondition = new StateMachine();
 		variableStore = new VariableStore();
-		featureModel  = new FeatureModel();
+		featureModel = new FeatureModel();
 	}
 
 	// package-private: testing only
@@ -56,19 +55,19 @@ public class Condition {
 	public Condition(String condition, VariableStore variables, FeatureModel model) throws RuleFormatException {
 		conditionText = cleanup(condition);
 		variableStore = variables;
-		featureModel  = model;
+		featureModel = model;
 
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = new StateMachine(conditions[0], variableStore, false);
+				preCondition = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine();
 			} else if (conditions.length == 2) {
-				preCondition  = new StateMachine(conditions[0], variableStore, false);
+				preCondition = new StateMachine(conditions[0], variableStore, false);
 				postCondition = new StateMachine(conditions[1], variableStore, true);
 			} else if (conditions.length == 0) {
 				postCondition = new StateMachine();
-				preCondition  = new StateMachine();
+				preCondition = new StateMachine();
 			} else {
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
