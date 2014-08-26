@@ -58,23 +58,6 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testDebug01() throws ParseException {
-		String commands = "" +
-		                  "K = k g ng\n" +
-		                  "T = m p b f v n t d s z c j r l ny y\n" +
-		                  "N = ḿ ń ŋ ñ ññ\n" +
-		                  "C = T K\n" +
-		                  " \n" +
-		                  "V = i ì e è a aì u aa o ou\n" +
-		                  "\n" +
-		                  "l > 0 / V_ % Postvocalic l is lost.\n" +
-		                  "om on ong ony onny > ḿ ń ŋ ñ ññ / _ % Relabeling the syllabic nasals.\n" +
-		                  "i ì e è a aì > u u o o aa ou / K?_(K{T N #})? % Front vowels back after syllable-initial velars and before syllable-final velars.\n" +
-		                  "u aa > ì a / {c j Cy}?_({c j Cy}{T N #})? % Back vowels front after syllable-initial 'palatals' and before syllable-final 'palatals'.";
-		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
-	}
-
-	@Test
 	public void testNormalizerNFD() throws ParseException {
 		String[] commands = { "USE NORMALIZATION:NFD" };
 
