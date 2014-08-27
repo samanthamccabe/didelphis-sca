@@ -172,7 +172,7 @@ public class VariableStore {
 	}
 
 	public void add(String command, boolean useSegmentation) throws VariableDefinitionFormatException {
-		String[] parts = command.trim().split("\\s+=\\s+");
+		String[] parts = command.trim().split("\\s*=\\s*");
 
 		if (parts.length == 2) {
 			String   key      = parts[0];

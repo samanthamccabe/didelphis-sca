@@ -59,14 +59,14 @@ public class SoundChangeApplier {
 	private VariableStore variables;
 
 	public SoundChangeApplier() {
-		rules = new ArrayDeque<Rule>();
-		model = new FeatureModel();
-		lexicons = new HashMap<String, List<Sequence>>();
+		rules     = new ArrayDeque<Rule>();
+		model     = new FeatureModel();
+		lexicons  = new HashMap<String, List<Sequence>>();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling
 	}
 
 	public SoundChangeApplier(String script) throws ParseException {
-		this(script.split("\\s*\\r?\\n\\s*")); // Splits newlines and removes padding whitespace
+		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
