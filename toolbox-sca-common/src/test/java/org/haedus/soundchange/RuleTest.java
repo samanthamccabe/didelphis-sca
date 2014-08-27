@@ -231,19 +231,19 @@ public class RuleTest {
         Sequence original = new Sequence("trh₂we");
         Sequence expected = new Sequence("tə̄rwe");
 
-        VariableStore vs = new VariableStore();
-        vs.put("X", "h₁",   "h₂", "h₃", "h₄");
-        vs.put("A",  "r",   "l",  "m",  "n" );
-        vs.put("W",  "y",   "w"             );
-        vs.put("Q",  "kʷʰ", "kʷ", "gʷ"      );
-        vs.put("K",  "kʰ",  "k",  "g"       );
-        vs.put("KY", "cʰ",  "c",  "ɟ"       );
-        vs.put("T",  "pʰ",  "p",  "b"       );
-        vs.put("P",  "tʰ",  "t",  "d"       );
+	    VariableStore vs = new VariableStore();
+	    vs.add("X  = h₁  h₂ h₃ h₄", true);
+	    vs.add("A  = r   l  m  n",  true);
+	    vs.add("W  = y   w",        true);
+	    vs.add("Q  = kʷʰ kʷ gʷ",    true);
+	    vs.add("K  = kʰ  k  g",     true);
+	    vs.add("KY = cʰ  c  ɟ",     true);
+	    vs.add("T  = pʰ  p  b",     true);
+	    vs.add("P  = tʰ  t  d",     true);
 
-        vs.put("[PLOSIVE]", "P", "T", "K", "KY", "Q");
-        vs.put("[OBSTRUENT]", "[PLOSIVE]", "s");
-        vs.put("C", "[OBSTRUENT]", "A", "W");
+	    vs.add("[PLOSIVE] = P T K KY Q",   true);
+	    vs.add("[OBSTRUENT] = [PLOSIVE] s", true);
+	    vs.add("C = [OBSTRUENT] A W",       true);
 
         Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, true);
         Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs, true);

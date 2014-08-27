@@ -49,7 +49,7 @@ public class Main {
 			String outputPath  = args[2];
 
 			List<String> lexicon = FileUtils.readLines(new File(lexiconPath), "UTF-8");
-			List<String> rules   = FileUtils.readLines(new File(rulesPath), "UTF-8");
+			List<String> rules   = FileUtils.readLines(new File(rulesPath),   "UTF-8");
 
 			SoundChangeApplier sca = new SoundChangeApplier(rules);
 

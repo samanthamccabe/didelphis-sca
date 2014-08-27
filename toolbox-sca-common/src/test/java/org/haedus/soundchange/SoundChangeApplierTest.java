@@ -481,6 +481,23 @@ public class SoundChangeApplierTest {
 	    List<Sequence> sequences = toSequences(expected, sca);
 	    testLists(received, sequences);
     }
+
+	@Test
+	public void testMetathesis01() throws ParseException {
+		String[] commands = {
+				"C = p t k",
+				"N = m n",
+				"Cn Cm > nC nC / _#"
+		};
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+		List<String> words    = toList("atn");
+		List<String> expected = toList("ant");
+
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
     
 	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
