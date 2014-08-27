@@ -21,17 +21,15 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.haedus.datatypes.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
@@ -40,22 +38,31 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private Map<String, List<Float>> featureMap;
-	private Table<Float>             weightTable;
+	private final Map<String, List<Float>> featureMap;
+	private final Table<Float>             weightTable;
 
 	/**
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		super();
 		featureMap  = new HashMap<String, List<Float>>();
 		weightTable = new Table<Float>();
 	}
 
 	public FeatureModel(Map<String, List<Float>> map, Table<Float> weights) {
-		super();
 		featureMap  = map;
 		weightTable = weights;
+	}
+
+	public FeatureModel(File modelFile) {
+		this();
+		try {
+			List<String> lines = FileUtils.readLines(modelFile, "UTF-8");
+			featureMap.putAll(readTable(lines));
+		}
+		catch (IOException e) {
+			LOGGER.error("Failed to read model rile at {}", modelFile.getAbsolutePath(), e);
+		}
 	}
 
 	public Set<String> getSymbols() {
@@ -176,7 +183,12 @@ public class FeatureModel {
 	private Map<String, List<Float>> readTable(List<String> lines) {
 		Map<String, List<Float>> listMap = new HashMap<String, List<Float>>();
 
+		// TODO: we'll need to parse out the header
+		String header = lines.remove(0); // This will require that there is a header
+		Map<String, String> featureLabels = new LinkedHashMap<String, String>();
+
 		for (String line : lines) {
+
 			String[] row = line.split("\t");
 			String keys = row[0];
 
