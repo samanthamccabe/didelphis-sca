@@ -23,7 +23,9 @@ package org.haedus.datatypes.phonetic;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.haedus.datatypes.SymmetricTable;
 import org.haedus.datatypes.Table;
+import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,27 +40,34 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private final Map<String, List<Float>> featureMap;
-	private final Table<Float>             weightTable;
+	private       int                        numberOfFeatures;
+	private final Map<String, Integer>       labelIndices;
+	private final Map<String, List<Integer>> featureMap;
+	private final SymmetricTable<Double>     weightTable;
 
 	/**
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		featureMap  = new HashMap<String, List<Float>>();
-		weightTable = new Table<Float>();
+		numberOfFeatures = 0;
+
+		labelIndices = new HashMap<String, Integer>();
+		featureMap   = new HashMap<String, List<Integer>>();
+		weightTable  = new SymmetricTable<Double>();
 	}
 
-	public FeatureModel(Map<String, List<Float>> map, Table<Float> weights) {
-		featureMap  = map;
-		weightTable = weights;
+	public FeatureModel(Map<String, List<Integer>> map, SymmetricTable<Double> weights) {
+		numberOfFeatures = weights.getDimension();
+
+		labelIndices = new HashMap<String, Integer>();
+		featureMap   = map;
+		weightTable  = weights;
 	}
 
-	public FeatureModel(File modelFile) {
+	public FeatureModel(File modelFile) throws ParseException {
 		this();
 		try {
-			List<String> lines = FileUtils.readLines(modelFile, "UTF-8");
-			featureMap.putAll(readTable(lines));
+			readTable(FileUtils.readLines(modelFile, "UTF-8"));
 		}
 		catch (IOException e) {
 			LOGGER.error("Failed to read model rile at {}", modelFile.getAbsolutePath(), e);
@@ -69,12 +78,12 @@ public class FeatureModel {
 		return featureMap.keySet();
 	}
 
-	public void addSegment(String symbol, List<Float> features) {
+	public void addSegment(String symbol, List<Integer> features) {
 		featureMap.put(symbol, features);
 	}
 
 	public void addSegment(String symbol) {
-		addSegment(symbol, new ArrayList<Float>());
+		addSegment(symbol, new ArrayList<Integer>());
 	}
 
 	@Override
@@ -138,7 +147,7 @@ public class FeatureModel {
 
 	@Deprecated
 	public float computeScore(String l, String r) {
-		Sequence left = new Sequence(l);
+		Sequence left  = new Sequence(l);
 		Sequence right = new Sequence(r);
 		return computeScore(left, right);
 	}
@@ -147,45 +156,109 @@ public class FeatureModel {
 		return featureMap.containsKey(key);
 	}
 
+	@Deprecated
 	public Segment gap() {
 		return get("_");
 	}
 
 	public Segment get(String string) {
-		return new Segment(string, getValue(string));
+		return new Segment(string, featureMap.get(string));
 	}
 
-	public List<Float> getFeatureArray(String symbol) {
-		return get(symbol).getFeatures();
+	public List<Integer> getFeatureArray(String symbol) {
+		return featureMap.get(symbol);
 	}
 
-	public Map<String, List<Float>> getFeatureMap() {
+	public Map<String, List<Integer>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
-	public List<Float> getValue(String key) {
-		List<Float> value = new ArrayList<Float>();
-
-		if (featureMap.containsKey(key)) {
-			value = featureMap.get(key);
-		}
-		return value;
+	public List<Integer> getValue(String key) {
+		return featureMap.get(key);
 	}
 
-	public Table<Float> getWeights() {
+	public String getBestSymbol(List<Integer> features) {
+		String bestSymbol = null;
+		List<Integer> bestFeatures = null;
+
+		if (features.size() == numberOfFeatures) {
+			// Find the base symbol with the smallest Euclidean distance
+			double minDistance = Double.MAX_VALUE;
+			for (Map.Entry<String, List<Integer>> entry : featureMap.entrySet()) {
+
+				String key = entry.getKey();
+				List<Integer> list = entry.getValue();
+
+				// Only check base characters
+				if (list.get(0) != -1) {
+					double sumOfDeltas = 0.0;
+					for (int i = 0; i < list.size(); i++) {
+						int delta = features.get(i) - list.get(i);
+						sumOfDeltas += Math.pow(delta, 2);
+					}
+
+					double distance = Math.sqrt(sumOfDeltas);
+					if (distance <= minDistance) {
+						bestSymbol = key;
+						minDistance = distance;
+						bestFeatures = list;
+					}
+				}
+			}
+
+			// Figure out which minimum set of diacritics
+//			List<Integer> deltaArray = new ArrayList<Integer>();
+			Map<Integer, Integer> deltas = new HashMap<Integer, Integer>();
+			for (int i = 0; i < features.size(); i++) {
+				int delta = features.get(i) - bestFeatures.get(i);
+				if (delta != 0) {
+					deltas.put(i, delta);
+				}
+			}
+
+			List<String> candidates = new ArrayList<String>();
+
+			for (Map.Entry<Integer, Integer> deltaEntry : deltas.entrySet()) {
+				Integer index = deltaEntry.getKey();
+				Integer value = deltaEntry.getValue();
+
+				for (Map.Entry<String, List<Integer>> entry : featureMap.entrySet()) {
+
+					String key = entry.getKey();
+					List<Integer> list = entry.getValue();
+
+					// Only check diacritics
+					if (list.get(0) == -1 && list.get(index).equals(value)) {
+						candidates.add(key);
+					}
+				}
+			}
+			if (candidates.size() == 1) {
+
+			}
+		}
+		return bestSymbol;
+	}
+
+	public SymmetricTable<Double> getWeights() {
 		return weightTable;
 	}
 
-	public void put(String key, List<Float> values) {
+	public void put(String key, List<Integer> values) {
 		featureMap.put(key, values);
 	}
 
-	private Map<String, List<Float>> readTable(List<String> lines) {
-		Map<String, List<Float>> listMap = new HashMap<String, List<Float>>();
+	private void readTable(List<String> lines) throws ParseException {
+		// Identify the labels
+		if (!lines.isEmpty() && lines.get(0).startsWith("\t")) {
+			String[] labels = lines.remove(0).trim().split("\\t");
 
-		// TODO: we'll need to parse out the header
-		String header = lines.remove(0); // This will require that there is a header
-		Map<String, String> featureLabels = new LinkedHashMap<String, String>();
+			numberOfFeatures = labels.length;
+
+			for (int i = 0; i < numberOfFeatures; i++) {
+				labelIndices.put(labels[i], i);
+			}
+		}
 
 		for (String line : lines) {
 
@@ -193,18 +266,23 @@ public class FeatureModel {
 			String keys = row[0];
 
 			row = ArrayUtils.remove(row, 0);
-			List<Float> features = new ArrayList<Float>();
+			if (row.length != numberOfFeatures) {
+				throw new ParseException(
+						"Improper row size! Expected " + numberOfFeatures +
+				        " features but found " + row.length + "\nSee line " + line
+				);
+			}
 
+			List<Integer> features = new ArrayList<Integer>();
 			for (String cell : row) {
-				float featureValue = new Float(cell);
+				int featureValue = new Integer(cell);
 				features.add(featureValue);
 			}
 
 			for (String key : keys.split(" ")) {
-				listMap.put(key, features);
+				featureMap.put(key, features);
 			}
 		}
-		return listMap;
 	}
 
 	/**
@@ -241,7 +319,7 @@ public class FeatureModel {
 		for (int j = l; j > i; j--) {               // Loop over the rest to put the diacritics.
 			String slice = w.substring(i, j);
 			if (containsKey(slice)) {
-				List<Float> featureArray = getFeatureArray(slice);
+				List<Integer> featureArray = getFeatureArray(slice);
 				segment = segment.appendDiacritic(slice, featureArray);
 				i = j - 1;
 			}

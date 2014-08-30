@@ -17,7 +17,6 @@
 package org.haedus.machines;
 
 import org.haedus.datatypes.Segmenter;
-import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

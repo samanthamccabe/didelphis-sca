@@ -24,6 +24,7 @@
 
     <dependencies>
 
+	    <!-- COMMON DEPENDENCIES -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -35,6 +36,12 @@
             <artifactId>commons-io</artifactId>
             <version>2.2</version>
         </dependency>
+
+	    <dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-core</artifactId>
+		    <version>4.0.6.RELEASE</version>
+	    </dependency>
 
         <!-- LOGGING -->
         <dependency>

@@ -31,32 +31,36 @@ import java.util.List;
 public class Segment {
 
 	private final String      symbol;
-	private final List<Float> features;
+	private final List<Integer> features;
 
 	/**
 	 * Initialize an empty Segment
 	 */
 	public Segment() {
 		symbol   = "";
-		features = new ArrayList<Float>();
+		features = new ArrayList<Integer>();
 	}
 
 	public Segment(String s) {
 		symbol   = s;
-		features = new ArrayList<Float>();
+		features = new ArrayList<Integer>();
     }
 
-    public Segment(String s, List<Float> featureArray) {
+    public Segment(String s, List<Integer> featureArray) {
 		symbol = s;
-		features = new ArrayList<Float>(featureArray);
+		features = new ArrayList<Integer>(featureArray);
 	}
 
-    public Segment appendDiacritic(String diacriticSymbol, List<Float> diacriticFeatures) {
-		List<Float> featureList = features;
+	public void setFeature(int feature, int value) {
+		features.set(feature, value);
+	}
+
+    public Segment appendDiacritic(String diacriticSymbol, List<Integer> diacriticFeatures) {
+		List<Integer> featureList = features;
         String s = symbol.concat(diacriticSymbol);
 
         for (int i = 1; i < diacriticFeatures.size(); i++) {
-            float feature = diacriticFeatures.get(i);
+            int feature = diacriticFeatures.get(i);
             if (feature != -9) {
 				featureList.set(i,feature);
             }
@@ -76,23 +80,18 @@ public class Segment {
 	}
 
     public int hashCode() {
-        int hashCode = 19;
-	    for (int i = 0; i < features.size(); i++) {
-		    double number = (i + 1) * features.get(i);
-		    hashCode *= number;
-	    }
-        return hashCode * symbol.hashCode() * 23 - 1;
+        return 19 * symbol.hashCode() * features.hashCode();
     }
 
 	public String getSymbol() {
 		return symbol;
 	}
 
-	public List<Float> getFeatures() {
+	public List<Integer> getFeatures() {
 		return Collections.unmodifiableList(features);
 	}
 
-	public float getFeatureValue(int i) {
+	public int getFeatureValue(int i) {
 		return features.get(i);
 	}
 
@@ -106,11 +105,11 @@ public class Segment {
 
     @Override
     public String toString() {
-        String featureString = " ";
-		for (float _feature : features) {
-			featureString += _feature + " ";
+        StringBuilder sb = new StringBuilder(symbol);
+		for (int feature : features) {
+			sb.append(" ").append(feature);
 		}
-        return  symbol + featureString.trim();
+        return sb.toString();
     }
 
 	public boolean isEmpty() {

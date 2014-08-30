@@ -17,14 +17,67 @@
 package org.haedus.datatypes.phonetic;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Samantha Fiona Morrigan McCabe
  */
-public class FeatureModelTest
-{
+public class FeatureModelTest {
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelTest.class);
+
 	@Test
-	public void testConstructor01() {
-		new FeatureModel();
+	public void testConstructor01() throws Exception {
+		Resource resource = new ClassPathResource("featuremodel");
+		FeatureModel model = new FeatureModel(resource.getFile());
+
+		List<Integer> features = new ArrayList<Integer>();
+		Collections.addAll(features,
+				3, 0, 0, 0, 0, 0, 0, 0, -1, -1, 1, 2, 1, 0, 0, 0, 0);
+
+		Segment received = model.get("g");
+		Segment expected = new Segment("g", features);
+
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testGetStringFromFeatures01() throws Exception {
+		List<Integer> expected = new ArrayList<Integer>();
+		Collections.addAll(expected,
+				3, 0, 0, 0, 0, 0, 0, 0, -1, -1, 1, 2, 1, 0, 0, 0, 0);
+
+		Resource resource = new ClassPathResource("featuremodel");
+		FeatureModel model = new FeatureModel(resource.getFile());
+
+		String bestSymbol = model.getBestSymbol(expected);
+
+		List<Integer> received = model.getFeatureArray(bestSymbol);
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testGetStringFromFeatures02() throws Exception {
+		List<Integer> expected = new ArrayList<Integer>();
+		Collections.addAll(expected,
+				3, 0, 1, 0, 0, 0, 0, 0, -1, -1, 1, 2, 1, 0, 0, 0, 0);
+
+		Resource resource = new ClassPathResource("featuremodel");
+		FeatureModel model = new FeatureModel(resource.getFile());
+
+		String bestSymbol = model.getBestSymbol(expected);
+		LOGGER.info(bestSymbol);
+		List<Integer> received = model.getFeatureArray(bestSymbol);
+//		assertEquals(received, expected);
+		LOGGER.info("{}",expected);
+		LOGGER.info("{}",received);
 	}
 }

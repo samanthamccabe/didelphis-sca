@@ -104,7 +104,7 @@ public class SoundChangeApplier {
 		return useSegmentation;
 	}
 
-	public List<Sequence> processLexicon(Iterable<String> list) throws ParseException {
+	public List<Sequence> processLexicon(Iterable<String> list) {
 
 		List<Sequence> lexicon = new ArrayList<Sequence>();
 		lexicons.put("DEFAULT", lexicon);
