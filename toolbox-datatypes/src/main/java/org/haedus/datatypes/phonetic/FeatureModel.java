@@ -188,7 +188,6 @@ public class FeatureModel {
 
 				String key = entry.getKey();
 				List<Integer> list = entry.getValue();
-
 				// Only check base characters
 				if (list.get(0) != -1) {
 					double sumOfDeltas = 0.0;
@@ -196,7 +195,6 @@ public class FeatureModel {
 						int delta = features.get(i) - list.get(i);
 						sumOfDeltas += Math.pow(delta, 2);
 					}
-
 					double distance = Math.sqrt(sumOfDeltas);
 					if (distance <= minDistance) {
 						bestSymbol = key;
@@ -207,7 +205,6 @@ public class FeatureModel {
 			}
 
 			// Figure out which minimum set of diacritics
-//			List<Integer> deltaArray = new ArrayList<Integer>();
 			Map<Integer, Integer> deltas = new HashMap<Integer, Integer>();
 			for (int i = 0; i < features.size(); i++) {
 				int delta = features.get(i) - bestFeatures.get(i);
@@ -216,25 +213,39 @@ public class FeatureModel {
 				}
 			}
 
-			List<String> candidates = new ArrayList<String>();
+			Map<String, List<Integer>> candidates = new HashMap<String, List<Integer>>();
 
 			for (Map.Entry<Integer, Integer> deltaEntry : deltas.entrySet()) {
 				Integer index = deltaEntry.getKey();
 				Integer value = deltaEntry.getValue();
-
 				for (Map.Entry<String, List<Integer>> entry : featureMap.entrySet()) {
-
 					String key = entry.getKey();
 					List<Integer> list = entry.getValue();
-
 					// Only check diacritics
-					if (list.get(0) == -1 && list.get(index).equals(value)) {
-						candidates.add(key);
+					if (list.get(0) == Integer.MIN_VALUE &&
+					    list.get(index).equals(value)) {
+						candidates.put(key, list);
 					}
 				}
 			}
-			if (candidates.size() == 1) {
 
+			for (Map.Entry<String, List<Integer>> entry : candidates.entrySet()) {
+				String symbol = entry.getKey();
+				List<Integer> list = entry.getValue();
+
+				List<Integer> test = new ArrayList<Integer>(features);
+
+				for (int i = 1; i < list.size(); i++) {
+					Integer value = list.get(i);
+					if (value != Integer.MIN_VALUE) {
+						test.set(i, value);
+					}
+				}
+
+				if (test.equals(features)) {
+					bestSymbol += symbol;
+					break;
+				}
 			}
 		}
 		return bestSymbol;
@@ -262,7 +273,7 @@ public class FeatureModel {
 
 		for (String line : lines) {
 
-			String[] row = line.split("\t");
+			String[] row = line.split("\\t", -1);
 			String keys = row[0];
 
 			row = ArrayUtils.remove(row, 0);
@@ -275,8 +286,12 @@ public class FeatureModel {
 
 			List<Integer> features = new ArrayList<Integer>();
 			for (String cell : row) {
+				if (cell.isEmpty()) {
+					features.add(Integer.MIN_VALUE);
+				} else {
 				int featureValue = new Integer(cell);
 				features.add(featureValue);
+				}
 			}
 
 			for (String key : keys.split(" ")) {

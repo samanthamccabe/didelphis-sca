@@ -59,13 +59,12 @@ public class FeatureModelTest {
 		FeatureModel model = new FeatureModel(resource.getFile());
 
 		String bestSymbol = model.getBestSymbol(expected);
-
-		List<Integer> received = model.getFeatureArray(bestSymbol);
-		assertEquals(expected, received);
+		LOGGER.info(bestSymbol);
+		assertEquals("g", bestSymbol);
 	}
 
 	@Test
-	public void testGetStringFromFeatures02() throws Exception {
+		 public void testGetStringFromFeatures02() throws Exception {
 		List<Integer> expected = new ArrayList<Integer>();
 		Collections.addAll(expected,
 				3, 0, 1, 0, 0, 0, 0, 0, -1, -1, 1, 2, 1, 0, 0, 0, 0);
@@ -74,10 +73,19 @@ public class FeatureModelTest {
 		FeatureModel model = new FeatureModel(resource.getFile());
 
 		String bestSymbol = model.getBestSymbol(expected);
-		LOGGER.info(bestSymbol);
-		List<Integer> received = model.getFeatureArray(bestSymbol);
-//		assertEquals(received, expected);
-		LOGGER.info("{}",expected);
-		LOGGER.info("{}",received);
+		assertEquals("gʰ", bestSymbol);
+	}
+
+	@Test
+	public void testGetStringFromFeatures03() throws Exception {
+		List<Integer> expected = new ArrayList<Integer>();
+		Collections.addAll(expected,
+				3, 0, 1, 0, 0, 0, 0, 0, -1, -1, 1, 2, 1, 0, 0, 0, 0);
+
+		Resource resource = new ClassPathResource("featuremodel");
+		FeatureModel model = new FeatureModel(resource.getFile());
+
+		String bestSymbol = model.getBestSymbol(expected);
+		assertEquals("gʰ", bestSymbol);
 	}
 }

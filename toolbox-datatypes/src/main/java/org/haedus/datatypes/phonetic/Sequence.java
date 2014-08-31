@@ -70,7 +70,12 @@ public class Sequence implements Iterable<Segment> {
 		features = featureTable;
 
 		for (String element : word) {
-			sequence.add(new Segment(element, features.getValue(element)));
+			List<Integer> value = features.getValue(element);
+			if (value == null) {
+				sequence.add(new Segment(element));
+			} else {
+				sequence.add(new Segment(element, value));
+			}
 		}
 	}
 
@@ -100,18 +105,16 @@ public class Sequence implements Iterable<Segment> {
 	@Override
 	public String toString() {
 		String s = "";
-
-		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol() + " ");
+		for (Segment segment : sequence) {
+			s = s.concat(segment.getSymbol() + " ");
 		}
 		return s.trim();
 	}
 
 	public String toStringClean() {
 		String s = "";
-
-		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol());
+		for (Segment segment : sequence) {
+			s = s.concat(segment.getSymbol());
 		}
 		return s.trim();
 	}
@@ -148,9 +151,7 @@ public class Sequence implements Iterable<Segment> {
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-
 		int index = (k <= size()) ? k : size();
-
 		return new Sequence(sequence.subList(i, index), features);
 	}
 

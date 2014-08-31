@@ -41,6 +41,11 @@ public class Segment {
 		features = new ArrayList<Integer>();
 	}
 
+	public Segment(Segment segment) {
+		symbol   = segment.getSymbol();
+		features = segment.getFeatures();
+	}
+
 	public Segment(String s) {
 		symbol   = s;
 		features = new ArrayList<Integer>();
