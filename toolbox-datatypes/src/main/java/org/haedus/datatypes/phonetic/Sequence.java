@@ -70,7 +70,7 @@ public class Sequence implements Iterable<Segment> {
 		features = featureTable;
 
 		for (String element : word) {
-			List<Integer> value = features.getValue(element);
+			List<Double> value = features.getFeatureArray(element);
 			if (value == null) {
 				sequence.add(new Segment(element));
 			} else {

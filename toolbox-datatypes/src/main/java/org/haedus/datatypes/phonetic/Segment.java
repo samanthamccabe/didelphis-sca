@@ -31,14 +31,14 @@ import java.util.List;
 public class Segment {
 
 	private final String      symbol;
-	private final List<Integer> features;
+	private final List<Double> features;
 
 	/**
 	 * Initialize an empty Segment
 	 */
 	public Segment() {
 		symbol   = "";
-		features = new ArrayList<Integer>();
+		features = new ArrayList<Double>();
 	}
 
 	public Segment(Segment segment) {
@@ -48,24 +48,24 @@ public class Segment {
 
 	public Segment(String s) {
 		symbol   = s;
-		features = new ArrayList<Integer>();
+		features = new ArrayList<Double>();
     }
 
-    public Segment(String s, List<Integer> featureArray) {
+    public Segment(String s, List<Double> featureArray) {
 		symbol = s;
-		features = new ArrayList<Integer>(featureArray);
+		features = new ArrayList<Double>(featureArray);
 	}
 
-	public void setFeature(int feature, int value) {
+	public void setFeature(int feature, double value) {
 		features.set(feature, value);
 	}
 
-    public Segment appendDiacritic(String diacriticSymbol, List<Integer> diacriticFeatures) {
-		List<Integer> featureList = features;
+    public Segment appendDiacritic(String diacriticSymbol, List<Double> diacriticFeatures) {
+		List<Double> featureList = features;
         String s = symbol.concat(diacriticSymbol);
 
         for (int i = 1; i < diacriticFeatures.size(); i++) {
-            int feature = diacriticFeatures.get(i);
+            double feature = diacriticFeatures.get(i);
             if (feature != -9) {
 				featureList.set(i,feature);
             }
@@ -92,11 +92,11 @@ public class Segment {
 		return symbol;
 	}
 
-	public List<Integer> getFeatures() {
+	public List<Double> getFeatures() {
 		return Collections.unmodifiableList(features);
 	}
 
-	public int getFeatureValue(int i) {
+	public double getFeatureValue(int i) {
 		return features.get(i);
 	}
 
@@ -111,7 +111,7 @@ public class Segment {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(symbol);
-		for (int feature : features) {
+		for (double feature : features) {
 			sb.append(" ").append(feature);
 		}
         return sb.toString();

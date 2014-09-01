@@ -42,7 +42,7 @@ public class FeatureModel {
 
 	private       int                        numberOfFeatures;
 	private final Map<String, Integer>       labelIndices;
-	private final Map<String, List<Integer>> featureMap;
+	private final Map<String, List<Double>> featureMap;
 	private final SymmetricTable<Double>     weightTable;
 
 	/**
@@ -52,11 +52,11 @@ public class FeatureModel {
 		numberOfFeatures = 0;
 
 		labelIndices = new HashMap<String, Integer>();
-		featureMap   = new HashMap<String, List<Integer>>();
+		featureMap   = new HashMap<String, List<Double>>();
 		weightTable  = new SymmetricTable<Double>();
 	}
 
-	public FeatureModel(Map<String, List<Integer>> map, SymmetricTable<Double> weights) {
+	public FeatureModel(Map<String, List<Double>> map, SymmetricTable<Double> weights) {
 		numberOfFeatures = weights.getDimension();
 
 		labelIndices = new HashMap<String, Integer>();
@@ -78,12 +78,12 @@ public class FeatureModel {
 		return featureMap.keySet();
 	}
 
-	public void addSegment(String symbol, List<Integer> features) {
+	public void addSegment(String symbol, List<Double> features) {
 		featureMap.put(symbol, features);
 	}
 
 	public void addSegment(String symbol) {
-		addSegment(symbol, new ArrayList<Integer>());
+		addSegment(symbol, new ArrayList<Double>());
 	}
 
 	@Override
@@ -125,9 +125,9 @@ public class FeatureModel {
 		float score = 0;
 		int n = l.dimension();
 		for (int i = 0; i < n; i++) {
-			float a = l.getFeatureValue(i);
+			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
-				float b = r.getFeatureValue(j);
+				double b = r.getFeatureValue(j);
 				score += Math.abs(a - b) * weightTable.get(i, j);
 			}
 		}
@@ -165,34 +165,30 @@ public class FeatureModel {
 		return new Segment(string, featureMap.get(string));
 	}
 
-	public List<Integer> getFeatureArray(String symbol) {
+	public List<Double> getFeatureArray(String symbol) {
 		return featureMap.get(symbol);
 	}
 
-	public Map<String, List<Integer>> getFeatureMap() {
+	public Map<String, List<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
-	public List<Integer> getValue(String key) {
-		return featureMap.get(key);
-	}
-
-	public String getBestSymbol(List<Integer> features) {
+	public String getBestSymbol(List<Double> features) {
 		String bestSymbol = null;
-		List<Integer> bestFeatures = null;
+		List<Double> bestFeatures = null;
 
 		if (features.size() == numberOfFeatures) {
 			// Find the base symbol with the smallest Euclidean distance
 			double minDistance = Double.MAX_VALUE;
-			for (Map.Entry<String, List<Integer>> entry : featureMap.entrySet()) {
+			for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
 
 				String key = entry.getKey();
-				List<Integer> list = entry.getValue();
+				List<Double> list = entry.getValue();
 				// Only check base characters
 				if (list.get(0) != -1) {
 					double sumOfDeltas = 0.0;
 					for (int i = 0; i < list.size(); i++) {
-						int delta = features.get(i) - list.get(i);
+						double delta = features.get(i) - list.get(i);
 						sumOfDeltas += Math.pow(delta, 2);
 					}
 					double distance = Math.sqrt(sumOfDeltas);
@@ -205,39 +201,39 @@ public class FeatureModel {
 			}
 
 			// Figure out which minimum set of diacritics
-			Map<Integer, Integer> deltas = new HashMap<Integer, Integer>();
+			Map<Integer, Double> deltas = new HashMap<Integer, Double>();
 			for (int i = 0; i < features.size(); i++) {
-				int delta = features.get(i) - bestFeatures.get(i);
+				double delta = features.get(i) - bestFeatures.get(i);
 				if (delta != 0) {
 					deltas.put(i, delta);
 				}
 			}
 
-			Map<String, List<Integer>> candidates = new HashMap<String, List<Integer>>();
+			Map<String, List<Double>> candidates = new HashMap<String, List<Double>>();
 
-			for (Map.Entry<Integer, Integer> deltaEntry : deltas.entrySet()) {
+			for (Map.Entry<Integer, Double> deltaEntry : deltas.entrySet()) {
 				Integer index = deltaEntry.getKey();
-				Integer value = deltaEntry.getValue();
-				for (Map.Entry<String, List<Integer>> entry : featureMap.entrySet()) {
+				Double value = deltaEntry.getValue();
+				for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
 					String key = entry.getKey();
-					List<Integer> list = entry.getValue();
+					List<Double> list = entry.getValue();
 					// Only check diacritics
-					if (list.get(0) == Integer.MIN_VALUE &&
+					if (list.get(0) == Double.MIN_VALUE &&
 					    list.get(index).equals(value)) {
 						candidates.put(key, list);
 					}
 				}
 			}
 
-			for (Map.Entry<String, List<Integer>> entry : candidates.entrySet()) {
+			for (Map.Entry<String, List<Double>> entry : candidates.entrySet()) {
 				String symbol = entry.getKey();
-				List<Integer> list = entry.getValue();
+				List<Double> list = entry.getValue();
 
-				List<Integer> test = new ArrayList<Integer>(features);
+				List<Double> test = new ArrayList<Double>(features);
 
 				for (int i = 1; i < list.size(); i++) {
-					Integer value = list.get(i);
-					if (value != Integer.MIN_VALUE) {
+					Double value = list.get(i);
+					if (value != Double.MIN_VALUE) {
 						test.set(i, value);
 					}
 				}
@@ -255,7 +251,7 @@ public class FeatureModel {
 		return weightTable;
 	}
 
-	public void put(String key, List<Integer> values) {
+	public void put(String key, List<Double> values) {
 		featureMap.put(key, values);
 	}
 
@@ -263,9 +259,7 @@ public class FeatureModel {
 		// Identify the labels
 		if (!lines.isEmpty() && lines.get(0).startsWith("\t")) {
 			String[] labels = lines.remove(0).trim().split("\\t");
-
 			numberOfFeatures = labels.length;
-
 			for (int i = 0; i < numberOfFeatures; i++) {
 				labelIndices.put(labels[i], i);
 			}
@@ -284,12 +278,12 @@ public class FeatureModel {
 				);
 			}
 
-			List<Integer> features = new ArrayList<Integer>();
+			List<Double> features = new ArrayList<Double>();
 			for (String cell : row) {
 				if (cell.isEmpty()) {
-					features.add(Integer.MIN_VALUE);
+					features.add(Double.MIN_VALUE);
 				} else {
-				int featureValue = new Integer(cell);
+				double featureValue = new Double(cell);
 				features.add(featureValue);
 				}
 			}
@@ -334,7 +328,7 @@ public class FeatureModel {
 		for (int j = l; j > i; j--) {               // Loop over the rest to put the diacritics.
 			String slice = w.substring(i, j);
 			if (containsKey(slice)) {
-				List<Integer> featureArray = getFeatureArray(slice);
+				List<Double> featureArray = getFeatureArray(slice);
 				segment = segment.appendDiacritic(slice, featureArray);
 				i = j - 1;
 			}
