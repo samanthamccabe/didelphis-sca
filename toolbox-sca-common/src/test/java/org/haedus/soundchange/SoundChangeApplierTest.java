@@ -49,17 +49,17 @@ public class SoundChangeApplierTest {
 
 	@Test(expected = ParseException.class)
 	public void testNormalizerBadMode() throws ParseException {
-		new SoundChangeApplier(new String[]{ "USE NORMALIZATION:XXX" });
+		new SoundChangeApplier(new String[]{ "NORMALIZATION:XXX" });
 	}
 
 	@Test(expected = ParseException.class)
 	public void testSegmentationBadMode() throws ParseException {
-		new SoundChangeApplier(new String[]{ "USE SEGMENTATION:XXX" });
+		new SoundChangeApplier(new String[]{ "SEGMENTATION:XXX" });
 	}
 
 	@Test
 	public void testNormalizerNFD() throws ParseException {
-		String[] commands = { "USE NORMALIZATION:NFD" };
+		String[] commands = { "NORMALIZATION:NFD" };
 
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
@@ -78,7 +78,7 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void testNormalizerNFC() throws ParseException {
-		String[] commands = { "USE NORMALIZATION:NFC" };
+		String[] commands = { "NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
@@ -97,7 +97,7 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void TestNormalizerNFCvsNFD() throws ParseException {
-		String[] commands = { "USE NORMALIZATION:NFC" };
+		String[] commands = { "NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
@@ -413,8 +413,8 @@ public class SoundChangeApplierTest {
     @Test
     public void simpleNoSegmentation01() throws ParseException {
         String[] commands = {
-                "USE NORMALIZATION: NONE",
-                "USE SEGMENTATION: FALSE",
+                "NORMALIZATION: NONE",
+                "SEGMENTATION: FALSE",
                 "ḱ  > ɟ",
                 "ḱʰ > cʰ",
                 "ǵ  > j"

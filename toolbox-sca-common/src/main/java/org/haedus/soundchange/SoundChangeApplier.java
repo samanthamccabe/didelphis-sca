@@ -136,13 +136,10 @@ public class SoundChangeApplier {
 					variables.add(cleanedCommand, useSegmentation);
 				} else if (cleanedCommand.contains(">")) {
 					rules.add(new Rule(cleanedCommand, variables, useSegmentation));
-				} else if (cleanedCommand.startsWith("USE ")) {
-					String use = cleanedCommand.replaceAll("^USE ", "").toUpperCase();
-					if (use.startsWith(NORMALIZATION)) {
-						setNormalization(use);
-					} else if (use.startsWith(SEGMENTATION)) {
-						setSegmentation(use);
-					}
+				} else if (cleanedCommand.startsWith("NORMALIZATION")) {
+					setNormalization(cleanedCommand);
+				} else if (cleanedCommand.startsWith("SEGMENTATION")) {
+					setSegmentation(cleanedCommand);
 				} else if (cleanedCommand.startsWith("RESERVE")) {
 					String reserve = cleanedCommand.replaceAll("RESERVE:? *", "");
 					String[] symbols = reserve.split(" +");
