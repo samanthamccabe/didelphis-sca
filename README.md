@@ -87,8 +87,8 @@ Regular Expression metacharacters
 - `?`  matches the previous expression zero or one times
 - `{}` matches any of the list of expressions inside it
 - `()` used to group expressions
-- `!`  matches anything that is NOT the following expression (NB: not implemented)
-- `.`  matches any character (NB: not implemented)
+- `!`  ~~matches anything that is NOT the following expression~~ (NB: not implemented)
+- `.`  ~~matches any character~~ (NB: not implemented)
 
 Sets, delimited by curly braces `{}`, contain a list of space-separated subexpressions. These can be single characters, variables, or other regular expressions - anything allowed elsewhere in the condition. It's not clear that this capability is of any real use, but it remains avaible if you happen to find a use for it.
 
