@@ -34,7 +34,7 @@ SEGMENTATION:
 > * `TRUE ` By default, automatic segmentation is used
 > * `FALSE` Treats each input character as atomic, except where characters are reserved by the use
 
-(3.2) Variables --
+##Variables##
 The SCA allows for the definition of variables (and re-definition) on-the-fly, anywhere in the script. Variables definitions consist of a label, the assignment operator = and a space-separated list of values. For example:
 ```
 TH = pʰ tʰ kʰ
@@ -59,7 +59,10 @@ Some basic rules are:
 pʰ tʰ kʰ > f  θ  x
 p  t  k  > b  d  g  / N_
 p  t  k  > pʰ tʰ kʰ / _V
+
+[Aspirata] > [Anaspirata]
 ```
+The first part of the rule (before `/`) is the *transform* which may contain literals and variables, as well as sequences of both.
 
 Note that if mutliple sounds converge (or are deleted), such as a merger of e and o with a, then the following are equivalent:
 ```
@@ -81,6 +84,8 @@ w s h > 0 h 0 / #_
 ###Condition Format###
 Most of the power of the Toolbox condition format lies in it's ability to use ad-hoc sets, and regular expressions. The underscore character `_` separates the precondition from the postcondition, so that the rule will be applied only when both sides of the condition match.
 
+The ``/`` part of the rule can be left out if there is no condition: `a > b` is equivalent to `a > b / _` and both are valid. A rule can have `/` and `_` or neither, but `a > b _` and `a > b /` are both invalid.
+
 Regular Expression metacharacters
 - `+`  matches the previous expression one or more times
 - `*`  matches the previous expression zero or more times
@@ -90,11 +95,16 @@ Regular Expression metacharacters
 - `!`  ~~matches anything that is NOT the following expression~~ (NB: not implemented)
 - `.`  ~~matches any character~~ (NB: not implemented)
 
-Sets, delimited by curly braces `{}`, contain a list of space-separated subexpressions. These can be single characters, variables, or other regular expressions - anything allowed elsewhere in the condition. It's not clear that this capability is of any real use, but it remains avaible if you happen to find a use for it.
+Sets, delimited by curly braces `{}`, contain a list of space-separated subexpressions. These can be single characters, variables, or other regular expressions - anything allowed elsewhere in the condition. It's not clear that this capability is of any real use, but it remains avaible if you happen to find a use for it. Some examples
+```
+{ a b c }
+{ a b+ }
+{ C a }
+{ C(a)? x }
+{ C{a b} x }
+```
 
-Take some care when writing rules that use `?` or `*`. Because these allow a condition to match zero times, any condition consisting solely of `_X?` or `X*_` will match no matter what. This is because, logically, `_X?` is equivalent to `_X OR _`.
-
-Further, `X?_Y?` does not just allow the rule to match both `X_` or `_Y`, but also `_`, and any rule matching `_` will be applied everywhere
+Take some care when writing rules that use `?` or `*`. Because these allow a condition to match zero times, any condition consisting solely of `_X?` or `X*_` will match no matter what. This is because, logically, `_X?` is equivalent to `_X OR _`. Further, `X?_Y?` does not just allow the rule to match both `X_` or `_Y`, but also `_`, and any rule matching `_` will be applied everywhere
 
 ###Joint Conditions###
 Another piece of advanced functionality supported by this SCA is the capacity to combine mulitple conditions in one rule using OR. For example, if the same transformation occurs under multiple conditions, they can be joined together:
