@@ -87,13 +87,13 @@ Most of the power of the Toolbox condition format lies in it's ability to use ad
 The ``/`` part of the rule can be left out if there is no condition: `a > b` is equivalent to `a > b / _` and both are valid. A rule can have `/` and `_` or neither, but `a > b _` and `a > b /` are both invalid.
 
 Regular Expression metacharacters
-- `+`  matches the previous expression one or more times
-- `*`  matches the previous expression zero or more times
-- `?`  matches the previous expression zero or one times
-- `{}` matches any of the list of expressions inside it
-- `()` used to group expressions
-- `!`  ~~matches anything that is NOT the following expression~~ (NB: not implemented)
-- `.`  ~~matches any character~~ (NB: not implemented)
+> - `+`  matches the previous expression one or more times
+> - `*`  matches the previous expression zero or more times
+> - `?`  matches the previous expression zero or one times
+> - `{}` matches any of the list of expressions inside it
+> - `()` used to group expressions
+> - `!`  ~~matches anything that is NOT the following expression~~ (NB: not implemented)
+> - `.`  ~~matches any character~~ (NB: not implemented)
 
 Sets, delimited by curly braces `{}`, contain a list of space-separated subexpressions. These can be single characters, variables, or other regular expressions - anything allowed elsewhere in the condition. It's not clear that this capability is of any real use, but it remains avaible if you happen to find a use for it. Some examples
 ```
