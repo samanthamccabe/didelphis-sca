@@ -36,13 +36,14 @@ SEGMENTATION:
 
 (3.2) Variables --
 The SCA allows for the definition of variables (and re-definition) on-the-fly, anywhere in the script. Variables definitions consist of a label, the assignment operator = and a space-separated list of values. For example:
-
-> `TH = pʰ tʰ kʰ`
-> `T  = p  t  k`
-> `D  = b  d  g`
-> `W  = w  y  ɰ`
-> `N  = m  n`
-> `C  = TH T D W N r s`
+```
+TH = pʰ tʰ kʰ
+T  = p  t  k
+D  = b  d  g
+W  = w  y  ɰ
+N  = m  n
+C  = TH T D W N r s
+```
 
 The values may contain other variable labels. There are no restrictions on variable naming - it is up to the user to avoid conflicts. However, when SCA parses a rule or variable definition, it searches for variables by finding the longest matching lable. If you have `T`, `H`, and `TH` defined as variables, a rule containing `TH` will always be understood to represent the variable `TH`, and not `T` followed by `H`.
 
