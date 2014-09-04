@@ -282,6 +282,15 @@ public class RuleTest {
 		testRule(rule, "axya", "axya");
 	}
 
+	@Test
+	public void testCompound02() throws RuleFormatException {
+		Rule rule = new Rule("a > b / x_ NOT _y");
+
+		testRule(rule, "axa",   "axb");
+		testRule(rule, "axay",  "axay");
+		testRule(rule, "xayxa", "xayxb");
+	}
+
     /*======================================================================+
      | Exception Tests                                                      |
      +======================================================================*/

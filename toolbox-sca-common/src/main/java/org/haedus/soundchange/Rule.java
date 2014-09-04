@@ -66,8 +66,18 @@ public class Rule {
 				// Split on EXCEPT first, since either block can have OR
 				String conditionString = array[1].trim();
 
-				if (conditionString.contains("EXCEPT") || conditionString.contains("NOT")) {
-
+				if (conditionString.contains("NOT")) {
+					String[] split = conditionString.split("\\s+NOT\\s+");
+					if (split.length == 2) {
+						for (String con : split[0].split("\\s+OR\\s+")) {
+							conditions.add(new Condition(con, variableStore, model));
+						}
+						for (String exc : split[1].split("\\s+OR\\s+")) {
+							exceptions.add(new Condition(exc, variableStore, model));
+						}
+					} else {
+						throw new RuleFormatException("Illegal NOT expression in "+ ruleText);
+					}
 				} else {
 					for (String s : conditionString.split("\\s+OR\\s+")) {
 						conditions.add(new Condition(s, variableStore, model));
@@ -159,13 +169,22 @@ public class Rule {
 	}
 
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
-		boolean match = false;
-		Iterator<Condition> it = conditions.iterator();
-		while (it.hasNext() && !match) {
-			Condition condition = it.next();
-			match = condition.isMatch(word, startIndex, endIndex);
+		boolean conditionMatch = false;
+		boolean exceptionMatch = false;
+
+		Iterator<Condition> cI = conditions.iterator();
+		while (cI.hasNext() && !conditionMatch) {
+			Condition condition = cI.next();
+			conditionMatch = condition.isMatch(word, startIndex, endIndex);
 		}
-		return match;
+
+		Iterator<Condition> eI = exceptions.iterator();
+		while (eI.hasNext() && !exceptionMatch) {
+			Condition exception = eI.next();
+			exceptionMatch = exception.isMatch(word, startIndex, endIndex);
+		}
+
+		return conditionMatch && !exceptionMatch;
 	}
 
 	private List<String> toList(String string) {
