@@ -19,6 +19,7 @@ package org.haedus.soundchange;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
+import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -73,14 +74,15 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule01() throws ParseException {
+    public void testConditional01() throws ParseException {
         Rule rule = new Rule("a > o / g_");
 
+	    testRule(rule, "ga", "go");
         testRule(rule, "adamagara", "adamagora");
     }
 
     @Test
-    public void testConditionalRule02() throws ParseException {
+    public void testConditional02() throws ParseException {
         Rule rule = new Rule("a > e / _c");
         testRule(rule, "abacaba", "abecaba");
         testRule(rule, "ababaca", "ababeca");
@@ -89,7 +91,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule03() throws ParseException {
+    public void testConditional03() throws ParseException {
         Rule rule = new Rule("a > e / _c+#");
         testRule(rule, "abac", "abec");
         testRule(rule, "abacc", "abecc");
@@ -99,7 +101,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule04() throws ParseException {
+    public void testUnconditional04() throws ParseException {
         Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
         testRule(rule, "keʔe", "kē");
         testRule(rule, "kaʔa", "kā");
@@ -108,14 +110,14 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule05() throws ParseException {
+    public void testConditional05() throws ParseException {
         Rule rule = new Rule("rˌh lˌh > ər əl / _a");
         testRule(rule, "krˌha", "kəra");
         testRule(rule, "klˌha", "kəla");
     }
 
     @Test
-    public void testConditionalRule06() throws ParseException {
+    public void testConditional06() throws ParseException {
         Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
 
         testRule(rule, "pʰāḱʰus", "bāḱʰus");
@@ -127,7 +129,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule07() throws ParseException {
+    public void testConditional07() throws ParseException {
         Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
 
         testRule(rule, "pʰaḱʰus", "baḱʰus");
@@ -135,7 +137,7 @@ public class RuleTest {
     }
 
     @Test
-    public void testConditionalRule08() throws ParseException {
+    public void testConditional08() throws ParseException {
         Rule rule = new Rule("d > t / _#");
 
         testRule(rule, "abad", "abat");
@@ -269,6 +271,16 @@ public class RuleTest {
         Sequence received = rule.apply(original);
         assertEquals(expected, received);
     }
+
+	@Test
+	public void testCompound01() throws RuleFormatException {
+		Rule rule = new Rule("a > b / x_ OR _y");
+
+		testRule(rule, "axa", "axb");
+		testRule(rule, "aya", "bya");
+		testRule(rule, "ayxa", "byxb");
+		testRule(rule, "axya", "axya");
+	}
 
     /*======================================================================+
      | Exception Tests                                                      |

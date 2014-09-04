@@ -36,7 +36,8 @@ public class Rule {
 
 	private final String                  ruleText;
 	private final Map<Sequence, Sequence> transform;
-	private final Condition               condition;
+	private final List<Condition>         conditions;
+	private final List<Condition>         exceptions;
 	private final VariableStore           variableStore;
 	private final FeatureModel            featureModel;
 
@@ -45,10 +46,12 @@ public class Rule {
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText = rule;
+		ruleText      = rule;
 		variableStore = variables;
-		featureModel = new FeatureModel();
-		transform = new LinkedHashMap<Sequence, Sequence>();
+		featureModel  = new FeatureModel();
+		transform     = new LinkedHashMap<Sequence, Sequence>();
+		exceptions    = new ArrayList<Condition>();
+		conditions    = new ArrayList<Condition>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -58,11 +61,22 @@ public class Rule {
 				throw new RuleFormatException("Condition was empty!");
 			} else {
 				transform = array[0].trim();
-				condition = new Condition(array[1].trim(), variableStore, model);
+
+				// TODO: check for OR and EXCEPT
+				// Split on EXCEPT first, since either block can have OR
+				String conditionString = array[1].trim();
+
+				if (conditionString.contains("EXCEPT") || conditionString.contains("NOT")) {
+
+				} else {
+					for (String s : conditionString.split("\\s+OR\\s+")) {
+						conditions.add(new Condition(s, variableStore, model));
+					}
+				}
 			}
 		} else {
 			transform = ruleText;
-			condition = new Condition();
+			conditions.add(new Condition());
 		}
 		parseTransform(transform, useSegmentation);
 	}
@@ -85,7 +99,13 @@ public class Rule {
 			sb.append(" ");
 		}
 		sb.append("/ ");
-		sb.append(condition.toString());
+
+		for (int i = 0; i < conditions.size(); i++) {
+			sb.append(conditions.get(i).toString());
+			if ( i < conditions.size() - 1) {
+				sb.append(" OR ");
+			}
+		}
 
 		return sb.toString();
 	}
@@ -116,7 +136,7 @@ public class Rule {
                     if (subsequence.startsWith(sourceSequence)) {
                         int size = sourceSequence.size();
 
-                        if (condition.isEmpty() || condition.isMatch(output, index, index + size)) {
+                        if (conditions.isEmpty() || conditionsMatch(output, index, index + size)) {
                             output.remove(index, index + size);
                             if (!targetSequence.equals(new Sequence("0"))) {
                                 output.insert(targetSequence, index);
@@ -136,6 +156,16 @@ public class Rule {
             }
 		}
 		return output;
+	}
+
+	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
+		boolean match = false;
+		Iterator<Condition> it = conditions.iterator();
+		while (it.hasNext() && !match) {
+			Condition condition = it.next();
+			match = condition.isMatch(word, startIndex, endIndex);
+		}
+		return match;
 	}
 
 	private List<String> toList(String string) {
