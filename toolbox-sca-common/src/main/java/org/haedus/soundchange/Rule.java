@@ -62,10 +62,7 @@ public class Rule {
 			} else {
 				transform = array[0].trim();
 
-				// TODO: check for OR and EXCEPT
-				// Split on EXCEPT first, since either block can have OR
 				String conditionString = array[1].trim();
-
 				if (conditionString.contains("NOT")) {
 					String[] split = conditionString.split("\\s+NOT\\s+");
 					if (split.length == 2) {
@@ -116,7 +113,6 @@ public class Rule {
 				sb.append(" OR ");
 			}
 		}
-
 		return sb.toString();
 	}
 
@@ -138,18 +134,18 @@ public class Rule {
 			int i = 0;
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
 
-				Sequence sourceSequence = entry.getKey();
-                Sequence targetSequence = entry.getValue();
+				Sequence source = entry.getKey();
+                Sequence target = entry.getValue();
 
                 if (index < output.size()) {
-                	Sequence subsequence = output.getSubsequence(index);        
-                    if (subsequence.startsWith(sourceSequence)) {
-                        int size = sourceSequence.size();
+                	Sequence subSequence = output.getSubsequence(index);
+                    if (subSequence.startsWith(source)) {
+                        int size = source.size();
 
                         if (conditions.isEmpty() || conditionsMatch(output, index, index + size)) {
                             output.remove(index, index + size);
-                            if (!targetSequence.equals(new Sequence("0"))) {
-                                output.insert(targetSequence, index);
+                            if (!target.equals(new Sequence("0"))) {
+                                output.insert(target, index);
                             } else {
                                 wasDeleted = true;
                             }
@@ -171,19 +167,16 @@ public class Rule {
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
 		boolean conditionMatch = false;
 		boolean exceptionMatch = false;
-
 		Iterator<Condition> cI = conditions.iterator();
 		while (cI.hasNext() && !conditionMatch) {
 			Condition condition = cI.next();
 			conditionMatch = condition.isMatch(word, startIndex, endIndex);
 		}
-
 		Iterator<Condition> eI = exceptions.iterator();
 		while (eI.hasNext() && !exceptionMatch) {
 			Condition exception = eI.next();
 			exceptionMatch = exception.isMatch(word, startIndex, endIndex);
 		}
-
 		return conditionMatch && !exceptionMatch;
 	}
 
@@ -203,14 +196,14 @@ public class Rule {
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transform);
 			} else {
-				List<String> s = toList(array[0]);
-				List<String> t = toList(array[1]);
+				List<String> source = toList(array[0]);
+				List<String> target = toList(array[1]);
 
-				balanceTransform(s, t);
+				balanceTransform(source, target);
 
-				for (int i = 0; i < s.size(); i++) {
-					List<Sequence> expandedSource = variableStore.expandVariables(s.get(i), useSegmentation);
-					List<Sequence> expandedTarget = variableStore.expandVariables(t.get(i), useSegmentation);
+				for (int i = 0; i < source.size(); i++) {
+					List<Sequence> expandedSource = variableStore.expandVariables(source.get(i), useSegmentation);
+					List<Sequence> expandedTarget = variableStore.expandVariables(target.get(i), useSegmentation);
 
 					if (expandedTarget.size() < expandedSource.size()) {
 						Sequence last = expandedTarget.get(expandedTarget.size() - 1);
@@ -220,9 +213,7 @@ public class Rule {
 					}
 
 					for (int k = 0; k < expandedSource.size(); k++) {
-						this.transform.put(
-								expandedSource.get(k),
-								expandedTarget.get(k));
+						this.transform.put(expandedSource.get(k), expandedTarget.get(k));
 					}
 				}
 			}
@@ -231,19 +222,19 @@ public class Rule {
 		}
 	}
 
-	private void balanceTransform(List<String> s, List<String> t) throws RuleFormatException {
-		if (t.size() > s.size()) {
-			throw new RuleFormatException("Source/Target size error! " + s + " < " + t);
+	private void balanceTransform(List<String> source, List<String> target) throws RuleFormatException {
+		if (target.size() > source.size()) {
+			throw new RuleFormatException("Source/Target size error! " + source + " < " + target);
 		}
 
-		if (t.size() < s.size()) {
-			if (t.size() == 1) {
-				String first = t.get(0);
-				while (t.size() < s.size()) {
-					t.add(first);
+		if (target.size() < source.size()) {
+			if (target.size() == 1) {
+				String first = target.get(0);
+				while (target.size() < source.size()) {
+					target.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Source/Target size error! " + s + " > " + t + " and target size is greater than 1!");
+				throw new RuleFormatException("Source/Target size error! " + source + " > " + target + " and target size is greater than 1!");
 			}
 		}
 	}

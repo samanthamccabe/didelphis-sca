@@ -16,10 +16,10 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
-import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -273,7 +273,7 @@ public class RuleTest {
     }
 
 	@Test
-	public void testCompound01() throws RuleFormatException {
+	public void testCompound01() throws ParseException {
 		Rule rule = new Rule("a > b / x_ OR _y");
 
 		testRule(rule, "axa", "axb");
@@ -283,12 +283,24 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testCompound02() throws RuleFormatException {
+	public void testCompound02() throws ParseException {
 		Rule rule = new Rule("a > b / x_ NOT _y");
 
 		testRule(rule, "axa",   "axb");
 		testRule(rule, "axay",  "axay");
 		testRule(rule, "xayxa", "xayxb");
+	}
+
+	@Test
+	public void testCompound03() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = x y z", true);
+
+		Rule rule = new Rule("a > b / C_ NOT x_", new FeatureModel(), store, true);
+
+		testRule(rule, "axa",   "axa");
+		testRule(rule, "aya",   "ayb");
+		testRule(rule, "aza",   "azb");
 	}
 
     /*======================================================================+
