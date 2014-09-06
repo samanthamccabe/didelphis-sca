@@ -16,7 +16,9 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
@@ -38,6 +40,7 @@ public class Rule {
 	private final Map<Sequence, Sequence> transform;
 	private final List<Condition>         conditions;
 	private final List<Condition>         exceptions;
+	private final List<Sequence>          transformIndex;
 	private final VariableStore           variableStore;
 	private final FeatureModel            featureModel;
 
@@ -45,13 +48,18 @@ public class Rule {
 		this(rule, new VariableStore(), true);
 	}
 
+	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		this(rule, new FeatureModel(), variables, useSegmentation);
+	}
+
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText      = rule;
-		variableStore = variables;
-		featureModel  = new FeatureModel();
-		transform     = new LinkedHashMap<Sequence, Sequence>();
-		exceptions    = new ArrayList<Condition>();
-		conditions    = new ArrayList<Condition>();
+		ruleText       = rule;
+		variableStore  = variables;
+		featureModel   = new FeatureModel();
+		transform      = new LinkedHashMap<Sequence, Sequence>();
+		exceptions     = new ArrayList<Condition>();
+		conditions     = new ArrayList<Condition>();
+		transformIndex = new ArrayList<Sequence>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -88,10 +96,6 @@ public class Rule {
 		parseTransform(transform, useSegmentation);
 	}
 
-	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new FeatureModel(), variables, useSegmentation);
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -118,7 +122,6 @@ public class Rule {
 
 	public void execute(SoundChangeApplier sca) {
 		for (List<Sequence> lexicon : sca.getLexicons()) {
-
 			for (int i = 0; i < lexicon.size(); i++) {
 				Sequence word = lexicon.get(i);
 				lexicon.set(i, apply(word));
@@ -128,15 +131,14 @@ public class Rule {
 
 	public Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
-
 		for (int index = 0; index < output.size();) {
 			boolean wasDeleted = false;
 			int i = 0;
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
-
 				Sequence source = entry.getKey();
                 Sequence target = entry.getValue();
 
+				// TODO: some kind of new matching logic
                 if (index < output.size()) {
                 	Sequence subSequence = output.getSubsequence(index);
                     if (subSequence.startsWith(source)) {
@@ -180,41 +182,29 @@ public class Rule {
 		return conditionMatch && !exceptionMatch;
 	}
 
-	private List<String> toList(String string) {
-		List<String> list = new ArrayList<String>();
-		if (!string.isEmpty()) {
-			string = string.trim();
-			Collections.addAll(list, string.split("\\s+"));
-		}
-		return list;
-	}
-
-	private void parseTransform(String transform, boolean useSegmentation) throws RuleFormatException {
-		if (transform.contains(">")) {
-			String[] array = transform.split("\\s*>\\s*");
+	private void parseTransform(String transformation, boolean useSegmentation) throws RuleFormatException {
+		if (transformation.contains(">")) {
+			String[] array = transformation.split("\\s*>\\s*");
 
 			if (array.length <= 1) {
-				throw new RuleFormatException("Malformed transformation! " + transform);
+				throw new RuleFormatException("Malformed transformation! " + transformation);
 			} else {
-				List<String> source = toList(array[0]);
-				List<String> target = toList(array[1]);
+				List<String> sourceString = new ArrayList<String>();
+				List<String> targetString = new ArrayList<String>();
 
-				balanceTransform(source, target);
+				Collections.addAll(sourceString, array[0].split("\\s+"));
+				Collections.addAll(targetString, array[1].split("\\s+"));
 
-				for (int i = 0; i < source.size(); i++) {
-					List<Sequence> expandedSource = variableStore.expandVariables(source.get(i), useSegmentation);
-					List<Sequence> expandedTarget = variableStore.expandVariables(target.get(i), useSegmentation);
+				balanceTransform(sourceString, targetString);
 
-					if (expandedTarget.size() < expandedSource.size()) {
-						Sequence last = expandedTarget.get(expandedTarget.size() - 1);
-						while (expandedTarget.size() < expandedSource.size()) {
-							expandedTarget.add(last);
-						}
-					}
+				for (int i = 0; i < sourceString.size(); i++) {
+					// TODO: this needs to work better - select based on useSegmentation
+					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
+					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, useSegmentation);
+					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, useSegmentation);
 
-					for (int k = 0; k < expandedSource.size(); k++) {
-						this.transform.put(expandedSource.get(k), expandedTarget.get(k));
-					}
+					transform.put(source, target);
+					transformIndex.add(source);
 				}
 			}
 		} else {
@@ -226,7 +216,6 @@ public class Rule {
 		if (target.size() > source.size()) {
 			throw new RuleFormatException("Source/Target size error! " + source + " < " + target);
 		}
-
 		if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);

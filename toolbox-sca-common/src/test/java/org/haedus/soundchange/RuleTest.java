@@ -34,6 +34,27 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
+	@Test
+	public void testMetathesis01() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("N = m n", true);
+
+		Rule rule = new Rule("CN > $2$1", new FeatureModel(), store, true);
+
+		testRule(rule, "pn","np");
+		testRule(rule, "tn","nt");
+		testRule(rule, "kn","nk");
+
+		testRule(rule, "pm","mp");
+		testRule(rule, "tm","mt");
+		testRule(rule, "km","mk");
+
+		testRule(rule, "pt","pt");
+		testRule(rule, "tp","tp");
+		testRule(rule, "kp","kp");
+	}
+
     @Test
     public void testDeletion01() throws ParseException {
         Rule rule = new Rule("∅ - > 0");

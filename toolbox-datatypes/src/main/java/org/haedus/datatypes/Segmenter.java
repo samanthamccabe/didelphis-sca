@@ -68,6 +68,14 @@ public class Segmenter {
 		return segment(word, new ArrayList<String>());
 	}
 
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, boolean useSegmentation) {
+		if (useSegmentation) {
+			return getSequence(word, model, variables);
+		} else {
+			return getSequenceNaively(word, model, variables);
+		}
+	}
+
 	public static Sequence getSequence(String word , FeatureModel model, VariableStore variables) {
 		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
 		List<String> keys = new ArrayList<String>();
