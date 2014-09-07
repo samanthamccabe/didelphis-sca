@@ -58,6 +58,22 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
+	public void testBreak() throws ParseException {
+		String[] commands = { "x > y",
+				"BREAK",
+				"a > b"
+		};
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+		List<String> words    = toList("x", "xxa","a");
+		List<String> expected = toList("y", "yya","a");
+
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
+
+	@Test
 	public void testNormalizerNFD() throws ParseException {
 		String[] commands = { "NORMALIZATION:NFD" };
 
