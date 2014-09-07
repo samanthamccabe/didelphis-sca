@@ -147,6 +147,9 @@ public class SoundChangeApplier {
 					for (String symbol : symbols) {
 						model.addSegment(symbol);
 					}
+				} else if (cleanedCommand.startsWith("BREAK")) {
+					// Stop parsing rules
+					break;
 				} else {
 					LOGGER.warn("Unrecognized Command: {}", command);
 				}
