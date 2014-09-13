@@ -38,9 +38,9 @@ public class Rule {
 
 	private final String                  ruleText;
 	private final Map<Sequence, Sequence> transform;
+	private final Map<Integer, Integer>   indexMap;
 	private final List<Condition>         conditions;
 	private final List<Condition>         exceptions;
-	private final List<Sequence>          transformIndex;
 	private final VariableStore           variableStore;
 	private final FeatureModel            featureModel;
 
@@ -57,9 +57,9 @@ public class Rule {
 		variableStore  = variables;
 		featureModel   = new FeatureModel();
 		transform      = new LinkedHashMap<Sequence, Sequence>();
+		indexMap       = new HashMap<Integer, Integer>();
 		exceptions     = new ArrayList<Condition>();
 		conditions     = new ArrayList<Condition>();
-		transformIndex = new ArrayList<Sequence>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -131,37 +131,46 @@ public class Rule {
 
 	public Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
+		// Step through the word to see if the rule might
+		// apply, i.e. if the source pattern can be found
 		for (int index = 0; index < output.size();) {
-			boolean wasDeleted = false;
-			int i = 0;
+			// Check each source pattern
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
 				Sequence source = entry.getKey();
                 Sequence target = entry.getValue();
 
-				// TODO: some kind of new matching logic
                 if (index < output.size()) {
                 	Sequence subSequence = output.getSubsequence(index);
-                    if (subSequence.startsWith(source)) {
-                        int size = source.size();
+	                Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
 
-                        if (conditions.isEmpty() || conditionsMatch(output, index, index + size)) {
-                            output.remove(index, index + size);
-                            if (!target.equals(new Sequence("0"))) {
-                                output.insert(target, index);
-                            } else {
-                                wasDeleted = true;
-                            }
-                        }
-	                    if (i < transform.size() - 1 && !wasDeleted) {
-		                    index++;
-	                    }
-                    }
+	                // Step through the source pattern
+	                int referenceIndex = 0;
+	                boolean match = true;
+	                for (int i = 0; i < source.size() && match; i++){
+
+		                Segment segment = source.get(i);
+		                if (variableStore.contains(segment.getSymbol())) {
+			                List<Sequence> elements = variableStore.get(segment.getSymbol());
+			                boolean elementMatches = false;
+			                for (int k = 0; k < elements.size() && !elementMatches; k++) {
+				                Sequence element = elements.get(k);
+				                if (subSequence.startsWith(element)) {
+					                indices.put(referenceIndex, k);
+					                referenceIndex++;
+					                index += element.size();
+					                elementMatches = true;
+				                }
+			                }
+		                } else {
+			                // It' a literal
+			                subSequence.startsWith(segment);
+			                index++;
+		                }
+	                }
+	                // Now at this point, if everything worked, we can
+
                 }
-				i++;
 			}
-            if (!wasDeleted) {
-                index++;
-            }
 		}
 		return output;
 	}
@@ -198,13 +207,11 @@ public class Rule {
 				balanceTransform(sourceString, targetString);
 
 				for (int i = 0; i < sourceString.size(); i++) {
-					// TODO: this needs to work better - select based on useSegmentation
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
 					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, useSegmentation);
 					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, useSegmentation);
 
 					transform.put(source, target);
-					transformIndex.add(source);
 				}
 			}
 		} else {
