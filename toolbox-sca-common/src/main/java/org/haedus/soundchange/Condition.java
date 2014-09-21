@@ -80,7 +80,6 @@ public class Condition {
 		this(condition, variables, new FeatureModel());
 	}
 
-
 	public StateMachine getPostCondition() {
 		return postCondition;
 	}

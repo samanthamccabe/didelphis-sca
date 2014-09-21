@@ -407,8 +407,8 @@ public class SoundChangeApplierTest {
     @Test
     public void simpleNosegmentation() throws ParseException {
         String[] commands = {
-                "USE NORMALIZATION: NONE",
-                "USE SEGMENTATION: FALSE",
+                "NORMALIZATION: NONE",
+                "SEGMENTATION: FALSE",
                 "ḱʰ ḱ ǵ > cʰ c ɟ",
                 "cʰs cs ɟs > ks ks ks",
                 "s > 0 / {cʰ  c  ɟ}_",
@@ -449,7 +449,7 @@ public class SoundChangeApplierTest {
     @Test
     public void reserveTest() throws ParseException {
        	String[] commands = {
-    			"USE SEGMENTATION: FALSE",
+    			"SEGMENTATION: FALSE",
     			"RESERVE ph th kh"
     	};
        	SoundChangeApplier sca = new SoundChangeApplier(commands);
@@ -465,7 +465,7 @@ public class SoundChangeApplierTest {
     @Test
     public void reserveNaiveSegmentationTest() throws ParseException {
     	String[] commands = {
-    			"USE SEGMENTATION: FALSE",
+    			"SEGMENTATION: FALSE",
     			"RESERVE ph th kh",
     			"ph th kh > f h x"
     	};
@@ -483,7 +483,7 @@ public class SoundChangeApplierTest {
     @Test
     public void reserveDefaultSegmentationTest() throws ParseException {
     	String[] commands = {
-    			"USE SEGMENTATION: TRUE",
+    			"SEGMENTATION: TRUE",
     			"RESERVE ph th kh",
     			"ph th kh > f h x"
     	};
@@ -528,11 +528,10 @@ public class SoundChangeApplierTest {
                 s2 = Normalizer.normalize(s, form);
             }
 
-            if (sca.usesSegmentation()) {
-            	list.add(Segmenter.getSequence(s2, sca.getFeatureModel(), sca.getVariables()));
-            } else {
-            	list.add(Segmenter.getSequenceNaively(s2, sca.getFeatureModel(), sca.getVariables()));
-            }
+	        list.add(Segmenter.getSequence(s2,
+			        sca.getFeatureModel(),
+			        sca.getVariables(),
+			        sca.usesSegmentation()));
 		}
 		return list;
 	}

@@ -38,7 +38,6 @@ public class Rule {
 
 	private final String                  ruleText;
 	private final Map<Sequence, Sequence> transform;
-	private final Map<Integer, Integer>   indexMap;
 	private final List<Condition>         conditions;
 	private final List<Condition>         exceptions;
 	private final VariableStore           variableStore;
@@ -55,9 +54,8 @@ public class Rule {
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText      = rule;
 		variableStore = variables;
-		featureModel  = new FeatureModel();
+		featureModel  = model;
 		transform     = new LinkedHashMap<Sequence, Sequence>();
-		indexMap      = new HashMap<Integer, Integer>();
 		exceptions    = new ArrayList<Condition>();
 		conditions    = new ArrayList<Condition>();
 
@@ -110,7 +108,6 @@ public class Rule {
 			sb.append(" ");
 		}
 		sb.append("/ ");
-
 		for (int i = 0; i < conditions.size(); i++) {
 			sb.append(conditions.get(i).toString());
 			if (i < conditions.size() - 1) {
@@ -131,8 +128,7 @@ public class Rule {
 
 	public Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
-		// Step through the word to see if the rule might
-		// apply, i.e. if the source pattern can be found
+		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found
 		for (int index = 0; index < output.size(); ) {
 			int startIndex = index;
 			boolean noMatch = true;
@@ -143,7 +139,8 @@ public class Rule {
 
 				if (index < output.size()) {
 
-					Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
+					Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
+					Map<Integer, String> variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
 					int referenceIndex = 0;
@@ -158,7 +155,9 @@ public class Rule {
 							for (int k = 0; k < elements.size() && !elementMatches; k++) {
 								Sequence element = elements.get(k);
 								if (subSequence.startsWith(element)) {
-									indices.put(referenceIndex, k);
+									indexMap.put(referenceIndex, k);
+									variableMap.put(referenceIndex, segment.getSymbol());
+
 									referenceIndex++;
 									testIndex += element.size();
 									elementMatches = true;
@@ -184,9 +183,17 @@ public class Rule {
 						for (int i = 0; i < target.size(); i++) {
 							Segment segment = target.get(i);
 
-							if (variableStore.contains(segment.getSymbol())) {
+							if (segment.getSymbol().matches("\\$\\d+")) {
+								String symbol = segment.getSymbol().replace("$","");
+								int backReferenceIndex = Integer.valueOf(symbol) - 1;
+								int integer = indexMap.get(backReferenceIndex);
+								String variable = variableMap.get(backReferenceIndex);
+
+								Sequence sequence = variableStore.get(variable).get(integer);
+								replacement.add(sequence);
+							} else if (variableStore.contains(segment.getSymbol())) {
 								List<Sequence> elements = variableStore.get(segment.getSymbol());
-								Sequence sequence = elements.get(indices.get(variableIndex));
+								Sequence sequence = elements.get(indexMap.get(variableIndex));
 								replacement.add(sequence);
 								variableIndex++;
 							} else if (!segment.getSymbol().equals("0")) {
