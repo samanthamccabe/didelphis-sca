@@ -53,13 +53,13 @@ public class Rule {
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText       = rule;
-		variableStore  = variables;
-		featureModel   = new FeatureModel();
-		transform      = new LinkedHashMap<Sequence, Sequence>();
-		indexMap       = new HashMap<Integer, Integer>();
-		exceptions     = new ArrayList<Condition>();
-		conditions     = new ArrayList<Condition>();
+		ruleText      = rule;
+		variableStore = variables;
+		featureModel  = new FeatureModel();
+		transform     = new LinkedHashMap<Sequence, Sequence>();
+		indexMap      = new HashMap<Integer, Integer>();
+		exceptions    = new ArrayList<Condition>();
+		conditions    = new ArrayList<Condition>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -81,7 +81,7 @@ public class Rule {
 							exceptions.add(new Condition(exc, variableStore, model));
 						}
 					} else {
-						throw new RuleFormatException("Illegal NOT expression in "+ ruleText);
+						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
 					}
 				} else {
 					for (String s : conditionString.split("\\s+OR\\s+")) {
@@ -113,7 +113,7 @@ public class Rule {
 
 		for (int i = 0; i < conditions.size(); i++) {
 			sb.append(conditions.get(i).toString());
-			if ( i < conditions.size() - 1) {
+			if (i < conditions.size() - 1) {
 				sb.append(" OR ");
 			}
 		}
@@ -133,74 +133,74 @@ public class Rule {
 		Sequence output = new Sequence(input);
 		// Step through the word to see if the rule might
 		// apply, i.e. if the source pattern can be found
-		for (int index = 0; index < output.size();) {
+		for (int index = 0; index < output.size(); ) {
 			int startIndex = index;
 			boolean noMatch = true;
 			// Check each source pattern
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
 				Sequence source = entry.getKey();
-                Sequence target = entry.getValue();
+				Sequence target = entry.getValue();
 
-                if (index < output.size()) {
+				if (index < output.size()) {
 
-	                Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
+					Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
 
-	                // Step through the source pattern
-	                int referenceIndex = 0;
-	                int testIndex = index;
-	                boolean match = true;
-	                for (int i = 0; i < source.size() && match; i++){
-		                Sequence subSequence = output.getSubsequence(testIndex);
-		                Segment segment = source.get(i);
-		                if (variableStore.contains(segment.getSymbol())) {
-			                List<Sequence> elements = variableStore.get(segment.getSymbol());
-			                boolean elementMatches = false;
-			                for (int k = 0; k < elements.size() && !elementMatches; k++) {
-				                Sequence element = elements.get(k);
-				                if (subSequence.startsWith(element)) {
-					                indices.put(referenceIndex, k);
-					                referenceIndex++;
-					                testIndex += element.size();
-					                elementMatches = true;
-				                }
-			                }
-			                match = elementMatches;
-		                } else {
-			                // It' a literal
-			                match = subSequence.startsWith(segment);
-			                if (match) {
-				                testIndex++;
-			                }
-		                }
-	                }
+					// Step through the source pattern
+					int referenceIndex = 0;
+					int testIndex = index;
+					boolean match = true;
+					for (int i = 0; i < source.size() && match; i++) {
+						Sequence subSequence = output.getSubsequence(testIndex);
+						Segment segment = source.get(i);
+						if (variableStore.contains(segment.getSymbol())) {
+							List<Sequence> elements = variableStore.get(segment.getSymbol());
+							boolean elementMatches = false;
+							for (int k = 0; k < elements.size() && !elementMatches; k++) {
+								Sequence element = elements.get(k);
+								if (subSequence.startsWith(element)) {
+									indices.put(referenceIndex, k);
+									referenceIndex++;
+									testIndex += element.size();
+									elementMatches = true;
+								}
+							}
+							match = elementMatches;
+						} else {
+							// It' a literal
+							match = subSequence.startsWith(segment);
+							if (match) {
+								testIndex++;
+							}
+						}
+					}
 
-	                if (match && conditionsMatch(output, startIndex, testIndex)) {
-		                index = testIndex;
-		                // Now at this point, if everything worked, we can
-		                Sequence removed = output.remove(startIndex, index);
-		                // Step through the target pattern
-		                int variableIndex = 0;
-		                Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
-		                for (int i = 0; i < target.size(); i++) {
-			                Segment segment = target.get(i);
+					if (match && conditionsMatch(output, startIndex, testIndex)) {
+						index = testIndex;
+						// Now at this point, if everything worked, we can
+						Sequence removed = output.remove(startIndex, index);
+						// Step through the target pattern
+						int variableIndex = 0;
+						Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
+						for (int i = 0; i < target.size(); i++) {
+							Segment segment = target.get(i);
 
-			                if (variableStore.contains(segment.getSymbol())) {
-				                List<Sequence> elements = variableStore.get(segment.getSymbol());
-				                Sequence sequence = elements.get(indices.get(variableIndex));
-				                replacement.add(sequence);
-				                variableIndex++;
-			                } else if (!segment.getSymbol().equals("0"))  {
-				                replacement.add(segment);
-			                }
-		                }
-		                noMatch = false;
-		                if (replacement.size() > 0) {
-			                output.insert(replacement, startIndex);
-		                }
-		                index = index + (replacement.size() - removed.size());
-		                startIndex = index;
-	                }
-                }
+							if (variableStore.contains(segment.getSymbol())) {
+								List<Sequence> elements = variableStore.get(segment.getSymbol());
+								Sequence sequence = elements.get(indices.get(variableIndex));
+								replacement.add(sequence);
+								variableIndex++;
+							} else if (!segment.getSymbol().equals("0")) {
+								replacement.add(segment);
+							}
+						}
+						noMatch = false;
+						if (replacement.size() > 0) {
+							output.insert(replacement, startIndex);
+						}
+						index = index + (replacement.size() - removed.size());
+						startIndex = index;
+					}
+				}
 			}
 			if (noMatch) {
 				index++;
