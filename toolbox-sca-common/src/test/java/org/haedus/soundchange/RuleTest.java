@@ -84,6 +84,7 @@ public class RuleTest {
     public void testRule02() throws ParseException {
         Rule rule = new Rule("a e > æ ɛ");
 
+	    testRule(rule, "ate", "ætɛ");
         testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
     }
 
@@ -135,6 +136,7 @@ public class RuleTest {
         Rule rule = new Rule("rˌh lˌh > ər əl / _a");
         testRule(rule, "krˌha", "kəra");
         testRule(rule, "klˌha", "kəla");
+	    testRule(rule, "klˌhe", "klˌhe");
     }
 
     @Test
@@ -170,41 +172,6 @@ public class RuleTest {
         Rule rule = new Rule("q > qn");
 
         testRule(rule, "aqa", "aqna");
-    }
-
-    @Test
-    public void testExpansion01() throws ParseException {
-        VariableStore vs = new VariableStore();
-
-        vs.put("[E]", "e", "ē", "é", "ê");
-        vs.put("[A]", "a", "ā", "á", "â");
-
-        Rule rule = new Rule("[E] > [A] / {x ʕ}_", vs, true);
-
-        String expected = "e ē é ê > a ā á â / {x ʕ}_";
-
-        assertEquals(expected, rule.toString());
-    }
-
-    @Test
-    public void testExpansion02() throws ParseException {
-
-        VariableStore vs = new VariableStore();
-
-        vs.put("@VS", "a", "e", "i", "o", "u", "ə", "á", "é", "í", "ó", "ú");
-        vs.put("@VL", "ā", "ē", "ī", "ō", "ū", "ə̄", "â", "ê", "î", "ô", "û");
-
-        Rule rule = new Rule("@VSī @VSū > @VLi @VLu / _{C #}", vs, true);
-
-        String expected = "" +
-                "aī eī iī oī uī əī áī éī íī óī úī " +
-                "aū eū iū oū uū əū áū éū íū óū úū " +
-                "> " +
-                "āi ēi īi ōi ūi ə̄i âi êi îi ôi ûi " +
-                "āu ēu īu ōu ūu ə̄u âu êu îu ôu ûu " +
-                "/ _{C #}";
-
-        assertEquals(expected, rule.toString());
     }
 
     @Test

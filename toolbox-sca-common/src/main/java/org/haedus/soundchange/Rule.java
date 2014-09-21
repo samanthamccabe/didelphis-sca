@@ -134,20 +134,23 @@ public class Rule {
 		// Step through the word to see if the rule might
 		// apply, i.e. if the source pattern can be found
 		for (int index = 0; index < output.size();) {
+			int startIndex = index;
+			boolean noMatch = true;
 			// Check each source pattern
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
 				Sequence source = entry.getKey();
                 Sequence target = entry.getValue();
 
                 if (index < output.size()) {
-                	Sequence subSequence = output.getSubsequence(index);
+
 	                Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
 
 	                // Step through the source pattern
 	                int referenceIndex = 0;
+	                int testIndex = index;
 	                boolean match = true;
 	                for (int i = 0; i < source.size() && match; i++){
-
+		                Sequence subSequence = output.getSubsequence(testIndex);
 		                Segment segment = source.get(i);
 		                if (variableStore.contains(segment.getSymbol())) {
 			                List<Sequence> elements = variableStore.get(segment.getSymbol());
@@ -157,19 +160,50 @@ public class Rule {
 				                if (subSequence.startsWith(element)) {
 					                indices.put(referenceIndex, k);
 					                referenceIndex++;
-					                index += element.size();
+					                testIndex += element.size();
 					                elementMatches = true;
 				                }
 			                }
+			                match = elementMatches;
 		                } else {
 			                // It' a literal
-			                subSequence.startsWith(segment);
-			                index++;
+			                match = subSequence.startsWith(segment);
+			                if (match) {
+				                testIndex++;
+			                }
 		                }
 	                }
-	                // Now at this point, if everything worked, we can
 
+	                if (match && conditionsMatch(output, startIndex, testIndex)) {
+		                index = testIndex;
+		                // Now at this point, if everything worked, we can
+		                Sequence removed = output.remove(startIndex, index);
+		                // Step through the target pattern
+		                int variableIndex = 0;
+		                Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
+		                for (int i = 0; i < target.size(); i++) {
+			                Segment segment = target.get(i);
+
+			                if (variableStore.contains(segment.getSymbol())) {
+				                List<Sequence> elements = variableStore.get(segment.getSymbol());
+				                Sequence sequence = elements.get(indices.get(variableIndex));
+				                replacement.add(sequence);
+				                variableIndex++;
+			                } else if (!segment.getSymbol().equals("0"))  {
+				                replacement.add(segment);
+			                }
+		                }
+		                noMatch = false;
+		                if (replacement.size() > 0) {
+			                output.insert(replacement, startIndex);
+		                }
+		                index = index + (replacement.size() - removed.size());
+		                startIndex = index;
+	                }
                 }
+			}
+			if (noMatch) {
+				index++;
 			}
 		}
 		return output;

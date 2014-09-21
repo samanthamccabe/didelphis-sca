@@ -58,17 +58,47 @@ public class StateMachine {
 		this(expression, store, new FeatureModel(), isForward);
 	}
 
+	public int getMatchSize(Sequence sequence) {
+		int finalIndex = -1;
+		sequence.add(new Segment("#"));
+		// At the beginning of the process, we are in the start-state
+		// so we find out what arcs leave the node.
+		List<MatchState> states = new ArrayList<MatchState>();
+		List<MatchState> swap   = new ArrayList<MatchState>();
+		// Add an initial state at the beginning of the sequence
+		states.add(new MatchState(0, startNode));
+		// if the condition is empty, it will always match
+		boolean match = startNode.isEmpty();
+		while (!match && !states.isEmpty()) {
+			for (MatchState state : states) {
+
+				Node currentNode = state.getNode();
+				int index = state.getIndex();
+
+				if (!currentNode.isAccepting()) {
+					updateSwapStates(sequence, swap, currentNode, index);
+				} else {
+					match = true;
+					finalIndex = index;
+					break;
+				}
+			}
+			states = swap;
+			swap = new LinkedList<MatchState>();
+		}
+		return finalIndex;
+	}
+
     // Determines if the Sequence is accepted by this machine
 	public boolean matches(Sequence sequence) {
 
 		sequence.add(new Segment("#"));
 		// At the beginning of the process, we are in the start-state
 		// so we find out what arcs leave the node.
-		List<MatchState> states = new LinkedList<MatchState>();
-		List<MatchState> swap   = new LinkedList<MatchState>();
-
+		List<MatchState> states = new ArrayList<MatchState>();
+		List<MatchState> swap   = new ArrayList<MatchState>();
+		// Add an initial state at the beginning of the sequence
 		states.add(new MatchState(0, startNode));
-
 		// if the condition is empty, it will always match
 		boolean match = startNode.isEmpty();
 		while (!match && !states.isEmpty()) {
@@ -100,11 +130,7 @@ public class StateMachine {
         for (Sequence symbol : currentNode.getKeys()) {
             for (Node nextNode : currentNode.getNodes(symbol)) {
                 if (variableStore.contains(symbol)) {
-                    for (Sequence s : variableStore.get(symbol)) {
-                        if (tail.startsWith(s)) {
-                            swap.add(new MatchState(index + s.size(), nextNode));
-                        }
-                    }
+	                addStateFromVariable(swap, index, tail, symbol, nextNode);
                 } else if (tail.startsWith(symbol)) {
                     swap.add(new MatchState(index + symbol.size(), nextNode));
                 } else if (symbol.isEmpty()) {
@@ -114,7 +140,16 @@ public class StateMachine {
         }
     }
 
-    //
+	// Checks of the tail starts with a symbol in the variable store
+	private void addStateFromVariable(Collection<MatchState> swap, int index, Sequence tail, Sequence symbol, Node nextNode) {
+		for (Sequence s : variableStore.get(symbol)) {
+		    if (tail.startsWith(s)) {
+		        swap.add(new MatchState(index + s.size(), nextNode));
+		    }
+		}
+	}
+
+	//
 	private Node parseCharSequence(String string, boolean isForward) {
 		Collection<String> keys = new ArrayList<String>();
 		
@@ -218,8 +253,8 @@ public class StateMachine {
 	 */
 	private class MatchState {
 
-		private final Integer index;
-		private final Node    node;
+		private final Integer index; // Where in the sequence the cursor is
+		private final Node    node;  // What node the cursor is currently on
 
 		private MatchState(Integer i, Node n) {
 			index = i;
