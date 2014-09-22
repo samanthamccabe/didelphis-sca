@@ -39,7 +39,7 @@ import org.haedus.datatypes.phonetic.VariableStore;
  */
 public class Segmenter {
 
-	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$\\d+)");
+	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	public static Sequence getSequenceNaively(String word, FeatureModel model, VariableStore variables) {
 		List<String> keys = new ArrayList<String>();

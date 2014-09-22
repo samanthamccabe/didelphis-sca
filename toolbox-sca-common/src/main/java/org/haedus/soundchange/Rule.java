@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * User: Samantha Fiona Morrigan McCabe
@@ -35,6 +37,8 @@ import java.util.*;
 public class Rule {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
+
+	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
 
 	private final String                  ruleText;
 	private final Map<Sequence, Sequence> transform;
@@ -143,7 +147,7 @@ public class Rule {
 					Map<Integer, String> variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
-					int referenceIndex = 0;
+					int referenceIndex = 1;
 					int testIndex = index;
 					boolean match = true;
 					for (int i = 0; i < source.size() && match; i++) {
@@ -177,29 +181,8 @@ public class Rule {
 						index = testIndex;
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
-						// Step through the target pattern
-						int variableIndex = 0;
-						Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
-						for (int i = 0; i < target.size(); i++) {
-							Segment segment = target.get(i);
-
-							if (segment.getSymbol().matches("\\$\\d+")) {
-								String symbol = segment.getSymbol().replace("$","");
-								int backReferenceIndex = Integer.valueOf(symbol) - 1;
-								int integer = indexMap.get(backReferenceIndex);
-								String variable = variableMap.get(backReferenceIndex);
-
-								Sequence sequence = variableStore.get(variable).get(integer);
-								replacement.add(sequence);
-							} else if (variableStore.contains(segment.getSymbol())) {
-								List<Sequence> elements = variableStore.get(segment.getSymbol());
-								Sequence sequence = elements.get(indexMap.get(variableIndex));
-								replacement.add(sequence);
-								variableIndex++;
-							} else if (!segment.getSymbol().equals("0")) {
-								replacement.add(segment);
-							}
-						}
+						// Generate replacement
+						Sequence replacement = getReplacementSequence(target, indexMap, variableMap);
 						noMatch = false;
 						if (replacement.size() > 0) {
 							output.insert(replacement, startIndex);
@@ -214,6 +197,44 @@ public class Rule {
 			}
 		}
 		return output;
+	}
+
+	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
+		int variableIndex = 1;
+		Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
+		// Step through the target pattern
+		for (int i = 0; i < target.size(); i++) {
+			Segment segment = target.get(i);
+
+			Matcher matcher = BACKREFERENCE.matcher(segment.getSymbol());
+			if (matcher.matches()) {
+
+				String symbol = matcher.group(1);
+				String digits = matcher.group(2);
+
+				int reference = Integer.valueOf(digits);
+				int integer   = indexMap.get(reference);
+
+				String variable;
+				if (symbol.isEmpty()) {
+					variable = variableMap.get(reference);
+				} else {
+					variable = symbol;
+				}
+
+				Sequence sequence = variableStore.get(variable).get(integer);
+				replacement.add(sequence);
+			} else if (variableStore.contains(segment.getSymbol())) {
+				List<Sequence> elements = variableStore.get(segment.getSymbol());
+				Integer  anIndex  = indexMap.get(variableIndex);
+				Sequence sequence = elements.get(anIndex);
+				replacement.add(sequence);
+				variableIndex++;
+			} else if (!segment.getSymbol().equals("0")) {
+				replacement.add(segment);
+			}
+		}
+		return replacement;
 	}
 
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {

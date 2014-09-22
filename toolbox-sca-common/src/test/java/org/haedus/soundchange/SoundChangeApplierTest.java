@@ -150,7 +150,7 @@ public class SoundChangeApplierTest {
 	@Test
 	public void simpleRuleTest02() throws ParseException {
 		String[] commands = {
-				"USE NORMALIZATION: NFD",
+				"NORMALIZATION: NFD",
 				"ḱʰ ḱ ǵ > cʰ c ɟ",
 				"cʰs cs ɟs > ks ks ks",
 				"s > 0 / {cʰ  c  ɟ}_",

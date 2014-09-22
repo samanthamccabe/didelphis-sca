@@ -55,6 +55,50 @@ public class RuleTest {
 		testRule(rule, "kp","kp");
 	}
 
+	@Test
+	public void testMetathesis02() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("N = m n", true);
+		store.add("V = a i u", true);
+
+		Rule rule = new Rule("CVN > $3V$1", new FeatureModel(), store, true);
+
+		testRule(rule, "pan", "nap");
+		testRule(rule, "tin", "nit");
+		testRule(rule, "kun", "nuk");
+
+		testRule(rule, "pam", "map");
+		testRule(rule, "tim", "mit");
+		testRule(rule, "kum", "muk");
+
+		testRule(rule, "pat", "pat");
+		testRule(rule, "tip", "tip");
+		testRule(rule, "kup", "kup");
+	}
+
+	@Test
+	public void testMetathesis03() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("G = b d g", true);
+		store.add("N = m n", true);
+
+		Rule rule = new Rule("CN > $2$G1", new FeatureModel(), store, true);
+
+		testRule(rule, "pn", "nb");
+		testRule(rule, "tn", "nd");
+		testRule(rule, "kn", "ng");
+
+		testRule(rule, "pm", "mb");
+		testRule(rule, "tm", "md");
+		testRule(rule, "km", "mg");
+
+		testRule(rule, "pt", "pt");
+		testRule(rule, "tp", "tp");
+		testRule(rule, "kp", "kp");
+	}
+
     @Test
     public void testDeletion01() throws ParseException {
         Rule rule = new Rule("∅ - > 0");
