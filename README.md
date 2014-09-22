@@ -81,6 +81,33 @@ Just as with other transformations, if all segments are to be deleted, then the 
 w s h > 0 h 0 / #_
 ```
 
+###Indices and Backreferences###
+The SCA permits the transform of rules to contain backreferences which can be very useful in writing rules for metathesis or total assimilation. For example
+```
+C = p t k
+N = n m
+CN > $2$1
+```
+allows us to easily represent metathesis, swapping `N` and `C` wherever `N` is found following `C`.
+
+When SCA parses a rule, it keeps track of each variable in the source part of the transform and knows in the above example, that `C`  is at index `1` and `N` is at index `2`. The target part of the transform lets us refer back to this using the `$` symbol and the index of the variable we wish to refer to.
+
+We can actually go slightly further, however and use the indices on a *different* variable. In a slighly variation on the previous example, we can write
+```
+C = p t k
+G = b d g
+N = n m
+CN > $2$G1
+```
+which does the same as the above, but also replaces any element of `C` with the corresponding element of `G`. So, if a word is *atna*, the rule will change it to *anda*.
+
+This can also be used for some kinds of assimilation and dissimilation, such as simplifying clusters of plosives by changing the second to be the same as the first:
+```
+C = p t k
+CC > $1$1
+```
+This will change a word like *akpa* to *akka*; in this case, it is actually equivalent to write `CC > C$1`
+
 ###Condition Format###
 Most of the power of the Toolbox condition format lies in it's ability to use ad-hoc sets, and regular expressions. The underscore character `_` separates the precondition from the postcondition, so that the rule will be applied only when both sides of the condition match.
 
