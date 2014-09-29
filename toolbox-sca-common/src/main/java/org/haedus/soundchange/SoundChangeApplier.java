@@ -135,7 +135,7 @@ public class SoundChangeApplier {
 					variables = new VariableStore(variables);
 					variables.add(cleanedCommand, useSegmentation);
 				} else if (cleanedCommand.contains(">")) {
-					rules.add(new Rule(cleanedCommand, variables, useSegmentation));
+					rules.add(new Rule(cleanedCommand, model, variables, useSegmentation));
 				} else if (cleanedCommand.startsWith("NORMALIZATION")) {
 					setNormalization(cleanedCommand);
 				} else if (cleanedCommand.startsWith("SEGMENTATION")) {

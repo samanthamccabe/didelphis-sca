@@ -16,7 +16,9 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
@@ -24,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * User: Samantha Fiona Morrigan McCabe
@@ -33,6 +37,8 @@ import java.util.*;
 public class Rule {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
+
+	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
 
 	private final String                  ruleText;
 	private final Map<Sequence, Sequence> transform;
@@ -45,10 +51,14 @@ public class Rule {
 		this(rule, new VariableStore(), true);
 	}
 
+	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		this(rule, new FeatureModel(), variables, useSegmentation);
+	}
+
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText      = rule;
 		variableStore = variables;
-		featureModel  = new FeatureModel();
+		featureModel  = model;
 		transform     = new LinkedHashMap<Sequence, Sequence>();
 		exceptions    = new ArrayList<Condition>();
 		conditions    = new ArrayList<Condition>();
@@ -73,7 +83,7 @@ public class Rule {
 							exceptions.add(new Condition(exc, variableStore, model));
 						}
 					} else {
-						throw new RuleFormatException("Illegal NOT expression in "+ ruleText);
+						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
 					}
 				} else {
 					for (String s : conditionString.split("\\s+OR\\s+")) {
@@ -86,10 +96,6 @@ public class Rule {
 			conditions.add(new Condition());
 		}
 		parseTransform(transform, useSegmentation);
-	}
-
-	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new FeatureModel(), variables, useSegmentation);
 	}
 
 	@Override
@@ -106,10 +112,9 @@ public class Rule {
 			sb.append(" ");
 		}
 		sb.append("/ ");
-
 		for (int i = 0; i < conditions.size(); i++) {
 			sb.append(conditions.get(i).toString());
-			if ( i < conditions.size() - 1) {
+			if (i < conditions.size() - 1) {
 				sb.append(" OR ");
 			}
 		}
@@ -118,7 +123,6 @@ public class Rule {
 
 	public void execute(SoundChangeApplier sca) {
 		for (List<Sequence> lexicon : sca.getLexicons()) {
-
 			for (int i = 0; i < lexicon.size(); i++) {
 				Sequence word = lexicon.get(i);
 				lexicon.set(i, apply(word));
@@ -128,40 +132,109 @@ public class Rule {
 
 	public Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
-
-		for (int index = 0; index < output.size();) {
-			boolean wasDeleted = false;
-			int i = 0;
+		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found
+		for (int index = 0; index < output.size(); ) {
+			int startIndex = index;
+			boolean noMatch = true;
+			// Check each source pattern
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
-
 				Sequence source = entry.getKey();
-                Sequence target = entry.getValue();
+				Sequence target = entry.getValue();
 
-                if (index < output.size()) {
-                	Sequence subSequence = output.getSubsequence(index);
-                    if (subSequence.startsWith(source)) {
-                        int size = source.size();
+				if (index < output.size()) {
 
-                        if (conditions.isEmpty() || conditionsMatch(output, index, index + size)) {
-                            output.remove(index, index + size);
-                            if (!target.equals(new Sequence("0"))) {
-                                output.insert(target, index);
-                            } else {
-                                wasDeleted = true;
-                            }
-                        }
-	                    if (i < transform.size() - 1 && !wasDeleted) {
-		                    index++;
-	                    }
-                    }
-                }
-				i++;
+					Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
+					Map<Integer, String> variableMap = new HashMap<Integer, String>();
+
+					// Step through the source pattern
+					int referenceIndex = 1;
+					int testIndex = index;
+					boolean match = true;
+					for (int i = 0; i < source.size() && match; i++) {
+						Sequence subSequence = output.getSubsequence(testIndex);
+						Segment segment = source.get(i);
+						if (variableStore.contains(segment.getSymbol())) {
+							List<Sequence> elements = variableStore.get(segment.getSymbol());
+							boolean elementMatches = false;
+							for (int k = 0; k < elements.size() && !elementMatches; k++) {
+								Sequence element = elements.get(k);
+								if (subSequence.startsWith(element)) {
+									indexMap.put(referenceIndex, k);
+									variableMap.put(referenceIndex, segment.getSymbol());
+
+									referenceIndex++;
+									testIndex += element.size();
+									elementMatches = true;
+								}
+							}
+							match = elementMatches;
+						} else {
+							// It' a literal
+							match = subSequence.startsWith(segment);
+							if (match) {
+								testIndex++;
+							}
+						}
+					}
+
+					if (match && conditionsMatch(output, startIndex, testIndex)) {
+						index = testIndex;
+						// Now at this point, if everything worked, we can
+						Sequence removed = output.remove(startIndex, index);
+						// Generate replacement
+						Sequence replacement = getReplacementSequence(target, indexMap, variableMap);
+						noMatch = false;
+						if (replacement.size() > 0) {
+							output.insert(replacement, startIndex);
+						}
+						index = index + (replacement.size() - removed.size());
+						startIndex = index;
+					}
+				}
 			}
-            if (!wasDeleted) {
-                index++;
-            }
+			if (noMatch) {
+				index++;
+			}
 		}
 		return output;
+	}
+
+	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
+		int variableIndex = 1;
+		Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
+		// Step through the target pattern
+		for (int i = 0; i < target.size(); i++) {
+			Segment segment = target.get(i);
+
+			Matcher matcher = BACKREFERENCE.matcher(segment.getSymbol());
+			if (matcher.matches()) {
+
+				String symbol = matcher.group(1);
+				String digits = matcher.group(2);
+
+				int reference = Integer.valueOf(digits);
+				int integer   = indexMap.get(reference);
+
+				String variable;
+				if (symbol.isEmpty()) {
+					variable = variableMap.get(reference);
+				} else {
+					variable = symbol;
+				}
+
+				Sequence sequence = variableStore.get(variable).get(integer);
+				replacement.add(sequence);
+			} else if (variableStore.contains(segment.getSymbol())) {
+				List<Sequence> elements = variableStore.get(segment.getSymbol());
+				Integer  anIndex  = indexMap.get(variableIndex);
+				Sequence sequence = elements.get(anIndex);
+				replacement.add(sequence);
+				variableIndex++;
+			} else if (!segment.getSymbol().equals("0")) {
+				replacement.add(segment);
+			}
+		}
+		return replacement;
 	}
 
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
@@ -180,41 +253,27 @@ public class Rule {
 		return conditionMatch && !exceptionMatch;
 	}
 
-	private List<String> toList(String string) {
-		List<String> list = new ArrayList<String>();
-		if (!string.isEmpty()) {
-			string = string.trim();
-			Collections.addAll(list, string.split("\\s+"));
-		}
-		return list;
-	}
-
-	private void parseTransform(String transform, boolean useSegmentation) throws RuleFormatException {
-		if (transform.contains(">")) {
-			String[] array = transform.split("\\s*>\\s*");
+	private void parseTransform(String transformation, boolean useSegmentation) throws RuleFormatException {
+		if (transformation.contains(">")) {
+			String[] array = transformation.split("\\s*>\\s*");
 
 			if (array.length <= 1) {
-				throw new RuleFormatException("Malformed transformation! " + transform);
+				throw new RuleFormatException("Malformed transformation! " + transformation);
 			} else {
-				List<String> source = toList(array[0]);
-				List<String> target = toList(array[1]);
+				List<String> sourceString = new ArrayList<String>();
+				List<String> targetString = new ArrayList<String>();
 
-				balanceTransform(source, target);
+				Collections.addAll(sourceString, array[0].split("\\s+"));
+				Collections.addAll(targetString, array[1].split("\\s+"));
 
-				for (int i = 0; i < source.size(); i++) {
-					List<Sequence> expandedSource = variableStore.expandVariables(source.get(i), useSegmentation);
-					List<Sequence> expandedTarget = variableStore.expandVariables(target.get(i), useSegmentation);
+				balanceTransform(sourceString, targetString);
 
-					if (expandedTarget.size() < expandedSource.size()) {
-						Sequence last = expandedTarget.get(expandedTarget.size() - 1);
-						while (expandedTarget.size() < expandedSource.size()) {
-							expandedTarget.add(last);
-						}
-					}
+				for (int i = 0; i < sourceString.size(); i++) {
+					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
+					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, useSegmentation);
+					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, useSegmentation);
 
-					for (int k = 0; k < expandedSource.size(); k++) {
-						this.transform.put(expandedSource.get(k), expandedTarget.get(k));
-					}
+					transform.put(source, target);
 				}
 			}
 		} else {
@@ -226,7 +285,6 @@ public class Rule {
 		if (target.size() > source.size()) {
 			throw new RuleFormatException("Source/Target size error! " + source + " < " + target);
 		}
-
 		if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);

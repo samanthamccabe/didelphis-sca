@@ -34,6 +34,71 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
+	@Test
+	public void testMetathesis01() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("N = m n", true);
+
+		Rule rule = new Rule("CN > $2$1", new FeatureModel(), store, true);
+
+		testRule(rule, "pn","np");
+		testRule(rule, "tn","nt");
+		testRule(rule, "kn","nk");
+
+		testRule(rule, "pm","mp");
+		testRule(rule, "tm","mt");
+		testRule(rule, "km","mk");
+
+		testRule(rule, "pt","pt");
+		testRule(rule, "tp","tp");
+		testRule(rule, "kp","kp");
+	}
+
+	@Test
+	public void testMetathesis02() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("N = m n", true);
+		store.add("V = a i u", true);
+
+		Rule rule = new Rule("CVN > $3V$1", new FeatureModel(), store, true);
+
+		testRule(rule, "pan", "nap");
+		testRule(rule, "tin", "nit");
+		testRule(rule, "kun", "nuk");
+
+		testRule(rule, "pam", "map");
+		testRule(rule, "tim", "mit");
+		testRule(rule, "kum", "muk");
+
+		testRule(rule, "pat", "pat");
+		testRule(rule, "tip", "tip");
+		testRule(rule, "kup", "kup");
+	}
+
+	@Test
+	public void testMetathesis03() throws ParseException {
+		VariableStore store = new VariableStore();
+		store.add("C = p t k", true);
+		store.add("G = b d g", true);
+		store.add("N = m n", true);
+
+		Rule rule = new Rule("CN > $2$G1", new FeatureModel(), store, true);
+
+		testRule(rule, "pn", "nb");
+		testRule(rule, "tn", "nd");
+		testRule(rule, "kn", "ng");
+
+		testRule(rule, "pm", "mb");
+		testRule(rule, "tm", "md");
+		testRule(rule, "km", "mg");
+
+		testRule(rule, "pt", "pt");
+		testRule(rule, "tp", "tp");
+		testRule(rule, "kp", "kp");
+	}
+
     @Test
     public void testDeletion01() throws ParseException {
         Rule rule = new Rule("∅ - > 0");
@@ -63,6 +128,7 @@ public class RuleTest {
     public void testRule02() throws ParseException {
         Rule rule = new Rule("a e > æ ɛ");
 
+	    testRule(rule, "ate", "ætɛ");
         testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
     }
 
@@ -114,6 +180,7 @@ public class RuleTest {
         Rule rule = new Rule("rˌh lˌh > ər əl / _a");
         testRule(rule, "krˌha", "kəra");
         testRule(rule, "klˌha", "kəla");
+	    testRule(rule, "klˌhe", "klˌhe");
     }
 
     @Test
@@ -149,41 +216,6 @@ public class RuleTest {
         Rule rule = new Rule("q > qn");
 
         testRule(rule, "aqa", "aqna");
-    }
-
-    @Test
-    public void testExpansion01() throws ParseException {
-        VariableStore vs = new VariableStore();
-
-        vs.put("[E]", "e", "ē", "é", "ê");
-        vs.put("[A]", "a", "ā", "á", "â");
-
-        Rule rule = new Rule("[E] > [A] / {x ʕ}_", vs, true);
-
-        String expected = "e ē é ê > a ā á â / {x ʕ}_";
-
-        assertEquals(expected, rule.toString());
-    }
-
-    @Test
-    public void testExpansion02() throws ParseException {
-
-        VariableStore vs = new VariableStore();
-
-        vs.put("@VS", "a", "e", "i", "o", "u", "ə", "á", "é", "í", "ó", "ú");
-        vs.put("@VL", "ā", "ē", "ī", "ō", "ū", "ə̄", "â", "ê", "î", "ô", "û");
-
-        Rule rule = new Rule("@VSī @VSū > @VLi @VLu / _{C #}", vs, true);
-
-        String expected = "" +
-                "aī eī iī oī uī əī áī éī íī óī úī " +
-                "aū eū iū oū uū əū áū éū íū óū úū " +
-                "> " +
-                "āi ēi īi ōi ūi ə̄i âi êi îi ôi ûi " +
-                "āu ēu īu ōu ūu ə̄u âu êu îu ôu ûu " +
-                "/ _{C #}";
-
-        assertEquals(expected, rule.toString());
     }
 
     @Test
