@@ -59,14 +59,14 @@ public class SoundChangeApplier {
 	private VariableStore variables;
 
 	public SoundChangeApplier() {
-		rules = new ArrayDeque<Rule>();
-		model = new FeatureModel();
-		lexicons = new HashMap<String, List<Sequence>>();
+		rules     = new ArrayDeque<Rule>();
+		model     = new FeatureModel();
+		lexicons  = new HashMap<String, List<Sequence>>();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling
 	}
 
 	public SoundChangeApplier(String script) throws ParseException {
-		this(script.split("\\s*\\r?\\n\\s*")); // Splits newlines and removes padding whitespace
+		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
@@ -135,14 +135,11 @@ public class SoundChangeApplier {
 					variables = new VariableStore(variables);
 					variables.add(cleanedCommand, useSegmentation);
 				} else if (cleanedCommand.contains(">")) {
-					rules.add(new Rule(cleanedCommand, variables, useSegmentation));
-				} else if (cleanedCommand.startsWith("USE ")) {
-					String use = cleanedCommand.replaceAll("^USE ", "").toUpperCase();
-					if (use.startsWith(NORMALIZATION)) {
-						setNormalization(use);
-					} else if (use.startsWith(SEGMENTATION)) {
-						setSegmentation(use);
-					}
+					rules.add(new Rule(cleanedCommand, model, variables, useSegmentation));
+				} else if (cleanedCommand.startsWith("NORMALIZATION")) {
+					setNormalization(cleanedCommand);
+				} else if (cleanedCommand.startsWith("SEGMENTATION")) {
+					setSegmentation(cleanedCommand);
 				} else if (cleanedCommand.startsWith("RESERVE")) {
 					String reserve = cleanedCommand.replaceAll("RESERVE:? *", "");
 					String[] symbols = reserve.split(" +");
@@ -150,6 +147,9 @@ public class SoundChangeApplier {
 					for (String symbol : symbols) {
 						model.addSegment(symbol);
 					}
+				} else if (cleanedCommand.startsWith("BREAK")) {
+					// Stop parsing rules
+					break;
 				} else {
 					LOGGER.warn("Unrecognized Command: {}", command);
 				}

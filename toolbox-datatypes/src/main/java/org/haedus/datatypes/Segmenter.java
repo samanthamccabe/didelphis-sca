@@ -24,6 +24,8 @@ package org.haedus.datatypes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -37,16 +39,18 @@ import org.haedus.datatypes.phonetic.VariableStore;
  */
 public class Segmenter {
 
-	public static Sequence getSequenceNaively(String word , FeatureModel model, VariableStore variables) {
+	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+
+	public static Sequence getSequenceNaively(String word, FeatureModel model, VariableStore variables) {
 		List<String> keys = new ArrayList<String>();
 		keys.addAll(model.getSymbols());
 		keys.addAll(variables.getKeys());
-		
+
 		List<String> list = segmentNaively(word, keys);
-		
+
 		return new Sequence(list, model);
 	}
-	
+
 	public static List<String> segmentNaively(String word, Iterable<String> keys) {
 		List<String> segments = new ArrayList<String>();
 		for (int i = 0; i < word.length(); i++) {
@@ -54,7 +58,7 @@ public class Segmenter {
 			String key = getBestMatch(word.substring(i), keys);
 
 			if (key.isEmpty()) {
-				segments.add(word.substring(i,i+1));					
+				segments.add(word.substring(i, i + 1));
 			} else {
 				segments.add(key);
 				i = i + key.length() - 1;
@@ -68,14 +72,22 @@ public class Segmenter {
 		return segment(word, new ArrayList<String>());
 	}
 
-	public static Sequence getSequence(String word , FeatureModel model, VariableStore variables) {
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, boolean useSegmentation) {
+		if (useSegmentation) {
+			return getSequence(word, model, variables);
+		} else {
+			return getSequenceNaively(word, model, variables);
+		}
+	}
+
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables) {
 		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
 		List<String> keys = new ArrayList<String>();
 		keys.addAll(model.getSymbols());
 		keys.addAll(variables.getKeys());
-		
+
 		List<String> list = segment(word, keys);
-		
+
 		return new Sequence(list, model);
 	}
 	
@@ -122,6 +134,8 @@ public class Segmenter {
 		return buffer;
 	}
 
+	// Finds longest item in keys which the provided string starts with
+	// Also can be used to grab index symbols
 	private static String getBestMatch(String tail, Iterable<String> keys) {
 		String bestMatch = "";
 		for (String key : keys) {
@@ -129,6 +143,12 @@ public class Segmenter {
 				bestMatch = key;
 			}
 		}
+
+		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(tail);
+		if (backReferenceMatcher.lookingAt()) {
+			bestMatch = backReferenceMatcher.group();
+		}
+
 		return bestMatch;
 	}
 
