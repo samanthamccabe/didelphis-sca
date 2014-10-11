@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * Date: 4/7/13
  * Time: 5:40 PM
  */
-public class Rule {
+public class Rule implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
@@ -121,6 +121,7 @@ public class Rule {
 		return sb.toString();
 	}
 
+	@Override
 	public void execute(SoundChangeApplier sca) {
 		for (List<Sequence> lexicon : sca.getLexicons()) {
 			for (int i = 0; i < lexicon.size(); i++) {

@@ -215,7 +215,8 @@ public class SoundChangeApplierTest {
 				"ɣ ʕ > x ʔ",
 				"x ʔ > 0 / _{x ʔ}",
 				"x ʔ > 0 / _{i y í}",
-				"ix iʔ ux uʔ > ī ī ū ū" };
+				"ix iʔ ux uʔ > ī ī ū ū"
+		};
 
 		List<String> words = toList(
 				"xocri",    "pʰaceʕ",
@@ -314,10 +315,12 @@ public class SoundChangeApplierTest {
 	@Test
 	public void testExpansion01() throws Exception {
 
-		Resource resource = new ClassPathResource("testExpansion01.txt");
-        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
+//		Resource resource = new ClassPathResource("testExpansion01.txt");
+//        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
-        SoundChangeApplier sca = new SoundChangeApplier(commands);
+        SoundChangeApplier sca = new SoundChangeApplier(
+		        new String[]{"OPEN 'testExpansion01.txt' as DEFAULT"}
+        );
 		sca.processLexicon(new ArrayList<String>());
 
 		VariableStore vs = sca.getVariables();
@@ -332,8 +335,8 @@ public class SoundChangeApplierTest {
 	@Test
 	public void testRuleLarge01() throws Exception {
 
-		Resource resource = new ClassPathResource("testRuleLarge01.txt");
-        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
+//		Resource resource = new ClassPathResource("testRuleLarge01.txt");
+//        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
 		List<String> words = toList(
 				"h₂oḱ-ri-",        "bʰaḱehₐ-",
@@ -358,7 +361,10 @@ public class SoundChangeApplierTest {
 				"ôwes",          "blan"
 		                              );
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		SoundChangeApplier sca = new SoundChangeApplier(
+				new String[]{"OPEN testRuleLarge01.txt as DEFAULT"}
+		);
+
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
 		testLists(received, sequences);
@@ -514,7 +520,32 @@ public class SoundChangeApplierTest {
 		List<Sequence> sequences = toSequences(expected, sca);
 		testLists(received, sequences);
 	}
-    
+
+	@Test
+	public void testOpen() throws ParseException {
+
+		String[] expected = {
+				"apat",
+				"takan",
+				"kepak",
+				"pik",
+				"ket"
+		};
+
+		String path = "testLexicon.lex";
+	}
+
+	@Test
+	public void testImport() throws ParseException {
+
+	}
+
+	@Test
+	public void testExecute() throws ParseException {
+
+	}
+
+	/* UTILITY METHODS */
 	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
