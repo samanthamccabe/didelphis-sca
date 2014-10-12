@@ -319,7 +319,7 @@ public class SoundChangeApplierTest {
 //        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
         SoundChangeApplier sca = new SoundChangeApplier(
-		        new String[]{"OPEN 'testExpansion01.txt' as DEFAULT"}
+		        new String[]{"IMPORT 'testExpansion01.txt'"}
         );
 		sca.processLexicon(new ArrayList<String>());
 
@@ -362,7 +362,7 @@ public class SoundChangeApplierTest {
 		                              );
 
 		SoundChangeApplier sca = new SoundChangeApplier(
-				new String[]{"OPEN testRuleLarge01.txt as DEFAULT"}
+				new String[]{"IMPORT 'testRuleLarge01.txt'"}
 		);
 
 		List<Sequence> received  = sca.processLexicon(words);
@@ -372,17 +372,17 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void testLoop01() throws ParseException {
-		String commands =
-				"P = pw p t k\n" +
-				"B = bw b d g\n" +
-				"V = a o\n" +
-				"P > B / V_V\n" +
-				"P = p t k\n" +
-				"B = b d g\n" +
-				"B > 0 / #_c";
+		String[] commands = {
+				"P = pw p t k",
+				"B = bw b d g",
+				"V = a o",
+				"P > B / V_V",
+				"P = p t k",
+				"B = b d g",
+				"B > 0 / #_c"
+		};
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
-
 		sca.processLexicon(new ArrayList<String>());
 	}
 

@@ -60,7 +60,7 @@ public class SoundChangeApplier {
 	private static final String CLOSE          = "CLOSE";
 	private static final String RESERVE        = "RESERVE";
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
-	private static final String FILEPATH       = "(\"|\')([^\"]+)(\"|')";
+	private static final String FILEPATH       = "(\"|\')?([^\"\']+)(\"|')?";
 
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
@@ -87,16 +87,10 @@ public class SoundChangeApplier {
 		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
 	}
 
-//	public SoundChangeApplier(Iterable<String> commandsParam) throws ParseException {
-//		model     = new FeatureModel();
-//		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-//		lexicons  = new HashMap<String, List<Sequence>>();
-//		commands  = new ArrayDeque<Command>();
-//
-//		fileHandler = new ClassPathFileHandler();
-//
-//		parse(commandsParam);
-//	}
+	private SoundChangeApplier(Iterable<String> commandsParam) throws ParseException {
+		this();
+		parse(commandsParam);
+	}
 
 	// Package-private: for tests only
 	SoundChangeApplier(String[] array) throws ParseException {
@@ -211,11 +205,13 @@ public class SoundChangeApplier {
 		Matcher matcher = pattern.matcher(command);
 
 		if (matcher.lookingAt()) {
-			String path   = matcher.group(1);
-			String handle = matcher.group(3);
+			String path   = matcher.group(2);
+			String handle = matcher.group(5);
 
-			// TODO:
+			List<String> lines = fileHandler.readLines(path);
+			List<Sequence> sequences = getSequences(lines);
 
+			lexicons.put(handle, sequences);
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: "+ command);
 		}
@@ -263,8 +259,9 @@ public class SoundChangeApplier {
 	 * @param command the whole command starting with 'IMPORT'
 	 */
 	private void importScript(String command) throws ParseException {
-		String path = command.replaceAll(IMPORT+"\\s+", "");
-		// TODO:
+		String path = command.replaceAll(IMPORT+"\\s+", "").replaceAll("\"|\'","");
+		List<String> strings = fileHandler.readLines(path);
+		parse(strings);
 	}
 
 	/**
@@ -273,7 +270,8 @@ public class SoundChangeApplier {
 	 */
 	private void executeScript(String command) throws ParseException {
 		String path = command.replaceAll(EXECUTE+"\\s+", "");
-		// TODO:
+		List<String> strings = fileHandler.readLines(path);
+		new SoundChangeApplier(strings).process();
 	}
 
 	/**
@@ -320,8 +318,7 @@ public class SoundChangeApplier {
 			for (Sequence sequence : sequences) {
 				lines.add(sequence.toString());
 			}
-
-			// TODO:
+			fileHandler.writeLines(path, lines);
 		} else {
 			throw new ParseException("File-handle " + handle + " does not appear to be loaded!");
 		}
