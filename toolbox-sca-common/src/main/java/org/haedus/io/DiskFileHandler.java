@@ -29,35 +29,46 @@ public class DiskFileHandler implements FileHandler {
 
 	@Override
 	public String readString(String path) {
-
+		File file = new File(path);
 		String data = "";
 		try {
-			data = FileUtils.readFileToString(new File(path), encoding);
+			data = FileUtils.readFileToString(file, encoding);
 		} catch (IOException e) {
-			LOGGER.error("Error when reading from path \"{}\"!", path);
+			LOGGER.error("Error when reading file {} from path \"{}\"!", path, file.getAbsolutePath());
 		}
 		return data;
 	}
 
 	@Override
 	public List<String> readLines(String path) {
-
+		File file = new File(path);
 		List<String> lines = new ArrayList<String>();
 		try {
-			lines.addAll(FileUtils.readLines(new File(path), encoding));
+			lines.addAll(FileUtils.readLines(file, encoding));
 		} catch (IOException e) {
-			LOGGER.error("Error when reading from path \"{}\"!", path);
+			LOGGER.error("Error when reading file {} from path \"{}\"!",path, file.getAbsolutePath());
 		}
 		return lines;
 	}
 
 	@Override
 	public void writeString(String path, String data) {
+		File file = new File(path);
 
+		try {
+			FileUtils.write(file, encoding, data);
+		} catch (IOException e) {
+			LOGGER.error("Error when writing to \"{}\"!", path);
+		}
 	}
 
 	@Override
-	public void writeLines(String path, Iterable<String> data) {
-
+	public void writeLines(String path, List<String> data) {
+		File file = new File(path);
+		try {
+			FileUtils.writeLines(file, encoding, data);
+		} catch (IOException e) {
+			LOGGER.error("Error when writing to \"{}\"!", path);
+		}
 	}
 }

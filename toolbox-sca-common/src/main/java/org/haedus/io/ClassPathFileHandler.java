@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class ClassPathFileHandler implements FileHandler {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(DiskFileHandler.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(ClassPathFileHandler.class);
 
 	private final String encoding;
 
@@ -62,11 +63,23 @@ public class ClassPathFileHandler implements FileHandler {
 
 	@Override
 	public void writeString(String path, String data) {
-
+		File file = new File(path);
+		try {
+			LOGGER.info("Writing to working directory at {}", file.getAbsolutePath());
+			FileUtils.write(file, encoding, data);
+		} catch (IOException e) {
+			LOGGER.error("Error when writing to \"{}\"!", path);
+		}
 	}
 
 	@Override
-	public void writeLines(String path, Iterable<String> data) {
-
+	public void writeLines(String path, List<String> data) {
+		File file = new File(path);
+		try {
+			LOGGER.info("Writing to working directory at {}", file.getAbsolutePath());
+			FileUtils.writeLines(file, encoding, data);
+		} catch (IOException e) {
+			LOGGER.error("Error when writing to \"{}\"!", path);
+		}
 	}
 }

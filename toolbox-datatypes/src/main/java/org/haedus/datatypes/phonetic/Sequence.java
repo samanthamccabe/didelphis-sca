@@ -102,15 +102,6 @@ public class Sequence implements Iterable<Segment> {
 		String s = "";
 
 		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol() + " ");
-		}
-		return s.trim();
-	}
-
-	public String toStringClean() {
-		String s = "";
-
-		for (Segment a_sequence : sequence) {
 			s = s.concat(a_sequence.getSymbol());
 		}
 		return s.trim();

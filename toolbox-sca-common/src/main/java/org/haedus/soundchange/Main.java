@@ -40,9 +40,33 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, ParseException
 	{
+		// TODO: step through the args and see if there are flags; if not, check for the 3 arguments
+		boolean verbose  = false;
+		boolean enhanced = false;
+
+		List<String> filePaths = new ArrayList<String>();
+		for (String arg : args) {
+			if (arg.matches("-v|--verbose")) {
+				verbose = true;
+			} else if (arg.matches("-e|--enhanced")) {
+				enhanced = true;
+			} else {
+				// Not a flag
+				filePaths.add(arg);
+			}
+		}
 
 		double startTime = System.nanoTime();
-		if (args.length == 3) {
+		if (enhanced) {
+			// TODO: enhanced processing
+			if (filePaths.size() == 1) {
+				List<String> rules = FileUtils.readLines(new File(filePaths.get(0)), "UTF-8");
+				new SoundChangeApplier(rules).process();
+			} else {
+				LOGGER.warn("Found more than 1 file parameter in enhanced mode; only using the first! {}", filePaths);
+			}
+
+		} else if (filePaths.size() == 3) {
 
 			String lexiconPath = args[0];
 			String rulesPath   = args[1];
@@ -55,7 +79,7 @@ public class Main {
 
 			Collection<String> output = new ArrayList<String>();
 			for (Sequence sequence : sca.processLexicon(lexicon)) {
-				output.add(sequence.toStringClean());
+				output.add(sequence.toString());
 			}
 
 			FileUtils.writeLines(new File(outputPath), "UTF-8", output,"\r\n");
@@ -63,8 +87,8 @@ public class Main {
 		} else {
 			LOGGER.error("You need to provide three parameters: lexicon, rules, and output.");
 		}
-		double elapsedTime = System.nanoTime() - startTime;
 
+		double elapsedTime = System.nanoTime() - startTime;
 		double time = (elapsedTime / Math.pow(10,9));
 
 		LOGGER.info("Finished in {} seconds", time);

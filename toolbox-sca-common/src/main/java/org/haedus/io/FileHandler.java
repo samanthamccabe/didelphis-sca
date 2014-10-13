@@ -14,5 +14,5 @@ public interface FileHandler {
 
 	void writeString(String path, String data);
 
-	void writeLines(String path, Iterable<String> data);
+	void writeLines(String path, List<String> data);
 }

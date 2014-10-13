@@ -103,12 +103,12 @@ public class Rule implements Command {
 		StringBuilder sb = new StringBuilder();
 
 		for (Sequence sequence : transform.keySet()) {
-			sb.append(sequence.toStringClean());
+			sb.append(sequence.toString());
 			sb.append(" ");
 		}
 		sb.append("> ");
 		for (Sequence sequence : transform.values()) {
-			sb.append(sequence.toStringClean());
+			sb.append(sequence.toString());
 			sb.append(" ");
 		}
 		sb.append("/ ");

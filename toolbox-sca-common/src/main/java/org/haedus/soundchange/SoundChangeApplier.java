@@ -16,7 +16,6 @@
 
 package org.haedus.soundchange;
 
-import org.apache.commons.io.FileUtils;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -60,7 +59,7 @@ public class SoundChangeApplier {
 	private static final String CLOSE          = "CLOSE";
 	private static final String RESERVE        = "RESERVE";
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
-	private static final String FILEPATH       = "(\"|\')?([^\"\']+)(\"|')?";
+	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
 
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
@@ -83,13 +82,14 @@ public class SoundChangeApplier {
 		fileHandler = new DiskFileHandler();
 	}
 
-	public SoundChangeApplier(String script) throws ParseException {
-		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
-	}
-
-	private SoundChangeApplier(Iterable<String> commandsParam) throws ParseException {
+	public SoundChangeApplier(Iterable<String> commandsParam) throws ParseException {
 		this();
 		parse(commandsParam);
+	}
+
+	// Package-private: for tests only
+	SoundChangeApplier(String script) throws ParseException {
+		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
@@ -99,6 +99,7 @@ public class SoundChangeApplier {
 		lexicons  = new HashMap<String, List<Sequence>>();
 		commands  = new ArrayDeque<Command>();
 
+		// Because this is for tests, use the ClassPathFileHandler
 		fileHandler = new ClassPathFileHandler();
 
 		Collection<String> list = new ArrayList<String>();
@@ -115,6 +116,14 @@ public class SoundChangeApplier {
 		return variables;
 	}
 
+	public List<Sequence> getLexicon(String handle) {
+		return lexicons.get(handle);
+	}
+
+	public boolean hasLexicon(String handle) {
+		return lexicons.containsKey(handle);
+	}
+
 	public Collection<List<Sequence>> getLexicons() {
 		return lexicons.values();
 	}
@@ -127,7 +136,7 @@ public class SoundChangeApplier {
 		return useSegmentation;
 	}
 
-	private void process() throws ParseException {
+	public void process() throws ParseException {
 		for (Command command : commands) {
 			command.execute(this);
 		}
@@ -137,8 +146,8 @@ public class SoundChangeApplier {
 		List<Sequence> lexicon = getSequences(list);
 		lexicons.put("DEFAULT", lexicon);
 		// Should test later if this is better than for-each
-		while (!commands.isEmpty()) {
-			commands.remove().execute(this);
+		for (Command command : commands) {
+			command.execute(this);
 		}
 		return lexicon;
 	}
@@ -181,9 +190,7 @@ public class SoundChangeApplier {
 					setSegmentation(command);
 				} else if (command.startsWith(RESERVE)) {
 					String reserve = command.replaceAll(RESERVE + ":? *", "");
-					String[] symbols = reserve.split(" +");
-
-					for (String symbol : symbols) {
+					for (String symbol : reserve.split(" +")) {
 						model.addSegment(symbol);
 					}
 				} else if (command.startsWith("BREAK")) {
@@ -201,12 +208,12 @@ public class SoundChangeApplier {
 	 * @param command the whole command staring from OPEN, specifying the path and file-handle
 	 */
 	private void openLexicon(String command) throws ParseException {
-		Pattern pattern = Pattern.compile(OPEN + "\\s+" + FILEPATH + "\\s+(as)?\\s*" + FILEHANDLE);
+		Pattern pattern = Pattern.compile(OPEN + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
 		Matcher matcher = pattern.matcher(command);
 
 		if (matcher.lookingAt()) {
-			String path   = matcher.group(2);
-			String handle = matcher.group(5);
+			String path   = matcher.group(1);
+			String handle = matcher.group(3);
 
 			List<String> lines = fileHandler.readLines(path);
 			List<Sequence> sequences = getSequences(lines);
@@ -223,12 +230,12 @@ public class SoundChangeApplier {
 	 * @throws ParseException
 	 */
 	private void closeLexicon(String command) throws ParseException  {
-		Pattern pattern = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as)?\\s*" + FILEPATH);
+		Pattern pattern = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 		Matcher matcher = pattern.matcher(command);
 
 		if (matcher.lookingAt()) {
-			String path   = matcher.group(1);
-			String handle = matcher.group(3);
+			String handle = matcher.group(1);
+			String path   = matcher.group(3);
 			writeToDisk(path, handle);
 			lexicons.remove(handle);
 		} else {
@@ -242,12 +249,12 @@ public class SoundChangeApplier {
 	 * @throws ParseException
 	 */
 	private void writeLexicon(String command) throws ParseException {
-		Pattern pattern = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as)?\\s*  " + FILEPATH);
+		Pattern pattern = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 		Matcher matcher = pattern.matcher(command);
 
 		if (matcher.lookingAt()) {
-			String path   = matcher.group(1);
-			String handle = matcher.group(3);
+			String handle = matcher.group(1);
+			String path   = matcher.group(3);
 			writeToDisk(path, handle);
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: "+ command);
@@ -320,7 +327,8 @@ public class SoundChangeApplier {
 			}
 			fileHandler.writeLines(path, lines);
 		} else {
-			throw new ParseException("File-handle " + handle + " does not appear to be loaded!");
+			throw new ParseException("File-handle " + handle + " does not appear to be loaded! " +
+			                         "The following are available: " + lexicons.keySet());
 		}
 	}
 }

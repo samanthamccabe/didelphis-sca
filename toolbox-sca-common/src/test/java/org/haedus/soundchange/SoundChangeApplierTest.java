@@ -32,6 +32,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.
@@ -532,7 +533,11 @@ public class SoundChangeApplierTest {
 				"ket"
 		};
 
-		String path = "testLexicon.lex";
+		String[] commands = { "OPEN \'testLexicon.lex\' as TEST" };
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		sca.process();
+
+		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
 	}
 
 	@Test
