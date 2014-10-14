@@ -1,4 +1,6 @@
-package org.haedus.soundchange;
+package org.haedus.soundchange.command;
+
+import org.haedus.soundchange.SoundChangeApplier;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe

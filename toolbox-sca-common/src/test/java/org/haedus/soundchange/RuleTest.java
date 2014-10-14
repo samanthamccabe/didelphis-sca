@@ -20,6 +20,7 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
+import org.haedus.soundchange.command.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

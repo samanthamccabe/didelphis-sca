@@ -16,19 +16,23 @@
 
 package org.haedus.soundchange;
 
-import org.apache.commons.io.IOUtils;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
+import org.haedus.io.ClassPathFileHandler;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.text.Normalizer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -320,7 +324,8 @@ public class SoundChangeApplierTest {
 //        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
         SoundChangeApplier sca = new SoundChangeApplier(
-		        new String[]{"IMPORT 'testExpansion01.txt'"}
+		        new String[]{"IMPORT 'testExpansion01.txt'"},
+		        new ClassPathFileHandler()
         );
 		sca.processLexicon(new ArrayList<String>());
 
@@ -363,7 +368,8 @@ public class SoundChangeApplierTest {
 		                              );
 
 		SoundChangeApplier sca = new SoundChangeApplier(
-				new String[]{"IMPORT 'testRuleLarge01.txt'"}
+				new String[]{"IMPORT 'testRuleLarge01.txt'"},
+				new ClassPathFileHandler()
 		);
 
 		List<Sequence> received  = sca.processLexicon(words);
@@ -534,7 +540,7 @@ public class SoundChangeApplierTest {
 		};
 
 		String[] commands = { "OPEN \'testLexicon.lex\' as TEST" };
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		SoundChangeApplier sca = new SoundChangeApplier(commands, new ClassPathFileHandler());
 		sca.process();
 
 		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
@@ -542,7 +548,7 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void testImport() throws ParseException {
-
+		Map<String,String> input = new HashMap<String, String>();
 	}
 
 	@Test

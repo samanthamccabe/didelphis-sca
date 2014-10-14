@@ -57,29 +57,18 @@ public class ClassPathFileHandler implements FileHandler {
 		} catch (IOException e) {
 			LOGGER.error("Error when reading from path \"{}\"!", path);
 		}
-
 		return lines;
 	}
 
 	@Override
 	public void writeString(String path, String data) {
-		File file = new File(path);
-		try {
-			LOGGER.info("Writing to working directory at {}", file.getAbsolutePath());
-			FileUtils.write(file, encoding, data);
-		} catch (IOException e) {
-			LOGGER.error("Error when writing to \"{}\"!", path);
-		}
+		throw new UnsupportedOperationException("Trying to write using an instance of "
+		                                        +ClassPathFileHandler.class.getCanonicalName());
 	}
 
 	@Override
 	public void writeLines(String path, List<String> data) {
-		File file = new File(path);
-		try {
-			LOGGER.info("Writing to working directory at {}", file.getAbsolutePath());
-			FileUtils.writeLines(file, encoding, data);
-		} catch (IOException e) {
-			LOGGER.error("Error when writing to \"{}\"!", path);
-		}
+		throw new UnsupportedOperationException("Trying to write using an instance of "
+		                                        +ClassPathFileHandler.class.getCanonicalName());
 	}
 }

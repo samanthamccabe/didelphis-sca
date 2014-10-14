@@ -23,6 +23,14 @@ import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
 import org.haedus.io.DiskFileHandler;
+import org.haedus.io.NullFileHandler;
+import org.haedus.soundchange.command.Command;
+import org.haedus.soundchange.command.LexiconCloseCommand;
+import org.haedus.soundchange.command.LexiconOpenCommand;
+import org.haedus.soundchange.command.LexiconWriteCommand;
+import org.haedus.soundchange.command.Rule;
+import org.haedus.soundchange.command.ScriptExecuteCommand;
+import org.haedus.soundchange.command.ScriptImportCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +82,10 @@ public class SoundChangeApplier {
 	private VariableStore variables;
 
 	public SoundChangeApplier() {
-		model     = new FeatureModel();
+		model = new FeatureModel();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons  = new HashMap<String, List<Sequence>>();
-		commands  = new ArrayDeque<Command>();
+		lexicons = new HashMap<String, List<Sequence>>();
+		commands = new ArrayDeque<Command>();
 
 		fileHandler = new DiskFileHandler();
 	}
@@ -94,13 +102,16 @@ public class SoundChangeApplier {
 
 	// Package-private: for tests only
 	SoundChangeApplier(String[] array) throws ParseException {
-		model     = new FeatureModel();
-		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons  = new HashMap<String, List<Sequence>>();
-		commands  = new ArrayDeque<Command>();
+		this(array, new NullFileHandler());
+	}
 
-		// Because this is for tests, use the ClassPathFileHandler
-		fileHandler = new ClassPathFileHandler();
+	// Package-private: for tests only
+	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
+		model = new FeatureModel();
+		variables = new VariableStore(model); // TODO: indicative of excess coupling?
+		lexicons = new HashMap<String, List<Sequence>>();
+		commands = new ArrayDeque<Command>();
+		fileHandler = fileHandlerParam;
 
 		Collection<String> list = new ArrayList<String>();
 		Collections.addAll(list, array);
@@ -170,15 +181,20 @@ public class SoundChangeApplier {
 				String command = normalize(trimmedCommand);
 
 				if (command.startsWith(EXECUTE)) {
-					executeScript(command);
+//					executeScript(command);
+					commands.add(new ScriptExecuteCommand(command));
 				} else if (command.startsWith(IMPORT)) {
-					importScript(command);
+//					importScript(command);
+					commands.add(new ScriptImportCommand(command));
 				} else if (command.startsWith(OPEN)) {
-					openLexicon(command);
+//					openLexicon(command);
+					commands.add(new LexiconOpenCommand(command));
 				} else if (command.startsWith(WRITE)) {
-					writeLexicon(command);
+//					writeLexicon(command);
+					commands.add(new LexiconWriteCommand(command));
 				} else if (command.startsWith(CLOSE)) {
-					closeLexicon(command);
+//					closeLexicon(command);
+					commands.add(new LexiconCloseCommand(command));
 				} else if (command.contains("=")) {
 					variables = new VariableStore(variables);
 					variables.add(command, useSegmentation);

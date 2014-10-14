@@ -14,18 +14,26 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.soundchange.command;
 
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.soundchange.Condition;
+import org.haedus.soundchange.SoundChangeApplier;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,12 +64,12 @@ public class Rule implements Command {
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText      = rule;
+		ruleText = rule;
 		variableStore = variables;
-		featureModel  = model;
-		transform     = new LinkedHashMap<Sequence, Sequence>();
-		exceptions    = new ArrayList<Condition>();
-		conditions    = new ArrayList<Condition>();
+		featureModel = model;
+		transform = new LinkedHashMap<Sequence, Sequence>();
+		exceptions = new ArrayList<Condition>();
+		conditions = new ArrayList<Condition>();
 
 		String transform;
 		// Check-and-parse for conditions
@@ -145,7 +153,7 @@ public class Rule implements Command {
 				if (index < output.size()) {
 
 					Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
-					Map<Integer, String> variableMap = new HashMap<Integer, String>();
+					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
 					int referenceIndex = 1;
