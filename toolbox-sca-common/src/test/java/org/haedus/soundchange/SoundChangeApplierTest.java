@@ -301,15 +301,17 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void ruleTest02() throws ParseException {
-		String commands =
-				"% Comment\n" +
-				"C  = p t k pʰ tʰ kʰ n m r l\n" +
-				"CH = pʰ tʰ kʰ\n" +
-				"G  = b d g\n" +
-				"R = r l\n" +
-				"V = a e i o u ā ē ī ō ū\n" +
 
-				"CH > G / _R?VV?C*CH\n";
+		String[] commands = {
+				"K  = p  t  k",
+				"CH = pʰ tʰ kʰ",
+				"R = r l",
+				"N = n m",
+				"C  = K CH N R",
+				"G  = b d g",
+				"V = a e i o u ā ē ī ō ū",
+				"CH > G / _R?VV?C*CH"
+		};
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
@@ -324,13 +326,10 @@ public class SoundChangeApplierTest {
 	@Test
 	public void testExpansion01() throws Exception {
 
-//		Resource resource = new ClassPathResource("testExpansion01.txt");
-//        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
-
-        SoundChangeApplier sca = new SoundChangeApplier(
-		        new String[]{"IMPORT 'testExpansion01.txt'"},
-		        new ClassPathFileHandler()
-        );
+		SoundChangeApplier sca = new SoundChangeApplier(
+				new String[]{"IMPORT 'testExpansion01.txt'"},
+				new ClassPathFileHandler()
+		);
 		sca.processLexicon(new ArrayList<String>());
 
 		VariableStore vs = sca.getVariables();
@@ -344,9 +343,6 @@ public class SoundChangeApplierTest {
 
 	@Test
 	public void testRuleLarge01() throws Exception {
-
-//		Resource resource = new ClassPathResource("testRuleLarge01.txt");
-//        List<String> commands = IOUtils.readLines(resource.getInputStream(), "UTF-8");
 
 		List<String> words = toList(
 				"h₂oḱ-ri-",        "bʰaḱehₐ-",
@@ -369,7 +365,7 @@ public class SoundChangeApplierTest {
 				"tou",           "telə",
 				"somoɟəyos",     "sēm",
 				"ôwes",          "blan"
-		                              );
+									  );
 
 		SoundChangeApplier sca = new SoundChangeApplier(
 				new String[]{"IMPORT 'testRuleLarge01.txt'"},
@@ -407,7 +403,7 @@ public class SoundChangeApplierTest {
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-		List<String> list = new ArrayList<String>();
+		Collection<String> list = new ArrayList<String>();
 
 		list.add("þîsĕ");
 		list.add("þîsnĕ");
@@ -421,99 +417,99 @@ public class SoundChangeApplierTest {
 		assertEquals(toSequences(expected, sca), received);
 	}
 
-    @Test
-    public void simpleNosegmentation() throws ParseException {
-        String[] commands = {
-                "NORMALIZATION: NONE",
-                "SEGMENTATION: FALSE",
-                "ḱʰ ḱ ǵ > cʰ c ɟ",
-                "cʰs cs ɟs > ks ks ks",
-                "s > 0 / {cʰ  c  ɟ}_",
-                "tk tʰkʰ ct ɟt ck  > ks ks ɕt ɕt ɕk",
-                "tc dc tcʰ tʰcʰ > cc"
-        };
+	@Test
+	public void simpleNosegmentation() throws ParseException {
+		String[] commands = {
+				"NORMALIZATION: NONE",
+				"SEGMENTATION: FALSE",
+				"ḱʰ ḱ ǵ > cʰ c ɟ",
+				"cʰs cs ɟs > ks ks ks",
+				"s > 0 / {cʰ  c  ɟ}_",
+				"tk tʰkʰ ct ɟt ck  > ks ks ɕt ɕt ɕk",
+				"tc dc tcʰ tʰcʰ > cc"
+		};
 
-        SoundChangeApplier sca = new SoundChangeApplier(commands);
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-        List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
-        List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
+		List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
+		List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
 
-	    List<Sequence> received  = sca.processLexicon(words);
-	    List<Sequence> sequences = toSequences(expected, sca);
-	    testLists(received, sequences);
-    }
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
 
-    @Test
-    public void simpleNoSegmentation01() throws ParseException {
-        String[] commands = {
-                "NORMALIZATION: NONE",
-                "SEGMENTATION: FALSE",
-                "ḱ  > ɟ",
-                "ḱʰ > cʰ",
-                "ǵ  > j"
-        };
+	@Test
+	public void simpleNoSegmentation01() throws ParseException {
+		String[] commands = {
+				"NORMALIZATION: NONE",
+				"SEGMENTATION: FALSE",
+				"ḱ  > ɟ",
+				"ḱʰ > cʰ",
+				"ǵ  > j"
+		};
 
-        SoundChangeApplier sca = new SoundChangeApplier(commands);
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-        List<String> words    = toList("ruḱo", "ḱʰeh", "oḱto", "arǵos");
-        List<String> expected = toList("ruɟo", "ɟʰeh", "oɟto", "arjos");
+		List<String> words    = toList("ruḱo", "ḱʰeh", "oḱto", "arǵos");
+		List<String> expected = toList("ruɟo", "ɟʰeh", "oɟto", "arjos");
 
-	    List<Sequence> received  = sca.processLexicon(words);
-	    List<Sequence> sequences = toSequences(expected, sca);
-	    testLists(received, sequences);
-    }
-    
-    @Test
-    public void reserveTest() throws ParseException {
-       	String[] commands = {
-    			"SEGMENTATION: FALSE",
-    			"RESERVE ph th kh"
-    	};
-       	SoundChangeApplier sca = new SoundChangeApplier(commands);
-       	
-       	Collection<String> received = sca.getFeatureModel().getSymbols();
-       	Collection<String> expected = new HashSet<String>();
-       	expected.add("ph");
-       	expected.add("th");
-       	expected.add("kh");
-       	assertEquals(expected, received);
-    }
-    
-    @Test
-    public void reserveNaiveSegmentationTest() throws ParseException {
-    	String[] commands = {
-    			"SEGMENTATION: FALSE",
-    			"RESERVE ph th kh",
-    			"ph th kh > f h x"
-    	};
-    	
-    	SoundChangeApplier sca = new SoundChangeApplier(commands);
-    	
-        List<String> words    = toList("kho");
-        List<String> expected = toList("xo");
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
 
-	    List<Sequence> received  = sca.processLexicon(words);
-	    List<Sequence> sequences = toSequences(expected, sca);
-	    testLists(received, sequences);
-    }
+	@Test
+	public void reserveTest() throws ParseException {
+		String[] commands = {
+				"SEGMENTATION: FALSE",
+				"RESERVE ph th kh"
+		};
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-    @Test
-    public void reserveDefaultSegmentationTest() throws ParseException {
-    	String[] commands = {
-    			"SEGMENTATION: TRUE",
-    			"RESERVE ph th kh",
-    			"ph th kh > f h x"
-    	};
-    	
-    	SoundChangeApplier sca = new SoundChangeApplier(commands);
-    	
-        List<String> words    = toList("rukho", "khek", "ophto", "arthos", "taphos");
-        List<String> expected = toList("ruxo",  "xek",  "ofto",  "arhos",  "tafos");
+		Collection<String> received = sca.getFeatureModel().getSymbols();
+		Collection<String> expected = new HashSet<String>();
+		expected.add("ph");
+		expected.add("th");
+		expected.add("kh");
+		assertEquals(expected, received);
+	}
 
-        List<Sequence> received  = sca.processLexicon(words);
-	    List<Sequence> sequences = toSequences(expected, sca);
-	    testLists(received, sequences);
-    }
+	@Test
+	public void reserveNaiveSegmentationTest() throws ParseException {
+		String[] commands = {
+				"SEGMENTATION: FALSE",
+				"RESERVE ph th kh",
+				"ph th kh > f h x"
+		};
+
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+		List<String> words    = toList("kho");
+		List<String> expected = toList("xo");
+
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
+
+	@Test
+	public void reserveDefaultSegmentationTest() throws ParseException {
+		String[] commands = {
+				"SEGMENTATION: TRUE",
+				"RESERVE ph th kh",
+				"ph th kh > f h x"
+		};
+
+		SoundChangeApplier sca = new SoundChangeApplier(commands);
+
+		List<String> words    = toList("rukho", "khek", "ophto", "arthos", "taphos");
+		List<String> expected = toList("ruxo",  "xek",  "ofto",  "arhos",  "tafos");
+
+		List<Sequence> received  = sca.processLexicon(words);
+		List<Sequence> sequences = toSequences(expected, sca);
+		testLists(received, sequences);
+	}
 
 	@Test
 	public void testMetathesis01() throws ParseException {
@@ -564,20 +560,20 @@ public class SoundChangeApplierTest {
 	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
-        NormalizerMode mode = sca.getNormalizerMode();
-        for (String s : strings) {
-            String s2;
-            if (mode == NormalizerMode.NONE) {
-                s2 = s;
-            } else {
-                Normalizer.Form form = Normalizer.Form.valueOf(mode.toString());
-                s2 = Normalizer.normalize(s, form);
-            }
+		NormalizerMode mode = sca.getNormalizerMode();
+		for (String s : strings) {
+			String s2;
+			if (mode == NormalizerMode.NONE) {
+				s2 = s;
+			} else {
+				Normalizer.Form form = Normalizer.Form.valueOf(mode.toString());
+				s2 = Normalizer.normalize(s, form);
+			}
 
-	        list.add(Segmenter.getSequence(s2,
-			        sca.getFeatureModel(),
-			        sca.getVariables(),
-			        sca.usesSegmentation()));
+			list.add(Segmenter.getSequence(s2,
+					sca.getFeatureModel(),
+					sca.getVariables(),
+					sca.usesSegmentation()));
 		}
 		return list;
 	}

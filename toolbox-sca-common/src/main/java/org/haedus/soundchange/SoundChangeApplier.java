@@ -70,15 +70,15 @@ public class SoundChangeApplier {
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
 	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
 
-	private final FileHandler                 fileHandler;
-	private final FeatureModel                model;
-	private final Queue<Command>              commands;
-	final private VariableStore               variables;
+	private final FileHandler    fileHandler;
+	private final FeatureModel   model;
+	private final Queue<Command> commands;
+
 	private final Map<String, List<Sequence>> lexicons;
 
-	private boolean useSegmentation;
-	private NormalizerMode normalizerMode = NormalizerMode.NFC;
-
+	private boolean        useSegmentation = true;
+	private NormalizerMode normalizerMode  = NormalizerMode.NFC;
+	private VariableStore  variables;
 
 	public SoundChangeApplier() {
 		model = new FeatureModel();
@@ -193,7 +193,7 @@ public class SoundChangeApplier {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String trimmedCommand = string.replaceAll(COMMENT_STRING + ".*", "");
 
-				final String command = normalize(trimmedCommand);
+				String command = normalize(trimmedCommand);
 
 				if (command.startsWith(EXECUTE)) {
 					executeScript(command);
@@ -206,7 +206,6 @@ public class SoundChangeApplier {
 				} else if (command.startsWith(CLOSE)) {
 					closeLexicon(command);
 				} else if (command.contains("=")) {
-					// TODO: Variable Store
 					assignVariable(command);
 				} else if (command.contains(">")) {
 					commands.add(new Rule(command, lexicons, model, variables, useSegmentation));
@@ -229,17 +228,12 @@ public class SoundChangeApplier {
 		}
 	}
 
-	private void assignVariable(final String command) {
-		commands.add(new Command() {
-			@Override
-			public void execute() {
-				try {
-					variables.add(command, useSegmentation);
-				} catch (VariableDefinitionFormatException e) {
-					LOGGER.info("Error when parsing variable assignment", e);
-				}
-			}
-		});
+	private void assignVariable(String command) {
+		try {
+			variables.add(command, useSegmentation);
+		} catch (VariableDefinitionFormatException e) {
+			LOGGER.error("Error parsing variable assignment.", e);
+		}
 	}
 
 	/**

@@ -96,7 +96,8 @@ public class Segmenter {
 		StringBuilder buffer = new StringBuilder();
 		int length = word.length();
 		for (int i = 0; i < length; i++) {
-			String key = getBestMatch(word.substring(i), keys);
+			String substring = word.substring(i);
+			String key = getBestMatch(substring, keys);
 			if (i == 0) {
 				if (key.isEmpty()) {
 					buffer.append(word.charAt(0));

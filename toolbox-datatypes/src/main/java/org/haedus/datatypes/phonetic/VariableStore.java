@@ -125,6 +125,10 @@ public class VariableStore {
 		return list;
 	}
 
+	public boolean isEmpty() {
+		return variables.isEmpty();
+	}
+
 	private String getBestMatch(Sequence tail) {
 		String bestMatch = "";
 		for (String key : getKeys()) {

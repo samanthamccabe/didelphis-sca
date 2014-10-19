@@ -72,15 +72,19 @@ public class Rule implements Command {
 
 	public Rule(String rule, Map<String, List<Sequence>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText = rule;
-		variableStore = variables;
 		featureModel = model;
 		lexicons = lexiconsParam;
 		transform = new LinkedHashMap<Sequence, Sequence>();
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 
-		String transform = populateConditions(model);
-		parseTransform(transform, useSegmentation);
+		if (variables.isEmpty()) {
+			variableStore = variables;
+		} else {
+			variableStore = new VariableStore(variables);
+		}
+
+		populateConditions(model, useSegmentation);
 	}
 
 	@Override
@@ -170,10 +174,10 @@ public class Rule implements Command {
 						// Generate replacement
 						Sequence replacement = getReplacementSequence(target, indexMap, variableMap);
 						noMatch = false;
-						if (replacement.size() > 0) {
+						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
 						}
-						index = index + (replacement.size() - removed.size());
+						index += (replacement.size() - removed.size());
 						startIndex = index;
 					}
 				}
@@ -185,7 +189,7 @@ public class Rule implements Command {
 		return output;
 	}
 
-	private String populateConditions(FeatureModel model) throws RuleFormatException {
+	private void populateConditions(FeatureModel model, boolean useSegmentation) throws RuleFormatException {
 		String transform;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
@@ -218,7 +222,7 @@ public class Rule implements Command {
 			transform = ruleText;
 			conditions.add(new Condition());
 		}
-		return transform;
+		parseTransform(transform, useSegmentation);
 	}
 
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {

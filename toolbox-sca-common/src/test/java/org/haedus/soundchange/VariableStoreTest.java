@@ -35,7 +35,7 @@ public class VariableStoreTest {
 		vs.put("C", "p t k R".split(" +"));
 
 		String expected = "C = p t k r l\n" +
-		                  "R = r l";
+						  "R = r l";
 
 		assertEquals(expected, vs.toString());
 	}
