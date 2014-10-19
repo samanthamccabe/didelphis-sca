@@ -56,7 +56,6 @@ public class Segmenter {
 		for (int i = 0; i < word.length(); i++) {
 
 			String key = getBestMatch(word.substring(i), keys);
-
 			if (key.isEmpty()) {
 				segments.add(word.substring(i, i + 1));
 			} else {

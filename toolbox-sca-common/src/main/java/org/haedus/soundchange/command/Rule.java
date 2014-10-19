@@ -24,6 +24,7 @@ import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.Condition;
 import org.haedus.soundchange.SoundChangeApplier;
 import org.haedus.soundchange.exceptions.RuleFormatException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,61 +49,37 @@ public class Rule implements Command {
 
 	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
 
-	private final String                  ruleText;
-	private final Map<Sequence, Sequence> transform;
-	private final List<Condition>         conditions;
-	private final List<Condition>         exceptions;
-	private final VariableStore           variableStore;
-	private final FeatureModel            featureModel;
+	private final String          ruleText;
+	private final List<Condition> conditions;
+	private final List<Condition> exceptions;
+	private final VariableStore   variableStore;
+	private final FeatureModel    featureModel;
+
+	private final Map<Sequence, Sequence>     transform;
+	private final Map<String, List<Sequence>> lexicons;
 
 	public Rule(String rule) throws RuleFormatException {
 		this(rule, new VariableStore(), true);
 	}
 
 	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new FeatureModel(), variables, useSegmentation);
+		this(rule, new HashMap<String, List<Sequence>>(), new FeatureModel(), variables, useSegmentation);
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		this(rule, new HashMap<String, List<Sequence>>(), model, variables, useSegmentation);
+	}
+
+	public Rule(String rule, Map<String, List<Sequence>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText = rule;
 		variableStore = variables;
 		featureModel = model;
+		lexicons = lexiconsParam;
 		transform = new LinkedHashMap<Sequence, Sequence>();
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 
-		String transform;
-		// Check-and-parse for conditions
-		if (ruleText.contains("/")) {
-			String[] array = ruleText.split("/");
-			if (array.length <= 1) {
-				throw new RuleFormatException("Condition was empty!");
-			} else {
-				transform = array[0].trim();
-
-				String conditionString = array[1].trim();
-				if (conditionString.contains("NOT")) {
-					String[] split = conditionString.split("\\s+NOT\\s+");
-					if (split.length == 2) {
-						for (String con : split[0].split("\\s+OR\\s+")) {
-							conditions.add(new Condition(con, variableStore, model));
-						}
-						for (String exc : split[1].split("\\s+OR\\s+")) {
-							exceptions.add(new Condition(exc, variableStore, model));
-						}
-					} else {
-						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
-					}
-				} else {
-					for (String s : conditionString.split("\\s+OR\\s+")) {
-						conditions.add(new Condition(s, variableStore, model));
-					}
-				}
-			}
-		} else {
-			transform = ruleText;
-			conditions.add(new Condition());
-		}
+		String transform = populateConditions(model);
 		parseTransform(transform, useSegmentation);
 	}
 
@@ -130,8 +107,8 @@ public class Rule implements Command {
 	}
 
 	@Override
-	public void execute(SoundChangeApplier sca) {
-		for (List<Sequence> lexicon : sca.getLexicons()) {
+	public void execute() {
+		for (List<Sequence> lexicon : lexicons.values()) {
 			for (int i = 0; i < lexicon.size(); i++) {
 				Sequence word = lexicon.get(i);
 				lexicon.set(i, apply(word));
@@ -153,7 +130,7 @@ public class Rule implements Command {
 				if (index < output.size()) {
 
 					Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
-					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
+					Map<Integer, String> variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
 					int referenceIndex = 1;
@@ -208,6 +185,42 @@ public class Rule implements Command {
 		return output;
 	}
 
+	private String populateConditions(FeatureModel model) throws RuleFormatException {
+		String transform;
+		// Check-and-parse for conditions
+		if (ruleText.contains("/")) {
+			String[] array = ruleText.split("/");
+			if (array.length <= 1) {
+				throw new RuleFormatException("Condition was empty!");
+			} else {
+				transform = array[0].trim();
+
+				String conditionString = array[1].trim();
+				if (conditionString.contains("NOT")) {
+					String[] split = conditionString.split("\\s+NOT\\s+");
+					if (split.length == 2) {
+						for (String con : split[0].split("\\s+OR\\s+")) {
+							conditions.add(new Condition(con, variableStore, model));
+						}
+						for (String exc : split[1].split("\\s+OR\\s+")) {
+							exceptions.add(new Condition(exc, variableStore, model));
+						}
+					} else {
+						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
+					}
+				} else {
+					for (String s : conditionString.split("\\s+OR\\s+")) {
+						conditions.add(new Condition(s, variableStore, model));
+					}
+				}
+			}
+		} else {
+			transform = ruleText;
+			conditions.add(new Condition());
+		}
+		return transform;
+	}
+
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
 		int variableIndex = 1;
 		Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
@@ -222,7 +235,7 @@ public class Rule implements Command {
 				String digits = matcher.group(2);
 
 				int reference = Integer.valueOf(digits);
-				int integer   = indexMap.get(reference);
+				int integer = indexMap.get(reference);
 
 				String variable;
 				if (symbol.isEmpty()) {
@@ -235,7 +248,7 @@ public class Rule implements Command {
 				replacement.add(sequence);
 			} else if (variableStore.contains(segment.getSymbol())) {
 				List<Sequence> elements = variableStore.get(segment.getSymbol());
-				Integer  anIndex  = indexMap.get(variableIndex);
+				Integer anIndex = indexMap.get(variableIndex);
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
 				variableIndex++;

@@ -8,20 +8,21 @@ import java.util.Map;
 /**
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
+ * This mock handler simpler uses maps to simulate a crude file-system
+ * The map is from path to data, so a test can instantiate the class
+ * with this object, either providing it data, or reading from it;
  */
 public class MockFileHandler implements FileHandler {
 
-	private final Map<String, String> mockInput;
-	private final Map<String, String> mockOutput;
+	private final Map<String, String> mockFileSystem;
 
-	public MockFileHandler(Map<String, String> input, Map<String,String> output) {
-		mockInput  = input;
-		mockOutput = output;
+	public MockFileHandler(Map<String, String> input) {
+		mockFileSystem = input;
 	}
 
 	@Override
 	public String readString(String path) {
-		return mockInput.get(path);
+		return mockFileSystem.get(path);
 	}
 
 	@Override
@@ -35,7 +36,7 @@ public class MockFileHandler implements FileHandler {
 
 	@Override
 	public void writeString(String path, String data) {
-		mockOutput.put(path, data);
+		mockFileSystem.put(path, data);
 	}
 
 	@Override
@@ -45,6 +46,6 @@ public class MockFileHandler implements FileHandler {
 		for (String line : data) {
 			sb.append(line).append("\n");
 		}
-		mockOutput.put(path, sb.toString());
+		mockFileSystem.put(path, sb.toString());
 	}
 }

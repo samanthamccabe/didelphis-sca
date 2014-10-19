@@ -91,7 +91,11 @@ public class SoundChangeApplierTest {
 
 		for (String s : lexicon) {
 			String word = Normalizer.normalize(s, Normalizer.Form.NFD);
-			Sequence sequence = new Sequence(word);
+//			Sequence sequence = new Sequence(word);
+			Sequence sequence = Segmenter.getSequenceNaively(
+					word,
+					soundChangeApplier.getFeatureModel(),
+					soundChangeApplier.getVariables());
 			expected.add(sequence);
 		}
 		assertEquals(expected, received);
@@ -374,7 +378,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+			testLists(received, sequences);
 	}
 
 	@Test
@@ -409,8 +413,8 @@ public class SoundChangeApplierTest {
 		list.add("þîsnĕ");
 
 		List<String> expected = toList(
-				"þîs", "þîsnĕ"
-		                              );
+				"þîs",
+				"þîsnĕ");
 
 		List<Sequence> received = sca.processLexicon(list);
 
