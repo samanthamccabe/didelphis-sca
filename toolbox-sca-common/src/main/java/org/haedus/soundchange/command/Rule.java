@@ -78,11 +78,12 @@ public class Rule implements Command {
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 
-		if (variables.isEmpty()) {
-			variableStore = variables;
-		} else {
-			variableStore = new VariableStore(variables);
-		}
+//		if (variables.isEmpty()) {
+//			variableStore = variables;
+//		} else {
+//			variableStore = new VariableStore(variables);
+//		}
+		variableStore = new VariableStore(variables);
 
 		populateConditions(model, useSegmentation);
 	}

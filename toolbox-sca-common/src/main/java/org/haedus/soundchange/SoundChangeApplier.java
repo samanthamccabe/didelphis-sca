@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,7 +77,7 @@ public class SoundChangeApplier {
 
 	private boolean        useSegmentation = true;
 	private NormalizerMode normalizerMode  = NormalizerMode.NFC;
-	private VariableStore  variables;
+	private VariableStore variables;
 
 	public SoundChangeApplier() {
 		model = new FeatureModel();
@@ -177,14 +176,6 @@ public class SoundChangeApplier {
 			lexicon.add(sequence);
 		}
 		return lexicon;
-	}
-
-	public Set<String> getFileHandles() {
-		return lexicons.keySet();
-	}
-
-	public FileHandler getFileHandler() {
-		return fileHandler;
 	}
 
 	private void parse(Iterable<String> strings) throws ParseException {
@@ -322,17 +313,9 @@ public class SoundChangeApplier {
 	private void setNormalization(String command) throws ParseException {
 		String mode = command.replaceAll(NORMALIZATION + ": *", "");
 		try {
-			final NormalizerMode normMode = NormalizerMode.valueOf(mode);
-			commands.add(new Command() {
-				NormalizerMode mode = normMode;
-
-				@Override
-				public void execute() {
-					normalizerMode = mode;
-				}
-			});
+			normalizerMode = NormalizerMode.valueOf(mode);
 		} catch (IllegalArgumentException e) {
-			throw new ParseException("Invalid Command: no such normalization mode \"" + mode + "\"");
+			throw new ParseException(e.getMessage());
 		}
 	}
 
@@ -344,23 +327,13 @@ public class SoundChangeApplier {
 	private void setSegmentation(String command) throws ParseException {
 		String mode = command.replaceAll(SEGMENTATION + ": *", "");
 
-		final boolean segMode;
 		if (mode.startsWith("FALSE")) {
-			segMode = false;
+			useSegmentation = false;
 		} else if (mode.startsWith("TRUE")) {
-			segMode = true;
+			useSegmentation = true;
 		} else {
 			throw new ParseException("Unrecognized segmentation mode \"" + mode + "\"");
 		}
-
-		commands.add(new Command() {
-			boolean mode = segMode;
-
-			@Override
-			public void execute() {
-				useSegmentation = mode;
-			}
-		});
 	}
 
 	private String normalize(String string) {

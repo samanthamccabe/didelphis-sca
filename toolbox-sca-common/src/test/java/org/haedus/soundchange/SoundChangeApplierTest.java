@@ -92,7 +92,7 @@ public class SoundChangeApplierTest {
 		for (String s : lexicon) {
 			String word = Normalizer.normalize(s, Normalizer.Form.NFD);
 //			Sequence sequence = new Sequence(word);
-			Sequence sequence = Segmenter.getSequenceNaively(
+			Sequence sequence = Segmenter.getSequence(
 					word,
 					soundChangeApplier.getFeatureModel(),
 					soundChangeApplier.getVariables());
@@ -364,8 +364,7 @@ public class SoundChangeApplierTest {
 				"tusciyos",      "tə̄rwe",
 				"tou",           "telə",
 				"somoɟəyos",     "sēm",
-				"ôwes",          "blan"
-									  );
+				"ôwes",          "blan");
 
 		SoundChangeApplier sca = new SoundChangeApplier(
 				new String[]{"IMPORT 'testRuleLarge01.txt'"},
@@ -374,7 +373,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-			testLists(received, sequences);
+		testLists(received, sequences);
 	}
 
 	@Test
@@ -544,20 +543,13 @@ public class SoundChangeApplierTest {
 		sca.process();
 
 		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
-	}
-
-	@Test
-	public void testImport() throws ParseException {
-		Map<String,String> input = new HashMap<String, String>();
-	}
-
-	@Test
-	public void testExecute() throws ParseException {
-
+		List<Sequence> exp = toSequences(toList(expected), sca);
+		List<Sequence> rec = sca.getLexicon("TEST");
+		assertEquals(exp, rec);
 	}
 
 	/* UTILITY METHODS */
-	private List<Sequence> toSequences(List<String> strings, SoundChangeApplier sca) {
+	private List<Sequence> toSequences(Iterable<String> strings, SoundChangeApplier sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
 		NormalizerMode mode = sca.getNormalizerMode();
