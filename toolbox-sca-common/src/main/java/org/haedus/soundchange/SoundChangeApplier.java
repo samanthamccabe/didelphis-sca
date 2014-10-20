@@ -103,7 +103,7 @@ public class SoundChangeApplier {
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
+		SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
 		model = new FeatureModel();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling?
 		lexicons = new HashMap<String, List<Sequence>>();

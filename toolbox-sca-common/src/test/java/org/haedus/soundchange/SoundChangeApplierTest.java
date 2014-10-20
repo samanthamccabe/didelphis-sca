@@ -21,6 +21,8 @@ import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
+import org.haedus.io.MockFileHandler;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -528,7 +530,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testOpen() throws ParseException {
+	public void testOpen01() throws ParseException {
 
 		String[] expected = {
 				"apat",
@@ -546,6 +548,57 @@ public class SoundChangeApplierTest {
 		List<Sequence> exp = toSequences(toList(expected), sca);
 		List<Sequence> rec = sca.getLexicon("TEST");
 		assertEquals(exp, rec);
+	}
+
+	@Test
+	public void testOpen02() throws ParseException {
+		String lexicon = "" +
+		                 "apat\n" +
+		                 "takan\n" +
+		                 "kepak\n" +
+		                 "pik\n" +
+		                 "ket";
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("test.lex", lexicon);
+
+		String[] commands = { "OPEN 'test.lex' as TEST" };
+
+		SoundChangeApplier sca = new SoundChangeApplier(commands, new MockFileHandler(map));
+		sca.process();
+
+		List<Sequence> received = sca.getLexicon("TEST");
+		List<Sequence> expected = toSequences(lexicon, sca);
+
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testWrite01() throws ParseException {
+		String lexicon = "" +
+		                 "apat\n" +
+		                 "takan\n" +
+		                 "kepak\n" +
+		                 "pik\n" +
+		                 "ket";
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("test.lex", lexicon);
+
+		String[] commands = {
+				"OPEN 'test.lex' as TEST",
+				"WRITE TEST as 'write.lex'",
+				"CLOSE TEST as 'close.lex'"
+		};
+
+		SoundChangeApplier sca = new SoundChangeApplier(commands, new MockFileHandler(map));
+		sca.process();
+
+		assertFalse(sca.hasLexicon("TEST"));
+		assertTrue(map.containsKey("close.lex"));
+		assertTrue(map.containsKey("write.lex"));
+		assertEquals(lexicon, map.get("write.lex"));
+		assertEquals(lexicon, map.get("close.lex"));
 	}
 
 	/* UTILITY METHODS */

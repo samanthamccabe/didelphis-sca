@@ -22,12 +22,12 @@ public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 	@Override
 	public void execute() {
 
-		List<Sequence> lexicon = lexicons.get(fileHandle);
+		List<Sequence> lexicon = lexicons.remove(fileHandle);
 
 		StringBuilder sb = new StringBuilder();
 		for (Sequence sequence : lexicon) {
-			sb.append(sequence).append("\r\n");
+			sb.append(sequence).append("\n");
 		}
-		fileHandler.writeString(filePath, sb.toString());
+		fileHandler.writeString(filePath, sb.toString().trim());
 	}
 }

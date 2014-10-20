@@ -58,7 +58,6 @@ public class Main {
 
 		double startTime = System.nanoTime();
 		if (enhanced) {
-			// TODO: enhanced processing
 			if (filePaths.size() == 1) {
 				List<String> rules = FileUtils.readLines(new File(filePaths.get(0)), "UTF-8");
 				new SoundChangeApplier(rules).process();
