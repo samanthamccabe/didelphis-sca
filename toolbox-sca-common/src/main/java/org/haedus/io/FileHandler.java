@@ -8,9 +8,9 @@ import java.util.List;
  */
 public interface FileHandler {
 
-	String readString(String path);
-
 	List<String> readLines(String path);
+
+	List<List<String>> readTable(String path);
 
 	void writeString(String path, String data);
 

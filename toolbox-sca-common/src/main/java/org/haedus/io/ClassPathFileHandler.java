@@ -1,16 +1,15 @@
 package org.haedus.io;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,19 +31,6 @@ public class ClassPathFileHandler implements FileHandler {
 	}
 
 	@Override
-	public String readString(String path) {
-
-		List<String> lines = readLines(path);
-
-		StringBuilder builder = new StringBuilder();
-		for (String line : lines) {
-			builder.append(line);
-			builder.append("\n");
-		}
-		return builder.toString();
-	}
-
-	@Override
 	public List<String> readLines(String path) {
 
 		List<String> lines = new ArrayList<String>();
@@ -58,6 +44,18 @@ public class ClassPathFileHandler implements FileHandler {
 			LOGGER.error("Error when reading from path \"{}\"!", path);
 		}
 		return lines;
+	}
+
+	@Override
+	public List<List<String>> readTable(String path) {
+		List<List<String>> table = new ArrayList<List<String>>();
+
+		for (String line : readLines(path)) {
+			List<String> row = new ArrayList<String>();
+			Collections.addAll(row, line.split("\t"));
+			table.add(row);
+		}
+		return table;
 	}
 
 	@Override

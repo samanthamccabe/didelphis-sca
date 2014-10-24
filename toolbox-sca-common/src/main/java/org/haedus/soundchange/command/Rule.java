@@ -56,33 +56,28 @@ public class Rule implements Command {
 	private final FeatureModel    featureModel;
 
 	private final Map<Sequence, Sequence>     transform;
-	private final Map<String, List<Sequence>> lexicons;
+
+	private final Map<String, List<List<Sequence>>> lexicons;
 
 	public Rule(String rule) throws RuleFormatException {
 		this(rule, new VariableStore(), true);
 	}
 
 	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new HashMap<String, List<Sequence>>(), new FeatureModel(), variables, useSegmentation);
+		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, useSegmentation);
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new HashMap<String, List<Sequence>>(), model, variables, useSegmentation);
+		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, useSegmentation);
 	}
 
-	public Rule(String rule, Map<String, List<Sequence>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		ruleText = rule;
-		featureModel = model;
-		lexicons = lexiconsParam;
-		transform = new LinkedHashMap<Sequence, Sequence>();
-		exceptions = new ArrayList<Condition>();
-		conditions = new ArrayList<Condition>();
-
-//		if (variables.isEmpty()) {
-//			variableStore = variables;
-//		} else {
-//			variableStore = new VariableStore(variables);
-//		}
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		ruleText      = rule;
+		featureModel  = model;
+		lexicons      = lexiconsParam;
+		transform     = new LinkedHashMap<Sequence, Sequence>();
+		exceptions    = new ArrayList<Condition>();
+		conditions    = new ArrayList<Condition>();
 		variableStore = new VariableStore(variables);
 
 		populateConditions(model, useSegmentation);
@@ -113,10 +108,13 @@ public class Rule implements Command {
 
 	@Override
 	public void execute() {
-		for (List<Sequence> lexicon : lexicons.values()) {
-			for (int i = 0; i < lexicon.size(); i++) {
-				Sequence word = lexicon.get(i);
-				lexicon.set(i, apply(word));
+//		for (List<Sequence> lexicon : lexicons.values()) {
+		for (List<List<Sequence>> lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
+				for (int i = 0; i < row.size(); i++) {
+					Sequence word = row.get(i);
+					row.set(i, apply(word));
+				}
 			}
 		}
 	}

@@ -73,7 +73,7 @@ public class SoundChangeApplier {
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
 
-	private final Map<String, List<Sequence>> lexicons;
+	private final Map<String, List<List<Sequence>>> lexicons;
 
 	private boolean        useSegmentation = true;
 	private NormalizerMode normalizerMode  = NormalizerMode.NFC;
@@ -82,7 +82,7 @@ public class SoundChangeApplier {
 	public SoundChangeApplier() {
 		model = new FeatureModel();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons = new HashMap<String, List<Sequence>>();
+		lexicons = new HashMap<String, List<List<Sequence>>>();
 		commands = new ArrayDeque<Command>();
 		fileHandler = new DiskFileHandler();
 	}
@@ -103,10 +103,10 @@ public class SoundChangeApplier {
 	}
 
 	// Package-private: for tests only
-		SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
+	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
 		model = new FeatureModel();
 		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons = new HashMap<String, List<Sequence>>();
+		lexicons = new HashMap<String, List<List<Sequence>>>();
 		commands = new ArrayDeque<Command>();
 		fileHandler = fileHandlerParam;
 
@@ -115,8 +115,8 @@ public class SoundChangeApplier {
 		parse(list);
 	}
 
-	public void addLexicon(String handle, Iterable<String> lexicon) {
-		List<Sequence> sequences = getSequences(lexicon);
+	public void addLexicon(String handle, List<List<String>> lexicon) {
+		List<List<Sequence>> sequences = getSequences(lexicon);
 		lexicons.put(handle, sequences);
 	}
 
@@ -128,7 +128,7 @@ public class SoundChangeApplier {
 		return variables;
 	}
 
-	public List<Sequence> getLexicon(String handle) {
+	public List<List<Sequence>> getLexicon(String handle) {
 		return lexicons.get(handle);
 	}
 
@@ -136,7 +136,7 @@ public class SoundChangeApplier {
 		return lexicons.containsKey(handle);
 	}
 
-	public Collection<List<Sequence>> getLexicons() {
+	public Collection<List<List<Sequence>>> getLexicons() {
 		return lexicons.values();
 	}
 
@@ -148,7 +148,7 @@ public class SoundChangeApplier {
 		return useSegmentation;
 	}
 
-	public List<Sequence> removeLexicon(String handle) {
+	public List<List<Sequence>> removeLexicon(String handle) {
 		return lexicons.remove(handle);
 	}
 
@@ -158,24 +158,32 @@ public class SoundChangeApplier {
 		}
 	}
 
-	public List<Sequence> processLexicon(Iterable<String> list) throws ParseException {
-		List<Sequence> lexicon = getSequences(list);
+	public List<List<Sequence>> getSequences(List<List<String>> list) {
+		List<List<Sequence>> lexicon = new ArrayList<List<Sequence>>();
+		for (List<String> line : list) {
+			List<Sequence> sequences = new ArrayList<Sequence>();
+			for (String item : line) {
+				String word = normalize(item);
+				Sequence sequence = Segmenter.getSequence(word, model, variables, useSegmentation);
+				sequences.add(sequence);
+			}
+			lexicon.add(sequences);
+		}
+		return lexicon;
+	}
+
+	// Testing only
+	List<Sequence> processLexicon(List<String> list) throws ParseException {
+		List<List<String>> lex = new ArrayList<List<String>>();
+		lex.add(list);
+
+		List<List<Sequence>> lexicon = getSequences(lex);
 		lexicons.put("DEFAULT", lexicon);
 		// Should test later if this is better than for-each
 		for (Command command : commands) {
 			command.execute();
 		}
-		return lexicon;
-	}
-
-	public List<Sequence> getSequences(Iterable<String> list) {
-		List<Sequence> lexicon = new ArrayList<Sequence>();
-		for (String item : list) {
-			String word = normalize(item);
-			Sequence sequence = Segmenter.getSequence(word, model, variables, useSegmentation);
-			lexicon.add(sequence);
-		}
-		return lexicon;
+		return lexicon.get(0);
 	}
 
 	private void parse(Iterable<String> strings) throws ParseException {

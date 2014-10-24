@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,18 +29,6 @@ public class DiskFileHandler implements FileHandler {
 	}
 
 	@Override
-	public String readString(String path) {
-		File file = new File(path);
-		String data = "";
-		try {
-			data = FileUtils.readFileToString(file, encoding);
-		} catch (IOException e) {
-			LOGGER.error("Error when reading file {} from path \"{}\"!", path, file.getAbsolutePath(), e);
-		}
-		return data;
-	}
-
-	@Override
 	public List<String> readLines(String path) {
 		File file = new File(path);
 		List<String> lines = new ArrayList<String>();
@@ -49,6 +38,17 @@ public class DiskFileHandler implements FileHandler {
 			LOGGER.error("Error when reading file {} from path \"{}\"!",path, file.getAbsolutePath(), e);
 		}
 		return lines;
+	}
+
+	@Override
+	public List<List<String>> readTable(String path) {
+		List<List<String>> table = new ArrayList<List<String>>();
+		for (String line : readLines(path)) {
+			List<String> row = new ArrayList<String>();
+			Collections.addAll(row, line.split("\t"));
+			table.add(row);
+		}
+		return table;
 	}
 
 	@Override

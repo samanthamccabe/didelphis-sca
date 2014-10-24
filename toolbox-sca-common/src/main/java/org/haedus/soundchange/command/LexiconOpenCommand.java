@@ -20,7 +20,7 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 
 	@Override
 	public void execute() {
-		List<String> lines = fileHandler.readLines(filePath);
-		soundChangeApplier.addLexicon(fileHandle, lines);
+		List<List<String>> lexicon = fileHandler.readTable(filePath);
+		soundChangeApplier.addLexicon(fileHandle, lexicon);
 	}
 }

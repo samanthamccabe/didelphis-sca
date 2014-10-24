@@ -3,6 +3,7 @@ package org.haedus.soundchange.command;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.io.FileHandler;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +13,9 @@ import java.util.Map;
  */
 public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 
-	private final Map<String, List<Sequence>> lexicons;
+	private final Map<String, List<List<Sequence>>> lexicons;
 
-	public LexiconCloseCommand(Map<String, List<Sequence>> lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
+	public LexiconCloseCommand(Map<String, List<List<Sequence>>> lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
 		super(pathParam, handleParam, handlerParam);
 		lexicons = lexiconParam;
 	}
@@ -22,11 +23,19 @@ public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 	@Override
 	public void execute() {
 
-		List<Sequence> lexicon = lexicons.remove(fileHandle);
+		List<List<Sequence>> lexicon = lexicons.remove(fileHandle);
 
 		StringBuilder sb = new StringBuilder();
-		for (Sequence sequence : lexicon) {
-			sb.append(sequence).append("\n");
+		Iterator<List<Sequence>> i1 = lexicon.iterator();
+		while (i1.hasNext()) {
+			Iterator<Sequence> i2 = i1.next().iterator();
+			while (i2.hasNext()) {
+				Sequence sequence = i2.next();
+				sb.append(sequence);
+				if (i2.hasNext()) sb.append("\t");
+
+			}
+			if (i1.hasNext()) sb.append("\n");
 		}
 		fileHandler.writeString(filePath, sb.toString().trim());
 	}

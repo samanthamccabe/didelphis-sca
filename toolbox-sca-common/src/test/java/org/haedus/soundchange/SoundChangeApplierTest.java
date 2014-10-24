@@ -93,7 +93,6 @@ public class SoundChangeApplierTest {
 
 		for (String s : lexicon) {
 			String word = Normalizer.normalize(s, Normalizer.Form.NFD);
-//			Sequence sequence = new Sequence(word);
 			Sequence sequence = Segmenter.getSequence(
 					word,
 					soundChangeApplier.getFeatureModel(),
@@ -391,7 +390,6 @@ public class SoundChangeApplierTest {
 		};
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
-		sca.processLexicon(new ArrayList<String>());
 	}
 
 	@Test
@@ -404,7 +402,7 @@ public class SoundChangeApplierTest {
 
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 
-		Collection<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<String>();
 
 		list.add("þîsĕ");
 		list.add("þîsnĕ");
@@ -532,7 +530,7 @@ public class SoundChangeApplierTest {
 	@Test
 	public void testOpen01() throws ParseException {
 
-		String[] expected = {
+		String[] lexicon = {
 				"apat",
 				"takan",
 				"kepak",
@@ -545,9 +543,17 @@ public class SoundChangeApplierTest {
 		sca.process();
 
 		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
-		List<Sequence> exp = toSequences(toList(expected), sca);
-		List<Sequence> rec = sca.getLexicon("TEST");
-		assertEquals(exp, rec);
+
+		List<String> strings = toList(lexicon);
+
+		List<List<Sequence>> expected = new ArrayList<List<Sequence>>();
+		List<List<Sequence>> received = sca.getLexicon("TEST");
+
+		for (String string : strings) {
+			expected.add(toSequences(string, sca));
+		}
+
+		assertEquals(expected, received);
 	}
 
 	@Test
@@ -567,8 +573,12 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands, new MockFileHandler(map));
 		sca.process();
 
-		List<Sequence> received = sca.getLexicon("TEST");
-		List<Sequence> expected = toSequences(lexicon, sca);
+		List<List<Sequence>> received = sca.getLexicon("TEST");
+		List<List<Sequence>> expected = new ArrayList<List<Sequence>>();
+
+		for (String string : lexicon.split("\n")) {
+			expected.add(toSequences(string, sca));
+		}
 
 		assertEquals(expected, received);
 	}

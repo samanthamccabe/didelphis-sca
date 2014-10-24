@@ -20,8 +20,7 @@ public class MockFileHandler implements FileHandler {
 		mockFileSystem = input;
 	}
 
-	@Override
-	public String readString(String path) {
+	private String readString(String path) {
 		return mockFileSystem.get(path);
 	}
 
@@ -32,6 +31,18 @@ public class MockFileHandler implements FileHandler {
 		List<String> list = new ArrayList<String>();
 		Collections.addAll(list, data.split("\r?\n"));
 		return list;
+	}
+
+	@Override
+	public List<List<String>> readTable(String path) {
+		List<List<String>> table = new ArrayList<List<String>>();
+
+		for (String line : readLines(path)) {
+			List<String> row = new ArrayList<String>();
+			Collections.addAll(row, line.split("\t"));
+			table.add(row);
+		}
+		return table;
 	}
 
 	@Override
