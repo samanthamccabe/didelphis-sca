@@ -14,18 +14,27 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.soundchange.command;
 
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.soundchange.Condition;
+import org.haedus.soundchange.SoundChangeApplier;
 import org.haedus.soundchange.exceptions.RuleFormatException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,68 +43,44 @@ import java.util.regex.Pattern;
  * Date: 4/7/13
  * Time: 5:40 PM
  */
-public class Rule {
+public class Rule implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
 	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
 
-	private final String                  ruleText;
-	private final Map<Sequence, Sequence> transform;
-	private final List<Condition>         conditions;
-	private final List<Condition>         exceptions;
-	private final VariableStore           variableStore;
-	private final FeatureModel            featureModel;
+	private final String          ruleText;
+	private final List<Condition> conditions;
+	private final List<Condition> exceptions;
+	private final VariableStore   variableStore;
+	private final FeatureModel    featureModel;
+
+	private final Map<Sequence, Sequence>     transform;
+
+	private final Map<String, List<List<Sequence>>> lexicons;
 
 	public Rule(String rule) throws RuleFormatException {
 		this(rule, new VariableStore(), true);
 	}
 
 	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new FeatureModel(), variables, useSegmentation);
+		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, useSegmentation);
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, useSegmentation);
+	}
+
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
 		ruleText      = rule;
-		variableStore = variables;
 		featureModel  = model;
+		lexicons      = lexiconsParam;
 		transform     = new LinkedHashMap<Sequence, Sequence>();
 		exceptions    = new ArrayList<Condition>();
 		conditions    = new ArrayList<Condition>();
+		variableStore = new VariableStore(variables);
 
-		String transform;
-		// Check-and-parse for conditions
-		if (ruleText.contains("/")) {
-			String[] array = ruleText.split("/");
-			if (array.length <= 1) {
-				throw new RuleFormatException("Condition was empty!");
-			} else {
-				transform = array[0].trim();
-
-				String conditionString = array[1].trim();
-				if (conditionString.contains("NOT")) {
-					String[] split = conditionString.split("\\s+NOT\\s+");
-					if (split.length == 2) {
-						for (String con : split[0].split("\\s+OR\\s+")) {
-							conditions.add(new Condition(con, variableStore, model));
-						}
-						for (String exc : split[1].split("\\s+OR\\s+")) {
-							exceptions.add(new Condition(exc, variableStore, model));
-						}
-					} else {
-						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
-					}
-				} else {
-					for (String s : conditionString.split("\\s+OR\\s+")) {
-						conditions.add(new Condition(s, variableStore, model));
-					}
-				}
-			}
-		} else {
-			transform = ruleText;
-			conditions.add(new Condition());
-		}
-		parseTransform(transform, useSegmentation);
+		populateConditions(model, useSegmentation);
 	}
 
 	@Override
@@ -103,12 +88,12 @@ public class Rule {
 		StringBuilder sb = new StringBuilder();
 
 		for (Sequence sequence : transform.keySet()) {
-			sb.append(sequence.toStringClean());
+			sb.append(sequence.toString());
 			sb.append(" ");
 		}
 		sb.append("> ");
 		for (Sequence sequence : transform.values()) {
-			sb.append(sequence.toStringClean());
+			sb.append(sequence.toString());
 			sb.append(" ");
 		}
 		sb.append("/ ");
@@ -121,11 +106,15 @@ public class Rule {
 		return sb.toString();
 	}
 
-	public void execute(SoundChangeApplier sca) {
-		for (List<Sequence> lexicon : sca.getLexicons()) {
-			for (int i = 0; i < lexicon.size(); i++) {
-				Sequence word = lexicon.get(i);
-				lexicon.set(i, apply(word));
+	@Override
+	public void execute() {
+//		for (List<Sequence> lexicon : lexicons.values()) {
+		for (List<List<Sequence>> lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
+				for (int i = 0; i < row.size(); i++) {
+					Sequence word = row.get(i);
+					row.set(i, apply(word));
+				}
 			}
 		}
 	}
@@ -184,10 +173,10 @@ public class Rule {
 						// Generate replacement
 						Sequence replacement = getReplacementSequence(target, indexMap, variableMap);
 						noMatch = false;
-						if (replacement.size() > 0) {
+						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
 						}
-						index = index + (replacement.size() - removed.size());
+						index += (replacement.size() - removed.size());
 						startIndex = index;
 					}
 				}
@@ -197,6 +186,42 @@ public class Rule {
 			}
 		}
 		return output;
+	}
+
+	private void populateConditions(FeatureModel model, boolean useSegmentation) throws RuleFormatException {
+		String transform;
+		// Check-and-parse for conditions
+		if (ruleText.contains("/")) {
+			String[] array = ruleText.split("/");
+			if (array.length <= 1) {
+				throw new RuleFormatException("Condition was empty!");
+			} else {
+				transform = array[0].trim();
+
+				String conditionString = array[1].trim();
+				if (conditionString.contains("NOT")) {
+					String[] split = conditionString.split("\\s+NOT\\s+");
+					if (split.length == 2) {
+						for (String con : split[0].split("\\s+OR\\s+")) {
+							conditions.add(new Condition(con, variableStore, model));
+						}
+						for (String exc : split[1].split("\\s+OR\\s+")) {
+							exceptions.add(new Condition(exc, variableStore, model));
+						}
+					} else {
+						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
+					}
+				} else {
+					for (String s : conditionString.split("\\s+OR\\s+")) {
+						conditions.add(new Condition(s, variableStore, model));
+					}
+				}
+			}
+		} else {
+			transform = ruleText;
+			conditions.add(new Condition());
+		}
+		parseTransform(transform, useSegmentation);
 	}
 
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
@@ -213,7 +238,7 @@ public class Rule {
 				String digits = matcher.group(2);
 
 				int reference = Integer.valueOf(digits);
-				int integer   = indexMap.get(reference);
+				int integer = indexMap.get(reference);
 
 				String variable;
 				if (symbol.isEmpty()) {
@@ -226,7 +251,7 @@ public class Rule {
 				replacement.add(sequence);
 			} else if (variableStore.contains(segment.getSymbol())) {
 				List<Sequence> elements = variableStore.get(segment.getSymbol());
-				Integer  anIndex  = indexMap.get(variableIndex);
+				Integer anIndex = indexMap.get(variableIndex);
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
 				variableIndex++;

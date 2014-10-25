@@ -43,10 +43,10 @@ public class ConditionTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionTest.class);
 
 	// We just need to see that this parses correctly
-    @Test
-    public void testEmptyCondition() throws RuleFormatException {
-    	new Condition("_");
-    }
+	@Test
+	public void testEmptyCondition() throws RuleFormatException {
+		new Condition("_");
+	}
 
 	// We just need to see that this parses correctly
 	@Test(expected = RuleFormatException.class)
@@ -562,7 +562,7 @@ public class ConditionTest {
 		testTrue(condition,  "zd", 0);
 		testTrue(condition,  "ze", 0);
 
-        testFalse(condition, "za", 0); // Good
+		testFalse(condition, "za", 0); // Good
 	}
 
 	@Ignore

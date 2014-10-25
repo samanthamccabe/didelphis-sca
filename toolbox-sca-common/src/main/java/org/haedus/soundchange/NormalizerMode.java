@@ -19,18 +19,19 @@ package org.haedus.soundchange;
 /**
  * Class NormalizationMode
  * Samantha Fiona Morrigan McCabe
+ *
  * @since 07/30/2014
  */
 public enum NormalizerMode {
-    NFD("NFD"),
-    NFC("NFC"),
-    NFKD("NFKD"),
-    NFKC("NFKC"),
-    NONE("NONE");
+	NFD("NFD"),
+	NFC("NFC"),
+	NFKD("NFKD"),
+	NFKC("NFKC"),
+	NONE("NONE");
 
-    private String value;
+	private String value;
 
-    NormalizerMode(String value) {
-        this.value = value;
-    }
+	NormalizerMode(String value) {
+		this.value = value;
+	}
 }
