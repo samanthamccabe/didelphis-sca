@@ -6,10 +6,12 @@ The SCA can infer the what sequences should be treated as unitary by attaching d
 
 ##Running The SCA##
 To use the SCA, the user must provide a lexicon and commands file. In stand-alone operation, it can be run using the command
-
 > `java -jar sca.jar LEXICON RULES OUTPUT`
 
 with the user providing paths for the worlist, commands, and output file. This can, of course, be placed into a batch or shell script for your convenience. However, running SCA through a terminal is recommended, so that any errors can be printed to the terminal. Later versions will permit the user to provide only the script, in which the input and output paths are specified
+
+The SCA can also be run in "enhanced" mode, where the only argument provided is a script file. In this case, the script itself can be used to import and execute other scripts, and read and write lexicon files. See the **Command** section for this. This is enabled with the `-e` or `--enhanced` flag.
+> `java -jar sca.jar -e RULES`
 
 ##Scripts##
 Operation of the SCA is controlled through a script file while primarily contains rule definitions, but which also allows the user to define variables, reserve character sequences, and control segmentaton and normalization. Lists of things, like sources and targets in commands, the contents of sets inside conditions, variable definitions, and commands to reserve character sequences are all delimited by whitespace (the space character, or tab) and is quantity-insensitive, so you can use extra spaces, or tabs to make columns align, as you will see throughout the examples.
@@ -33,6 +35,14 @@ NORMALIZATION:
 SEGMENTATION:
 > * `TRUE ` By default, automatic segmentation is used
 > * `FALSE` Treats each input character as atomic, except where characters are reserved by the use
+
+You can also use the `RESERVE` command to have the SCA treat multiple characters as a single simple. This is especially useful for digraphs that should be treated as single sounds, as in aspirates or affricates, or when working with `SEGMENTATION FALSE` set. For example, with the commands
+```
+SEGMENTATION FALSE
+RESERVE ts tsh ph th kh
+h > 0
+```
+the symbols *tsh*, *ph*, *th* , *kh* will not be affected.
 
 ##Variables##
 The SCA allows for the definition of variables (and re-definition) on-the-fly, anywhere in the script. Variables definitions consist of a label, the assignment operator = and a space-separated list of values. For example:
@@ -138,3 +148,15 @@ Another piece of advanced functionality supported by this SCA is the capacity to
 ```
 o e > a / X_ OR _Y % change e and o to a when preceded by X or followed by Y
 ```
+It is also possible to have a negated block using `NOT`, which can contained multiple chained conditions with `OR`; this will cause the condition to not apply where it might otherwise. For example
+```
+C = x y z
+a > b / C_ NOT y_
+```
+Allows the rule to apply following **x** and **z** without having the create a new set or variable to exclude **y**. Using multiple chained conditions and negation can be done as follows
+```
+C = x y z
+Γ = α β γ
+a > b / C_ OR Γ_ NOT y_ OR γ_
+```
+but the logical grouping of this is necessarily `(C_ OR Γ_) NOT (y_ or γ_)` or using a logical notation `(C_ ∨ Γ_) ∧ ¬(y_ ∨ γ_)`; thus, writing a rule this way may have unintended consequences, until we can implement logical groupings and permit something like `(C_ NOT y_) OR (Γ_NOT γ_)`
