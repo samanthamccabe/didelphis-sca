@@ -4,6 +4,8 @@ Haedus Toolbox SCA, Manual
 The Haedus Toolbox SCA was designed to address one specific and pernicous problem with other sound-change applier programs in common use withing the conlang community, namely that single sounds often need to be represented by two or mor characters, whether that is 'ts', 'tʰ', or 'qʷʰ'. This relieves the user from having to artificially re-order commands because 'p > b' happens to also affect 'pʰ' even when the intent of the user is for these to be distinct and segments.
 The SCA can infer the what sequences should be treated as unitary by attaching diacritics and modifier letters to a preceding base character. The user can also manually specify sequences that should be treated as atomic. 
 
+When lexicons are loaded, they are actually parsed as tab-separated tables by default with each cell treated as a single word. This has no real affect on single-column data, but can be useful for looking at the diachronics of inflectional paradigms.
+
 ##Running The SCA##
 To use the SCA, the user must provide a lexicon and commands file. In stand-alone operation, it can be run using the command
 > `java -jar sca.jar LEXICON RULES OUTPUT`
@@ -43,6 +45,18 @@ RESERVE ts tsh ph th kh
 h > 0
 ```
 the symbols *tsh*, *ph*, *th* , *kh* will not be affected.
+
+###Scripting###
+The SCA incorporates some scripting functionality, allowing a rules file to load and execute other rules files, and to read and write lexicons referenced by file handles.
+> * `EXECUTE` other rule files, which just does what that rule file does in a separate process; it is not loaded into the current script file.
+> * `IMPORT` other rule files, which basically inserts those rules into your current rule file at the location where the command is called.
+> * `OPEN "some_lexicon.txt" (as) FILEHANDLE` to load the contents of that file into a lexicon stored against the file-handle.
+> * `WRITE FILEHANDLE (as) "some_output1.txt"` to save the current state of the lexicon to the specified file, but leave the handle open.
+> * `CLOSE FILEHANDLE (as) "some_output2.txt"` to close the file-handle and save the lexicon to the specified file. This is the same as the `WRITE` command, but it removes the file-handle and its attached lexicon from memory.
+
+Not that file handles must consist of uppercase letters, digits, and the underscore. Using other symbols will cause an error.
+
+This functionality permits users to, for example, run the derivations for an entire language family from a single parent file. Or, to output intermediate stages in language development.
 
 ##Variables##
 The SCA allows for the definition of variables (and re-definition) on-the-fly, anywhere in the script. Variables definitions consist of a label, the assignment operator = and a space-separated list of values. For example:
