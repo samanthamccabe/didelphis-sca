@@ -1,4 +1,4 @@
-Haedus Toolbox SCA, Manual
+Haedus Toolbox SCA, Manual -
 
 ##Introduction##
 The Haedus Toolbox SCA was designed to address one specific and pernicous problem with other sound-change applier programs in common use withing the conlang community, namely that single sounds often need to be represented by two or mor characters, whether that is 'ts', 'tʰ', or 'qʷʰ'. This relieves the user from having to artificially re-order commands because 'p > b' happens to also affect 'pʰ' even when the intent of the user is for these to be distinct and segments.
@@ -173,4 +173,4 @@ C = x y z
 Γ = α β γ
 a > b / C_ OR Γ_ NOT y_ OR γ_
 ```
-but the logical grouping of this is necessarily `(C_ OR Γ_) NOT (y_ or γ_)` or using a logical notation `(C_ ∨ Γ_) ∧ ¬(y_ ∨ γ_)`; thus, writing a rule this way may have unintended consequences, until we can implement logical groupings and permit something like `(C_ NOT y_) OR (Γ_NOT γ_)`
+but the logical grouping of this is necessarily `(C_ OR Γ_) NOT (y_ or γ_)` or using a logical notation `(C_ ∨ Γ_) ∧ ¬(y_ ∨ γ_)`; thus, writing a rule this way may have unintended consequences, until we can implement logical groupings and permit something like `(C_ NOT y_) OR (Γ_ NOT γ_)`
