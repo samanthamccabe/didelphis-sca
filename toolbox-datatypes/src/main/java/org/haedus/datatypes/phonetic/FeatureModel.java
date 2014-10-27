@@ -40,20 +40,18 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private Map<String, List<Float>> featureMap;
-	private Table<Float>             weightTable;
+	private final Map<String, List<Float>> featureMap;
+	private final Table<Float>             weightTable;
 
 	/**
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		super();
 		featureMap  = new HashMap<String, List<Float>>();
 		weightTable = new Table<Float>();
 	}
 
 	public FeatureModel(Map<String, List<Float>> map, Table<Float> weights) {
-		super();
 		featureMap  = map;
 		weightTable = weights;
 	}

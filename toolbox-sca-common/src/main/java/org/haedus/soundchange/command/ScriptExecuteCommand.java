@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.exceptions.ParseException;
-import org.haedus.io.FileHandler;
 import org.haedus.soundchange.SoundChangeApplier;
 
 import java.io.File;
@@ -24,7 +23,7 @@ public class ScriptExecuteCommand implements Command {
 
 	public ScriptExecuteCommand(String pathParam) throws ParseException {
 		File file = new File(pathParam);
-		List<String> list = null;
+		List<String> list;
 		try {
 			list = FileUtils.readLines(file, "UTF-8");
 		} catch (IOException e) {

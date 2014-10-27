@@ -98,11 +98,6 @@ public class SymmetricTable<T> {
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-    }
-
-    @Override
     public int hashCode() {
 		int hashCode = 33;
 		for (int i = 0; i < array.size(); i++) {

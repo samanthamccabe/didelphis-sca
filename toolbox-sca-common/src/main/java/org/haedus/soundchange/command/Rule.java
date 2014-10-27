@@ -22,7 +22,6 @@ import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.Condition;
-import org.haedus.soundchange.SoundChangeApplier;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
 import org.slf4j.Logger;

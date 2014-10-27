@@ -389,7 +389,7 @@ public class SoundChangeApplierTest {
 				"B > 0 / #_c"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		new SoundChangeApplier(commands);
 	}
 
 	@Test

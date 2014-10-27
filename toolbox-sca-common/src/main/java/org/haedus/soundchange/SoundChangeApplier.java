@@ -72,12 +72,12 @@ public class SoundChangeApplier {
 	private final FileHandler    fileHandler;
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
+	private final VariableStore  variables;
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
 	private boolean        useSegmentation = true;
 	private NormalizerMode normalizerMode  = NormalizerMode.NFC;
-	private VariableStore variables;
 
 	public SoundChangeApplier() {
 		model = new FeatureModel();
@@ -173,7 +173,7 @@ public class SoundChangeApplier {
 	}
 
 	// Testing only
-	List<Sequence> processLexicon(List<String> list) throws ParseException {
+	List<Sequence> processLexicon(List<String> list) {
 		List<List<String>> lex = new ArrayList<List<String>>();
 		lex.add(list);
 

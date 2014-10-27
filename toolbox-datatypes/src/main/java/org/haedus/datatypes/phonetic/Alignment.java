@@ -85,8 +85,10 @@ public class Alignment {
 
 	@Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-		if (obj.getClass() != getClass()) return false;
+        if (obj == null)
+	        return false;
+		if (obj.getClass() != getClass())
+			return false;
 
 		Alignment alignment = (Alignment) obj;
 

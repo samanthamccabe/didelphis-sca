@@ -35,7 +35,6 @@ public class Sequence implements Iterable<Segment> {
 	private final FeatureModel  features;
 
 	public Sequence() {
-		super();
 		sequence = new LinkedList<Segment>();
 		features = new FeatureModel();
 	}

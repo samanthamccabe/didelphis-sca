@@ -29,7 +29,7 @@ public enum NormalizerMode {
 	NFKC("NFKC"),
 	NONE("NONE");
 
-	private String value;
+	private final String value;
 
 	NormalizerMode(String value) {
 		this.value = value;
