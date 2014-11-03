@@ -1,7 +1,7 @@
 Haedus Toolbox SCA, Manual -
 
 ##Introduction##
-The Haedus Toolbox SCA was designed to address one specific and pernicous problem with other sound-change applier programs in common use withing the conlang community, namely that single sounds often need to be represented by two or mor characters, whether that is 'ts', 'tʰ', or 'qʷʰ'. This relieves the user from having to artificially re-order commands because 'p > b' happens to also affect 'pʰ' even when the intent of the user is for these to be distinct and segments.
+The Haedus Toolbox SCA was designed to address one specific and common shortcoming of other sound-change applier programs in common use withing the conlang community, namely that single sounds often need to be represented by two or mor characters, whether that is 'ts', 'tʰ', or 'qʷʰ'. This relieves the user from having to artificially re-order commands because 'p > b' happens to also affect 'pʰ' even when the intent of the user is for these to be distinct and segments.
 The SCA can infer the what sequences should be treated as unitary by attaching diacritics and modifier letters to a preceding base character. The user can also manually specify sequences that should be treated as atomic. 
 
 When lexicons are loaded, they are actually parsed as tab-separated tables by default with each cell treated as a single word. This has no real affect on single-column data, but can be useful for looking at the diachronics of inflectional paradigms.
