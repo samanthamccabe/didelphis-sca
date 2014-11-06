@@ -27,10 +27,6 @@ import org.haedus.exceptions.ParseException;
  */
 public class RuleFormatException extends ParseException {
 
-	public RuleFormatException() {
-		super();
-	}
-
 	public RuleFormatException(String message) {
 		super("Illegal Format in Rule:\n\t"+message);
 	}

@@ -133,11 +133,6 @@ public class Table<T> {
 				table.equals(other.getTable());
 	}
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-    }
-
 	@Override
 	public int hashCode() {
 		int hashCode = 33;

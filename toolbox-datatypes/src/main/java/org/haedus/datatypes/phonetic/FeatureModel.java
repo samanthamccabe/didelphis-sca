@@ -21,17 +21,17 @@
 
 package org.haedus.datatypes.phonetic;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.haedus.datatypes.SymmetricTable;
 import org.haedus.datatypes.Table;
-import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
@@ -40,50 +40,32 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private       int                        numberOfFeatures;
-	private final Map<String, Integer>       labelIndices;
-	private final Map<String, List<Double>> featureMap;
-	private final SymmetricTable<Double>     weightTable;
+	private final Map<String, List<Float>> featureMap;
+	private final Table<Float>             weightTable;
 
 	/**
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		numberOfFeatures = 0;
-
-		labelIndices = new HashMap<String, Integer>();
-		featureMap   = new HashMap<String, List<Double>>();
-		weightTable  = new SymmetricTable<Double>();
+		featureMap  = new HashMap<String, List<Float>>();
+		weightTable = new Table<Float>();
 	}
 
-	public FeatureModel(Map<String, List<Double>> map, SymmetricTable<Double> weights) {
-		numberOfFeatures = weights.getDimension();
-
-		labelIndices = new HashMap<String, Integer>();
-		featureMap   = map;
-		weightTable  = weights;
-	}
-
-	public FeatureModel(File modelFile) throws ParseException {
-		this();
-		try {
-			readTable(FileUtils.readLines(modelFile, "UTF-8"));
-		}
-		catch (IOException e) {
-			LOGGER.error("Failed to read model rile at {}", modelFile.getAbsolutePath(), e);
-		}
+	public FeatureModel(Map<String, List<Float>> map, Table<Float> weights) {
+		featureMap  = map;
+		weightTable = weights;
 	}
 
 	public Set<String> getSymbols() {
 		return featureMap.keySet();
 	}
 
-	public void addSegment(String symbol, List<Double> features) {
+	public void addSegment(String symbol, List<Float> features) {
 		featureMap.put(symbol, features);
 	}
 
 	public void addSegment(String symbol) {
-		addSegment(symbol, new ArrayList<Double>());
+		addSegment(symbol, new ArrayList<Float>());
 	}
 
 	@Override
@@ -125,9 +107,9 @@ public class FeatureModel {
 		float score = 0;
 		int n = l.dimension();
 		for (int i = 0; i < n; i++) {
-			double a = l.getFeatureValue(i);
+			float a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
-				double b = r.getFeatureValue(j);
+				float b = r.getFeatureValue(j);
 				score += Math.abs(a - b) * weightTable.get(i, j);
 			}
 		}
@@ -147,7 +129,7 @@ public class FeatureModel {
 
 	@Deprecated
 	public float computeScore(String l, String r) {
-		Sequence left  = new Sequence(l);
+		Sequence left = new Sequence(l);
 		Sequence right = new Sequence(r);
 		return computeScore(left, right);
 	}
@@ -156,142 +138,59 @@ public class FeatureModel {
 		return featureMap.containsKey(key);
 	}
 
-	@Deprecated
 	public Segment gap() {
 		return get("_");
 	}
 
 	public Segment get(String string) {
-		return new Segment(string, featureMap.get(string));
+		return new Segment(string, getValue(string));
 	}
 
-	public List<Double> getFeatureArray(String symbol) {
-		return featureMap.get(symbol);
+	public List<Float> getFeatureArray(String symbol) {
+		return get(symbol).getFeatures();
 	}
 
-	public Map<String, List<Double>> getFeatureMap() {
+	public Map<String, List<Float>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
-	public String getBestSymbol(List<Double> features) {
-		String bestSymbol = null;
-		List<Double> bestFeatures = null;
+	public List<Float> getValue(String key) {
+		List<Float> value = new ArrayList<Float>();
 
-		if (features.size() == numberOfFeatures) {
-			// Find the base symbol with the smallest Euclidean distance
-			double minDistance = Double.MAX_VALUE;
-			for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
-
-				String key = entry.getKey();
-				List<Double> list = entry.getValue();
-				// Only check base characters
-				if (list.get(0) != -1) {
-					double sumOfDeltas = 0.0;
-					for (int i = 0; i < list.size(); i++) {
-						double delta = features.get(i) - list.get(i);
-						sumOfDeltas += Math.pow(delta, 2);
-					}
-					double distance = Math.sqrt(sumOfDeltas);
-					if (distance <= minDistance) {
-						bestSymbol = key;
-						minDistance = distance;
-						bestFeatures = list;
-					}
-				}
-			}
-
-			// Figure out which minimum set of diacritics
-			Map<Integer, Double> deltas = new HashMap<Integer, Double>();
-			for (int i = 0; i < features.size(); i++) {
-				double delta = features.get(i) - bestFeatures.get(i);
-				if (delta != 0) {
-					deltas.put(i, delta);
-				}
-			}
-
-			Map<String, List<Double>> candidates = new HashMap<String, List<Double>>();
-
-			for (Map.Entry<Integer, Double> deltaEntry : deltas.entrySet()) {
-				Integer index = deltaEntry.getKey();
-				Double value = deltaEntry.getValue();
-				for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
-					String key = entry.getKey();
-					List<Double> list = entry.getValue();
-					// Only check diacritics
-					if (list.get(0) == Double.MIN_VALUE &&
-					    list.get(index).equals(value)) {
-						candidates.put(key, list);
-					}
-				}
-			}
-
-			for (Map.Entry<String, List<Double>> entry : candidates.entrySet()) {
-				String symbol = entry.getKey();
-				List<Double> list = entry.getValue();
-
-				List<Double> test = new ArrayList<Double>(features);
-
-				for (int i = 1; i < list.size(); i++) {
-					Double value = list.get(i);
-					if (value != Double.MIN_VALUE) {
-						test.set(i, value);
-					}
-				}
-
-				if (test.equals(features)) {
-					bestSymbol += symbol;
-					break;
-				}
-			}
+		if (featureMap.containsKey(key)) {
+			value = featureMap.get(key);
 		}
-		return bestSymbol;
+		return value;
 	}
 
-	public SymmetricTable<Double> getWeights() {
+	public Table<Float> getWeights() {
 		return weightTable;
 	}
 
-	public void put(String key, List<Double> values) {
+	public void put(String key, List<Float> values) {
 		featureMap.put(key, values);
 	}
 
-	private void readTable(List<String> lines) throws ParseException {
-		// Identify the labels
-		if (!lines.isEmpty() && lines.get(0).startsWith("\t")) {
-			String[] labels = lines.remove(0).trim().split("\\t");
-			numberOfFeatures = labels.length;
-			for (int i = 0; i < numberOfFeatures; i++) {
-				labelIndices.put(labels[i], i);
-			}
-		}
+	private Map<String, List<Float>> readTable(List<String> lines) {
+		Map<String, List<Float>> listMap = new HashMap<String, List<Float>>();
 
 		for (String line : lines) {
-
-			String[] row = line.split("\\t", -1);
+			String[] row = line.split("\t");
 			String keys = row[0];
 
 			row = ArrayUtils.remove(row, 0);
-			if (row.length != numberOfFeatures) {
-				throw new ParseException(
-						"Improper row size! Expected " + numberOfFeatures +
-				        " features but found " + row.length + "\nSee line " + line
-				);
-			}
+			List<Float> features = new ArrayList<Float>();
 
-			List<Double> features = new ArrayList<Double>();
 			for (String cell : row) {
-				if (cell.isEmpty()) {
-					features.add(Double.MIN_VALUE);
-				} else {
-				double featureValue = new Double(cell);
+				float featureValue = new Float(cell);
 				features.add(featureValue);
-				}
 			}
 
 			for (String key : keys.split(" ")) {
-				featureMap.put(key, features);
+				listMap.put(key, features);
 			}
 		}
+		return listMap;
 	}
 
 	/**
@@ -328,7 +227,7 @@ public class FeatureModel {
 		for (int j = l; j > i; j--) {               // Loop over the rest to put the diacritics.
 			String slice = w.substring(i, j);
 			if (containsKey(slice)) {
-				List<Double> featureArray = getFeatureArray(slice);
+				List<Float> featureArray = getFeatureArray(slice);
 				segment = segment.appendDiacritic(slice, featureArray);
 				i = j - 1;
 			}

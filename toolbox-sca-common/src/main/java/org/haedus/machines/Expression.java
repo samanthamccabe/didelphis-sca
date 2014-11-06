@@ -56,7 +56,6 @@ public class Expression {
 
 	private Expression(Segment terminal, boolean repeatable, boolean optional) {
 		subexpressions = new LinkedList<Expression>();
-//		rightSibling = sibling;
 
 		segment = terminal;
 

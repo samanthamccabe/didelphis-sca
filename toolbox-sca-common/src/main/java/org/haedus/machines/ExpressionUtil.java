@@ -36,7 +36,7 @@ public class ExpressionUtil {
 		list.add(root);
 		addExpressinsToList(list, root);
 
-		for (int i = 0; i < list.size(); i ++) {
+		for (int i = 0; i < list.size(); i++) {
 			Expression expression = list.get(i);
 			idMap.put(expression, i);
 			sb.append(getGraphNode(i, expression));
@@ -84,10 +84,7 @@ public class ExpressionUtil {
 			sb.append(ex.getSymbol());
 		}
 
-
-		sb.append("\"");
-
-		sb.append("\n\t]");
+		sb.append("\"\n\t]");
 		return sb.toString();
 	}
 

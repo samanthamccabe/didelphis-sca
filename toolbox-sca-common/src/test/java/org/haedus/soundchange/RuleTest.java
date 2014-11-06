@@ -20,6 +20,7 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
+import org.haedus.soundchange.command.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -99,210 +100,210 @@ public class RuleTest {
 		testRule(rule, "kp", "kp");
 	}
 
-    @Test
-    public void testDeletion01() throws ParseException {
-        Rule rule = new Rule("∅ - > 0");
-        testRule(rule, "∅-s-irentu-pʰen", "sirentupʰen");
-    }
+	@Test
+	public void testDeletion01() throws ParseException {
+		Rule rule = new Rule("∅ - > 0");
+		testRule(rule, "∅-s-irentu-pʰen", "sirentupʰen");
+	}
 
-    @Test
-    public void testDeletion02() throws ParseException {
-        Rule rule = new Rule("a > 0");
-        testRule(rule, "aaaabbba", "bbb");
-    }
+	@Test
+	public void testDeletion02() throws ParseException {
+		Rule rule = new Rule("a > 0");
+		testRule(rule, "aaaabbba", "bbb");
+	}
 
-    @Test
-    public void testDeletion03() throws ParseException {
-        Rule rule = new Rule("a b > 0");
-        testRule(rule, "aaaaccbbccbba", "cccc");
-    }
+	@Test
+	public void testDeletion03() throws ParseException {
+		Rule rule = new Rule("a b > 0");
+		testRule(rule, "aaaaccbbccbba", "cccc");
+	}
 
-    @Test
-    public void testRule01() throws ParseException {
-        Rule rule = new Rule("a > b");
+	@Test
+	public void testRule01() throws ParseException {
+		Rule rule = new Rule("a > b");
 
-        testRule(rule, "aaaaaaccca", "bbbbbbcccb");
-    }
+		testRule(rule, "aaaaaaccca", "bbbbbbcccb");
+	}
 
-    @Test
-    public void testRule02() throws ParseException {
-        Rule rule = new Rule("a e > æ ɛ");
+	@Test
+	public void testRule02() throws ParseException {
+		Rule rule = new Rule("a e > æ ɛ");
 
-	    testRule(rule, "ate", "ætɛ");
-        testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
-    }
+		testRule(rule, "ate", "ætɛ");
+		testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
+	}
 
-    @Test
-    public void testRule03() throws ParseException {
-        Rule rule = new Rule("a b c d e f g > A B C D E F G");
+	@Test
+	public void testRule03() throws ParseException {
+		Rule rule = new Rule("a b c d e f g > A B C D E F G");
 
-        testRule(rule, "abcdefghijk", "ABCDEFGhijk");
-    }
+		testRule(rule, "abcdefghijk", "ABCDEFGhijk");
+	}
 
-    @Test
-    public void testConditional01() throws ParseException {
-        Rule rule = new Rule("a > o / g_");
+	@Test
+	public void testConditional01() throws ParseException {
+		Rule rule = new Rule("a > o / g_");
 
-	    testRule(rule, "ga", "go");
-        testRule(rule, "adamagara", "adamagora");
-    }
+		testRule(rule, "ga", "go");
+		testRule(rule, "adamagara", "adamagora");
+	}
 
-    @Test
-    public void testConditional02() throws ParseException {
-        Rule rule = new Rule("a > e / _c");
-        testRule(rule, "abacaba", "abecaba");
-        testRule(rule, "ababaca", "ababeca");
-        testRule(rule, "acababa", "ecababa");
-        testRule(rule, "acabaca", "ecabeca");
-    }
+	@Test
+	public void testConditional02() throws ParseException {
+		Rule rule = new Rule("a > e / _c");
+		testRule(rule, "abacaba", "abecaba");
+		testRule(rule, "ababaca", "ababeca");
+		testRule(rule, "acababa", "ecababa");
+		testRule(rule, "acabaca", "ecabeca");
+	}
 
-    @Test
-    public void testConditional03() throws ParseException {
-        Rule rule = new Rule("a > e / _c+#");
-        testRule(rule, "abac", "abec");
-        testRule(rule, "abacc", "abecc");
-        testRule(rule, "abaccc", "abeccc");
-        testRule(rule, "abacccc", "abecccc");
-        testRule(rule, "abaccccc", "abeccccc");
-    }
+	@Test
+	public void testConditional03() throws ParseException {
+		Rule rule = new Rule("a > e / _c+#");
+		testRule(rule, "abac", "abec");
+		testRule(rule, "abacc", "abecc");
+		testRule(rule, "abaccc", "abeccc");
+		testRule(rule, "abacccc", "abecccc");
+		testRule(rule, "abaccccc", "abeccccc");
+	}
 
-    @Test
-    public void testUnconditional04() throws ParseException {
-        Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
-        testRule(rule, "keʔe", "kē");
-        testRule(rule, "kaʔa", "kā");
-        testRule(rule, "keʔa", "kā");
-        testRule(rule, "kaʔe", "kē");
-    }
+	@Test
+	public void testUnconditional04() throws ParseException {
+		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
+		testRule(rule, "keʔe", "kē");
+		testRule(rule, "kaʔa", "kā");
+		testRule(rule, "keʔa", "kā");
+		testRule(rule, "kaʔe", "kē");
+	}
 
-    @Test
-    public void testConditional05() throws ParseException {
-        Rule rule = new Rule("rˌh lˌh > ər əl / _a");
-        testRule(rule, "krˌha", "kəra");
-        testRule(rule, "klˌha", "kəla");
-	    testRule(rule, "klˌhe", "klˌhe");
-    }
+	@Test
+	public void testConditional05() throws ParseException {
+		Rule rule = new Rule("rˌh lˌh > ər əl / _a");
+		testRule(rule, "krˌha", "kəra");
+		testRule(rule, "klˌha", "kəla");
+		testRule(rule, "klˌhe", "klˌhe");
+	}
 
-    @Test
-    public void testConditional06() throws ParseException {
-        Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
+	@Test
+	public void testConditional06() throws ParseException {
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
 
-        testRule(rule, "pʰāḱʰus", "bāḱʰus");
-        testRule(rule, "pʰentʰros", "bentʰros");
-        testRule(rule, "pʰlaḱʰmēn", "blaḱʰmēn");
-        testRule(rule, "pʰoutʰéyet", "boutʰéyet");
+		testRule(rule, "pʰāḱʰus", "bāḱʰus");
+		testRule(rule, "pʰentʰros", "bentʰros");
+		testRule(rule, "pʰlaḱʰmēn", "blaḱʰmēn");
+		testRule(rule, "pʰoutʰéyet", "boutʰéyet");
 
-        testRule(rule, "pʰɛḱʰus", "pʰɛḱʰus");
-    }
+		testRule(rule, "pʰɛḱʰus", "pʰɛḱʰus");
+	}
 
-    @Test
-    public void testConditional07() throws ParseException {
-        Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
+	@Test
+	public void testConditional07() throws ParseException {
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
 
-        testRule(rule, "pʰaḱʰus", "baḱʰus");
-        testRule(rule, "pʰāḱʰus", "pʰāḱʰus");
-    }
+		testRule(rule, "pʰaḱʰus", "baḱʰus");
+		testRule(rule, "pʰāḱʰus", "pʰāḱʰus");
+	}
 
-    @Test
-    public void testConditional08() throws ParseException {
-        Rule rule = new Rule("d > t / _#");
+	@Test
+	public void testConditional08() throws ParseException {
+		Rule rule = new Rule("d > t / _#");
 
-        testRule(rule, "abad", "abat");
-        testRule(rule, "abada", "abada");
-    }
+		testRule(rule, "abad", "abat");
+		testRule(rule, "abada", "abada");
+	}
 
-    @Test
-    public void testLoop01() throws ParseException {
-        Rule rule = new Rule("q > qn");
+	@Test
+	public void testLoop01() throws ParseException {
+		Rule rule = new Rule("q > qn");
 
-        testRule(rule, "aqa", "aqna");
-    }
+		testRule(rule, "aqa", "aqna");
+	}
 
-    @Test
-    public void testUnconditional() throws ParseException {
-        Sequence word = new Sequence("h₁óh₁es-");
-        Sequence expected = new Sequence("ʔóʔes-");
+	@Test
+	public void testUnconditional() throws ParseException {
+		Sequence word = new Sequence("h₁óh₁es-");
+		Sequence expected = new Sequence("ʔóʔes-");
 
-        Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ");
+		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ");
 
-        assertEquals(expected, rule.apply(word));
-    }
+		assertEquals(expected, rule.apply(word));
+	}
 
-    @Test
-    public void testUnconditional02() throws ParseException {
-        Sequence expected = new Sequence("telə");
+	@Test
+	public void testUnconditional02() throws ParseException {
+		Sequence expected = new Sequence("telə");
 
-        Rule rule = new Rule("eʔé > ê");
+		Rule rule = new Rule("eʔé > ê");
 
-        assertEquals(expected, rule.apply(expected));
-    }
+		assertEquals(expected, rule.apply(expected));
+	}
 
-    @Test
-    public void testDebug01() throws ParseException {
-        Sequence original = new Sequence("mlan");
-        Sequence expected = new Sequence("blan");
+	@Test
+	public void testDebug01() throws ParseException {
+		Sequence original = new Sequence("mlan");
+		Sequence expected = new Sequence("blan");
 
-        VariableStore vs = new VariableStore();
-        vs.put("V", new String[]{"a", "e", "i", "o", "u"}, true);
+		VariableStore vs = new VariableStore();
+		vs.put("V", new String[]{"a", "e", "i", "o", "u"}, true);
 
-        Rule rule = new Rule("ml > bl / #_V", vs, true);
+		Rule rule = new Rule("ml > bl / #_V", vs, true);
 
-        assertEquals(expected, rule.apply(original));
-    }
+		assertEquals(expected, rule.apply(original));
+	}
 
-    @Test
-    public void testUnconditional03() throws ParseException {
-        Rule rule = new Rule("ox > l");
+	@Test
+	public void testUnconditional03() throws ParseException {
+		Rule rule = new Rule("ox > l");
 
-        testRule(rule, "oxoxoxox", "llll");
-        testRule(rule, "moxmoxmoxmoxmox", "mlmlmlmlml");
-        testRule(rule, "mmoxmmoxmmoxmmoxmmox", "mmlmmlmmlmmlmml");
-    }
+		testRule(rule, "oxoxoxox", "llll");
+		testRule(rule, "moxmoxmoxmoxmox", "mlmlmlmlml");
+		testRule(rule, "mmoxmmoxmmoxmmoxmmox", "mmlmmlmmlmmlmml");
+	}
 
-    // "trh₂-we"
-    @Test
-    public void testDebug02() throws ParseException {
-        Sequence original = new Sequence("trh₂we");
-        Sequence expected = new Sequence("tə̄rwe");
+	// "trh₂-we"
+	@Test
+	public void testDebug02() throws ParseException {
+		Sequence original = new Sequence("trh₂we");
+		Sequence expected = new Sequence("tə̄rwe");
 
-	    VariableStore vs = new VariableStore();
-	    vs.add("X  = h₁  h₂ h₃ h₄", true);
-	    vs.add("A  = r   l  m  n",  true);
-	    vs.add("W  = y   w",        true);
-	    vs.add("Q  = kʷʰ kʷ gʷ",    true);
-	    vs.add("K  = kʰ  k  g",     true);
-	    vs.add("KY = cʰ  c  ɟ",     true);
-	    vs.add("T  = pʰ  p  b",     true);
-	    vs.add("P  = tʰ  t  d",     true);
+		VariableStore vs = new VariableStore();
+		vs.add("X  = h₁  h₂ h₃ h₄", true);
+		vs.add("A  = r   l  m  n",  true);
+		vs.add("W  = y   w",        true);
+		vs.add("Q  = kʷʰ kʷ gʷ",    true);
+		vs.add("K  = kʰ  k  g",     true);
+		vs.add("KY = cʰ  c  ɟ",     true);
+		vs.add("T  = pʰ  p  b",     true);
+		vs.add("P  = tʰ  t  d",     true);
 
-	    vs.add("[PLOSIVE] = P T K KY Q",   true);
-	    vs.add("[OBSTRUENT] = [PLOSIVE] s", true);
-	    vs.add("C = [OBSTRUENT] A W",       true);
+		vs.add("[PLOSIVE] = P T K KY Q",   true);
+		vs.add("[OBSTRUENT] = [PLOSIVE] s", true);
+		vs.add("C = [OBSTRUENT] A W",       true);
 
-        Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, true);
-        Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs, true);
-        Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", vs, true);
-        Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", vs, true);
+		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, true);
+		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", vs, true);
+		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", vs, true);
+		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", vs, true);
 
-        Sequence sequence = rule1.apply(original);
+		Sequence sequence = rule1.apply(original);
 
-        sequence = rule2.apply(sequence);
-        sequence = rule3.apply(sequence);
-        sequence = rule4.apply(sequence);
+		sequence = rule2.apply(sequence);
+		sequence = rule3.apply(sequence);
+		sequence = rule4.apply(sequence);
 
-        assertEquals(expected, sequence);
-    }
+		assertEquals(expected, sequence);
+	}
 
-    @Test
-    public void testDebug03() throws ParseException {
-        Sequence original = new Sequence("pʰabopa");
-        Sequence expected = new Sequence("papoba");
+	@Test
+	public void testDebug03() throws ParseException {
+		Sequence original = new Sequence("pʰabopa");
+		Sequence expected = new Sequence("papoba");
 
-        Rule rule = new Rule("pʰ p b > p b p");
+		Rule rule = new Rule("pʰ p b > p b p");
 
-        Sequence received = rule.apply(original);
-        assertEquals(expected, received);
-    }
+		Sequence received = rule.apply(original);
+		assertEquals(expected, received);
+	}
 
 	@Test
 	public void testCompound01() throws ParseException {
@@ -335,39 +336,39 @@ public class RuleTest {
 		testRule(rule, "aza",   "azb");
 	}
 
-    /*======================================================================+
-     | Exception Tests                                                      |
-     +======================================================================*/
-    @Test(expected = ParseException.class)
-    public void testRuleException01() throws ParseException {
-        new Rule(" > ");
-    }
+	/*======================================================================+
+	 | Exception Tests                                                      |
+	 +======================================================================*/
+	@Test(expected = ParseException.class)
+	public void testRuleException01() throws ParseException {
+		new Rule(" > ");
+	}
 
-    @Test(expected = ParseException.class)
-    public void testRuleException02() throws ParseException {
-        new Rule("a > b /");
-    }
+	@Test(expected = ParseException.class)
+	public void testRuleException02() throws ParseException {
+		new Rule("a > b /");
+	}
 
-    @Test(expected = ParseException.class)
-    public void testRuleException03() throws ParseException {
-        new Rule("a > / b");
-    }
+	@Test(expected = ParseException.class)
+	public void testRuleException03() throws ParseException {
+		new Rule("a > / b");
+	}
 
-    @Test(expected = ParseException.class)
-    public void testRuleException04() throws ParseException {
-        new Rule(" > a / b");
-    }
+	@Test(expected = ParseException.class)
+	public void testRuleException04() throws ParseException {
+		new Rule(" > a / b");
+	}
 
-    @Test(expected = ParseException.class)
-    public void testRuleException05() throws ParseException {
-        new Rule(" > / b");
-    }
+	@Test(expected = ParseException.class)
+	public void testRuleException05() throws ParseException {
+		new Rule(" > / b");
+	}
 
-    private void testRule(Rule rule, String seq, String exp) {
-        Sequence sequence = new Sequence(seq);
-        Sequence expected = new Sequence(exp);
-        Sequence received = rule.apply(sequence);
+	private void testRule(Rule rule, String seq, String exp) {
+		Sequence sequence = new Sequence(seq);
+		Sequence expected = new Sequence(exp);
+		Sequence received = rule.apply(sequence);
 
-        assertEquals(expected, received);
-    }
+		assertEquals(expected, received);
+	}
 }
