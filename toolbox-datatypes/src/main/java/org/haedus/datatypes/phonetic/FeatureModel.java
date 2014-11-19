@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,8 +88,59 @@ public class FeatureModel {
 			}
 		}
 
+		String bestDiacritic = "";
+		if (minimum > 0.0) {
+			bestDiacritic = getBestDiacritic(featureArray, bestFeatures);
+		}
 
-		return bestSymbol;
+		return Normalizer.normalize(bestSymbol+bestDiacritic, Normalizer.Form.NFC);
+	}
+
+	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
+		String bestDiacritic = "";
+		double minimumDifference = lastMinimum;
+		List<Double> bestCompiled = new ArrayList<Double>();
+
+		for (Map.Entry<String, List<Double>> entry : diacritics.entrySet()) {
+			List<Double> diacriticFeatures = entry.getValue();
+			List<Double> compiledFeatures = new ArrayList<Double>();
+			if (diacriticFeatures.size() == bestFeatures.size()) {
+				for (int i = 0; i < diacriticFeatures.size(); i++) {
+					Double left = diacriticFeatures.get(i);
+					Double right = bestFeatures.get(i);
+
+					if (left.isNaN()) {
+						compiledFeatures.add(right);
+					} else {
+						compiledFeatures.add(left);
+					}
+				}
+			} else {
+				LOGGER.error("Difference in array sizes: {} vs  {}", diacriticFeatures, bestFeatures);
+			}
+
+			if (!compiledFeatures.equals(bestFeatures)) {
+				double difference = getDifferenceValue(compiledFeatures, featureArray);
+				if (difference < minimumDifference) {
+					minimumDifference = difference;
+					bestDiacritic = entry.getKey();
+					bestCompiled = compiledFeatures;
+
+				} else if (difference == minimumDifference) {
+					// Modify this to use sets
+				}
+			}
+		}
+		if (minimumDifference > 0 && minimumDifference != lastMinimum) {
+			return bestDiacritic + getBestDiacritic(featureArray, bestCompiled, minimumDifference);
+		}
+		else {
+			return bestDiacritic;
+		}
+	}
+
+	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
+		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 
 	private List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
@@ -102,6 +154,7 @@ public class FeatureModel {
 				list.add(Math.abs(lValue - rValue));
 			}
 		} else {
+
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
 		}
 		return list;
@@ -109,8 +162,13 @@ public class FeatureModel {
 
 	private double getDifferenceValue(List<Double> left, List<Double> right) {
 		double sum = 0.0;
-		for (Double value : getDifferenceArray(left, right)) {
-			sum += value;
+		List<Double> differenceArray = getDifferenceArray(left, right);
+		if (differenceArray.isEmpty()) {
+			sum = Double.NaN;
+		} else {
+			for (Double value : differenceArray) {
+				sum += value;
+			}
 		}
 		return sum;
 	}
@@ -282,7 +340,7 @@ public class FeatureModel {
 				// Create mapping
 			if (hasDiacritics) {
 				Double diacriticFlag = features.remove(0);
-				if (diacriticFlag <  0.0) {
+				if (diacriticFlag <=  0.0) {
 					for (String key : keys.split(" ")) {
 						featureMap.put(key, features);
 					}
