@@ -81,14 +81,12 @@ public class FeatureModel {
 
 			double difference = getDifferenceValue(featureArray, features);
 			if (difference < minimum) {
-				bestSymbol = entry.getKey();
+				bestSymbol   = entry.getKey();
+				minimum      = difference;
 				bestFeatures = features;
-				minimum = difference;
-
 			}
 		}
 
-		List<Double> differenceArray = getDifferenceArray(featureArray, bestFeatures);
 
 		return bestSymbol;
 	}
@@ -99,11 +97,9 @@ public class FeatureModel {
 			for (int i = 0; i < left.size(); i++) {
 				Double l = left.get(i);
 				Double r = right.get(i);
-				if (!l.isNaN() || !r.isNaN()) {
-					list.add(Math.abs(l - r));
-				} else {
-					list.add(0.0); // if both are NaN, difference is 0
-				}
+				double lValue = l.isNaN() ? 0 : l;
+				double rValue = r.isNaN() ? 0 : r;
+				list.add(Math.abs(lValue - rValue));
 			}
 		} else {
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
@@ -113,17 +109,8 @@ public class FeatureModel {
 
 	private double getDifferenceValue(List<Double> left, List<Double> right) {
 		double sum = 0.0;
-		if (left.size() == right.size()) {
-			for (int i = 0; i < left.size(); i++) {
-				Double l = left.get(i);
-				Double r = right.get(i);
-				if (!l.isNaN() || !r.isNaN()) {
-					sum += Math.abs(l - r);
-				}
-			}
-		} else {
-			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
-			sum = Double.NaN;
+		for (Double value : getDifferenceArray(left, right)) {
+			sum += value;
 		}
 		return sum;
 	}

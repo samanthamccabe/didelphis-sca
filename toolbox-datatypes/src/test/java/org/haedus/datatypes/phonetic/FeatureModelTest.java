@@ -37,12 +37,16 @@ public class FeatureModelTest {
 
 	private static final List<Double> G_FEATURES  = new ArrayList<Double>();
 	private static final List<Double> GH_FEATURES = new ArrayList<Double>();
+	private static final List<Double> GJ_FEATURES = new ArrayList<Double>();
 	private static final double       NAN         = Double.NaN;
 
 	@BeforeClass
 	public static void init() {
+		//                                0     1    2    3    4    5    6    7    8    9   10    11   12   13   14   15   16   17
+		//                              son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt   frn  bck  atr  rad  air  glt  len
 		Collections.addAll(G_FEATURES,  0.0, -1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
 		Collections.addAll(GH_FEATURES, 0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
+		Collections.addAll(GJ_FEATURES, 0.0, -1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0,  1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
 	}
 
 	@Test
@@ -77,15 +81,10 @@ public class FeatureModelTest {
 
 	@Test
 	public void testGetStringFromFeatures03() throws Exception {
-		//		List<Double> expected = new ArrayList<Double>();
-		//		Collections.addAll(expected,
-		//				3d, 0d, 1d, 0d, 0d, 0d, 0d, 0d, -1d, -1d, 1d, 2d, 1d, 0d, 0d, 2d, 0d);
 		Resource resource = new ClassPathResource("featuremodel");
 		FeatureModel model = new FeatureModel(resource.getFile());
 
-		String symbol = "gʼ";
-		//		List<Double> expected = model.compile(symbol).getFeatures();
-		//		String bestSymbol = model.getBestSymbol(expected);
-		//		assertEquals(symbol, bestSymbol);
+		String bestSymbol = model.getBestSymbol(GJ_FEATURES);
+		assertEquals("gʲ", bestSymbol);
 	}
 }
