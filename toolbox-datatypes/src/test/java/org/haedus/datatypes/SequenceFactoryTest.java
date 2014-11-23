@@ -24,7 +24,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class SegmenterTest
+public class SequenceFactoryTest
 {
 	@Test
 	public void testEmpty() {

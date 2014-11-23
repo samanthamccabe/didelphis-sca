@@ -39,8 +39,8 @@ public class RuleTest {
 	@Test
 	public void testMetathesis01() throws ParseException {
 		VariableStore store = new VariableStore();
-		store.add("C = p t k", SegmentationMode.DEFAULT);
-		store.add("N = m n",   SegmentationMode.DEFAULT);
+		store.add("C = p t k");
+		store.add("N = m n");
 
 		Rule rule = new Rule("CN > $2$1", new FeatureModel(), store, SegmentationMode.DEFAULT);
 
@@ -60,9 +60,9 @@ public class RuleTest {
 	@Test
 	public void testMetathesis02() throws ParseException {
 		VariableStore store = new VariableStore();
-		store.add("C = p t k", SegmentationMode.DEFAULT);
-		store.add("N = m n",   SegmentationMode.DEFAULT);
-		store.add("V = a i u", SegmentationMode.DEFAULT);
+		store.add("C = p t k");
+		store.add("N = m n");
+		store.add("V = a i u");
 
 		Rule rule = new Rule("CVN > $3V$1", new FeatureModel(), store, SegmentationMode.DEFAULT);
 
@@ -82,9 +82,9 @@ public class RuleTest {
 	@Test
 	public void testMetathesis03() throws ParseException {
 		VariableStore store = new VariableStore();
-		store.add("C = p t k", SegmentationMode.DEFAULT);
-		store.add("G = b d g", SegmentationMode.DEFAULT);
-		store.add("N = m n",   SegmentationMode.DEFAULT);
+		store.add("C = p t k");
+		store.add("G = b d g");
+		store.add("N = m n"  );
 
 		Rule rule = new Rule("CN > $2$G1", new FeatureModel(), store, SegmentationMode.DEFAULT);
 
@@ -245,7 +245,7 @@ public class RuleTest {
 		Sequence expected = new Sequence("blan");
 
 		VariableStore vs = new VariableStore();
-		vs.put("V", new String[]{"a", "e", "i", "o", "u"}, SegmentationMode.DEFAULT);
+		vs.add("V = a e i o u");
 
 		Rule rule = new Rule("ml > bl / #_V", vs, SegmentationMode.DEFAULT);
 
@@ -268,18 +268,18 @@ public class RuleTest {
 		Sequence expected = new Sequence("tə̄rwe");
 
 		VariableStore vs = new VariableStore();
-		vs.add("X  = h₁  h₂ h₃ h₄", SegmentationMode.DEFAULT);
-		vs.add("A  = r   l  m  n",  SegmentationMode.DEFAULT);
-		vs.add("W  = y   w",        SegmentationMode.DEFAULT);
-		vs.add("Q  = kʷʰ kʷ gʷ",    SegmentationMode.DEFAULT);
-		vs.add("K  = kʰ  k  g",     SegmentationMode.DEFAULT);
-		vs.add("KY = cʰ  c  ɟ",     SegmentationMode.DEFAULT);
-		vs.add("T  = pʰ  p  b",     SegmentationMode.DEFAULT);
-		vs.add("P  = tʰ  t  d",     SegmentationMode.DEFAULT);
+		vs.add("X  = h₁  h₂ h₃ h₄" );
+		vs.add("A  = r   l  m  n"  );
+		vs.add("W  = y   w"        );
+		vs.add("Q  = kʷʰ kʷ gʷ"    );
+		vs.add("K  = kʰ  k  g");
+		vs.add("KY = cʰ  c  ɟ");
+		vs.add("T  = pʰ  p  b");
+		vs.add("P  = tʰ  t  d");
 
-		vs.add("[PLOSIVE] = P T K KY Q",    SegmentationMode.DEFAULT);
-		vs.add("[OBSTRUENT] = [PLOSIVE] s", SegmentationMode.DEFAULT);
-		vs.add("C = [OBSTRUENT] A W",       SegmentationMode.DEFAULT);
+		vs.add("[PLOSIVE] = P T K KY Q"     );
+		vs.add("[OBSTRUENT] = [PLOSIVE] s"  );
+		vs.add("C = [OBSTRUENT] A W"        );
 
 		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, SegmentationMode.DEFAULT);
 		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}"             , vs, SegmentationMode.DEFAULT);
@@ -328,7 +328,7 @@ public class RuleTest {
 	@Test
 	public void testCompound03() throws ParseException {
 		VariableStore store = new VariableStore();
-		store.add("C = x y z", SegmentationMode.DEFAULT);
+		store.add("C = x y z");
 
 		Rule rule = new Rule("a > b / C_ NOT x_", new FeatureModel(), store, SegmentationMode.DEFAULT);
 

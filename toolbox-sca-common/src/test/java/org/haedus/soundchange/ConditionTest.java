@@ -523,7 +523,7 @@ public class ConditionTest {
 		};
 		VariableStore vs = new VariableStore();
 
-		vs.put("C", toList(terminals), SegmentationMode.DEFAULT);
+		vs.put("C", toList(terminals));
 		Condition condition = new Condition("_C+#",vs);
 
 		testTrue(condition,  "abaptk",  2);
@@ -547,7 +547,7 @@ public class ConditionTest {
 		};
 		VariableStore vs = new VariableStore();
 
-		vs.put("C", toList(terminals), SegmentationMode.DEFAULT);
+		vs.put("C", toList(terminals));
 		Condition condition = new Condition("_C+#", vs);
 		
 		testTrue(condition,  "abatʰkʰ", 2);

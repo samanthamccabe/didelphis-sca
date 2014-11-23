@@ -628,7 +628,7 @@ public class SoundChangeApplierTest {
 			list.add(Segmenter.getSequence(s2,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					sca.usesSegmentation()));
+					sca.getSegmentationMode()));
 		}
 		return list;
 	}
