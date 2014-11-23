@@ -16,6 +16,7 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
@@ -522,7 +523,7 @@ public class ConditionTest {
 		};
 		VariableStore vs = new VariableStore();
 
-		vs.put("C", toList(terminals), true);
+		vs.put("C", toList(terminals), SegmentationMode.DEFAULT);
 		Condition condition = new Condition("_C+#",vs);
 
 		testTrue(condition,  "abaptk",  2);
@@ -546,7 +547,7 @@ public class ConditionTest {
 		};
 		VariableStore vs = new VariableStore();
 
-		vs.put("C", toList(terminals), true);
+		vs.put("C", toList(terminals), SegmentationMode.DEFAULT);
 		Condition condition = new Condition("_C+#", vs);
 		
 		testTrue(condition,  "abatʰkʰ", 2);

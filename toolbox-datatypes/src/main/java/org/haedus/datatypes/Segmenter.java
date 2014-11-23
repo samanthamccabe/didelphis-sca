@@ -21,9 +21,12 @@
 
 package org.haedus.datatypes;
 
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +41,8 @@ import org.haedus.datatypes.phonetic.VariableStore;
  * @author Samantha Fiona Morrigan McCabe
  */
 public class Segmenter {
+
+	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
@@ -71,11 +76,14 @@ public class Segmenter {
 		return segment(word, new ArrayList<String>());
 	}
 
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, boolean useSegmentation) {
-		if (useSegmentation) {
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
+		if (mode == SegmentationMode.DEFAULT) {
 			return getSequence(word, model, variables);
-		} else {
+		} else if (mode == SegmentationMode.NAIVE) {
 			return getSequenceNaively(word, model, variables);
+		} else {
+			LOGGER.error("Unsupported segmentation mode {}", mode);
+			return null;
 		}
 	}
 

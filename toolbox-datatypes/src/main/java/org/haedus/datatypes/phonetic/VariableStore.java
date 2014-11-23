@@ -16,6 +16,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.exceptions.VariableDefinitionFormatException;
 import org.slf4j.Logger;
@@ -64,37 +65,38 @@ public class VariableStore {
 		return variables.get(key);
 	}
 
-	public void put(String key, Iterable<String> values, boolean useSegmentation) {
+	public void put(String key, Iterable<String> values, SegmentationMode segmentationMode) {
 		List<Sequence> expanded = new ArrayList<Sequence>();
 		for (String value : values) {
-			expanded.addAll(expandVariables(value, useSegmentation));
+			expanded.addAll(expandVariables(value, segmentationMode));
 		}
 		variables.put(key, expanded);
 	}
 
 	// testing only
 	public void put(String key, String... values) {
-		put(key, values, true);
+		put(key, values, SegmentationMode.DEFAULT);
 	}
 
-	public void put(String key, String[] values, boolean useSegmentation) {
+	public void put(String key, String[] values, SegmentationMode segmentationMode) {
 		Collection<String> list = new ArrayList<String>();
 		Collections.addAll(list, values);
-		put(key, list, useSegmentation);
+		put(key, list, segmentationMode);
 	}
 
-	public List<Sequence> expandVariables(String element, boolean useSegmentation) {
+	public List<Sequence> expandVariables(String element, SegmentationMode segmentationMode) {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-		if (useSegmentation) {
-			Sequence sequence = Segmenter.getSequence(element, model, this);
-			list.add(sequence);
-		} else {
-			// TODO: except, this contains model too...
-			Sequence sequence = Segmenter.getSequenceNaively(element, model, this);
-			list.add(sequence);
-		}
+//		if (segmentationMode) {
+//			Sequence sequence = Segmenter.getSequence(element, model, this);
+//			list.add(sequence);
+//		} else {
+//			// TODO: except, this contains model too...
+//			Sequence sequence = Segmenter.getSequenceNaively(element, model, this);
+//			list.add(sequence);
+//		}
+		list.add(Segmenter.getSequence(element, model, this, segmentationMode));
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -105,11 +107,13 @@ public class VariableStore {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
 						Sequence best;
-						if (useSegmentation) {
-							best = Segmenter.getSequence(symbol, model, this);
-						} else {
-							best = Segmenter.getSequenceNaively(symbol, model, this);
-						}
+
+//						if (segmentationMode) {
+//							best = Segmenter.getSequence(symbol, model, this);
+//						} else {
+//							best = Segmenter.getSequenceNaively(symbol, model, this);
+//						}
+						best = Segmenter.getSequence(element, model, this, segmentationMode);
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
@@ -175,14 +179,14 @@ public class VariableStore {
 		return sb.toString().trim();
 	}
 
-	public void add(String command, boolean useSegmentation) throws VariableDefinitionFormatException {
+	public void add(String command, SegmentationMode segmentationMode) throws VariableDefinitionFormatException {
 		String[] parts = command.trim().split("\\s*=\\s*");
 
 		if (parts.length == 2) {
 			String   key      = parts[0];
 			String[] elements = parts[1].split("\\s+");
 
-			put(key, elements, useSegmentation);
+			put(key, elements, segmentationMode);
 		} else {
 			throw new VariableDefinitionFormatException(command);
 		}

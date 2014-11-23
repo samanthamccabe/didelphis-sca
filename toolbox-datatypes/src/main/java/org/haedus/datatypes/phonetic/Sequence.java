@@ -32,11 +32,11 @@ import java.util.List;
 public class Sequence implements Iterable<Segment> {
 
 	private final List<Segment> sequence;
-	private final FeatureModel  features;
+	private final FeatureModel  featureModel;
 
 	public Sequence() {
 		sequence = new LinkedList<Segment>();
-		features = new FeatureModel();
+		featureModel = new FeatureModel();
 	}
 
 	public Sequence(Segment g) {
@@ -46,7 +46,12 @@ public class Sequence implements Iterable<Segment> {
 
 	public Sequence(Sequence q) {
 		sequence = new ArrayList<Segment>(q.getSegments());
-		features = q.getFeatures();
+		featureModel = q.getFeatureModel();
+	}
+
+	public Sequence(FeatureModel model) {
+		sequence = new LinkedList<Segment>();
+		featureModel = model;
 	}
 
 	@Deprecated
@@ -57,7 +62,7 @@ public class Sequence implements Iterable<Segment> {
 	@Deprecated
 	public Sequence(String word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
-		features = featureTable;
+		featureModel = featureTable;
 		// Split and traverse
 		for (String s : Segmenter.segment(word)) {
 			sequence.add(new Segment(s));
@@ -66,16 +71,16 @@ public class Sequence implements Iterable<Segment> {
 
 	public Sequence(List<String> word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
-		features = featureTable;
+		featureModel = featureTable;
 
 		for (String element : word) {
-			sequence.add(new Segment(element, features.getValue(element)));
+			sequence.add(new Segment(element, featureModel.getValue(element)));
 		}
 	}
 
 	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>(segments);
-		features = featureTable;
+		featureModel = featureTable;
 	}
 
 	public void add(Segment s) {
@@ -141,7 +146,7 @@ public class Sequence implements Iterable<Segment> {
 
 		int index = (k <= size()) ? k : size();
 
-		return new Sequence(sequence.subList(i, index), features);
+		return new Sequence(sequence.subList(i, index), featureModel);
 	}
 
 	public int indexOf(Segment s) {
@@ -250,7 +255,7 @@ public class Sequence implements Iterable<Segment> {
 			return false;
 		Sequence object = (Sequence) obj;
 		boolean sequenceEquals = sequence.equals(object.sequence);
-		boolean featuresEquals = features.equals(object.features);
+		boolean featuresEquals = featureModel.equals(object.featureModel);
 		return sequenceEquals &&
 		       featuresEquals;
 	}
@@ -287,7 +292,7 @@ public class Sequence implements Iterable<Segment> {
 		return (indexOf(sequence) == 0);
 	}
 
-	public FeatureModel getFeatures() {
-		return features;
+	public FeatureModel getFeatureModel() {
+		return featureModel;
 	}
 }
