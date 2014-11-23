@@ -79,9 +79,7 @@ public class Segment {
 		if (getClass() != obj.getClass()) return false;
 
 		Segment object = (Segment) obj;
-
-		return symbol.equals(object.symbol) &&
-			   features.equals(object.features);
+		return symbol.equals(object.symbol) && features.equals(object.features);
 	}
 
     public int hashCode() {

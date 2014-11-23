@@ -33,6 +33,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +45,8 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private final List<String>  featureNames;
-	private final List<String>  featureAliases;
+	private final Map<String, Integer>  featureNames;
+	private final Map<String, Integer>  featureAliases;
 	private final Table<Double> weightTable;
 
 	private final Map<String, List<Double>> featureMap;
@@ -55,11 +56,11 @@ public class FeatureModel {
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		featureNames = new ArrayList<String>();
-		featureAliases = new ArrayList<String>();
-		weightTable = new Table<Double>();
-		featureMap = new HashMap<String, List<Double>>();
-		diacritics = new HashMap<String, List<Double>>();
+		featureNames   = new HashMap<String, Integer>();
+		featureAliases = new HashMap<String, Integer>();
+		weightTable    = new Table<Double>();
+		featureMap     = new LinkedHashMap<String, List<Double>>();
+		diacritics     = new LinkedHashMap<String, List<Double>>();
 	}
 
 	public FeatureModel(File file) {
@@ -294,25 +295,31 @@ public class FeatureModel {
 		boolean hasDiacritics = false;
 
 		if (lines.get(0).startsWith("name")) {
-			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+			String   line = lines.remove(0);
+			String[] row  = line.split("\t", -1);
+
 			row = ArrayUtils.remove(row, 0);
 			if (row[0].equals("diacritic")) {
 				hasDiacritics = true;
 				row = ArrayUtils.remove(row, 0);
 			}
-			Collections.addAll(featureNames, row);
+			for (int i = 0; i < row.length; i++) {
+				featureNames.put(row[i], i);
+			}
 		}
 
 		if (lines.get(0).startsWith("alias")) {
-			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+			String   line = lines.remove(0);
+			String[] row  = line.split("\t", -1);
+
 			row = ArrayUtils.remove(row, 0);
 			if (hasDiacritics) {
 				// Remove the placeholder for "diacritics"
 				row = ArrayUtils.remove(row, 0);
 			}
-			Collections.addAll(featureAliases, row);
+			for (int i = 0; i < row.length; i++) {
+				featureNames.put(row[i], i);
+			}
 		}
 
 		for (String line : lines) {

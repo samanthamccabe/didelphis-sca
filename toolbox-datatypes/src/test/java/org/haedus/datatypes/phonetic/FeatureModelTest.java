@@ -107,6 +107,6 @@ public class FeatureModelTest {
 		FeatureModel model = new FeatureModel(resource.getFile());
 
 		String bestSymbol = model.getBestSymbol(KKWH_FEATURES);
-		assertEquals("kʷʰː", bestSymbol);
+		assertEquals("kːʰʷ", bestSymbol);
 	}
 }
