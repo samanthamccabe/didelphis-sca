@@ -16,6 +16,7 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -76,8 +77,8 @@ public class SoundChangeApplier {
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
-	private boolean        useSegmentation = true;
-	private NormalizerMode normalizerMode  = NormalizerMode.NFC;
+	private SegmentationMode segmentationMode = SegmentationMode.DEFAULT;
+	private NormalizerMode   normalizerMode   = NormalizerMode.NFC;
 
 	public SoundChangeApplier() {
 		model = new FeatureModel();
@@ -144,8 +145,8 @@ public class SoundChangeApplier {
 		return normalizerMode;
 	}
 
-	public boolean usesSegmentation() {
-		return useSegmentation;
+	public SegmentationMode usesSegmentation() {
+		return segmentationMode;
 	}
 
 	public List<List<Sequence>> removeLexicon(String handle) {
@@ -164,7 +165,7 @@ public class SoundChangeApplier {
 			List<Sequence> sequences = new ArrayList<Sequence>();
 			for (String item : line) {
 				String word = normalize(item);
-				Sequence sequence = Segmenter.getSequence(word, model, variables, useSegmentation);
+				Sequence sequence = Segmenter.getSequence(word, model, variables, segmentationMode);
 				sequences.add(sequence);
 			}
 			lexicon.add(sequences);
@@ -207,7 +208,7 @@ public class SoundChangeApplier {
 				} else if (command.contains("=")) {
 					assignVariable(command);
 				} else if (command.contains(">")) {
-					commands.add(new Rule(command, lexicons, model, variables, useSegmentation));
+					commands.add(new Rule(command, lexicons, model, variables, segmentationMode));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
 				} else if (command.startsWith(SEGMENTATION)) {
@@ -229,7 +230,7 @@ public class SoundChangeApplier {
 
 	private void assignVariable(String command) {
 		try {
-			variables.add(command, useSegmentation);
+			variables.add(command, segmentationMode);
 		} catch (VariableDefinitionFormatException e) {
 			LOGGER.error("Error parsing variable assignment.", e);
 		}
@@ -336,9 +337,9 @@ public class SoundChangeApplier {
 		String mode = command.replaceAll(SEGMENTATION + ": *", "");
 
 		if (mode.startsWith("FALSE")) {
-			useSegmentation = false;
+			segmentationMode = SegmentationMode.NAIVE;
 		} else if (mode.startsWith("TRUE")) {
-			useSegmentation = true;
+			segmentationMode = SegmentationMode.DEFAULT;
 		} else {
 			throw new ParseException("Unrecognized segmentation mode \"" + mode + "\"");
 		}

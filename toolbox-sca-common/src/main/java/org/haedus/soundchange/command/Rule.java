@@ -16,6 +16,7 @@
 
 package org.haedus.soundchange.command;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
@@ -59,18 +60,18 @@ public class Rule implements Command {
 	private final Map<String, List<List<Sequence>>> lexicons;
 
 	public Rule(String rule) throws RuleFormatException {
-		this(rule, new VariableStore(), true);
+		this(rule, new VariableStore(), SegmentationMode.DEFAULT);
 	}
 
-	public Rule(String rule, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, useSegmentation);
+	public Rule(String rule, VariableStore variables, SegmentationMode segmentationMode) throws RuleFormatException {
+		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, segmentationMode);
 	}
 
-	public Rule(String rule, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, useSegmentation);
+	public Rule(String rule, FeatureModel model, VariableStore variables, SegmentationMode segmentationMode) throws RuleFormatException {
+		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, segmentationMode);
 	}
 
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, boolean useSegmentation) throws RuleFormatException {
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode segmentationMode) throws RuleFormatException {
 		ruleText      = rule;
 		featureModel  = model;
 		lexicons      = lexiconsParam;
@@ -79,7 +80,7 @@ public class Rule implements Command {
 		conditions    = new ArrayList<Condition>();
 		variableStore = new VariableStore(variables);
 
-		populateConditions(model, useSegmentation);
+		populateConditions(model, segmentationMode);
 	}
 
 	@Override
@@ -187,7 +188,7 @@ public class Rule implements Command {
 		return output;
 	}
 
-	private void populateConditions(FeatureModel model, boolean useSegmentation) throws RuleFormatException {
+	private void populateConditions(FeatureModel model, SegmentationMode segmentationMode) throws RuleFormatException {
 		String transform;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
@@ -220,12 +221,12 @@ public class Rule implements Command {
 			transform = ruleText;
 			conditions.add(new Condition());
 		}
-		parseTransform(transform, useSegmentation);
+		parseTransform(transform, segmentationMode);
 	}
 
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
 		int variableIndex = 1;
-		Sequence replacement = new Sequence(new ArrayList<String>(), featureModel);
+		Sequence replacement = new Sequence(featureModel);
 		// Step through the target pattern
 		for (int i = 0; i < target.size(); i++) {
 			Segment segment = target.get(i);
@@ -277,7 +278,7 @@ public class Rule implements Command {
 		return conditionMatch && !exceptionMatch;
 	}
 
-	private void parseTransform(String transformation, boolean useSegmentation) throws RuleFormatException {
+	private void parseTransform(String transformation, SegmentationMode segmentationMode) throws RuleFormatException {
 		if (transformation.contains(">")) {
 			String[] array = transformation.split("\\s*>\\s*");
 
@@ -294,8 +295,8 @@ public class Rule implements Command {
 
 				for (int i = 0; i < sourceString.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
-					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, useSegmentation);
-					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, useSegmentation);
+					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, segmentationMode);
+					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, segmentationMode);
 
 					transform.put(source, target);
 				}
