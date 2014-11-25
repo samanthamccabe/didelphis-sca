@@ -68,14 +68,6 @@ public class VariableStore {
 		segmentationMode = otherStore.segmentationMode;
 	}
 
-	public SegmentationMode getSegmentationMode() {
-		return segmentationMode;
-	}
-
-	public void setSegmentationMode(SegmentationMode modeParam) {
-		segmentationMode = modeParam;
-	}
-
 	public boolean isEmpty() {
 		return variables.isEmpty();
 	}
@@ -111,28 +103,17 @@ public class VariableStore {
 			String key = parts[0];
 			String[] elements = parts[1].split("\\s+");
 
-			put(key, elements);
+			List<Sequence> expanded = new ArrayList<Sequence>();
+			for (String value : elements) {
+				expanded.addAll(expandVariables(value));
+			}
+			variables.put(key, expanded);
 		} else {
 			throw new VariableDefinitionFormatException(command);
 		}
 	}
 
-	// testing only
-	void put(String key, String... values) {
-		Collection<String> list = new ArrayList<String>();
-		Collections.addAll(list, values);
-		put(key, list);
-	}
-
-	public void put(String key, Iterable<String> values) {
-		List<Sequence> expanded = new ArrayList<Sequence>();
-		for (String value : values) {
-			expanded.addAll(expandVariables(value));
-		}
-		variables.put(key, expanded);
-	}
-
-	public List<Sequence> expandVariables(String element) {
+	private List<Sequence> expandVariables(String element) {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 

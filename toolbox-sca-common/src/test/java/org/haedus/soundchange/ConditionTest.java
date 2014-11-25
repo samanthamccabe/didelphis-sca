@@ -19,6 +19,7 @@ package org.haedus.soundchange;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.exceptions.ParseException;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -516,14 +517,11 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testWithVariables01() throws RuleFormatException {
+	public void testWithVariables01() throws ParseException {
 
-		String[] terminals = {
-				"p","t","k","b","d","g","pʰ","tʰ","kʰ"
-		};
 		VariableStore vs = new VariableStore();
+		vs.add("C = p t k b d g pʰ tʰ kʰ");
 
-		vs.put("C", toList(terminals));
 		Condition condition = new Condition("_C+#",vs);
 
 		testTrue(condition,  "abaptk",  2);
@@ -541,13 +539,10 @@ public class ConditionTest {
 	}
 	
 	@Test
-	public void testVariablesDebug01() throws RuleFormatException {
-		String[] terminals = {
-				"p","t","k","b","d","g","pʰ","tʰ","kʰ"
-		};
+	public void testVariablesDebug01() throws ParseException {
 		VariableStore vs = new VariableStore();
+		vs.add("C = p t k b d g pʰ tʰ kʰ");
 
-		vs.put("C", toList(terminals));
 		Condition condition = new Condition("_C+#", vs);
 		
 		testTrue(condition,  "abatʰkʰ", 2);
