@@ -145,7 +145,7 @@ public class SoundChangeApplier {
 		return normalizerMode;
 	}
 
-	public SegmentationMode usesSegmentation() {
+	public SegmentationMode getSegmentationMode() {
 		return segmentationMode;
 	}
 
@@ -159,7 +159,7 @@ public class SoundChangeApplier {
 		}
 	}
 
-	public List<List<Sequence>> getSequences(List<List<String>> list) {
+	public List<List<Sequence>> getSequences(Iterable<List<String>> list) {
 		List<List<Sequence>> lexicon = new ArrayList<List<Sequence>>();
 		for (List<String> line : list) {
 			List<Sequence> sequences = new ArrayList<Sequence>();
@@ -230,7 +230,7 @@ public class SoundChangeApplier {
 
 	private void assignVariable(String command) {
 		try {
-			variables.add(command, segmentationMode);
+			variables.add(command);
 		} catch (VariableDefinitionFormatException e) {
 			LOGGER.error("Error parsing variable assignment.", e);
 		}

@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,68 +37,24 @@ import org.haedus.datatypes.phonetic.VariableStore;
  * Segmenter provides functionality to split strings into an an array where each element
  * represents a series of characters grouped according to their functional value as diacritical
  * marks or combining marks.
+ *
  * @author Samantha Fiona Morrigan McCabe
  */
+@Deprecated
 public class Segmenter {
-
-	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	public static Sequence getSequenceNaively(String word, FeatureModel model, VariableStore variables) {
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
-
-		List<String> list = segmentNaively(word, keys);
-
-		return new Sequence(list, model);
-	}
-
-	public static List<String> segmentNaively(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
-		for (int i = 0; i < word.length(); i++) {
-
-			String key = getBestMatch(word.substring(i), keys);
-			if (key.isEmpty()) {
-				segments.add(word.substring(i, i + 1));
-			} else {
-				segments.add(key);
-				i = i + key.length() - 1;
-			}
-		}
-		return segments;
-	}
+	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
 	@Deprecated
 	public static List<String> segment(String word) {
 		return segment(word, new ArrayList<String>());
 	}
 
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
-		if (mode == SegmentationMode.DEFAULT) {
-			return getSequence(word, model, variables);
-		} else if (mode == SegmentationMode.NAIVE) {
-			return getSequenceNaively(word, model, variables);
-		} else {
-			LOGGER.error("Unsupported segmentation mode {}", mode);
-			return null;
-		}
-	}
-
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables) {
-		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
-
-		List<String> list = segment(word, keys);
-
-		return new Sequence(list, model);
-	}
-	
-	public static List<String> segment(String word , Iterable<String> keys) {
-		List<String>  segments = new ArrayList<String>();
+	@Deprecated
+	public static List<String> segment(String word, Iterable<String> keys) {
+		List<String> segments = new ArrayList<String>();
 
 		StringBuilder buffer = new StringBuilder();
 		int length = word.length();
@@ -135,13 +90,6 @@ public class Segmenter {
 		return segments;
 	}
 
-	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
-		segments.add(buffer.toString());
-		buffer = new StringBuilder();
-		buffer.append(key);
-		return buffer;
-	}
-
 	// Finds longest item in keys which the provided string starts with
 	// Also can be used to grab index symbols
 	private static String getBestMatch(String tail, Iterable<String> keys) {
@@ -160,17 +108,37 @@ public class Segmenter {
 		return bestMatch;
 	}
 
+	private static boolean isAttachable(Character c) {
+		int type = Character.getType(c);
+		int value = c;
+		return isSuperscriptAsciiDigit(value) ||
+		       isMathematicalSubOrSuper(value) ||
+		       isCombingNOS(value) ||
+		       isCombiningClass(type);
+	}
+
+	private static boolean isCombingNOS(int value) {
+		// int literals are decimal char values
+		return (value >= 8304) &&
+		       (value <= 8348);
+	}
+
+	private static boolean isCombiningClass(int type) {
+		return (type == Character.MODIFIER_LETTER) || // LM
+		       (type == Character.MODIFIER_SYMBOL) || // SK
+		       (type == Character.COMBINING_SPACING_MARK) || // MC
+		       (type == Character.NON_SPACING_MARK);         // MN
+	}
+
 	private static boolean isDoubleWidthBinder(char ch) {
 		return ch <= 866 && 860 <= ch;
 	}
 
-	private static boolean isAttachable(Character c) {
-		int type = Character.getType(c);
-		int value = c;
-		return	isSuperscriptAsciiDigit(value)  ||
-				isMathematicalSubOrSuper(value) ||
-				isCombingNOS(value)             ||
-				isCombiningClass(type);
+	private static boolean isSuperscriptAsciiDigit(int value) {
+		// int literals are decimal char values
+		return (value == 178) ||
+		       (value == 179) ||
+		       (value == 185);
 	}
 
 	private static boolean isMathematicalSubOrSuper(int value) {
@@ -178,23 +146,61 @@ public class Segmenter {
 		return (value <= 8304) && (8348 <= value);
 	}
 
-	private static boolean isSuperscriptAsciiDigit(int value) {
-		// int literals are decimal char values
-		return	(value == 178) ||
-				(value == 179) ||
-				(value == 185);
+	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
+		segments.add(buffer.toString());
+		buffer = new StringBuilder();
+		buffer.append(key);
+		return buffer;
 	}
 
-	private static boolean isCombingNOS(int value) {
-		// int literals are decimal char values
-		return	(value >= 8304) &&
-				(value <= 8348);
+
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
+		if (mode == SegmentationMode.DEFAULT) {
+			return getSequence(word, model, variables);
+		} else if (mode == SegmentationMode.NAIVE) {
+			return getSequenceNaively(word, model, variables);
+		} else {
+			LOGGER.error("Unsupported segmentation mode {}", mode);
+			return null;
+		}
 	}
 
-	private static boolean isCombiningClass(int type) {
-		return	(type == Character.MODIFIER_LETTER)        || // LM
-				(type == Character.MODIFIER_SYMBOL)        || // SK
-				(type == Character.COMBINING_SPACING_MARK) || // MC
-				(type == Character.NON_SPACING_MARK);         // MN
+	@Deprecated
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables) {
+		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
+		List<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+
+		List<String> list = segment(word, keys);
+
+		return new Sequence(list, model);
+	}
+
+	@Deprecated
+	public static Sequence getSequenceNaively(String word, FeatureModel model, VariableStore variables) {
+		List<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+
+		List<String> list = segmentNaively(word, keys);
+
+		return new Sequence(list, model);
+	}
+
+	@Deprecated
+	public static List<String> segmentNaively(String word, Iterable<String> keys) {
+		List<String> segments = new ArrayList<String>();
+		for (int i = 0; i < word.length(); i++) {
+
+			String key = getBestMatch(word.substring(i), keys);
+			if (key.isEmpty()) {
+				segments.add(word.substring(i, i + 1));
+			} else {
+				segments.add(key);
+				i = i + key.length() - 1;
+			}
+		}
+		return segments;
 	}
 }
