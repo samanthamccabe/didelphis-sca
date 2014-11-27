@@ -43,9 +43,10 @@ public class VariableStore {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
-	private final FeatureModel                featureModel;
 	private final Map<String, List<Sequence>> variables;
 
+	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
+	private final FeatureModel     featureModel;
 	private       SegmentationMode segmentationMode;
 
 	public VariableStore() {

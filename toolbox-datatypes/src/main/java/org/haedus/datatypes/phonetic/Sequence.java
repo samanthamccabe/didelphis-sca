@@ -54,9 +54,13 @@ public class Sequence implements Iterable<Segment> {
 		featureModel = model;
 	}
 
-	@Deprecated
+	// Used to test basic access only
 	public Sequence(String word) {
-		this(word, new FeatureModel());
+		this();
+
+		for (char c : word.toCharArray()) {
+			sequence.add(new Segment(new String(new char[] {c})));
+		}
 	}
 
 	@Deprecated

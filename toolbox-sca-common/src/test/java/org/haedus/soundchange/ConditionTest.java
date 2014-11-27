@@ -18,9 +18,12 @@ package org.haedus.soundchange;
 
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.soundchange.exceptions.RuleFormatException;
+
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,6 +47,13 @@ public class ConditionTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionTest.class);
 
+	private static SequenceFactory factory;
+
+	@BeforeClass
+	public static void init() {
+		factory = new SequenceFactory();
+	}
+
 	// We just need to see that this parses correctly
 	@Test
 	public void testEmptyCondition() throws RuleFormatException {
@@ -59,7 +69,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching01() throws RuleFormatException {
 		Condition condition = new Condition("a_x");
-		Sequence  sequence  = new Sequence("balx");
+		Sequence sequence = new Sequence("balx");
 
 		assertTrue("", condition.isMatch(sequence, 2));
 	}
@@ -67,7 +77,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching02() throws RuleFormatException {
 		Condition condition = new Condition("b_#");
-		Sequence  sequence  = new Sequence("aba");
+		Sequence sequence = new Sequence("aba");
 
 		assertFalse("0", condition.isMatch(sequence, 0));
 		assertFalse("1", condition.isMatch(sequence, 1));
@@ -77,7 +87,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching03() throws RuleFormatException {
 		Condition condition = new Condition("b_lx");
-		Sequence  sequence  = new Sequence("balx");
+		Sequence sequence = new Sequence("balx");
 
 		assertTrue("1", condition.isMatch(sequence, 1));
 		assertFalse("2", condition.isMatch(sequence, 2));
@@ -87,7 +97,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching04() throws RuleFormatException {
 		Condition condition = new Condition("_lxpld");
-		Sequence  sequence  = new Sequence("beralxpld");
+		Sequence sequence = new Sequence("beralxpld");
 
 		assertTrue("T", condition.isMatch(sequence, 3));
 		assertFalse("F", condition.isMatch(sequence, 2));
@@ -593,19 +603,14 @@ public class ConditionTest {
 		testFalse(condition, "xc",  0);
 	}
 
-	private Iterable<String> toList(String... strings) {
-		Collection<String> list = new ArrayList<String>();
-
-		Collections.addAll(list,strings);
-		return list;
-	}
-
 	private void testTrue(Condition condition, String testString, int index) {
-		assertTrue(testString, condition.isMatch(new Sequence(testString), index));
+		Sequence word = factory.getSequence(testString);
+		assertTrue(testString, condition.isMatch(word, index));
 	}
 
 	private void testFalse(Condition condition, String testString, int index) {
-		assertFalse(testString, condition.isMatch(new Sequence(testString), index));
+		Sequence word = factory.getSequence(testString);
+		assertFalse(testString, condition.isMatch(word, index));
 	}
 
 	private void testFalse(Condition condition, String testString) {

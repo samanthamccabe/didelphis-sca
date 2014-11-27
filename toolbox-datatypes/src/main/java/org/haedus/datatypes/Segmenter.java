@@ -43,8 +43,9 @@ import org.haedus.datatypes.phonetic.VariableStore;
 @Deprecated
 public class Segmenter {
 
-	public static final            Pattern          BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
-	private static final transient org.slf4j.Logger LOGGER                = LoggerFactory.getLogger(Segmenter.class);
+	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+
+	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
 	@Deprecated
 	public static List<String> segment(String word) {

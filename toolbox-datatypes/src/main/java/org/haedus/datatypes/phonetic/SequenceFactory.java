@@ -24,6 +24,7 @@ public class SequenceFactory {
 	private FeatureModel     featureModel;
 	private SegmentationMode segmentationMode;
 	private VariableStore    variableStore;
+	// VariableStore is only accessed for it's keys
 
 	public SequenceFactory() {
 		featureModel = new FeatureModel();

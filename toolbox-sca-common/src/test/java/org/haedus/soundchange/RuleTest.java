@@ -19,9 +19,12 @@ package org.haedus.soundchange;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.soundchange.command.Rule;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -35,6 +38,13 @@ import static org.junit.Assert.assertEquals;
  * To change this template use File | Settings | File Templates.
  */
 public class RuleTest {
+
+	private static SequenceFactory factory;
+
+	@BeforeClass
+	public static void init() {
+		factory = new SequenceFactory();
+	}
 
 	@Test
 	public void testMetathesis01() throws ParseException {
@@ -222,8 +232,8 @@ public class RuleTest {
 
 	@Test
 	public void testUnconditional() throws ParseException {
-		Sequence word = new Sequence("h₁óh₁es-");
-		Sequence expected = new Sequence("ʔóʔes-");
+		Sequence word     = factory.getSequence("h₁óh₁es-");
+		Sequence expected = factory.getSequence("ʔóʔes-");
 
 		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ");
 
@@ -232,7 +242,7 @@ public class RuleTest {
 
 	@Test
 	public void testUnconditional02() throws ParseException {
-		Sequence expected = new Sequence("telə");
+		Sequence expected = factory.getSequence("telə");
 
 		Rule rule = new Rule("eʔé > ê");
 
@@ -241,8 +251,8 @@ public class RuleTest {
 
 	@Test
 	public void testDebug01() throws ParseException {
-		Sequence original = new Sequence("mlan");
-		Sequence expected = new Sequence("blan");
+		Sequence original = factory.getSequence("mlan");
+		Sequence expected = factory.getSequence("blan");
 
 		VariableStore vs = new VariableStore();
 		vs.add("V = a e i o u");
@@ -264,8 +274,8 @@ public class RuleTest {
 	// "trh₂-we"
 	@Test
 	public void testDebug02() throws ParseException {
-		Sequence original = new Sequence("trh₂we");
-		Sequence expected = new Sequence("tə̄rwe");
+		Sequence original = factory.getSequence("trh₂we");
+		Sequence expected = factory.getSequence("tə̄rwe");
 
 		VariableStore vs = new VariableStore();
 		vs.add("X  = h₁  h₂ h₃ h₄" );
@@ -297,8 +307,8 @@ public class RuleTest {
 
 	@Test
 	public void testDebug03() throws ParseException {
-		Sequence original = new Sequence("pʰabopa");
-		Sequence expected = new Sequence("papoba");
+		Sequence original = factory.getSequence("pʰabopa");
+		Sequence expected = factory.getSequence("papoba");
 
 		Rule rule = new Rule("pʰ p b > p b p");
 
@@ -366,8 +376,8 @@ public class RuleTest {
 	}
 
 	private void testRule(Rule rule, String seq, String exp) {
-		Sequence sequence = new Sequence(seq);
-		Sequence expected = new Sequence(exp);
+		Sequence sequence = factory.getSequence(seq);
+		Sequence expected = factory.getSequence(exp);
 		Sequence received = rule.apply(sequence);
 
 		assertEquals(expected, received);
