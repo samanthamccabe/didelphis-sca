@@ -23,9 +23,10 @@ package org.haedus.datatypes.phonetic;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.haedus.datatypes.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.haedus.datatypes.Table;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +46,9 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private final Map<String, Integer>  featureNames;
-	private final Map<String, Integer>  featureAliases;
-	private final Table<Double> weightTable;
+	private final Map<String, Integer> featureNames;
+	private final Map<String, Integer> featureAliases;
+	private final Table<Double>        weightTable;
 
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
@@ -66,7 +67,7 @@ public class FeatureModel {
 	public FeatureModel(File file) {
 		this();
 		try {
-			readTable(FileUtils.readLines(file));
+			readTable(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
@@ -94,7 +95,125 @@ public class FeatureModel {
 			bestDiacritic = getBestDiacritic(featureArray, bestFeatures);
 		}
 
-		return Normalizer.normalize(bestSymbol+bestDiacritic, Normalizer.Form.NFC);
+		return Normalizer.normalize(bestSymbol + bestDiacritic, Normalizer.Form.NFC);
+	}
+
+	public Set<String> getSymbols() {
+		return featureMap.keySet();
+	}
+
+	public void addSegment(String symbol, List<Double> features) {
+		featureMap.put(symbol, features);
+	}
+
+	public void addSegment(String symbol) {
+		addSegment(symbol, new ArrayList<Double>());
+	}
+
+	@Override
+	public int hashCode() {
+		int code = 7543;
+		if (featureMap != null) {
+			code *= featureMap.hashCode();
+		}
+		if (weightTable != null) {
+			code *= weightTable.hashCode();
+		}
+		return code;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (obj.getClass() != getClass())
+			return false;
+
+		FeatureModel other = (FeatureModel) obj;
+
+		boolean featureEquals = featureMap.equals(other.featureMap);
+		boolean weightsEquals = weightTable.equals(other.weightTable);
+		return featureEquals && weightsEquals;
+	}
+
+	@Override
+	public String toString() {
+		return featureMap.toString();
+	}
+
+	public double computeScore(Segment l, Segment r) {
+		double score = 0;
+		int n = l.dimension();
+		for (int i = 0; i < n; i++) {
+			double a = l.getFeatureValue(i);
+			for (int j = 0; j < n; j++) {
+				double b = r.getFeatureValue(j);
+				score += Math.abs(a - b) * weightTable.get(i, j);
+			}
+		}
+		return score;
+	}
+
+	public double computeScore(Sequence l, Sequence r) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.size(), r, r.size());
+		}
+		int penalty = 5;
+		float score = 0;
+		for (int i = 0; i < l.size(); i++) {
+			score += computeScore(l.get(i), r.get(i));
+
+			// TODO: gap penalty
+		}
+		return score;
+	}
+
+	@Deprecated
+	public double computeScore(String l, String r) {
+		Sequence left = new Sequence(l);
+		Sequence right = new Sequence(r);
+		return computeScore(left, right);
+	}
+
+	public boolean containsKey(String key) {
+		return featureMap.containsKey(key);
+	}
+
+	public int getNumberOfFeatures() {
+		return featureNames.size();
+	}
+
+	public Segment gap() {
+		List<Double> features = new ArrayList<Double>();
+		for (int i = 0; i < featureNames.size(); i++) {
+			features.add(Double.NaN);
+		}
+		return new Segment("_", features);
+	}
+
+	public Segment getSegment(String string) {
+		return new Segment(string, getValue(string));
+	}
+
+	public Map<String, List<Double>> getFeatureMap() {
+		return Collections.unmodifiableMap(featureMap);
+	}
+
+	public List<Double> getValue(String key) {
+		List<Double> value = new ArrayList<Double>();
+
+		if (featureMap.containsKey(key)) {
+			value = featureMap.get(key);
+		}
+		return value;
+	}
+
+	public Table<Double> getWeights() {
+		return weightTable;
+	}
+
+	public void put(String key, List<Double> values) {
+		featureMap.put(key, values);
 	}
 
 	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
@@ -126,7 +245,6 @@ public class FeatureModel {
 					minimumDifference = difference;
 					bestDiacritic = entry.getKey();
 					bestCompiled = compiledFeatures;
-
 				} else if (difference == minimumDifference) {
 					// Modify this to use sets
 				}
@@ -134,8 +252,7 @@ public class FeatureModel {
 		}
 		if (minimumDifference > 0 && minimumDifference != lastMinimum) {
 			return bestDiacritic + getBestDiacritic(featureArray, bestCompiled, minimumDifference);
-		}
-		else {
+		} else {
 			return bestDiacritic;
 		}
 	}
@@ -174,129 +291,13 @@ public class FeatureModel {
 		return sum;
 	}
 
-	public Set<String> getSymbols() {
-		return featureMap.keySet();
-	}
-
-	public void addSegment(String symbol, List<Double> features) {
-		featureMap.put(symbol, features);
-	}
-
-	public void addSegment(String symbol) {
-		addSegment(symbol, new ArrayList<Double>());
-	}
-
-	@Override
-	public String toString() {
-		return featureMap.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		int code = 7543;
-		if (featureMap != null) {
-			code *= featureMap.hashCode();
-		}
-		if (weightTable != null) {
-			code *= weightTable.hashCode();
-		}
-		return code;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj.getClass() != getClass()) return false;
-
-		FeatureModel other = (FeatureModel) obj;
-
-		boolean featureEquals = featureMap.equals(other.featureMap);
-		boolean weightsEquals = weightTable.equals(other.weightTable);
-		return featureEquals && weightsEquals;
-	}
-
-	public float computeScore(Alignment alignment) {
-		Sequence left  = alignment.getLeft();
-		Sequence right = alignment.getRight();
-		return computeScore(left, right);
-	}
-
-	public double computeScore(Segment l, Segment r) {
-		double score = 0;
-		int n = l.dimension();
-		for (int i = 0; i < n; i++) {
-			double a = l.getFeatureValue(i);
-			for (int j = 0; j < n; j++) {
-				double b = r.getFeatureValue(j);
-				score += Math.abs(a - b) * weightTable.get(i, j);
-			}
-		}
-		return score;
-	}
-
-	public float computeScore(Sequence l, Sequence r) {
-		int penalty = 5;
-		float score = 0;
-		for (int i = 0; i < l.size(); i++) {
-			score += computeScore(l.get(i), r.get(i));
-
-			// TODO: gap penalty
-		}
-		return score;
-	}
-
-	@Deprecated
-	public float computeScore(String l, String r) {
-		Sequence left = new Sequence(l);
-		Sequence right = new Sequence(r);
-		return computeScore(left, right);
-	}
-
-	public boolean containsKey(String key) {
-		return featureMap.containsKey(key);
-	}
-
-	public Segment gap() {
-		return get("_");
-	}
-
-	public Segment get(String string) {
-		return new Segment(string, getValue(string));
-	}
-
-	public List<Double> getFeatureArray(String symbol) {
-		return get(symbol).getFeatures();
-	}
-
-	public Map<String, List<Double>> getFeatureMap() {
-		return Collections.unmodifiableMap(featureMap);
-	}
-
-	public List<Double> getValue(String key) {
-		List<Double> value = new ArrayList<Double>();
-
-		if (featureMap.containsKey(key)) {
-			value = featureMap.get(key);
-		}
-		return value;
-	}
-
-	public Table<Double> getWeights() {
-		return weightTable;
-	}
-
-	public void put(String key, List<Double> values) {
-		featureMap.put(key, values);
-	}
-
 	private void readTable(List<String> lines) {
 
 		boolean hasDiacritics = false;
 
 		if (lines.get(0).startsWith("name")) {
-			String   line = lines.remove(0);
-			String[] row  = line.split("\t", -1);
+			String line = lines.remove(0);
+			String[] row = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (row[0].equals("diacritic")) {
@@ -309,8 +310,8 @@ public class FeatureModel {
 		}
 
 		if (lines.get(0).startsWith("alias")) {
-			String   line = lines.remove(0);
-			String[] row  = line.split("\t", -1);
+			String line = lines.remove(0);
+			String[] row = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (hasDiacritics) {
@@ -344,10 +345,10 @@ public class FeatureModel {
 				}
 				features.add(featureValue);
 			}
-				// Create mapping
+			// Create mapping
 			if (hasDiacritics) {
 				Double diacriticFlag = features.remove(0);
-				if (diacriticFlag <=  0.0) {
+				if (diacriticFlag <= 0.0) {
 					for (String key : keys.split(" ")) {
 						featureMap.put(key, features);
 					}

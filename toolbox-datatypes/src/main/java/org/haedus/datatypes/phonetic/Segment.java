@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class Segment {
 
-	private final String      symbol;
+	private final String       symbol;
 	private final List<Double> features;
 
 	/**

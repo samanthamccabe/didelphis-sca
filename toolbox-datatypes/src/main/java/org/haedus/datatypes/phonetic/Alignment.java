@@ -28,6 +28,7 @@ public class Alignment {
 
 	private final Sequence left;
 	private final Sequence right;
+    private double score = Double.NaN;
 
 	public Alignment(Sequence l, Sequence r) {
 		left  = l;
@@ -81,6 +82,10 @@ public class Alignment {
 
     public Alignment getLast() {
         return get(size()-1);
+    }
+
+    public void setScore(double scoreParam) {
+        score = scoreParam;
     }
 
 	@Override
