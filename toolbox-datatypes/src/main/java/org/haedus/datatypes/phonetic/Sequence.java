@@ -41,10 +41,13 @@ public class Sequence implements Iterable<Segment> {
 		featureModel = new FeatureModel();
 	}
 
-	@Deprecated
 	public Sequence(Segment g) {
 		this();
-		sequence.add(g);
+		if (g.dimension() == featureModel.getNumberOfFeatures()) {
+			sequence.add(g);
+		} else {
+			// TODO: Throw an exception
+		}
 	}
 
 	public Sequence(Sequence q) {
@@ -52,28 +55,18 @@ public class Sequence implements Iterable<Segment> {
 		featureModel = q.getFeatureModel();
 	}
 
-	protected Sequence(FeatureModel model) {
+	// Used to produce empty copies with the same model
+	private Sequence(FeatureModel modelParam) {
 		sequence = new LinkedList<Segment>();
-		featureModel = model;
+		featureModel = modelParam;
 	}
 
 	// Used to test basic access only
-	@Deprecated
-	public Sequence(String word) {
+	Sequence(String word) {
 		this();
 
 		for (char c : word.toCharArray()) {
 			sequence.add(new Segment(new String(new char[]{ c })));
-		}
-	}
-
-	@Deprecated
-	public Sequence(String word, FeatureModel featureTable) {
-		sequence = new LinkedList<Segment>();
-		featureModel = featureTable;
-		// Split and traverse
-		for (String s : Segmenter.segment(word)) {
-			sequence.add(new Segment(s));
 		}
 	}
 

@@ -64,7 +64,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching01() throws RuleFormatException {
 		Condition condition = new Condition("a_x");
-		Sequence sequence = new Sequence("balx");
+		Sequence sequence = factory.getSequence("balx");
 
 		assertTrue("", condition.isMatch(sequence, 2));
 	}
@@ -72,7 +72,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching02() throws RuleFormatException {
 		Condition condition = new Condition("b_#");
-		Sequence sequence = new Sequence("aba");
+		Sequence sequence = factory.getSequence("aba");
 
 		assertFalse("0", condition.isMatch(sequence, 0));
 		assertFalse("1", condition.isMatch(sequence, 1));
@@ -82,7 +82,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching03() throws RuleFormatException {
 		Condition condition = new Condition("b_lx");
-		Sequence sequence = new Sequence("balx");
+		Sequence sequence = factory.getSequence("balx");
 
 		assertTrue("1", condition.isMatch(sequence, 1));
 		assertFalse("2", condition.isMatch(sequence, 2));
@@ -92,7 +92,7 @@ public class ConditionTest {
 	@Test
 	public void testPostconditionMatching04() throws RuleFormatException {
 		Condition condition = new Condition("_lxpld");
-		Sequence sequence = new Sequence("beralxpld");
+		Sequence sequence = factory.getSequence("beralxpld");
 
 		assertTrue("T", condition.isMatch(sequence, 3));
 		assertFalse("F", condition.isMatch(sequence, 2));
@@ -125,9 +125,9 @@ public class ConditionTest {
 		testTrue(condition,"xab",0);
 		testTrue(condition,"xdab",0);
 
-		assertFalse("xadb", condition.isMatch(new Sequence("xadb"), 0));
-		assertFalse("xacb", condition.isMatch(new Sequence("xacb"), 0));
-		assertFalse("xdb",  condition.isMatch(new Sequence("xdb"),  0));
+		assertFalse("xadb", condition.isMatch(factory.getSequence("xadb"), 0));
+		assertFalse("xacb", condition.isMatch(factory.getSequence("xacb"), 0));
+		assertFalse("xdb",  condition.isMatch(factory.getSequence("xdb"),  0));
 	}
 
 	@Test
@@ -156,13 +156,13 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_a*b");
 
-		assertTrue("xb", condition.isMatch(new Sequence("xb"), 0));
-		assertTrue("xab	", condition.isMatch(new Sequence("xab"), 0));
-		assertTrue("xaab", condition.isMatch(new Sequence("xaab"), 0));
-		assertTrue("xaaab", condition.isMatch(new Sequence("xaaab"), 0));
-		assertTrue("xaaaab", condition.isMatch(new Sequence("xaaaab"), 0));
-		assertTrue("xaaaaab", condition.isMatch(new Sequence("xaaaaab"), 0));
-		assertFalse("xcaaaab", condition.isMatch(new Sequence("xcaaaab"), 0));
+		assertTrue("xb", condition.isMatch(factory.getSequence("xb"), 0));
+		assertTrue("xab	", condition.isMatch(factory.getSequence("xab"), 0));
+		assertTrue("xaab", condition.isMatch(factory.getSequence("xaab"), 0));
+		assertTrue("xaaab", condition.isMatch(factory.getSequence("xaaab"), 0));
+		assertTrue("xaaaab", condition.isMatch(factory.getSequence("xaaaab"), 0));
+		assertTrue("xaaaaab", condition.isMatch(factory.getSequence("xaaaaab"), 0));
+		assertFalse("xcaaaab", condition.isMatch(factory.getSequence("xcaaaab"), 0));
 	}
 
 	@Test
@@ -170,13 +170,13 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_aa*b");
 
-		assertFalse("xb", condition.isMatch(new Sequence("xb"), 0));
-		assertTrue("xab	", condition.isMatch(new Sequence("xab"), 0));
-		assertTrue("xaab", condition.isMatch(new Sequence("xaab"), 0));
-		assertTrue("xaaab", condition.isMatch(new Sequence("xaaab"), 0));
-		assertTrue("xaaaab", condition.isMatch(new Sequence("xaaaab"), 0));
-		assertTrue("xaaaaab", condition.isMatch(new Sequence("xaaaaab"), 0));
-		assertFalse("xcaaaab", condition.isMatch(new Sequence("xcaaaab"), 0));
+		assertFalse("xb", condition.isMatch(factory.getSequence("xb"), 0));
+		assertTrue("xab	", condition.isMatch(factory.getSequence("xab"), 0));
+		assertTrue("xaab", condition.isMatch(factory.getSequence("xaab"), 0));
+		assertTrue("xaaab", condition.isMatch(factory.getSequence("xaaab"), 0));
+		assertTrue("xaaaab", condition.isMatch(factory.getSequence("xaaaab"), 0));
+		assertTrue("xaaaaab", condition.isMatch(factory.getSequence("xaaaaab"), 0));
+		assertFalse("xcaaaab", condition.isMatch(factory.getSequence("xcaaaab"), 0));
 	}
 
 	@Test
@@ -184,13 +184,13 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_da*b");
 
-		assertTrue("xdb", condition.isMatch(new Sequence("xdb"), 0));
-		assertTrue("xdab", condition.isMatch(new Sequence("xdab"), 0));
-		assertTrue("xdaab", condition.isMatch(new Sequence("xdaab"), 0));
-		assertTrue("xdaaab", condition.isMatch(new Sequence("xdaaab"), 0));
-		assertTrue("xdaaaab", condition.isMatch(new Sequence("xdaaaab"), 0));
-		assertTrue("xdaaaaab", condition.isMatch(new Sequence("xdaaaaab"), 0));
-		assertFalse("xdcaaaab", condition.isMatch(new Sequence("xdcaaaab"), 0));
+		assertTrue("xdb", condition.isMatch(factory.getSequence("xdb"), 0));
+		assertTrue("xdab", condition.isMatch(factory.getSequence("xdab"), 0));
+		assertTrue("xdaab", condition.isMatch(factory.getSequence("xdaab"), 0));
+		assertTrue("xdaaab", condition.isMatch(factory.getSequence("xdaaab"), 0));
+		assertTrue("xdaaaab", condition.isMatch(factory.getSequence("xdaaaab"), 0));
+		assertTrue("xdaaaaab", condition.isMatch(factory.getSequence("xdaaaaab"), 0));
+		assertFalse("xdcaaaab", condition.isMatch(factory.getSequence("xdcaaaab"), 0));
 	}
 
 	@Test
@@ -198,11 +198,11 @@ public class ConditionTest {
 
 		Condition condition = new Condition("_d(eo)*b");
 
-		assertTrue("xdb", condition.isMatch(new Sequence("xdb"), 0));
-		assertTrue("xdeob", condition.isMatch(new Sequence("xdeob"), 0));
-		assertTrue("xdeoeob", condition.isMatch(new Sequence("xdeoeob"), 0));
-		assertTrue("xdeoeoeob", condition.isMatch(new Sequence("xdeoeoeob"), 0));
-		assertFalse("xdcaaaab", condition.isMatch(new Sequence("xdcaaaab"), 0));
+		assertTrue("xdb", condition.isMatch(factory.getSequence("xdb"), 0));
+		assertTrue("xdeob", condition.isMatch(factory.getSequence("xdeob"), 0));
+		assertTrue("xdeoeob", condition.isMatch(factory.getSequence("xdeoeob"), 0));
+		assertTrue("xdeoeoeob", condition.isMatch(factory.getSequence("xdeoeoeob"), 0));
+		assertFalse("xdcaaaab", condition.isMatch(factory.getSequence("xdcaaaab"), 0));
 	}
 
 	@Test
