@@ -90,7 +90,7 @@ public class Node {
 	}
 
 	public void add(Node node) {
-		add(new Sequence(), node);
+		add(Sequence.EMPTY_SEQUENCE, node);
 	}
 
 	public void add(Segment segment, Node node) {

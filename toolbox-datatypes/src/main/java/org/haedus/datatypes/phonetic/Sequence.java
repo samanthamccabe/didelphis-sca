@@ -31,14 +31,17 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment> {
 
+	public static final Sequence EMPTY_SEQUENCE = new Sequence();
+
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
 
-	public Sequence() {
+	private Sequence() {
 		sequence = new LinkedList<Segment>();
 		featureModel = new FeatureModel();
 	}
 
+	@Deprecated
 	public Sequence(Segment g) {
 		this();
 		sequence.add(g);
@@ -49,17 +52,18 @@ public class Sequence implements Iterable<Segment> {
 		featureModel = q.getFeatureModel();
 	}
 
-	public Sequence(FeatureModel model) {
+	protected Sequence(FeatureModel model) {
 		sequence = new LinkedList<Segment>();
 		featureModel = model;
 	}
 
 	// Used to test basic access only
+	@Deprecated
 	public Sequence(String word) {
 		this();
 
 		for (char c : word.toCharArray()) {
-			sequence.add(new Segment(new String(new char[] {c})));
+			sequence.add(new Segment(new String(new char[]{ c })));
 		}
 	}
 
@@ -73,6 +77,7 @@ public class Sequence implements Iterable<Segment> {
 		}
 	}
 
+	@Deprecated
 	public Sequence(List<String> word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		featureModel = featureTable;
@@ -162,7 +167,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence remove(int start, int end) {
-		Sequence q = new Sequence();
+		Sequence q = new Sequence(featureModel);
 		for (int i = 0; i < end - start; i++) {
 			q.add(remove(start));
 		}
@@ -269,7 +274,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence getReverseSequence() {
-		Sequence reversed = new Sequence();
+		Sequence reversed = new Sequence(featureModel);
 		for (Segment g : sequence) {
 			reversed.addFirst(g);
 		}

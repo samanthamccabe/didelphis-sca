@@ -41,8 +41,8 @@ public class Alignment {
     }
 
     public Alignment() {
-        left = new Sequence();
-        right = new Sequence();
+        left  = Sequence.EMPTY_SEQUENCE;
+        right = Sequence.EMPTY_SEQUENCE;
     }
 
 	public Alignment(Alignment alignment) {

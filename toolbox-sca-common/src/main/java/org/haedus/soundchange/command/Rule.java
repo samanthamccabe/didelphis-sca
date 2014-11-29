@@ -226,7 +226,7 @@ public class Rule implements Command {
 
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
 		int variableIndex = 1;
-		Sequence replacement = new Sequence(featureModel);
+		Sequence replacement = featureModel.getBlankSequence();
 		// Step through the target pattern
 		for (int i = 0; i < target.size(); i++) {
 			Segment segment = target.get(i);

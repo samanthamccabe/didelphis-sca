@@ -26,6 +26,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Table;
 
 import java.io.File;
@@ -53,15 +54,18 @@ public class FeatureModel {
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
 
+	private SegmentationMode segmentationMode;
+
 	/**
 	 * Initializes an empty model
 	 */
 	public FeatureModel() {
-		featureNames   = new HashMap<String, Integer>();
-		featureAliases = new HashMap<String, Integer>();
-		weightTable    = new Table<Double>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
+		featureNames     = new HashMap<String, Integer>();
+		featureAliases   = new HashMap<String, Integer>();
+		weightTable      = new Table<Double>();
+		featureMap       = new LinkedHashMap<String, List<Double>>();
+		diacritics       = new LinkedHashMap<String, List<Double>>();
+		segmentationMode = SegmentationMode.DEFAULT;
 	}
 
 	public FeatureModel(File file) {
@@ -71,6 +75,10 @@ public class FeatureModel {
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
+	}
+
+	public Sequence getBlankSequence() {
+		return new Sequence(this);
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {
@@ -84,8 +92,8 @@ public class FeatureModel {
 
 			double difference = getDifferenceValue(featureArray, features);
 			if (difference < minimum) {
-				bestSymbol   = entry.getKey();
-				minimum      = difference;
+				bestSymbol = entry.getKey();
+				minimum = difference;
 				bestFeatures = features;
 			}
 		}
@@ -166,13 +174,6 @@ public class FeatureModel {
 			// TODO: gap penalty
 		}
 		return score;
-	}
-
-	@Deprecated
-	public double computeScore(String l, String r) {
-		Sequence left = new Sequence(l);
-		Sequence right = new Sequence(r);
-		return computeScore(left, right);
 	}
 
 	public boolean containsKey(String key) {
