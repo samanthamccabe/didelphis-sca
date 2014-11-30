@@ -55,15 +55,13 @@ public class Node {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj.getClass() != getClass())
-			return false;
+		if (obj == null)                  return false;
+		if (obj.getClass() != getClass()) return false;
 
 		Node other = (Node) obj;
-		return other.id == id &&
-		       arcs.equals(other.arcs) &&
-		       isAccepting == other.isAccepting;
+		return id == other.getId() &&
+		       arcs.equals(other.getArcs()) &&
+		       isAccepting == other.isAccepting();
 	}
 
 	@Override
@@ -99,9 +97,9 @@ public class Node {
 		add(Sequence.EMPTY_SEQUENCE, node);
 	}
 
+	@Deprecated
 	public void add(Segment segment, Node node) {
 		Sequence sequence = new Sequence(segment);
-
 		add(sequence, node);
 	}
 
@@ -191,5 +189,9 @@ public class Node {
 				}
 			}
 		}
+	}
+
+	public Map<Sequence,List<Node>> getArcs() {
+		return arcs;
 	}
 }

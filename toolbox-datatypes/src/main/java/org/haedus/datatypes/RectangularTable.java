@@ -102,6 +102,7 @@ public class RectangularTable<T> implements Table<T> {
 	    return (i + (j * numberOfRows));
 	}
 
+/* Unclear if how we want to toString this data
 	@Override
 	public String toString() {
 		String s = "";
@@ -113,6 +114,7 @@ public class RectangularTable<T> implements Table<T> {
 		}
 		return s;
 	}
+*/
 
     @Override
     public int totalSize() {

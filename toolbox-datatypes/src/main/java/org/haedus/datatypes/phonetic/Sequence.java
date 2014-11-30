@@ -42,7 +42,7 @@ public class Sequence implements Iterable<Segment> {
 
 	public Sequence(Segment g) {
 		this();
-		int segmentSize = g.dimension();
+		int segmentSize = g.getNumberOfFeatures();
 		int featureSize = featureModel.getNumberOfFeatures();
 		if (segmentSize == featureSize) {
 			sequence.add(g);
@@ -51,22 +51,22 @@ public class Sequence implements Iterable<Segment> {
 		}
 	}
 
+	// Used to produce empty copies with the same model
+	public Sequence(FeatureModel modelParam) {
+		sequence = new LinkedList<Segment>();
+		featureModel = modelParam;
+	}
+
 	// Used to test basic access only
 	Sequence(String word) {
 		this();
 		for (char c : word.toCharArray()) {
-			sequence.add(new Segment(new String(new char[]{ c })));
+			sequence.add(new Segment(new String(new char[]{ c }), featureModel));
 		}
 	}
 
 	private Sequence() {
 		this(new FeatureModel());
-	}
-
-	// Used to produce empty copies with the same model
-	Sequence(FeatureModel modelParam) {
-		sequence = new LinkedList<Segment>();
-		featureModel = modelParam;
 	}
 
 	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {

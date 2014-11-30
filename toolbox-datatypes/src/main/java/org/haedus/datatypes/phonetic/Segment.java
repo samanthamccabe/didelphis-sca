@@ -30,61 +30,69 @@ import java.util.List;
  */
 public class Segment {
 
+	private final FeatureModel model;
 	private final String       symbol;
 	private final List<Double> features;
 
 	/**
 	 * Initialize an empty Segment
 	 */
+	@Deprecated
 	public Segment() {
 		symbol   = "";
+		model    = new FeatureModel();
+		features = new ArrayList<Double>();
+	}
+
+	@Deprecated
+	Segment(String string) {
+		symbol   = string;
+		model    = new FeatureModel();
 		features = new ArrayList<Double>();
 	}
 
 	public Segment(Segment segment) {
 		symbol   = segment.getSymbol();
+		model    = segment.getModel();
 		features = segment.getFeatures();
 	}
 
-	public Segment(String s) {
+	@Deprecated
+	public Segment(String s, FeatureModel modelParam) {
 		symbol   = s;
-		features = new ArrayList<Double>();
-    }
+		model    = modelParam;
+		features = model.getValue(s);
+	}
 
-    public Segment(String s, List<Double> featureArray) {
-		symbol = s;
+	public Segment(String s, List<Double> featureArray, FeatureModel modelParam) {
+		symbol   = s;
+		model    = modelParam;
 		features = new ArrayList<Double>(featureArray);
 	}
 
-	public void setFeature(int feature, double value) {
-		features.set(feature, value);
+	public FeatureModel getModel() {
+		return model;
 	}
 
-    public Segment appendDiacritic(String diacriticSymbol, List<Double> diacriticFeatures) {
-		List<Double> featureList = features;
-        String s = symbol.concat(diacriticSymbol);
-
-        for (int i = 1; i < diacriticFeatures.size(); i++) {
-            double feature = diacriticFeatures.get(i);
-            if (feature != -9) {
-				featureList.set(i,feature);
-            }
-        }
-        return new Segment(s, features);
-    }
+	public int hashCode() {
+		return 19 * symbol.hashCode() * features.hashCode() * model.hashCode();
+	}
 
 	public boolean equals(Object obj) {
 
 		if (obj == null)                  return false;
 		if (getClass() != obj.getClass()) return false;
 
-		Segment object = (Segment) obj;
-		return symbol.equals(object.symbol) && features.equals(object.features);
+		Segment other = (Segment) obj;
+		return symbol.equals(other.getSymbol()) &&
+		       features.equals(other.getFeatures())
+		       && model.equals(other.getModel());
 	}
 
-    public int hashCode() {
-        return 19 * symbol.hashCode() * features.hashCode();
-    }
+	@Override
+	public String toString() {
+		return symbol + " " + model.toString();
+	}
 
 	public String getSymbol() {
 		return symbol;
@@ -98,22 +106,27 @@ public class Segment {
 		return features.get(i);
 	}
 
-	public boolean isDiacritic() {
-		return (features.get(0) == -1.0);
-	}
-
-	public int dimension() {
+	public int getNumberOfFeatures() {
 		return features.size();
 	}
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(symbol);
-		for (double feature : features) {
-			sb.append(" ").append(feature);
+	public String toStringLong() {
+		StringBuilder sb = new StringBuilder(symbol + "\t");
+		for (Double feature : features) {
+			if (feature.equals(Double.NaN)) {
+				sb.append(" ***");
+			} else {
+				if (feature < 0.0) {
+					sb.append(feature);
+				} else {
+					sb.append(" ");
+					sb.append(feature);
+				}
+			}
+			sb.append(" ");
 		}
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
 	public boolean isEmpty() {
 		return (symbol != null && symbol.isEmpty() && features.isEmpty());

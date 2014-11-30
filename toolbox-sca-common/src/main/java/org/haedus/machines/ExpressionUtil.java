@@ -80,7 +80,7 @@ public class ExpressionUtil {
 		if (ex.isParallel()) {
 			sb.append("{}");
 		} else {
-			sb.append(ex.getSegment());
+			sb.append(ex.getString());
 			sb.append(ex.getSymbol());
 		}
 

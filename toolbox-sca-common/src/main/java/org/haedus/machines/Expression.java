@@ -16,8 +16,7 @@
 
 package org.haedus.machines;
 
-import org.haedus.datatypes.phonetic.Segment;
-
+import java.util.AbstractSequentialList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -33,7 +32,7 @@ import java.util.List;
  */
 public class Expression {
 
-	private final Segment segment;
+	private final String segment;
 
 	private boolean isNegative;
 	private boolean isParallel;
@@ -41,12 +40,13 @@ public class Expression {
 	private final boolean isOptional;
 	private final boolean isRepeatable;
 
-	private final LinkedList<Expression> subexpressions;
+	private final LinkedList<Expression> expressions;
 
 	public Expression() {
-		subexpressions = new LinkedList<Expression>();
+		expressions = new LinkedList<Expression>();
 
-		segment = new Segment();
+		//		segment = new Segment();
+		segment = "";
 
 		isNegative   = false;
 		isParallel   = false;
@@ -54,32 +54,34 @@ public class Expression {
 		isOptional   = false;
 	}
 
-	private Expression(Segment terminal, boolean repeatable, boolean optional) {
-		subexpressions = new LinkedList<Expression>();
+	private Expression(String terminal, boolean repeatable, boolean optional) {
+		expressions = new LinkedList<Expression>();
 
 		segment = terminal;
 
-		isNegative = false;
-		isParallel = false;
+		isNegative    = false;
+		isParallel    = false;
 		isRepeatable = repeatable;
-		isOptional = optional;
+		isOptional   = optional;
 	}
 
 	public Expression(List<String> list, boolean repeatable, boolean optional) {
-		subexpressions = parse(new LinkedList<String>(list));
+		expressions = parse(new LinkedList<String>(list));
 
-		segment    = new Segment();
-		isNegative = false;
-		isParallel = false;
+		//		segment = new Segment();
+		segment = "";
+
+		isNegative   = false;
+		isParallel   = false;
 		isRepeatable = repeatable;
-		isOptional = optional;
+		isOptional   = optional;
 	}
 
 	public Expression(List<String> list) {
 		this(list, false, false);
 	}
 
-	private LinkedList<Expression> parse(LinkedList<String> list) {
+	private LinkedList<Expression> parse(AbstractSequentialList<String> list) {
 		LinkedList<Expression> expressionList = new LinkedList<Expression>();
 
 		boolean repeatable = false;
@@ -114,12 +116,12 @@ public class Expression {
 
 					Expression bracketed;
 					if (repeatable || optional) {
-						Expression meta = new Expression(new Segment(), repeatable, optional);
-						bracketed = new Expression(new Segment(), false, false);
+						Expression meta = new Expression("", repeatable, optional);
+						bracketed = new Expression("", false, false);
 						meta.add(bracketed);
 						expressionList.addFirst(meta);
 					} else {
-						bracketed = new Expression(new Segment(), false, false);
+						bracketed = new Expression("", false, false);
 						expressionList.addFirst(bracketed);
 					}
 					bracketed.setParallel(true);
@@ -144,13 +146,13 @@ public class Expression {
 				} else {
 					Expression terminal;
 					if (repeatable || optional) {
-						Expression meta = new Expression(new Segment(),  repeatable, optional);
+						Expression meta = new Expression("",  repeatable, optional);
 
-						terminal = new Expression(new Segment(currentString), false, false);
+						terminal = new Expression(currentString, false, false);
 						meta.add(terminal);
 						expressionList.addFirst(meta);
 					} else {
-						terminal = new Expression(new Segment(currentString), false, false);
+						terminal = new Expression(currentString, false, false);
 						expressionList.addFirst(terminal);
 					}
 				}
@@ -232,7 +234,7 @@ public class Expression {
 	}
 
 	private void add(Expression ex) {
-		subexpressions.addFirst(ex);
+		expressions.addFirst(ex);
 	}
 
 	public boolean isNegative() {
@@ -252,10 +254,10 @@ public class Expression {
 	}
 
 	public boolean isTerminal() {
-		return subexpressions.isEmpty() && !segment.isEmpty();
+		return expressions.isEmpty() && !segment.isEmpty();
 	}
 
-	public Segment getSegment() {
+	public String getString() {
 		return segment;
 	}
 
@@ -268,15 +270,15 @@ public class Expression {
 	}
 
 	public boolean hasSubexpressions() {
-		return !subexpressions.isEmpty();
+		return !expressions.isEmpty();
 	}
 
 	public Expression getFirstChild() {
-		return subexpressions.getFirst();
+		return expressions.getFirst();
 	}
 
 	private List<Expression> getSubExpressions() {
-		return subexpressions;
+		return expressions;
 	}
 
 	public List<Expression> getSubExpressions(boolean isForward) {
@@ -288,15 +290,15 @@ public class Expression {
 	}
 
 	public int subexpressionSize() {
-		return subexpressions.size();
+		return expressions.size();
 	}
 
 	public int getSize() {
-		return subexpressions.size();
+		return expressions.size();
 	}
 
 	public Expression getSubExpression(int i) {
-		return subexpressions.get(i);
+		return expressions.get(i);
 	}
 
 	public String toString() {
@@ -304,7 +306,7 @@ public class Expression {
 		if (isTerminal()) {
 			string = segment.toString();
 		} else {
-			for (Expression exp : subexpressions) {
+			for (Expression exp : expressions) {
 				String str = exp.toString();
 
 				if (isParallel) {
@@ -316,7 +318,7 @@ public class Expression {
 
 			if (isParallel) {
 				string = "{" + string.trim() + "}";
-			} else if (subexpressions.size() > 1) {
+			} else if (expressions.size() > 1) {
 				string = "(" + string.trim() + ")";
 			}
 		}

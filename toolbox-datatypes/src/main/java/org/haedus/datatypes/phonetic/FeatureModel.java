@@ -48,12 +48,11 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private final Map<String, Integer>     featureNames;
-	private final Map<String, Integer>     featureAliases;
-	private final RectangularTable<Double> weightTable;
-
+	private final Map<String, Integer>      featureNames;
+	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
+	private final RectangularTable<Double>  weightTable;
 
 	private SegmentationMode segmentationMode;
 
@@ -63,16 +62,16 @@ public class FeatureModel {
 	public FeatureModel() {
 		featureNames     = new HashMap<String, Integer>();
 		featureAliases   = new HashMap<String, Integer>();
-		weightTable      = new RectangularTable<Double>();
 		featureMap       = new LinkedHashMap<String, List<Double>>();
 		diacritics       = new LinkedHashMap<String, List<Double>>();
+		weightTable      = new RectangularTable<Double>();
 		segmentationMode = SegmentationMode.DEFAULT;
 	}
 
 	public FeatureModel(File file) {
 		this();
 		try {
-			readTable(FileUtils.readLines(file, "UTF-8"));
+			readModelFromFile(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
@@ -81,13 +80,17 @@ public class FeatureModel {
 	public Sequence getSequence(Iterable<String> word) {
 		Sequence sequence = new Sequence(this);
 		for (String element : word) {
-			sequence.add(new Segment(element, getValue(element)));
+			sequence.add(getSegment(element));
 		}
 		return sequence;
 	}
 
-	public Sequence getBlankSequence() {
-		return new Sequence(this);
+	public List<Double> getFeaturesNaN() {
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		return list;
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {
@@ -136,31 +139,31 @@ public class FeatureModel {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj.getClass() != getClass())
-			return false;
+		if (obj == null)                  return false;
+		if (obj.getClass() != getClass()) return false;
 
 		FeatureModel other = (FeatureModel) obj;
 
-		boolean featureEquals = featureMap.equals(other.featureMap);
-		boolean weightsEquals = weightTable.equals(other.weightTable);
+		boolean featureEquals = featureMap.equals(other.getFeatureMap());
+		boolean weightsEquals = weightTable.equals(other.getWeights());
 		return featureEquals && weightsEquals;
 	}
 
-	@Override
-	public String toString() {
-		return featureMap.toString();
-	}
-
 	public double computeScore(Segment l, Segment r) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.getNumberOfFeatures(), r, r.getNumberOfFeatures());
+		}
 		double score = 0;
-		int n = l.dimension();
+		int n = l.getNumberOfFeatures();
 		for (int i = 0; i < n; i++) {
 			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
 				double b = r.getFeatureValue(j);
-				score += Math.abs(a - b) * weightTable.get(i, j);
+				if (weightTable.getNumberOfColumns() == getNumberOfFeatures()) {
+					score += Math.abs(a - b) * weightTable.get(i, j);
+				} else {
+					score += Math.abs(a - b);
+				}
 			}
 		}
 		return score;
@@ -188,16 +191,8 @@ public class FeatureModel {
 		return featureNames.size();
 	}
 
-	public Segment gap() {
-		List<Double> features = new ArrayList<Double>();
-		for (int i = 0; i < featureNames.size(); i++) {
-			features.add(Double.NaN);
-		}
-		return new Segment("_", features);
-	}
-
 	public Segment getSegment(String string) {
-		return new Segment(string, getValue(string));
+		return new Segment(string, getValue(string), this);
 	}
 
 	public Map<String, List<Double>> getFeatureMap() {
@@ -296,7 +291,7 @@ public class FeatureModel {
 		return sum;
 	}
 
-	private void readTable(List<String> lines) {
+	private void readModelFromFile(List<String> lines) {
 
 		boolean hasDiacritics = false;
 
@@ -324,7 +319,7 @@ public class FeatureModel {
 				row = ArrayUtils.remove(row, 0);
 			}
 			for (int i = 0; i < row.length; i++) {
-				featureNames.put(row[i], i);
+				featureAliases.put(row[i], i);
 			}
 		}
 

@@ -26,34 +26,36 @@ package org.haedus.datatypes.phonetic;
  */
 public class Alignment {
 
+    private final FeatureModel model;
 	private final Sequence left;
 	private final Sequence right;
     private double score = Double.NaN;
 
 	public Alignment(Sequence l, Sequence r) {
-		left  = l;
-		right = r;
+        if (l.getFeatureModel() == r.getFeatureModel()) {
+		    left  = l;
+		    right = r;
+            model = l.getFeatureModel();
+        } else {
+            throw new RuntimeException(
+                    "Attempting to create an Alignment with Sequences backed by two different FeatureModels: " +
+                    "\t" + l.getFeatureModel().toString() +
+                    "\t" + r.getFeatureModel().toString()
+            );
+        }
 	}
 
-	public Alignment(Segment l, Segment r) {
-		left  = new Sequence(l);
-		right = new Sequence(r);
-    }
-
-    public Alignment() {
+    public Alignment(FeatureModel modelParam) {
         left  = Sequence.EMPTY_SEQUENCE;
         right = Sequence.EMPTY_SEQUENCE;
+        model = modelParam;
     }
 
 	public Alignment(Alignment alignment) {
 		left  = new Sequence(alignment.getLeft());
 		right = new Sequence(alignment.getRight());
+        model = alignment.getModel();
 	}
-
-    public void add(Segment a, Segment b) {
-        left.add(a);
-        right.add(b);
-    }
 
     public void add(Alignment a) {
         left.add(a.getLeft());
@@ -75,8 +77,8 @@ public class Alignment {
     }
 
     public Alignment get(int i) {
-        Segment l = left.get(i);
-        Segment r = right.get(i);
+        Sequence l = left.getSubsequence(i, i + 1);
+        Sequence r = right.getSubsequence(i, i + 1);
         return new Alignment(l,r);
     }
 
@@ -90,10 +92,8 @@ public class Alignment {
 
 	@Override
     public boolean equals(Object obj) {
-        if (obj == null)
-	        return false;
-		if (obj.getClass() != getClass())
-			return false;
+        if (obj == null)                  return false;
+		if (obj.getClass() != getClass()) return false;
 
 		Alignment alignment = (Alignment) obj;
 
@@ -107,5 +107,9 @@ public class Alignment {
 
     public Sequence getRight() {
         return right;
+    }
+
+    public FeatureModel getModel() {
+        return model;
     }
 }

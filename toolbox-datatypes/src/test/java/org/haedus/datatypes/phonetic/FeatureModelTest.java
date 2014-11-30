@@ -63,7 +63,7 @@ public class FeatureModelTest {
 	@Test
 	public void testConstructor01() throws Exception {
 		Segment received = model.getSegment("g");
-		Segment expected = new Segment("g", G_FEATURES);
+		Segment expected = new Segment("g", G_FEATURES, model);
 
 		assertEquals(expected, received);
 	}

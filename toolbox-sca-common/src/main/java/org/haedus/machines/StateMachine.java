@@ -58,41 +58,10 @@ public class StateMachine {
 		startNode = getNodeFromExpression(expression, isForward);
 	}
 
-	public int getMatchSize(Sequence sequence) {
-		int finalIndex = -1;
-		sequence.add(new Segment("#"));
-		// At the beginning of the process, we are in the start-state
-		// so we find out what arcs leave the node.
-		List<MatchState> states = new ArrayList<MatchState>();
-		List<MatchState> swap   = new ArrayList<MatchState>();
-		// Add an initial state at the beginning of the sequence
-		states.add(new MatchState(0, startNode));
-		// if the condition is empty, it will always match
-		boolean match = startNode.isEmpty();
-		while (!match && !states.isEmpty()) {
-			for (MatchState state : states) {
-
-				Node currentNode = state.getNode();
-				int index = state.getIndex();
-
-				if (!currentNode.isAccepting()) {
-					updateSwapStates(sequence, swap, currentNode, index);
-				} else {
-					match = true;
-					finalIndex = index;
-					break;
-				}
-			}
-			states = swap;
-			swap = new LinkedList<MatchState>();
-		}
-		return finalIndex;
-	}
-
     // Determines if the Sequence is accepted by this machine
 	public boolean matches(Sequence sequence) {
 
-		sequence.add(new Segment("#"));
+		sequence.add(new Segment("#", featureModel.getFeaturesNaN(), featureModel));
 		// At the beginning of the process, we are in the start-state
 		// so we find out what arcs leave the node.
 		List<MatchState> states = new ArrayList<MatchState>();
@@ -208,13 +177,14 @@ public class StateMachine {
 	private Node getNode(boolean forward, Node start, Expression ex) {
 
 		if (ex.isTerminal()) {
-			Segment segment = ex.getSegment();
+			String element = ex.getString();
+			Sequence sequence = Segmenter.getSequence(element, featureModel, variableStore, segmentationMode);
 
 			if (ex.isOptional() && ex.isRepeatable()) {
-				start.add(segment, start);
+				start.add(sequence, start);
 			} else {
 				Node next = NodeFactory.getNode();
-				start.add(segment, next);
+				start.add(sequence, next);
 				if (ex.isRepeatable())
 					next.add(start);
 				else if (ex.isOptional())
@@ -273,6 +243,16 @@ public class StateMachine {
 		@Override
 		public int hashCode() {
 			return 13 * index.hashCode() * node.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null)                  return false;
+			if (obj.getClass() != getClass()) return false;
+
+			MatchState other = (MatchState) obj;
+			return index == other.getIndex() &&
+			       node.equals(other.getNode());
 		}
 	}
 }
