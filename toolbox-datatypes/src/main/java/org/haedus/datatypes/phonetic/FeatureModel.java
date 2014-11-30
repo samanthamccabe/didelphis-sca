@@ -122,7 +122,7 @@ public class FeatureModel {
 		featureMap.put(symbol, features);
 	}
 
-	public void addSegment(String symbol) {
+	public void reserveSymbol(String symbol) {
 		addSegment(symbol, new ArrayList<Double>());
 	}
 

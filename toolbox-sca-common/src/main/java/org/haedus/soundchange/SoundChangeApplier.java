@@ -216,7 +216,7 @@ public class SoundChangeApplier {
 				} else if (command.startsWith(RESERVE)) {
 					String reserve = command.replaceAll(RESERVE + ":? *", "");
 					for (String symbol : reserve.split(" +")) {
-						model.addSegment(symbol);
+						model.reserveSymbol(symbol);
 					}
 				} else if (command.startsWith("BREAK")) {
 					// Stop parsing commands
