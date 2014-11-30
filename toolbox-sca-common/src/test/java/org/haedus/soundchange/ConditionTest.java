@@ -16,6 +16,8 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -527,7 +529,7 @@ public class ConditionTest {
 		VariableStore vs = new VariableStore();
 		vs.add("C = p t k b d g pʰ tʰ kʰ");
 
-		Condition condition = new Condition("_C+#",vs);
+		Condition condition = new Condition("_C+#", vs, new FeatureModel(), SegmentationMode.DEFAULT);
 
 		testTrue(condition,  "abaptk",  2);
 		testTrue(condition,  "abapppp", 2);
@@ -545,10 +547,10 @@ public class ConditionTest {
 	
 	@Test
 	public void testVariablesDebug01() throws ParseException {
-		VariableStore vs = new VariableStore();
-		vs.add("C = p t k b d g pʰ tʰ kʰ");
+		VariableStore store = new VariableStore();
+		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		Condition condition = new Condition("_C+#", vs);
+		Condition condition = new Condition("_C+#", store, new FeatureModel(), SegmentationMode.DEFAULT);
 		
 		testTrue(condition,  "abatʰkʰ", 2);
 	}

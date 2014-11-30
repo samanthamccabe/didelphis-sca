@@ -16,6 +16,7 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -33,51 +34,50 @@ public class Condition {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
-	private final FeatureModel  featureModel;
-	private final String        conditionText;
-	private final StateMachine  preCondition;
-	private final StateMachine  postCondition;
-	private final VariableStore variableStore;
+	private final String           conditionText;
+	private final StateMachine     preCondition;
+	private final StateMachine     postCondition;
+	private final FeatureModel     featureModel;
+	private final VariableStore    variableStore;
+	private final SegmentationMode segmentationMode;
 
 	public Condition() {
-		conditionText = "";
-		preCondition = new StateMachine();
-		postCondition = new StateMachine();
-		variableStore = new VariableStore();
-		featureModel = new FeatureModel();
+		conditionText    = "";
+		preCondition     = new StateMachine();
+		postCondition    = new StateMachine();
+		variableStore    = new VariableStore();
+		featureModel     = new FeatureModel();
+		segmentationMode = SegmentationMode.DEFAULT;
 	}
 
 	// package-private: testing only
 	Condition(String condition) throws RuleFormatException {
-		this(condition, new VariableStore());
+		this(condition, new VariableStore(), new FeatureModel(), SegmentationMode.DEFAULT);
 	}
 
-	public Condition(String condition, VariableStore variables, FeatureModel model) throws RuleFormatException {
-		conditionText = cleanup(condition);
-		variableStore = variables;
-		featureModel = model;
+	public Condition(String condition, VariableStore variables, FeatureModel model, SegmentationMode segmentationModeParam) throws RuleFormatException {
+		conditionText    = cleanup(condition);
+		variableStore    = variables;
+		featureModel     = model;
+		segmentationMode = segmentationModeParam;
 
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition = new StateMachine(conditions[0], variableStore, false);
+				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, false);
 				postCondition = new StateMachine();
 			} else if (conditions.length == 2) {
-				preCondition = new StateMachine(conditions[0], variableStore, false);
-				postCondition = new StateMachine(conditions[1], variableStore, true);
+				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, false);
+				postCondition = new StateMachine(conditions[1], featureModel, variableStore, segmentationMode, true);
 			} else if (conditions.length == 0) {
+				preCondition  = new StateMachine();
 				postCondition = new StateMachine();
-				preCondition = new StateMachine();
 			} else {
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
 		} else {
 			throw new RuleFormatException("Malformed Condition, no _ character");
 		}
-	}
-
-	public Condition(String condition, VariableStore variables) throws RuleFormatException {
-		this(condition, variables, new FeatureModel());
 	}
 
 	public StateMachine getPostCondition() {

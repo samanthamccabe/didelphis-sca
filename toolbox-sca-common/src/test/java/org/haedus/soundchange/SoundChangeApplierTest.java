@@ -16,6 +16,7 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -98,7 +99,8 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(
 					word,
 					soundChangeApplier.getFeatureModel(),
-					soundChangeApplier.getVariables());
+					soundChangeApplier.getVariables(),
+					SegmentationMode.DEFAULT);
 			expected.add(sequence);
 		}
 		assertEquals(expected, received);

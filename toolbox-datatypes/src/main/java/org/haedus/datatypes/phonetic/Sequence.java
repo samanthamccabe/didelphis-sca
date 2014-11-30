@@ -47,7 +47,7 @@ public class Sequence implements Iterable<Segment> {
 		if (segmentSize == featureSize) {
 			sequence.add(g);
 		} else {
-			throw new RuntimeException("Attempt to add segment with incorrect number of features, " + segmentSize + "; this Sequence is backed by a model with " + featureSize + " features.");
+			throw new RuntimeException("Attempt to add getSegmentedString with incorrect number of features, " + segmentSize + "; this Sequence is backed by a model with " + featureSize + " features.");
 		}
 	}
 
