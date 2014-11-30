@@ -44,9 +44,9 @@ public class StateMachine {
 	private final SegmentationMode segmentationMode;
 
 	public StateMachine() {
-		variableStore = new VariableStore();
-		startNode     = new Node(0);
-		featureModel  = new FeatureModel();
+		variableStore    = new VariableStore();
+		startNode        = new Node(0);
+		featureModel     = new FeatureModel();
 		segmentationMode = SegmentationMode.DEFAULT;
 	}
 

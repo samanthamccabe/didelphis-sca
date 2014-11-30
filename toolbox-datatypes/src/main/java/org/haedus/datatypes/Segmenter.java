@@ -59,7 +59,6 @@ public final class Segmenter {
 		} else {
 			throw new UnsupportedOperationException("Unsupported segmentation mode " + modeParam);
 		}
-
 		return list;
 	}
 
@@ -70,16 +69,8 @@ public final class Segmenter {
 		keys.addAll(variables.getKeys());
 
 		List<String> list = getSegmentedString(word, keys, mode);
-//		if (mode == SegmentationMode.DEFAULT) {
-//			list = segment(word, keys);
-//		} else if (mode == SegmentationMode.NAIVE) {
-//			list = segmentNaively(word, keys);
-//		} else {
-//			throw new UnsupportedOperationException("Unsupported segmentation mode " + mode);
-//		}
-		// TODO: this should be different, not relying on this constructor
-		// but that would could wait until after the segmenter is retired.
-		return new Sequence(list, model);
+
+		return model.getSequence(list);
 	}
 
 	private static List<String> segment(String word, Iterable<String> keys) {

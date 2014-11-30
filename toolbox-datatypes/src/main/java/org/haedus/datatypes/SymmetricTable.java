@@ -21,12 +21,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
- * @author Samantha Fiona Morrigan McCabe
- *
  * @param <T>
+ * @author Samantha Fiona Morrigan McCabe
  */
-public class SymmetricTable<T> {
+public class SymmetricTable<T> implements Table<T> {
 
 	private final int     dimension;
 	private final List<T> array;
@@ -36,35 +34,75 @@ public class SymmetricTable<T> {
 		array = new ArrayList<T>();
 	}
 
-    public SymmetricTable(int n) {
-        dimension = n;
-        array = new ArrayList<T>(n);
+	public SymmetricTable(int n) {
+		dimension = n;
+		array = new ArrayList<T>(n);
 	}
 
-    public SymmetricTable(int n, T[] array) {
-	    dimension = n;
+	public SymmetricTable(int n, T[] array) {
+		dimension = n;
 		this.array = new ArrayList<T>();
 
-		Collections.addAll(this.array,array);
+		Collections.addAll(this.array, array);
 	}
 
-    public SymmetricTable(T defaultValue, int n) {
-        this(n);
-        for( int i = 0; i < array.size(); i++) {
-            array.set(i, defaultValue);
-        }
+	public SymmetricTable(T defaultValue, int n) {
+		this(n);
+		for (int i = 0; i < array.size(); i++) {
+			array.set(i, defaultValue);
+		}
 	}
 
+	@Override
 	public T get(int i, int j) {
-		return array.get(getIndex(i,j));
+		return array.get(getIndex(i, j));
 	}
 
+	@Override
 	public void set(T t, int i, int j) {
-	    array.set(getIndex(i, j), t);
+		array.set(getIndex(i, j), t);
 	}
 
-	public int getIndex(int i, int j) {
-	    return (i + (j * (i+1)));
+	@Override
+	public int totalSize() {
+		return array.size();
+	}
+
+	@Override
+	public int getNumberRows() {
+		return dimension;
+	}
+
+	@Override
+	public int getNumberOfColumns() {
+		return dimension;
+	}
+
+	@Override
+	public List<T> getBackingList() {
+		return Collections.unmodifiableList(array);
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = 33;
+		for (int i = 0; i < array.size(); i++) {
+			hashCode += array.get(i).hashCode() + i;
+		}
+		return hashCode * dimension;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+
+		if (obj == null)
+			return false;
+		if (obj.getClass() != getClass())
+			return false;
+
+		SymmetricTable<?> other = (SymmetricTable<?>) obj;
+
+		return (dimension == other.getNumberOfColumns()) && array.equals(other.getBackingList());
 	}
 
 	@Override
@@ -78,35 +116,7 @@ public class SymmetricTable<T> {
 		return s;
 	}
 
-	public List<T> getArray() {
-	    return Collections.unmodifiableList(array);
+	private int getIndex(int i, int j) {
+		return (i + (j * (i + 1)));
 	}
-
-    public int size() {
-        return array.size();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-
-		if (obj == null) return false;
-		if (obj.getClass() != getClass()) return false;
-
-		SymmetricTable<?> other = (SymmetricTable<?>) obj;
-
-		return (dimension == other.getDimension()) &&  array.equals(other.getArray());
-    }
-
-    @Override
-    public int hashCode() {
-		int hashCode = 33;
-		for (int i = 0; i < array.size(); i++) {
-			hashCode += array.get(i).hashCode() + i;
-		}
-		return hashCode * dimension;
-	}
-
-    public int getDimension() {
-        return dimension;
-    }
 }

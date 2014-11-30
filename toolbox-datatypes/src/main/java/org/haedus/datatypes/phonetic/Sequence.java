@@ -54,24 +54,13 @@ public class Sequence implements Iterable<Segment> {
 	// Used to test basic access only
 	Sequence(String word) {
 		this();
-
 		for (char c : word.toCharArray()) {
 			sequence.add(new Segment(new String(new char[]{ c })));
 		}
 	}
 
-	public Sequence(List<String> word, FeatureModel featureTable) {
-		sequence = new LinkedList<Segment>();
-		featureModel = featureTable;
-
-		for (String element : word) {
-			sequence.add(new Segment(element, featureModel.getValue(element)));
-		}
-	}
-
 	private Sequence() {
-		sequence = new LinkedList<Segment>();
-		featureModel = new FeatureModel();
+		this(new FeatureModel());
 	}
 
 	// Used to produce empty copies with the same model

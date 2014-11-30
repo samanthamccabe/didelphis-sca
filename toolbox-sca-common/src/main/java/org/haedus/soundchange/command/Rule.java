@@ -56,7 +56,7 @@ public class Rule implements Command {
 	private final FeatureModel     featureModel;
 	private final SegmentationMode segmentationMode;
 
-	private final Map<Sequence, Sequence>     transform;
+	private final Map<Sequence, Sequence> transform;
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
@@ -309,7 +309,7 @@ public class Rule implements Command {
 
 	private void balanceTransform(List<String> source, List<String> target) throws RuleFormatException {
 		if (target.size() > source.size()) {
-			throw new RuleFormatException("Source/Target size error! " + source + " < " + target);
+			throw new RuleFormatException("Source/Target totalSize error! " + source + " < " + target);
 		}
 		if (target.size() < source.size()) {
 			if (target.size() == 1) {
@@ -318,7 +318,7 @@ public class Rule implements Command {
 					target.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Source/Target size error! " + source + " > " + target + " and target size is greater than 1!");
+				throw new RuleFormatException("Source/Target totalSize error! " + source + " > " + target + " and target totalSize is greater than 1!");
 			}
 		}
 	}

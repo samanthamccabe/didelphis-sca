@@ -43,16 +43,15 @@ public class SequenceFactory {
 		keys.addAll(featureModel.getSymbols());
 		keys.addAll(variableStore.getKeys());
 
+		List<String> list;
 		if (segmentationMode == SegmentationMode.DEFAULT) {
-			List<String> list = segment(word, keys);
-			return new Sequence(list, featureModel);
+			list = segment(word, keys);
 		} else if (segmentationMode == SegmentationMode.NAIVE) {
-			List<String> list = segmentNaively(word, keys);
-			return new Sequence(list, featureModel);
+			list = segmentNaively(word, keys);
 		} else {
-			LOGGER.error("Mode {} not supported by this operation", segmentationMode);
-			return null;
+			throw new UnsupportedOperationException("Unsupported segmentation mode " + segmentationMode);
 		}
+		return featureModel.getSequence(list);
 	}
 
 	public FeatureModel getFeatureModel() {

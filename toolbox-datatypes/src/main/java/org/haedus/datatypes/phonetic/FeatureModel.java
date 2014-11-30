@@ -26,6 +26,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.haedus.datatypes.RectangularTable;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Table;
 
@@ -47,9 +48,9 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	private final Map<String, Integer> featureNames;
-	private final Map<String, Integer> featureAliases;
-	private final Table<Double>        weightTable;
+	private final Map<String, Integer>     featureNames;
+	private final Map<String, Integer>     featureAliases;
+	private final RectangularTable<Double> weightTable;
 
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
@@ -62,7 +63,7 @@ public class FeatureModel {
 	public FeatureModel() {
 		featureNames     = new HashMap<String, Integer>();
 		featureAliases   = new HashMap<String, Integer>();
-		weightTable      = new Table<Double>();
+		weightTable      = new RectangularTable<Double>();
 		featureMap       = new LinkedHashMap<String, List<Double>>();
 		diacritics       = new LinkedHashMap<String, List<Double>>();
 		segmentationMode = SegmentationMode.DEFAULT;
@@ -75,6 +76,14 @@ public class FeatureModel {
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
+	}
+
+	public Sequence getSequence(Iterable<String> word) {
+		Sequence sequence = new Sequence(this);
+		for (String element : word) {
+			sequence.add(new Segment(element, getValue(element)));
+		}
+		return sequence;
 	}
 
 	public Sequence getBlankSequence() {
@@ -102,7 +111,6 @@ public class FeatureModel {
 		if (minimum > 0.0) {
 			bestDiacritic = getBestDiacritic(featureArray, bestFeatures);
 		}
-
 		return Normalizer.normalize(bestSymbol + bestDiacritic, Normalizer.Form.NFC);
 	}
 
@@ -120,13 +128,9 @@ public class FeatureModel {
 
 	@Override
 	public int hashCode() {
-		int code = 7543;
-		if (featureMap != null) {
-			code *= featureMap.hashCode();
-		}
-		if (weightTable != null) {
-			code *= weightTable.hashCode();
-		}
+		int code = 91;
+		code *= (featureMap  != null) ? featureMap.hashCode()  : 1;
+		code *= (weightTable != null) ? weightTable.hashCode() : 1;
 		return code;
 	}
 
@@ -371,7 +375,7 @@ public class FeatureModel {
 	 */
 	private Table<Double> readWeights(List<String> lines) {
 		int numberOfWeights = lines.get(0).split("\t").length;
-		Table<Double> table = new Table<Double>(0.0, numberOfWeights, numberOfWeights);
+		Table<Double> table = new RectangularTable<Double>(0.0, numberOfWeights, numberOfWeights);
 
 		for (int i = 0; i < lines.size(); i++) {
 			String[] row = lines.get(i).split("\t");
