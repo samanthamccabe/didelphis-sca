@@ -17,7 +17,6 @@
 package org.haedus.datatypes.phonetic;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.haedus.datatypes.Segmenter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,29 +35,20 @@ public class Sequence implements Iterable<Segment> {
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
 
-	private Sequence() {
-		sequence = new LinkedList<Segment>();
-		featureModel = new FeatureModel();
-	}
-
-	public Sequence(Segment g) {
-		this();
-		if (g.dimension() == featureModel.getNumberOfFeatures()) {
-			sequence.add(g);
-		} else {
-			// TODO: Throw an exception
-		}
-	}
-
 	public Sequence(Sequence q) {
 		sequence = new ArrayList<Segment>(q.getSegments());
 		featureModel = q.getFeatureModel();
 	}
 
-	// Used to produce empty copies with the same model
-	private Sequence(FeatureModel modelParam) {
-		sequence = new LinkedList<Segment>();
-		featureModel = modelParam;
+	public Sequence(Segment g) {
+		this();
+		int segmentSize = g.dimension();
+		int featureSize = featureModel.getNumberOfFeatures();
+		if (segmentSize == featureSize) {
+			sequence.add(g);
+		} else {
+			throw new RuntimeException("Attempt to add segment with incorrect number of features, " + segmentSize + "; this Sequence is backed by a model with " + featureSize + " features.");
+		}
 	}
 
 	// Used to test basic access only
@@ -70,7 +60,6 @@ public class Sequence implements Iterable<Segment> {
 		}
 	}
 
-	@Deprecated
 	public Sequence(List<String> word, FeatureModel featureTable) {
 		sequence = new LinkedList<Segment>();
 		featureModel = featureTable;
@@ -78,6 +67,17 @@ public class Sequence implements Iterable<Segment> {
 		for (String element : word) {
 			sequence.add(new Segment(element, featureModel.getValue(element)));
 		}
+	}
+
+	private Sequence() {
+		sequence = new LinkedList<Segment>();
+		featureModel = new FeatureModel();
+	}
+
+	// Used to produce empty copies with the same model
+	Sequence(FeatureModel modelParam) {
+		sequence = new LinkedList<Segment>();
+		featureModel = modelParam;
 	}
 
 	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {
@@ -101,16 +101,6 @@ public class Sequence implements Iterable<Segment> {
 
 	public void add(Segment[] segments) {
 		Collections.addAll(sequence, segments);
-	}
-
-	@Override
-	public String toString() {
-		String s = "";
-
-		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol());
-		}
-		return s.trim();
 	}
 
 	public Segment get(int i) {
@@ -260,6 +250,16 @@ public class Sequence implements Iterable<Segment> {
 		boolean featuresEquals = featureModel.equals(object.featureModel);
 		return sequenceEquals &&
 		       featuresEquals;
+	}
+
+	@Override
+	public String toString() {
+		String s = "";
+
+		for (Segment a_sequence : sequence) {
+			s = s.concat(a_sequence.getSymbol());
+		}
+		return s.trim();
 	}
 
 	public boolean isEmpty() {
