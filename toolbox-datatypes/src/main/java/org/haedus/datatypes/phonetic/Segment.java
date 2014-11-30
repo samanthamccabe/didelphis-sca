@@ -53,7 +53,7 @@ public class Segment {
 
 	public Segment(Segment segment) {
 		symbol   = segment.getSymbol();
-		model    = segment.getModel();
+		model    = segment.getFeatureModel();
 		features = segment.getFeatures();
 	}
 
@@ -70,7 +70,7 @@ public class Segment {
 		features = new ArrayList<Double>(featureArray);
 	}
 
-	public FeatureModel getModel() {
+	public FeatureModel getFeatureModel() {
 		return model;
 	}
 
@@ -86,7 +86,7 @@ public class Segment {
 		Segment other = (Segment) obj;
 		return symbol.equals(other.getSymbol()) &&
 		       features.equals(other.getFeatures())
-		       && model.equals(other.getModel());
+		       && model.equals(other.getFeatureModel());
 	}
 
 	@Override

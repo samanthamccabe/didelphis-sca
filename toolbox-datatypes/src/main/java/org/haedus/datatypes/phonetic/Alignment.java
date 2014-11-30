@@ -57,6 +57,20 @@ public class Alignment {
         model = alignment.getModel();
 	}
 
+    public void add(Segment l, Segment r) {
+        if (left.getFeatureModel().equals(l.getFeatureModel()) &&
+            right.getFeatureModel().equals(r.getFeatureModel())) {
+            left.add(l);
+            right.add(r);
+        } else {
+            throw new RuntimeException(
+                    "Attempting to create an Alignment with Sequences backed by different FeatureModels than are used in this alignment: " +
+                    "\tLeft  " + left.getFeatureModel().toString()  + " vs " + l.getFeatureModel().toString() +
+                    "\tRight " + right.getFeatureModel().toString() + " vs " + r.getFeatureModel().toString()
+            );
+        }
+    }
+
     public void add(Alignment a) {
         left.add(a.getLeft());
         right.add(a.getRight());
