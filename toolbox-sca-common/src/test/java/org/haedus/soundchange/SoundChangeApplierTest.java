@@ -16,8 +16,11 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
@@ -96,7 +99,8 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(
 					word,
 					soundChangeApplier.getFeatureModel(),
-					soundChangeApplier.getVariables());
+					soundChangeApplier.getVariables(),
+					SegmentationMode.DEFAULT);
 			expected.add(sequence);
 		}
 		assertEquals(expected, received);
@@ -110,12 +114,13 @@ public class SoundChangeApplierTest {
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
 		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
 
+		SequenceFactory factory = new SequenceFactory();
 		List<Sequence> expected = new ArrayList<Sequence>();
 		List<Sequence> received = soundChangeApplier.processLexicon(lexicon);
 
 		for (String s : lexicon) {
 			String word = Normalizer.normalize(s, Normalizer.Form.NFC);
-			Sequence sequence = new Sequence(word);
+			Sequence sequence = factory.getSequence(word);
 			expected.add(sequence);
 		}
 		assertEquals(expected, received);
@@ -129,12 +134,13 @@ public class SoundChangeApplierTest {
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
 		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
 
+		SequenceFactory factory = new SequenceFactory();
 		List<Sequence> expected = new ArrayList<Sequence>();
 		List<Sequence> received = soundChangeApplier.processLexicon(lexicon);
 
 		for (String s : lexicon) {
 			String word = Normalizer.normalize(s, Normalizer.Form.NFD);
-			Sequence sequence = new Sequence(word);
+			Sequence sequence = factory.getSequence(word);
 			expected.add(sequence);
 		}
 		assertNotEquals(expected, received);

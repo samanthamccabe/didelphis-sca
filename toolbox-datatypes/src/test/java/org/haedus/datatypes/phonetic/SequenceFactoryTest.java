@@ -18,9 +18,6 @@ package org.haedus.datatypes.phonetic;
 
 import org.junit.Test;
 
-import org.haedus.datatypes.Segmenter;
-import org.haedus.datatypes.phonetic.SequenceFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

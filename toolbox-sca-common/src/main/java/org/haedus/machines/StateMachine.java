@@ -16,6 +16,7 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Segment;
@@ -37,25 +38,24 @@ public class StateMachine {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	private final Node          startNode;
-	private final VariableStore variableStore;
-	private final FeatureModel  featureModel;
+	private final Node             startNode;
+	private final VariableStore    variableStore;
+	private final FeatureModel     featureModel;
+	private final SegmentationMode segmentationMode;
 
 	public StateMachine() {
-		variableStore = new VariableStore();
-		startNode     = new Node(0);
-		featureModel  = new FeatureModel();
+		variableStore    = new VariableStore();
+		startNode        = new Node(0);
+		featureModel     = new FeatureModel();
+		segmentationMode = SegmentationMode.DEFAULT;
 	}
 
-	public StateMachine(String expression, VariableStore store, FeatureModel model, boolean isForward) {
-		variableStore = store;
-		featureModel  = model;
+	public StateMachine(String expression, FeatureModel model, VariableStore store, SegmentationMode modeParam, boolean isForward) {
+		variableStore    = store;
+		featureModel     = model;
+		segmentationMode = modeParam;
 		
-		startNode = parseCharSequence(expression, isForward);
-	}
-
-	public StateMachine(String expression, VariableStore store, boolean isForward) {
-		this(expression, store, new FeatureModel(), isForward);
+		startNode = getNodeFromExpression(expression, isForward);
 	}
 
 	public int getMatchSize(Sequence sequence) {
@@ -150,13 +150,13 @@ public class StateMachine {
 	}
 
 	//
-	private Node parseCharSequence(String string, boolean isForward) {
+	private Node getNodeFromExpression(String string, boolean isForward) {
 		Collection<String> keys = new ArrayList<String>();
 		
 		keys.addAll(variableStore.getKeys());
 		keys.addAll(featureModel.getSymbols());
 		
-		List<String> list = Segmenter.segment(string, keys);
+		List<String> list = Segmenter.getSegmentedString(string, keys, segmentationMode);
 
 		Node root;
 		if (list.isEmpty()) {
@@ -244,14 +244,10 @@ public class StateMachine {
 		return start;
 	}
 
-	public String getGml() {
-		return Node.getGml(startNode);
-	}
-
 	/**
 	 * Utility class for matching strings
 	 */
-	private class MatchState {
+	private final class MatchState {
 
 		private final Integer index; // Where in the sequence the cursor is
 		private final Node    node;  // What node the cursor is currently on

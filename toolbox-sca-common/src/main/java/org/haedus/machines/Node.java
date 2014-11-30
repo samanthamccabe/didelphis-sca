@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -35,9 +36,10 @@ import java.util.Set;
  */
 public class Node {
 
-	private boolean isAccepting;
-	private final int id;
-	private final HashMap<Sequence, List<Node>> arcs;
+	private       boolean isAccepting;
+	private final int     id;
+
+	private final Map<Sequence, List<Node>> arcs;
 
 	protected Node(int i) {
 		id = i;
@@ -53,30 +55,34 @@ public class Node {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)                  return false;
-		if (obj.getClass() != getClass()) return false;
+		if (obj == null)
+			return false;
+		if (obj.getClass() != getClass())
+			return false;
 
 		Node other = (Node) obj;
-		return other.id == id && arcs.equals(other.arcs) && (isAccepting == other.isAccepting);
+		return other.id == id &&
+		       arcs.equals(other.arcs) &&
+		       isAccepting == other.isAccepting;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Node " + id + "\n");
-		
+
 		for (Entry<Sequence, List<Node>> entry : arcs.entrySet()) {
-			Sequence   key   = entry.getKey();
+			Sequence key = entry.getKey();
 			List<Node> value = entry.getValue();
-			
+
 			sb.append(key);
 			sb.append(" > [ ");
-			for (Node n : value) {
-				sb.append(n.id);
+			for (Node node : value) {
+				sb.append(node.getId());
 				sb.append(" ");
 			}
 			sb.append("]");
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -90,7 +96,7 @@ public class Node {
 	}
 
 	public void add(Node node) {
-		add(new Sequence(), node);
+		add(Sequence.EMPTY_SEQUENCE, node);
 	}
 
 	public void add(Segment segment, Node node) {
@@ -136,12 +142,8 @@ public class Node {
 	public static String getGml(Node start) {
 
 		Set<Node> nodes = new HashSet<Node>();
-
 		nodes.add(start);
-
-
 		recurseNodes(start, nodes);
-
 
 		StringBuilder sb = new StringBuilder();
 
@@ -161,7 +163,6 @@ public class Node {
 		for (Node source : nodes) {
 			for (Sequence sequence : source.getKeys()) {
 				for (Node target : source.getNodes(sequence)) {
-
 					sb.append("\tedge [\n");
 					sb.append("\t\t source ");
 					sb.append(source.getId());

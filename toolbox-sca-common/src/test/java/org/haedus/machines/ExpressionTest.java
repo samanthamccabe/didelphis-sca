@@ -16,6 +16,7 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -140,9 +141,9 @@ public class ExpressionTest {
 
 		Collections.addAll(variables, "@X", "[I]", "[U]", "V");
 
-		String expected  = "@X{([I]) ([U]) y w}V";
+		String expected  = "@X{[I] [U] y w}V";
 
-		List<String> segments = Segmenter.segment(expected);
+		List<String> segments = Segmenter.getSegmentedString(expected, variables, SegmentationMode.DEFAULT);
 		Expression expression = new Expression(segments);
 		String s = removeParentheses(expression);
 		assertEquals(expected, s);
@@ -157,7 +158,7 @@ public class ExpressionTest {
 	}
 
 	private void test(String original, String expected) {
-		List<String> segments = Segmenter.segment(original);
+		List<String> segments = Segmenter.getSegmentedString(original, new ArrayList<String>(), SegmentationMode.DEFAULT);
 		Expression expression = new Expression(segments);
 		String s = removeParentheses(expression);
 		assertEquals(expected, s);

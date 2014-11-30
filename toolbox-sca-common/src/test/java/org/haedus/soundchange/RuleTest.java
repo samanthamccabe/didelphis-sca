@@ -54,17 +54,17 @@ public class RuleTest {
 
 		Rule rule = new Rule("CN > $2$1", new FeatureModel(), store, SegmentationMode.DEFAULT);
 
-		testRule(rule, "pn","np");
-		testRule(rule, "tn","nt");
-		testRule(rule, "kn","nk");
+		testRule(rule, "pn", "np");
+		testRule(rule, "tn", "nt");
+		testRule(rule, "kn", "nk");
 
-		testRule(rule, "pm","mp");
-		testRule(rule, "tm","mt");
-		testRule(rule, "km","mk");
+		testRule(rule, "pm", "mp");
+		testRule(rule, "tm", "mt");
+		testRule(rule, "km", "mk");
 
-		testRule(rule, "pt","pt");
-		testRule(rule, "tp","tp");
-		testRule(rule, "kp","kp");
+		testRule(rule, "pt", "pt");
+		testRule(rule, "tp", "tp");
+		testRule(rule, "kp", "kp");
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
 		store.add("G = b d g");
-		store.add("N = m n"  );
+		store.add("N = m n");
 
 		Rule rule = new Rule("CN > $2$G1", new FeatureModel(), store, SegmentationMode.DEFAULT);
 

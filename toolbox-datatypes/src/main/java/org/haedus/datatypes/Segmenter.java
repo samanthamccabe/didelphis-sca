@@ -23,15 +23,15 @@ package org.haedus.datatypes;
 
 import org.slf4j.LoggerFactory;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.VariableStore;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.VariableStore;
 
 /**
  * Segmenter provides functionality to split strings into an an array where each element
@@ -40,20 +40,40 @@ import org.haedus.datatypes.phonetic.VariableStore;
  *
  * @author Samantha Fiona Morrigan McCabe
  */
-@Deprecated
-public class Segmenter {
+public final class Segmenter {
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
-	@Deprecated
-	public static List<String> segment(String word) {
-		return segment(word, new ArrayList<String>());
+	// Prevent the class from being instantiated
+	private Segmenter() {}
+
+	// Will throw null if segmentation mode is not supported
+	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode modeParam) {
+		List<String> list;
+		if (modeParam == SegmentationMode.DEFAULT) {
+			list = segment(word, keys);
+		} else if (modeParam == SegmentationMode.NAIVE) {
+			list = segmentNaively(word, keys);
+		} else {
+			throw new UnsupportedOperationException("Unsupported segmentation mode " + modeParam);
+		}
+		return list;
 	}
 
-	@Deprecated
-	public static List<String> segment(String word, Iterable<String> keys) {
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
+
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+
+		List<String> list = getSegmentedString(word, keys, mode);
+
+		return model.getSequence(list);
+	}
+
+	private static List<String> segment(String word, Iterable<String> keys) {
 		List<String> segments = new ArrayList<String>();
 
 		StringBuilder buffer = new StringBuilder();
@@ -124,8 +144,8 @@ public class Segmenter {
 	}
 
 	private static boolean isCombiningClass(int type) {
-		return (type == Character.MODIFIER_LETTER) || // LM
-		       (type == Character.MODIFIER_SYMBOL) || // SK
+		return (type == Character.MODIFIER_LETTER)        || // LM
+		       (type == Character.MODIFIER_SYMBOL)        || // SK
 		       (type == Character.COMBINING_SPACING_MARK) || // MC
 		       (type == Character.NON_SPACING_MARK);         // MN
 	}
@@ -153,43 +173,7 @@ public class Segmenter {
 		return buffer;
 	}
 
-
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
-		if (mode == SegmentationMode.DEFAULT) {
-			return getSequence(word, model, variables);
-		} else if (mode == SegmentationMode.NAIVE) {
-			return getSequenceNaively(word, model, variables);
-		} else {
-			LOGGER.error("Unsupported segmentation mode {}", mode);
-			return null;
-		}
-	}
-
-	@Deprecated
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables) {
-		// TODO: VariableStore has FeatureModel as a field. There is probably no need to pass both
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
-
-		List<String> list = segment(word, keys);
-
-		return new Sequence(list, model);
-	}
-
-	@Deprecated
-	public static Sequence getSequenceNaively(String word, FeatureModel model, VariableStore variables) {
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
-
-		List<String> list = segmentNaively(word, keys);
-
-		return new Sequence(list, model);
-	}
-
-	@Deprecated
-	public static List<String> segmentNaively(String word, Iterable<String> keys) {
+	private static List<String> segmentNaively(String word, Iterable<String> keys) {
 		List<String> segments = new ArrayList<String>();
 		for (int i = 0; i < word.length(); i++) {
 

@@ -49,13 +49,14 @@ public class Rule implements Command {
 
 	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
 
-	private final String          ruleText;
-	private final List<Condition> conditions;
-	private final List<Condition> exceptions;
-	private final VariableStore   variableStore;
-	private final FeatureModel    featureModel;
+	private final String           ruleText;
+	private final List<Condition>  conditions;
+	private final List<Condition>  exceptions;
+	private final VariableStore    variableStore;
+	private final FeatureModel     featureModel;
+	private final SegmentationMode segmentationMode;
 
-	private final Map<Sequence, Sequence>     transform;
+	private final Map<Sequence, Sequence> transform;
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
@@ -71,16 +72,17 @@ public class Rule implements Command {
 		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, segmentationMode);
 	}
 
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode segmentationMode) throws RuleFormatException {
-		ruleText      = rule;
-		featureModel  = model;
-		lexicons      = lexiconsParam;
-		transform     = new LinkedHashMap<Sequence, Sequence>();
-		exceptions    = new ArrayList<Condition>();
-		conditions    = new ArrayList<Condition>();
-		variableStore = new VariableStore(variables);
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode segmentationModeParam) throws RuleFormatException {
+		ruleText         = rule;
+		featureModel     = model;
+		lexicons         = lexiconsParam;
+		transform        = new LinkedHashMap<Sequence, Sequence>();
+		exceptions       = new ArrayList<Condition>();
+		conditions       = new ArrayList<Condition>();
+		variableStore    = new VariableStore(variables);
+		segmentationMode = segmentationModeParam;
 
-		populateConditions(model, segmentationMode);
+		populateConditions();
 	}
 
 	@Override
@@ -108,7 +110,6 @@ public class Rule implements Command {
 
 	@Override
 	public void execute() {
-//		for (List<Sequence> lexicon : lexicons.values()) {
 		for (List<List<Sequence>> lexicon : lexicons.values()) {
 			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
@@ -188,7 +189,7 @@ public class Rule implements Command {
 		return output;
 	}
 
-	private void populateConditions(FeatureModel model, SegmentationMode segmentationMode) throws RuleFormatException {
+	private void populateConditions() throws RuleFormatException {
 		String transform;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
@@ -203,17 +204,17 @@ public class Rule implements Command {
 					String[] split = conditionString.split("\\s+NOT\\s+");
 					if (split.length == 2) {
 						for (String con : split[0].split("\\s+OR\\s+")) {
-							conditions.add(new Condition(con, variableStore, model));
+							conditions.add(new Condition(con, variableStore, featureModel, segmentationMode));
 						}
 						for (String exc : split[1].split("\\s+OR\\s+")) {
-							exceptions.add(new Condition(exc, variableStore, model));
+							exceptions.add(new Condition(exc, variableStore, featureModel, segmentationMode));
 						}
 					} else {
 						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
 					}
 				} else {
 					for (String s : conditionString.split("\\s+OR\\s+")) {
-						conditions.add(new Condition(s, variableStore, model));
+						conditions.add(new Condition(s, variableStore, featureModel, segmentationMode));
 					}
 				}
 			}
@@ -226,7 +227,7 @@ public class Rule implements Command {
 
 	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
 		int variableIndex = 1;
-		Sequence replacement = new Sequence(featureModel);
+		Sequence replacement = featureModel.getBlankSequence();
 		// Step through the target pattern
 		for (int i = 0; i < target.size(); i++) {
 			Segment segment = target.get(i);
@@ -308,7 +309,7 @@ public class Rule implements Command {
 
 	private void balanceTransform(List<String> source, List<String> target) throws RuleFormatException {
 		if (target.size() > source.size()) {
-			throw new RuleFormatException("Source/Target size error! " + source + " < " + target);
+			throw new RuleFormatException("Source/Target totalSize error! " + source + " < " + target);
 		}
 		if (target.size() < source.size()) {
 			if (target.size() == 1) {
@@ -317,7 +318,7 @@ public class Rule implements Command {
 					target.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Source/Target size error! " + source + " > " + target + " and target size is greater than 1!");
+				throw new RuleFormatException("Source/Target totalSize error! " + source + " > " + target + " and target totalSize is greater than 1!");
 			}
 		}
 	}
