@@ -34,23 +34,7 @@ public class Segment {
 	private final String       symbol;
 	private final List<Double> features;
 
-	/**
-	 * Initialize an empty Segment
-	 */
-	@Deprecated
-	public Segment() {
-		symbol   = "";
-		model    = new FeatureModel();
-		features = new ArrayList<Double>();
-	}
-
-	@Deprecated
-	Segment(String string) {
-		symbol   = string;
-		model    = new FeatureModel();
-		features = new ArrayList<Double>();
-	}
-
+	// Copy-constructor
 	public Segment(Segment segment) {
 		symbol   = segment.getSymbol();
 		model    = segment.getFeatureModel();
@@ -68,6 +52,14 @@ public class Segment {
 		symbol   = s;
 		model    = modelParam;
 		features = new ArrayList<Double>(featureArray);
+	}
+
+	// Test only
+	@Deprecated
+	Segment(String string) {
+		symbol   = string;
+		model    = new FeatureModel();
+		features = new ArrayList<Double>();
 	}
 
 	public FeatureModel getFeatureModel() {

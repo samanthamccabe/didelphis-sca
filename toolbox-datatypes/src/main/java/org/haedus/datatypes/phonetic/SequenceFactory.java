@@ -51,7 +51,8 @@ public class SequenceFactory {
 		} else {
 			throw new UnsupportedOperationException("Unsupported segmentation mode " + segmentationMode);
 		}
-		return featureModel.getSequence(list);
+//		return featureModel.getSequence(list);
+		return null;
 	}
 
 	public FeatureModel getFeatureModel() {

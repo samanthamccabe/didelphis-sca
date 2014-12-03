@@ -16,6 +16,24 @@
 
 package org.haedus.datatypes.phonetic;
 
-public class SegmentTest
+import org.junit.Test;
+
+import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.Segmenter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class SegmenterTest
 {
+	@Test
+	public void testSegment() {
+		String word = "t͜sʰ";
+
+		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), SegmentationMode.DEFAULT);
+		assertFalse("Nothing was returned by the Segmenter!",segmentedString.isEmpty());
+	}
 }

@@ -77,13 +77,13 @@ public class FeatureModel {
 		}
 	}
 
-	public Sequence getSequence(Iterable<String> word) {
-		Sequence sequence = new Sequence(this);
-		for (String element : word) {
-			sequence.add(getSegment(element));
-		}
-		return sequence;
-	}
+//	public Sequence getSequence(Iterable<String> word) {
+//		Sequence sequence = new Sequence(this);
+//		for (String element : word) {
+//			sequence.add(getSegment(element));
+//		}
+//		return sequence;
+//	}
 
 	public List<Double> getFeaturesNaN() {
 		List<Double> list = new ArrayList<Double>();
@@ -191,21 +191,23 @@ public class FeatureModel {
 		return featureNames.size();
 	}
 
-	public Segment getSegment(String string) {
-		return new Segment(string, getValue(string), this);
-	}
+//	public Segment getSegment(String string) {
+//		return new Segment(string, getValue(string), this);
+//	}
 
 	public Map<String, List<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
 	public List<Double> getValue(String key) {
-		List<Double> value = new ArrayList<Double>();
-
 		if (featureMap.containsKey(key)) {
-			value = featureMap.get(key);
+			return featureMap.get(key);
+		} else if (getNumberOfFeatures() == 0) {
+			return new ArrayList<Double>();
+		} else {
+			LOGGER.error("Unable to find " + key +"  in model.");
+			return null;
 		}
-		return value;
 	}
 
 	public Table<Double> getWeights() {

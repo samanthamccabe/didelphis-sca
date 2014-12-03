@@ -24,6 +24,7 @@ package org.haedus.datatypes;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 
@@ -44,10 +45,13 @@ public final class Segmenter {
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
+	private static final transient org.slf4j.Logger LOGGER       = LoggerFactory.getLogger(Segmenter.class);
+	public static final            int              BINDER_START = 860;
+	public static final int BINDER_END = 866;
 
 	// Prevent the class from being instantiated
-	private Segmenter() {}
+	private Segmenter() {
+	}
 
 	// Will throw null if segmentation mode is not supported
 	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode modeParam) {
@@ -70,7 +74,17 @@ public final class Segmenter {
 
 		List<String> list = getSegmentedString(word, keys, mode);
 
-		return model.getSequence(list);
+		List<Segment> segments = new ArrayList<Segment>();
+
+		for (String item : list) {
+			// Get the base
+			String baseCharacter = getBestMatch(item, model.getSymbols());
+			// treat following characters as diacritics, look them up individually
+			// and create their feature values
+		}
+
+		//		return model.getSequence(list);
+		return null;
 	}
 
 	private static List<String> segment(String word, Iterable<String> keys) {
@@ -79,28 +93,34 @@ public final class Segmenter {
 		StringBuilder buffer = new StringBuilder();
 		int length = word.length();
 		for (int i = 0; i < length; i++) {
-			String substring = word.substring(i);
-			String key = getBestMatch(substring, keys);
+			String substring = word.substring(i);       // Get the word from current position on
+			String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
 			if (i == 0) {
+				// Assume that the first symbol must be a diacritic
+				// This doesn't universally word (prenasalized, preaspirated), but we don't support this in our model yet
 				if (key.isEmpty()) {
 					buffer.append(word.charAt(0));
 				} else {
 					buffer.append(key);
-					i += key.length() - 1;
+					i = key.length() - 1;
 				}
 			} else {
-				char c = word.charAt(i);
-				if (isAttachable(c)) {
-					buffer.append(c);
-					if (isDoubleWidthBinder(c) && i < length - 1) {
+				char ch = word.charAt(i); // Grab current character
+				if (isAttachable(ch)) {   // is it a standard diacritic?
+					buffer.append(ch);
+					if (isDoubleWidthBinder(ch) && i < length - 1) {
 						i++;
+						// Jump ahead and grab the next character
 						buffer.append(word.charAt(i));
 					}
 				} else {
+					// Not a diacritic
+					segments.add(buffer.toString()); // take buffer contents, and transfer to the list
+					buffer = new StringBuilder();    // wipe the buffer
 					if (key.isEmpty()) {
-						buffer = clearBuffer(segments, buffer, String.valueOf(c));
+						buffer.append(ch);
 					} else {
-						buffer = clearBuffer(segments, buffer, key);
+						buffer.append(key);
 						i += key.length() - 1;
 					}
 				}
@@ -114,13 +134,16 @@ public final class Segmenter {
 	// Also can be used to grab index symbols
 	private static String getBestMatch(String tail, Iterable<String> keys) {
 		String bestMatch = "";
+
+		String string = removeDoubleWidthBinders(tail);
+
 		for (String key : keys) {
-			if (tail.startsWith(key) && bestMatch.length() < key.length()) {
+			if (string.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
 			}
 		}
 
-		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(tail);
+		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(string);
 		if (backReferenceMatcher.lookingAt()) {
 			bestMatch = backReferenceMatcher.group();
 		}
@@ -128,13 +151,11 @@ public final class Segmenter {
 		return bestMatch;
 	}
 
-	private static boolean isAttachable(Character c) {
-		int type = Character.getType(c);
-		int value = c;
-		return isSuperscriptAsciiDigit(value) ||
-		       isMathematicalSubOrSuper(value) ||
-		       isCombingNOS(value) ||
-		       isCombiningClass(type);
+	private static boolean isAttachable(char c) {
+		return isSuperscriptAsciiDigit(c)  ||
+		       isMathematicalSubOrSuper(c) ||
+		       isCombingNOS(c)             ||
+		       isCombiningClass(c);
 	}
 
 	private static boolean isCombingNOS(int value) {
@@ -150,8 +171,16 @@ public final class Segmenter {
 		       (type == Character.NON_SPACING_MARK);         // MN
 	}
 
+	private static String removeDoubleWidthBinders(String string) {
+		for (char c = BINDER_START; c <= BINDER_END; c++) {
+			string = string.replace(c+"", "");
+			// TODO: this is awful
+		}
+		return string;
+	}
+
 	private static boolean isDoubleWidthBinder(char ch) {
-		return ch <= 866 && 860 <= ch;
+		return ch <= BINDER_END && BINDER_START <= ch;
 	}
 
 	private static boolean isSuperscriptAsciiDigit(int value) {

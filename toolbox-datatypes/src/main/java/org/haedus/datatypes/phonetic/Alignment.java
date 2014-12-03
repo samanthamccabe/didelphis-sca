@@ -80,11 +80,6 @@ public class Alignment {
         return left.size();
     }
 
-	@Deprecated
-    public double score(FeatureModel aModel) {
-        return aModel.computeScore(left, right);
-    }
-
     @Override
     public String toString() {
         return left.toString() + "\t" + right.toString();
