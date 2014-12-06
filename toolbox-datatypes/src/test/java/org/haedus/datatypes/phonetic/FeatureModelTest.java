@@ -61,11 +61,11 @@ public class FeatureModelTest {
 		model = new FeatureModel(resource.getFile());
 	}
 
-	@Test
-	public void testGetSegment() {
+//	@Test
+//	public void testGetSegment() {
 //		Segment segment = model.getSegment("aː");
 //		assertNotNull(segment);
-	}
+//	}
 
 	@Test
 	public void testConstructor01() throws Exception {

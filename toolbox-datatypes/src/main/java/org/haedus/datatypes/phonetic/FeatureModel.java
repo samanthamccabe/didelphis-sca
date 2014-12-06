@@ -77,20 +77,34 @@ public class FeatureModel {
 		}
 	}
 
-//	public Sequence getSequence(Iterable<String> word) {
-//		Sequence sequence = new Sequence(this);
-//		for (String element : word) {
-//			sequence.add(getSegment(element));
-//		}
-//		return sequence;
-//	}
-
+	// TODO: try to remove this
 	public List<Double> getFeaturesNaN() {
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
 			list.add(Double.NaN);
 		}
 		return list;
+	}
+
+	// This should be here because how the segment is constructed is a function
+	// of what kind of model this is
+	public Segment getSegment(String head, Iterable<String> diacritics) {
+		List<Double> featureArray = getValue(head);
+
+		String symbol = head;
+
+		for (String diacritic : diacritics) {
+			symbol += diacritic;
+			List<Double> doubles = this.diacritics.get(diacritic);
+			for (int i = 0; i < doubles.size(); i++) {
+				Double d = doubles.get(i);
+				// TODO: this will need to change if we support value modification (up or down)
+				if (!d.isNaN()) {
+					featureArray.set(i, d);
+				}
+			}
+		}
+		return new Segment(symbol, featureArray, this);
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {

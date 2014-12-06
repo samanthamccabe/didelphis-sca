@@ -114,7 +114,7 @@ public class VariableStore {
 		}
 	}
 
-	private List<Sequence> expandVariables(String element) {
+	private Collection<Sequence> expandVariables(String element) {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 

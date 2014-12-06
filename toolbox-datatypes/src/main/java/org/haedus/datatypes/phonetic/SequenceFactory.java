@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.Segmenter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,20 +40,7 @@ public class SequenceFactory {
 	}
 
 	public Sequence getSequence(String word) {
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(featureModel.getSymbols());
-		keys.addAll(variableStore.getKeys());
-
-		List<String> list;
-		if (segmentationMode == SegmentationMode.DEFAULT) {
-			list = segment(word, keys);
-		} else if (segmentationMode == SegmentationMode.NAIVE) {
-			list = segmentNaively(word, keys);
-		} else {
-			throw new UnsupportedOperationException("Unsupported segmentation mode " + segmentationMode);
-		}
-//		return featureModel.getSequence(list);
-		return null;
+		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode);
 	}
 
 	public FeatureModel getFeatureModel() {
@@ -77,65 +65,6 @@ public class SequenceFactory {
 
 	public void setVariableStore(VariableStore variableStore) {
 		this.variableStore = variableStore;
-	}
-
-	/* Package-Private for testing */
-	List<String> segmentNaively(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
-		for (int i = 0; i < word.length(); i++) {
-
-			String key = getBestMatch(word.substring(i), keys);
-			if (key.isEmpty()) {
-				segments.add(word.substring(i, i + 1));
-			} else {
-				segments.add(key);
-				i = i + key.length() - 1;
-			}
-		}
-		return segments;
-	}
-
-	/* Package-Private for testing */
-	List<String> segment(String word) {
-		return segment(word, new ArrayList<String>());
-	}
-
-	/* Package-Private for testing */
-	List<String> segment(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
-
-		StringBuilder buffer = new StringBuilder();
-		int length = word.length();
-		for (int i = 0; i < length; i++) {
-			String substring = word.substring(i);
-			String key = getBestMatch(substring, keys);
-			if (i == 0) {
-				if (key.isEmpty()) {
-					buffer.append(word.charAt(0));
-				} else {
-					buffer.append(key);
-					i += key.length() - 1;
-				}
-			} else {
-				char c = word.charAt(i);
-				if (isAttachable(c)) {
-					buffer.append(c);
-					if (isDoubleWidthBinder(c) && i < length - 1) {
-						i++;
-						buffer.append(word.charAt(i));
-					}
-				} else {
-					if (key.isEmpty()) {
-						buffer = clearBuffer(segments, buffer, String.valueOf(c));
-					} else {
-						buffer = clearBuffer(segments, buffer, key);
-						i += key.length() - 1;
-					}
-				}
-			}
-		}
-		segments.add(buffer.toString());
-		return segments;
 	}
 
 	private boolean isCombiningClass(int type) {

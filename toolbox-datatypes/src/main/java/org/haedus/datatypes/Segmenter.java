@@ -53,9 +53,19 @@ public final class Segmenter {
 	private Segmenter() {
 	}
 
-	// Will throw null if segmentation mode is not supported
 	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode modeParam) {
-		List<String> list;
+		List<Thing> segmentedThing = getSegmentedThing(word, keys, modeParam);
+
+		List<String> list = new ArrayList<String>();
+		for (Thing thing : segmentedThing) {
+			list.add(thing.getHead()+thing.getTail());
+		}
+		return list;
+	}
+
+	// Will throw null if segmentation mode is not supported
+	private static List<Thing> getSegmentedThing(String word, Iterable<String> keys, SegmentationMode modeParam) {
+		List<Thing> list;
 		if (modeParam == SegmentationMode.DEFAULT) {
 			list = segment(word, keys);
 		} else if (modeParam == SegmentationMode.NAIVE) {
@@ -72,25 +82,23 @@ public final class Segmenter {
 		keys.addAll(model.getSymbols());
 		keys.addAll(variables.getKeys());
 
-		List<String> list = getSegmentedString(word, keys, mode);
+		List<Thing> list = getSegmentedThing(word, keys, mode);
+		Sequence sequence = new Sequence(model);
+		for (Thing item : list) {
+			String head = item.getHead();
+			List<String> tail = item.getTail();
 
-		List<Segment> segments = new ArrayList<Segment>();
-
-		for (String item : list) {
-			// Get the base
-			String baseCharacter = getBestMatch(item, model.getSymbols());
-			// treat following characters as diacritics, look them up individually
-			// and create their feature values
+			Segment segment = model.getSegment(head, tail);
+			sequence.add(segment);
 		}
 
-		//		return model.getSequence(list);
-		return null;
+		return sequence;
 	}
 
-	private static List<String> segment(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
+	private static List<Thing> segment(String word, Iterable<String> keys) {
+		List<Thing> segments = new ArrayList<Thing>();
 
-		StringBuilder buffer = new StringBuilder();
+		Thing thing = new Thing();
 		int length = word.length();
 		for (int i = 0; i < length; i++) {
 			String substring = word.substring(i);       // Get the word from current position on
@@ -99,34 +107,36 @@ public final class Segmenter {
 				// Assume that the first symbol must be a diacritic
 				// This doesn't universally word (prenasalized, preaspirated), but we don't support this in our model yet
 				if (key.isEmpty()) {
-					buffer.append(word.charAt(0));
+					thing.appendHead(word.charAt(0));
 				} else {
-					buffer.append(key);
+					thing.appendHead(key);
 					i = key.length() - 1;
 				}
 			} else {
 				char ch = word.charAt(i); // Grab current character
 				if (isAttachable(ch)) {   // is it a standard diacritic?
-					buffer.append(ch);
 					if (isDoubleWidthBinder(ch) && i < length - 1) {
 						i++;
 						// Jump ahead and grab the next character
-						buffer.append(word.charAt(i));
+						thing.appendHead(word.charAt(i));
+					} else {
+						thing.appendTail(ch);
 					}
 				} else {
 					// Not a diacritic
-					segments.add(buffer.toString()); // take buffer contents, and transfer to the list
-					buffer = new StringBuilder();    // wipe the buffer
+					segments.add(thing);
+					thing = new Thing();
 					if (key.isEmpty()) {
-						buffer.append(ch);
+						thing.appendHead(ch);
 					} else {
-						buffer.append(key);
+						thing.appendHead(key);
 						i += key.length() - 1;
 					}
 				}
 			}
 		}
-		segments.add(buffer.toString());
+		segments.add(thing);
+//		segments.add(buffer.toString());
 		return segments;
 	}
 
@@ -151,11 +161,12 @@ public final class Segmenter {
 		return bestMatch;
 	}
 
-	private static boolean isAttachable(char c) {
-		return isSuperscriptAsciiDigit(c)  ||
-		       isMathematicalSubOrSuper(c) ||
-		       isCombingNOS(c)             ||
-		       isCombiningClass(c);
+	private static boolean isAttachable(char ch) {
+		return isSuperscriptAsciiDigit(ch)  ||
+		       isMathematicalSubOrSuper(ch) ||
+		       isCombingNOS(ch)             ||
+		       isCombiningClass(ch)         ||
+		       isDoubleWidthBinder(ch);
 	}
 
 	private static boolean isCombingNOS(int value) {
@@ -164,7 +175,8 @@ public final class Segmenter {
 		       (value <= 8348);
 	}
 
-	private static boolean isCombiningClass(int type) {
+	private static boolean isCombiningClass(char ch) {
+		int type = Character.getType(ch);
 		return (type == Character.MODIFIER_LETTER)        || // LM
 		       (type == Character.MODIFIER_SYMBOL)        || // SK
 		       (type == Character.COMBINING_SPACING_MARK) || // MC
@@ -202,18 +214,68 @@ public final class Segmenter {
 		return buffer;
 	}
 
-	private static List<String> segmentNaively(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
+	private static List<Thing> segmentNaively(String word, Iterable<String> keys) {
+		List<Thing> segments = new ArrayList<Thing>();
 		for (int i = 0; i < word.length(); i++) {
 
 			String key = getBestMatch(word.substring(i), keys);
+			Thing thing = new Thing();
 			if (key.isEmpty()) {
-				segments.add(word.substring(i, i + 1));
+//				segments.add(word.substring(i, i + 1));
+				thing.appendHead(word.substring(i, i + 1));
 			} else {
-				segments.add(key);
+//				segments.add(key);
+				thing.appendHead(key);
 				i = i + key.length() - 1;
+			}
+
+			if (!thing.isEmpty()) {
+				segments.add(thing);
 			}
 		}
 		return segments;
+	}
+
+	private static final class Thing {
+		private final StringBuilder head;
+		private final List<String> tail;
+
+		public Thing() {
+			head = new StringBuilder();
+			tail = new ArrayList<String>();
+		}
+
+		public boolean isEmpty() {
+			return head.length() == 0;
+		}
+
+		public String getHead() {
+			return head.toString();
+		}
+
+		public List<String> getTail() {
+			return tail;
+		}
+
+		public void appendHead(String string) {
+			head.append(string);
+		}
+
+		public void appendTail(String string) {
+			tail.add(string);
+		}
+
+		public void appendHead(char ch) {
+			head.append(ch);
+		}
+
+		public void appendTail(char ch) {
+			tail.add("" + ch);
+		}
+
+		@Override
+		public String toString() {
+			return head + " " + tail.toString();
+		}
 	}
 }
