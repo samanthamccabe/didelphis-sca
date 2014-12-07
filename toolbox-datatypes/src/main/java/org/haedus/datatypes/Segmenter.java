@@ -53,9 +53,21 @@ public final class Segmenter {
 	private Segmenter() {
 	}
 
+	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, SegmentationMode mode) {
+		Collection<String> keys = getKeys(model, variables);
+		List<Thing> segmentedThing = getSegmentedThing(string, keys, mode);
+		if (segmentedThing.size() > 1) {
+			Thing thing = segmentedThing.get(0);
+			String head = thing.getHead();
+			List<String> tail = thing.getTail();
+			return model.getSegment(head, tail);
+		} else {
+			return null;
+		}
+	}
+
 	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode modeParam) {
 		List<Thing> segmentedThing = getSegmentedThing(word, keys, modeParam);
-
 		List<String> list = new ArrayList<String>();
 		for (Thing thing : segmentedThing) {
 			String string = thing.getHead();
@@ -71,7 +83,7 @@ public final class Segmenter {
 	private static List<Thing> getSegmentedThing(String word, Iterable<String> keys, SegmentationMode modeParam) {
 		List<Thing> list;
 		if (modeParam == SegmentationMode.DEFAULT) {
-			list = segment(word, keys);
+			list = getThings(word, keys);
 		} else if (modeParam == SegmentationMode.NAIVE) {
 			list = segmentNaively(word, keys);
 		} else {
@@ -81,11 +93,7 @@ public final class Segmenter {
 	}
 
 	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
-
-		Collection<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
-
+		Collection<String> keys = getKeys(model, variables);
 		List<Thing> list = getSegmentedThing(word, keys, mode);
 		Sequence sequence = new Sequence(model);
 		for (Thing item : list) {
@@ -95,11 +103,17 @@ public final class Segmenter {
 			Segment segment = model.getSegment(head, tail);
 			sequence.add(segment);
 		}
-
 		return sequence;
 	}
 
-	private static List<Thing> segment(String word, Iterable<String> keys) {
+	private static Collection<String> getKeys(FeatureModel model, VariableStore variables) {
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		keys.addAll(variables.getKeys());
+		return keys;
+	}
+
+	private static List<Thing> getThings(String word, Iterable<String> keys) {
 		List<Thing> segments = new ArrayList<Thing>();
 
 		Thing thing = new Thing();
@@ -140,17 +154,15 @@ public final class Segmenter {
 			}
 		}
 		segments.add(thing);
-//		segments.add(buffer.toString());
 		return segments;
 	}
 
 	// Finds longest item in keys which the provided string starts with
 	// Also can be used to grab index symbols
-	private static String getBestMatch(String tail, Iterable<String> keys) {
+	private static String getBestMatch(String word, Iterable<String> keys) {
 		String bestMatch = "";
 
-		String string = removeDoubleWidthBinders(tail);
-
+		String string = removeDoubleWidthBinders(word);
 		for (String key : keys) {
 			if (string.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
@@ -161,7 +173,6 @@ public final class Segmenter {
 		if (backReferenceMatcher.lookingAt()) {
 			bestMatch = backReferenceMatcher.group();
 		}
-
 		return bestMatch;
 	}
 

@@ -86,13 +86,11 @@ public class FeatureModel {
 		return list;
 	}
 
-	// This should be here because how the segment is constructed is a function
-	// of what kind of model this is
+	// This should be here because how the segment is constructed is a function of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
 		List<Double> featureArray = getValue(head);
 
 		String symbol = head;
-
 		for (String modifier : modifiers) {
 			symbol += modifier;
 			if (diacritics.containsKey(modifier)) {
@@ -137,12 +135,12 @@ public class FeatureModel {
 		return featureMap.keySet();
 	}
 
-	public void addSegment(String symbol, List<Double> features) {
-		featureMap.put(symbol, features);
+	public void add(Segment segment) {
+		featureMap.put(segment.getSymbol(), segment.getFeatures());
 	}
 
 	public void reserveSymbol(String symbol) {
-		addSegment(symbol, new ArrayList<Double>());
+		featureMap.put(symbol, new ArrayList<Double>());
 	}
 
 	@Override
@@ -206,10 +204,6 @@ public class FeatureModel {
 	public int getNumberOfFeatures() {
 		return featureNames.size();
 	}
-
-//	public Segment getSegment(String string) {
-//		return new Segment(string, getValue(string), this);
-//	}
 
 	public Map<String, List<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
