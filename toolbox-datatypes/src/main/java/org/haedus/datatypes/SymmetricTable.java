@@ -53,6 +53,11 @@ public class SymmetricTable<T> implements Table<T> {
 		}
 	}
 
+	public SymmetricTable(SymmetricTable<T> otherTable) {
+		dimension = otherTable.getNumberOfColumns();
+		array     = new ArrayList<T>(otherTable.getBackingList());
+	}
+
 	@Override
 	public T get(int i, int j) {
 		return array.get(getIndex(i, j));
