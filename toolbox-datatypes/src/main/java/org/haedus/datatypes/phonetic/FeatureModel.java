@@ -88,19 +88,21 @@ public class FeatureModel {
 
 	// This should be here because how the segment is constructed is a function
 	// of what kind of model this is
-	public Segment getSegment(String head, Iterable<String> diacritics) {
+	public Segment getSegment(String head, Iterable<String> modifiers) {
 		List<Double> featureArray = getValue(head);
 
 		String symbol = head;
 
-		for (String diacritic : diacritics) {
-			symbol += diacritic;
-			List<Double> doubles = this.diacritics.get(diacritic);
-			for (int i = 0; i < doubles.size(); i++) {
-				Double d = doubles.get(i);
-				// TODO: this will need to change if we support value modification (up or down)
-				if (!d.isNaN()) {
-					featureArray.set(i, d);
+		for (String modifier : modifiers) {
+			symbol += modifier;
+			if (diacritics.containsKey(modifier)) {
+				List<Double> doubles = diacritics.get(modifier);
+				for (int i = 0; i < doubles.size(); i++) {
+					Double d = doubles.get(i);
+					// TODO: this will need to change if we support value modification (up or down)
+					if (!d.isNaN()) {
+						featureArray.set(i, d);
+					}
 				}
 			}
 		}

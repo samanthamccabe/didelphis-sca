@@ -58,7 +58,11 @@ public final class Segmenter {
 
 		List<String> list = new ArrayList<String>();
 		for (Thing thing : segmentedThing) {
-			list.add(thing.getHead()+thing.getTail());
+			String string = thing.getHead();
+			for (String s : thing.getTail()) {
+				string += s;
+			}
+			list.add(string);
 		}
 		return list;
 	}
