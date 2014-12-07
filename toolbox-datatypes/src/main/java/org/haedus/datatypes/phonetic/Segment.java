@@ -83,7 +83,7 @@ public class Segment {
 
 	@Override
 	public String toString() {
-		return symbol + " " + model.toString();
+		return symbol;
 	}
 
 	public String getSymbol() {

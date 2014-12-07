@@ -56,7 +56,7 @@ public final class Segmenter {
 	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, SegmentationMode mode) {
 		Collection<String> keys = getKeys(model, variables);
 		List<Thing> segmentedThing = getSegmentedThing(string, keys, mode);
-		if (segmentedThing.size() > 1) {
+		if (segmentedThing.size() >= 1) {
 			Thing thing = segmentedThing.get(0);
 			String head = thing.getHead();
 			List<String> tail = thing.getTail();

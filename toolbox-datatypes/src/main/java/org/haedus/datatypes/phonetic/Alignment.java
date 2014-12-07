@@ -32,7 +32,7 @@ public class Alignment {
     private double score = Double.NaN;
 
 	public Alignment(Sequence l, Sequence r) {
-        if (l.getFeatureModel() == r.getFeatureModel()) {
+        if (l.getFeatureModel().equals(r.getFeatureModel())) {
 		    left  = l;
 		    right = r;
             model = l.getFeatureModel();
@@ -45,9 +45,13 @@ public class Alignment {
         }
 	}
 
+    public Alignment(Segment l, Segment r) {
+        this(new Sequence(l), new Sequence(r));
+    }
+
     public Alignment(FeatureModel modelParam) {
-        left  = Sequence.EMPTY_SEQUENCE;
-        right = Sequence.EMPTY_SEQUENCE;
+        left  = new Sequence(modelParam);
+        right = new Sequence(modelParam);
         model = modelParam;
     }
 
@@ -58,8 +62,8 @@ public class Alignment {
 	}
 
     public void add(Segment l, Segment r) {
-        if (left.getFeatureModel().equals(l.getFeatureModel()) &&
-            right.getFeatureModel().equals(r.getFeatureModel())) {
+        if (left.getFeatureModel().equals(model) &&
+            right.getFeatureModel().equals(model)) {
             left.add(l);
             right.add(r);
         } else {
@@ -82,7 +86,7 @@ public class Alignment {
 
     @Override
     public String toString() {
-        return left.toString() + "\t" + right.toString();
+        return left.toString() + "|" + right.toString();
     }
 
     public Alignment get(int i) {

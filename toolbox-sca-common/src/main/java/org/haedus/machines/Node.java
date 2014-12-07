@@ -16,6 +16,7 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 
@@ -94,7 +95,8 @@ public class Node {
 	}
 
 	public void add(Node node) {
-		add(Sequence.EMPTY_SEQUENCE, node);
+		// TODO: this needs to be fixed!
+		add(new Sequence(new FeatureModel()), node);
 	}
 
 	@Deprecated

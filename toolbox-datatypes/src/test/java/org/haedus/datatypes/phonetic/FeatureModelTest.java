@@ -24,6 +24,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.Segmenter;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +34,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -61,11 +65,32 @@ public class FeatureModelTest {
 		model = new FeatureModel(resource.getFile());
 	}
 
-//	@Test
-//	public void testGetSegment() {
-//		Segment segment = model.getSegment("aː");
-//		assertNotNull(segment);
-//	}
+	@Test
+	public void testScoreSemivowels() {
+		Segment left  = Segmenter.getSegment("a", model, new VariableStore(), SegmentationMode.DEFAULT);
+		Segment right = Segmenter.getSegment("n", model, new VariableStore(), SegmentationMode.DEFAULT);
+
+		LOGGER.info(left.toStringLong());
+		LOGGER.info(right.toStringLong());
+
+		double a = model.computeScore(left, right);
+		double b = model.computeScore(left, left);
+		double c = model.computeScore(right, right);
+
+		assertTrue("Value was " + b + " not zero for " + left,  b == 0.0);
+		assertTrue("Value was " + c + " not zero for " + right, c == 0.0);
+
+		LOGGER.info("diff({},{}) = {}", left, right,a );
+	}
+
+	@Test
+	public void testScoreSame() {
+		Segment left  = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT);
+		Segment right = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT);
+
+		double v = model.computeScore(left, right);
+		assertTrue("Value was " + v + " not zero",v == 0.0);
+	}
 
 	@Test
 	public void testConstructor01() throws Exception {

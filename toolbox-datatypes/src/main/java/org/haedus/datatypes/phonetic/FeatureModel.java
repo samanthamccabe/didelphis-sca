@@ -164,31 +164,29 @@ public class FeatureModel {
 	}
 
 	public double computeScore(Segment l, Segment r) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.getNumberOfFeatures(), r, r.getNumberOfFeatures());
-		}
 		double score = 0;
 		int n = l.getNumberOfFeatures();
 		for (int i = 0; i < n; i++) {
+//			double a = l.getFeatureValue(i);
+//			for (int j = 0; j < n; j++) {
+//				double b = r.getFeatureValue(j);
+//				if (weightTable.getNumberOfColumns() == getNumberOfFeatures()) {
+//					score += getDifference(a, b) * weightTable.get(i, j);
+//				} else {
+//					score += getDifference(a, b);
+//				}
+//			}
 			double a = l.getFeatureValue(i);
-			for (int j = 0; j < n; j++) {
-				double b = r.getFeatureValue(j);
-				if (weightTable.getNumberOfColumns() == getNumberOfFeatures()) {
-					score += Math.abs(a - b) * weightTable.get(i, j);
-				} else {
-					score += Math.abs(a - b);
-				}
-			}
+			double b = r.getFeatureValue(i);
+
+			score += getDifference(a, b);
 		}
 		return score;
 	}
 
 	public double computeScore(Sequence l, Sequence r) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.size(), r, r.size());
-		}
 		int penalty = 5;
-		float score = 0;
+		double score = 0;
 		for (int i = 0; i < l.size(); i++) {
 			score += computeScore(l.get(i), r.get(i));
 
@@ -281,7 +279,7 @@ public class FeatureModel {
 				Double r = right.get(i);
 				double lValue = l.isNaN() ? 0 : l;
 				double rValue = r.isNaN() ? 0 : r;
-				list.add(Math.abs(lValue - rValue));
+				list.add(getDifference(lValue, rValue));
 			}
 		} else {
 
@@ -301,6 +299,18 @@ public class FeatureModel {
 			}
 		}
 		return sum;
+	}
+
+	private Double getDifference(Double a, Double b) {
+		if (a.equals(b)) {
+			return 0.0;
+		} else if (a.isNaN()) {
+			return b;
+		} else if (b.isNaN()) {
+			return a;
+		} else {
+			return Math.abs(a - b);
+		}
 	}
 
 	private void readModelFromFile(List<String> lines) {

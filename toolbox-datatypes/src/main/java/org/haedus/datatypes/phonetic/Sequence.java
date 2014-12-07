@@ -30,8 +30,6 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment> {
 
-	public static final Sequence EMPTY_SEQUENCE = new Sequence();
-
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
 
@@ -41,7 +39,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence(Segment g) {
-		this();
+		this(g.getFeatureModel());
 		int segmentSize = g.getNumberOfFeatures();
 		int featureSize = featureModel.getNumberOfFeatures();
 		if (segmentSize == featureSize) {
