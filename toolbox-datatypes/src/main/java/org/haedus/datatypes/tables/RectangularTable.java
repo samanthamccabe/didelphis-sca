@@ -14,10 +14,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes;
+package org.haedus.datatypes.tables;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,45 +27,22 @@ import java.util.List;
  */
 public class RectangularTable<T> implements Table<T> {
 
-	private final int     numberOfRows;
-	private final int     numberOfColumns;
-	private final List<T> table;
+	private   final   int   numberRows;
+	private   final   int   numberColumns;
+	protected final List<T> array;
 
-	/**
-	 * Construct an empty Table
-	 */
-	public RectangularTable() {
-		this(0, 0);
+	protected RectangularTable(int k, int l) {
+		numberRows    = k;
+		numberColumns = l;
+
+		array = new ArrayList<T>();
 	}
 
-    private RectangularTable(int k, int l) {
-	    numberOfRows    = k;
-        numberOfColumns = l;
-
-		table = new ArrayList<T>(numberOfRows * numberOfColumns);
-	}
-
-    /**
-     * Construct a Table with the specified dimensions
-     * @param k the number of columns
-     * @param l the number of rows
-     */
-    public RectangularTable(int k, int l, Collection<T> array) {
-		this(k,l);
-		table.addAll(array);
-	}
-
-	/**
-	 *
-	 * @param defaultValue
-	 * @param k
-	 * @param l
-	 */
-    public RectangularTable(T defaultValue, int k, int l) {
-		this(k,l);
-        for (int i = 0; i < k*l; i++) {
-            table.add(defaultValue);
-        }
+	public RectangularTable(T defaultValue, int k, int l) {
+		this(k, l);
+		for (int i = 0; i < k * l; i++) {
+			array.add(defaultValue);
+		}
 	}
 
 	/**
@@ -77,7 +53,7 @@ public class RectangularTable<T> implements Table<T> {
 	 */
 	@Override
 	public T get(int i, int j) {
-		return table.get(getIndex(i, j));
+		return array.get(getIndex(i, j));
 	}
 
 	/**
@@ -89,7 +65,7 @@ public class RectangularTable<T> implements Table<T> {
 	@Override
 	public void set(T t, int i, int j) {
 		int index = getIndex(i, j);
-		table.set(index, t);
+		array.set(index, t);
 	}
 
 	/**
@@ -99,27 +75,8 @@ public class RectangularTable<T> implements Table<T> {
 	 * @return the absolute index of the internal array based on the provided coordinates.
 	 */
 	private int getIndex(int i, int j) {
-	    return (i + (j * numberOfRows));
+	    return (i + (j * numberRows));
 	}
-
-/* Unclear if how we want to toString this data
-	@Override
-	public String toString() {
-		String s = "";
-		for (int i = 0; i < totalSize(); i++) {
-			s = s.concat(table.get(i).toString() + " ");
-			if ((i + 1) % numberOfColumns == 0) {
-				s = s.concat("\n");
-			}
-		}
-		return s;
-	}
-*/
-
-    @Override
-    public int totalSize() {
-        return table.size();
-    }
 
 	@Override
 	public boolean equals(Object obj) {
@@ -127,34 +84,34 @@ public class RectangularTable<T> implements Table<T> {
 		if (obj == null) return false;
 		if (obj.getClass() != getClass()) return false;
 
-		Table<?> other = (Table<?>) obj;
+		RectangularTable<?> other = (RectangularTable<?>) obj;
 
-		return (numberOfColumns == other.getNumberOfColumns()) &&
-				numberOfRows == other.getNumberRows() &&
-				table.equals(other.getBackingList());
+		return (numberColumns == other.getNumberColumns()) &&
+				numberRows == other.getNumberRows() &&
+				array.equals(other.array);
 	}
 
 	@Override
 	public int hashCode() {
 		int hashCode = 33;
-		for (int i = 0; i < table.size(); i++) {
-			hashCode += table.get(i).hashCode() + i;
+		for (int i = 0; i < array.size(); i++) {
+			hashCode += array.get(i).hashCode() + i;
 		}
-		return hashCode * numberOfColumns * numberOfRows * 31;
+		return hashCode * numberColumns * numberRows * 31;
 	}
 
 	@Override
 	public int getNumberRows() {
-        return numberOfRows;
+        return numberRows;
     }
 
 	@Override
-	public int getNumberOfColumns() {
-		return numberOfColumns;
+	public int getNumberColumns() {
+		return numberColumns;
 	}
 
 	@Override
-	public List<T> getBackingList() {
-		return table;
+	public String getPrettyTable() {
+		return "";
 	}
 }

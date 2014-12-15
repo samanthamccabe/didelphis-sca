@@ -22,9 +22,4 @@ import static org.junit.Assert.*;
 
 public class TableTest
 {
-	@Test
-	public void testConstructor01() {
-		Table<Integer> table = new RectangularTable<Integer>();
-		assertTrue(table.totalSize() == 0);
-	}
 }

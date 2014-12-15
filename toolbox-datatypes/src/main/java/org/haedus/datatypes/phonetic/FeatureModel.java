@@ -26,9 +26,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.haedus.datatypes.RectangularTable;
+import org.haedus.datatypes.tables.RectangularTable;
 import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Table;
+import org.haedus.datatypes.tables.Table;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class FeatureModel {
 		featureAliases   = new HashMap<String, Integer>();
 		featureMap       = new LinkedHashMap<String, List<Double>>();
 		diacritics       = new LinkedHashMap<String, List<Double>>();
-		weightTable      = new RectangularTable<Double>();
+		weightTable      = new RectangularTable<Double>(0.0, 0, 0);
 		segmentationMode = SegmentationMode.DEFAULT;
 	}
 
@@ -170,7 +170,7 @@ public class FeatureModel {
 //			double a = l.getFeatureValue(i);
 //			for (int j = 0; j < n; j++) {
 //				double b = r.getFeatureValue(j);
-//				if (weightTable.getNumberOfColumns() == getNumberOfFeatures()) {
+//				if (weightTable.getNumberColumns() == getNumberOfFeatures()) {
 //					score += getDifference(a, b) * weightTable.get(i, j);
 //				} else {
 //					score += getDifference(a, b);
@@ -319,7 +319,7 @@ public class FeatureModel {
 
 		if (lines.get(0).startsWith("name")) {
 			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+				String[] row = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (row[0].equals("diacritic")) {
@@ -332,8 +332,8 @@ public class FeatureModel {
 		}
 
 		if (lines.get(0).startsWith("alias")) {
-			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+			String   line = lines.remove(0);
+			String[] row  = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (hasDiacritics) {

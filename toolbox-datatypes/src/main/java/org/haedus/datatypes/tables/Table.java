@@ -1,6 +1,4 @@
-package org.haedus.datatypes;
-
-import java.util.List;
+package org.haedus.datatypes.tables;
 
 /**
  * Author: goats
@@ -11,11 +9,9 @@ public interface Table<T> {
 
 	void set(T t, int i, int j);
 
-	int totalSize();
-
 	int getNumberRows();
 
-	int getNumberOfColumns();
+	int getNumberColumns();
 
-	List<T> getBackingList();
+	String getPrettyTable();
 }
