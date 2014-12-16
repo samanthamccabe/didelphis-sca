@@ -9,7 +9,8 @@ import java.text.NumberFormat;
  */
 public class WeightMatrix extends SymmetricTable<Double> {
 
-	private static final NumberFormat FORMAT = new DecimalFormat("#0.00");
+	private static final NumberFormat FORMAT_PREC = new DecimalFormat("0.0000");
+	private static final NumberFormat FORMAT      = new DecimalFormat("0.00");
 
 	public WeightMatrix(Double defaultValue, int n) {
 		super(defaultValue, n);
@@ -28,13 +29,11 @@ public class WeightMatrix extends SymmetricTable<Double> {
 			for (int j = 0; j <= i;j ++) {
 				Double value = get(i, j);
 				String format = FORMAT.format(value);
-				String spacedFormat;
 				if (!format.startsWith("-")) {
-					spacedFormat = " "+format;
+					sb.append(" "+format);
 				} else {
-					spacedFormat = format;
+					sb.append(format);
 				}
-				sb.append(spacedFormat);
 				if (j < i) {
 					sb.append("\t");
 				}
@@ -44,5 +43,21 @@ public class WeightMatrix extends SymmetricTable<Double> {
 			}
 		}
 		return sb.toString();
+	}
+
+	public String getLinear() {
+		StringBuilder sb = new StringBuilder();
+
+		for (Double value : array) {
+			String format = FORMAT_PREC.format(value);
+			if (!format.startsWith("-")) {
+				sb.append(" "+format);
+			} else {
+				sb.append(format);
+			}
+			sb.append("\t");
+		}
+
+		return sb.toString().trim();
 	}
 }
