@@ -16,6 +16,8 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.phonetic.Sequence;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Samantha Fiona Morrigan McCabe
@@ -27,21 +29,21 @@ public class NodeFactory {
 
 	private static int indexCounter = 0;
 
-	private static final Node EMPTYNODE = new Node(0);
-    private static final Node DEADSTATE = new Node(Integer.MIN_VALUE);
+	private static final TerminalNode EMPTYNODE = new TerminalNode(0);
+    private static final TerminalNode DEADSTATE = new TerminalNode(Integer.MIN_VALUE);
 
-	public static Node getNode() {
+	public static Node<Sequence> getNode() {
 		return getNode(false);
 	}
 
-	public static Node getNode(boolean accepting) {
+	public static Node<Sequence> getNode(boolean accepting) {
 		setIndexCounter(getIndexCounter() + 1);
-		return new Node(getIndexCounter(), accepting);
+		return new TerminalNode(getIndexCounter(), accepting);
 	}
 
-    public static Node getDeadState() { return DEADSTATE; }
+    public static Node<Sequence> getDeadState() { return DEADSTATE; }
 
-	public static Node getEmptyNode() {
+	public static Node<Sequence> getEmptyNode() {
 		return EMPTYNODE;
 	}
 
