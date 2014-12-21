@@ -98,12 +98,12 @@ public class StateMachine {
 
         for (Sequence symbol : currentNode.getKeys()) {
             for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
-                if (variableStore.contains(symbol)) {
-	                addStateFromVariable(swap, index, tail, symbol, nextNode);
-                } else if (tail.startsWith(symbol)) {
+	            if (symbol == null || symbol.isEmpty()) {
+		            swap.add(new MatchState(index, nextNode));
+	            } else if (variableStore.contains(symbol)) {
+		            addStateFromVariable(swap, index, tail, symbol, nextNode);
+	            } else if (tail.startsWith(symbol)) {
                     swap.add(new MatchState(index + symbol.size(), nextNode));
-                } else if (symbol.isEmpty()) {
-                    swap.add(new MatchState(index, nextNode));
                 }
             }
         }

@@ -82,7 +82,13 @@ public class TerminalNode<T> implements Node<T> {
 
 		code *= 31 + id;
 		code *= 31 + ((isAccepting) ? 1 : 0);
-		code *= 31 + arcs.hashCode();
+
+		for (Entry<T, Set<Node<T>>> entry : arcs.entrySet()) {
+			if (entry != null) {
+				T key = entry.getKey();
+				code *= ((key != null) ? key.hashCode() : 0) + entry.getValue().size();
+			}
+		}
 
 		return code;
 	}
