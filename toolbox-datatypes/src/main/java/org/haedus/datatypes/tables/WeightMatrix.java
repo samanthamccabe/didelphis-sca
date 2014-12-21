@@ -2,6 +2,7 @@ package org.haedus.datatypes.tables;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
 
 /**
  * Author: goats
@@ -19,6 +20,10 @@ public class WeightMatrix extends SymmetricTable<Double> {
 	public WeightMatrix(WeightMatrix other) {
 		super(other.getNumberRows(), other.getNumberColumns());
 		array.addAll(other.array);
+	}
+
+	public List<Double> getBackingList() {
+		return array;
 	}
 
 	@Override
