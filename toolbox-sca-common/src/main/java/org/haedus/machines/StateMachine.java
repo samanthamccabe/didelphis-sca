@@ -38,14 +38,14 @@ public class StateMachine {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	private final Node             startNode;
+	private final Node<Sequence>   startNode;
 	private final VariableStore    variableStore;
 	private final FeatureModel     featureModel;
 	private final SegmentationMode segmentationMode;
 
 	public StateMachine() {
 		variableStore    = new VariableStore();
-		startNode        = new Node(0);
+		startNode        = new TerminalNode<Sequence>(0);
 		featureModel     = new FeatureModel();
 		segmentationMode = SegmentationMode.DEFAULT;
 	}
@@ -73,7 +73,7 @@ public class StateMachine {
 		while (!match && !states.isEmpty()) {
 			for (MatchState state : states) {
 
-				Node currentNode = state.getNode();
+				Node<Sequence> currentNode = state.getNode();
 				int index = state.getIndex();
 
 				if (!currentNode.isAccepting()) {
@@ -93,11 +93,11 @@ public class StateMachine {
 		return startNode.isEmpty();
 	}
 
-    private void updateSwapStates(Sequence testSequence, Collection<MatchState> swap, Node currentNode, int index) {
+    private void updateSwapStates(Sequence testSequence, Collection<MatchState> swap, Node<Sequence> currentNode, int index) {
         Sequence tail = testSequence.getSubsequence(index);
 
         for (Sequence symbol : currentNode.getKeys()) {
-            for (Node nextNode : currentNode.getNodes(symbol)) {
+            for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
                 if (variableStore.contains(symbol)) {
 	                addStateFromVariable(swap, index, tail, symbol, nextNode);
                 } else if (tail.startsWith(symbol)) {
@@ -110,7 +110,7 @@ public class StateMachine {
     }
 
 	// Checks of the tail starts with a symbol in the variable store
-	private void addStateFromVariable(Collection<MatchState> swap, int index, Sequence tail, Sequence symbol, Node nextNode) {
+	private void addStateFromVariable(Collection<MatchState> swap, int index, Sequence tail, Sequence symbol, Node<Sequence> nextNode) {
 		for (Sequence s : variableStore.get(symbol)) {
 		    if (tail.startsWith(s)) {
 		        swap.add(new MatchState(index + s.size(), nextNode));
@@ -118,8 +118,7 @@ public class StateMachine {
 		}
 	}
 
-	//
-	private Node getNodeFromExpression(String string, boolean isForward) {
+	private Node<Sequence> getNodeFromExpression(String string, boolean isForward) {
 		Collection<String> keys = new ArrayList<String>();
 		
 		keys.addAll(variableStore.getKeys());
@@ -127,13 +126,13 @@ public class StateMachine {
 		
 		List<String> list = Segmenter.getSegmentedString(string, keys, segmentationMode);
 
-		Node root;
+		Node<Sequence> root;
 		if (list.isEmpty()) {
 			root = NodeFactory.getEmptyNode();
 		} else {
 			root = NodeFactory.getNode();
 			Expression ex   = new Expression(list);
-			Node       last = parse(ex, root, isForward);
+			Node<Sequence> last = parse(ex, root, isForward);
 			last.setAccepting(true);
 			LOGGER.trace(ExpressionUtil.getGML(ex));
 		}
@@ -141,20 +140,20 @@ public class StateMachine {
 	}
 
     //
-	private Node parse(Expression expression, Node root, boolean forward) {
-		Node current = root;
+	private Node<Sequence> parse(Expression expression, Node<Sequence> root, boolean forward) {
+		Node<Sequence> current = root;
 
 		if (expression.isParallel()) {
-            Node tail = NodeFactory.getNode();
+			Node<Sequence> tail = NodeFactory.getNode();
             if (expression.isNegative()) {
                 for (Expression ex : expression.getSubExpressions(forward)) {
-                    Node next = getNode(forward, current, ex);
+                    Node<Sequence> next = getNode(forward, current, ex);
                     next.add(tail);
                 }
             } else {
 
                 for (Expression ex : expression.getSubExpressions(forward)) {
-                    Node next = getNode(forward, current, ex);
+                    Node<Sequence> next = getNode(forward, current, ex);
                     next.add(tail);
                 }
                 current = tail;
@@ -174,7 +173,7 @@ public class StateMachine {
 	 * @param ex the Expression we wish to process
 	 * @return the last node in the machine.
 	 */
-	private Node getNode(boolean forward, Node start, Expression ex) {
+	private Node<Sequence> getNode(boolean forward, Node<Sequence> start, Expression ex) {
 
 		if (ex.isTerminal()) {
 			String element = ex.getString();
@@ -183,7 +182,7 @@ public class StateMachine {
 			if (ex.isOptional() && ex.isRepeatable()) {
 				start.add(sequence, start);
 			} else {
-				Node next = NodeFactory.getNode();
+				Node<Sequence> next = NodeFactory.getNode();
 				start.add(sequence, next);
 				if (ex.isRepeatable())
 					next.add(start);
@@ -193,14 +192,14 @@ public class StateMachine {
 			}
 		} else {
 			// This provides the start and end states of our machine
-			Node next = NodeFactory.getNode();
-			Node last = parse(ex, next, forward);
+			Node<Sequence> next = NodeFactory.getNode();
+			Node<Sequence> last = parse(ex, next, forward);
 
 			start.add(next);
 
 			if (ex.isOptional() && ex.isRepeatable()) {
 				last.add(start);
-				Node alpha = NodeFactory.getNode();
+				Node<Sequence> alpha = NodeFactory.getNode();
 				start.add(alpha);
 				start = alpha;
 			} else {
@@ -217,12 +216,12 @@ public class StateMachine {
 	/**
 	 * Utility class for matching strings
 	 */
-	private final class MatchState {
+	private final static class MatchState {
 
-		private final Integer index; // Where in the sequence the cursor is
-		private final Node    node;  // What node the cursor is currently on
+		private final int            index; // Where in the sequence the cursor is
+		private final Node<Sequence> node;  // What node the cursor is currently on
 
-		private MatchState(Integer i, Node n) {
+		private MatchState(Integer i, Node<Sequence> n) {
 			index = i;
 			node  = n;
 		}
@@ -231,7 +230,7 @@ public class StateMachine {
 			return index;
 		}
 
-		public Node getNode() {
+		public Node<Sequence> getNode() {
 			return node;
 		}
 		
@@ -242,7 +241,7 @@ public class StateMachine {
 		
 		@Override
 		public int hashCode() {
-			return 13 * index.hashCode() * node.hashCode();
+			return 13 * index * node.hashCode();
 		}
 
 		@Override
