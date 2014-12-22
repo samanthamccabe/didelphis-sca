@@ -76,8 +76,8 @@ public class Sequence implements Iterable<Segment> {
 		sequence.add(s);
 	}
 
-	public void add(Sequence q) {
-		for (Segment s : q) {
+	public void add(Sequence otherSequence) {
+		for (Segment s : otherSequence) {
 			sequence.add(s);
 		}
 	}

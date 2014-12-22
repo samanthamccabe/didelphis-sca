@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class ClassPathFileHandler implements FileHandler {
 
 		List<String> lines = new ArrayList<String>();
 
-		Resource resource = new ClassPathResource(path);
+		InputStreamSource resource = new ClassPathResource(path);
 		try {
 			InputStream inputStream = resource.getInputStream();
 

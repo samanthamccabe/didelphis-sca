@@ -1,3 +1,19 @@
+/*******************************************************************************
+ * Copyright (c) 2014 Haedus - Fabrica Codicis
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
 package org.haedus.datatypes.tables;
 
 import java.text.DecimalFormat;
@@ -35,7 +51,7 @@ public class WeightMatrix extends SymmetricTable<Double> {
 				Double value = get(i, j);
 				String format = FORMAT.format(value);
 				if (!format.startsWith("-")) {
-					sb.append(" "+format);
+					sb.append(" ").append(format);
 				} else {
 					sb.append(format);
 				}
@@ -56,7 +72,7 @@ public class WeightMatrix extends SymmetricTable<Double> {
 		for (Double value : array) {
 			String format = FORMAT_PREC.format(value);
 			if (!format.startsWith("-")) {
-				sb.append(" "+format);
+				sb.append(" ").append(format);
 			} else {
 				sb.append(format);
 			}
