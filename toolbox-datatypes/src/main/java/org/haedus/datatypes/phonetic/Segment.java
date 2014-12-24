@@ -66,14 +66,16 @@ public class Segment {
 		return model;
 	}
 
+	@Override
 	public int hashCode() {
 		return 19 * symbol.hashCode() * features.hashCode() * model.hashCode();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 
-		if (obj == null)                  return false;
-		if (getClass() != obj.getClass()) return false;
+		if (obj == null)                  { return false; }
+		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;
 		return symbol.equals(other.getSymbol()) &&
@@ -103,7 +105,7 @@ public class Segment {
 	}
 
 	public String toStringLong() {
-		StringBuilder sb = new StringBuilder(symbol + "\t");
+		StringBuilder sb = new StringBuilder(symbol + '\t');
 		for (Double feature : features) {
 			if (feature.equals(Double.NaN)) {
 				sb.append(" ***");
@@ -111,16 +113,16 @@ public class Segment {
 				if (feature < 0.0) {
 					sb.append(feature);
 				} else {
-					sb.append(" ");
+					sb.append(' ');
 					sb.append(feature);
 				}
 			}
-			sb.append(" ");
+			sb.append(' ');
 		}
 		return sb.toString();
 	}
 
 	public boolean isEmpty() {
-		return (symbol != null && symbol.isEmpty() && features.isEmpty());
+		return symbol != null && symbol.isEmpty() && features.isEmpty();
 	}
 }

@@ -22,7 +22,6 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
-import org.haedus.exceptions.VariableDefinitionFormatException;
 import org.haedus.io.DiskFileHandler;
 import org.haedus.io.NullFileHandler;
 import org.haedus.soundchange.command.Command;
@@ -70,6 +69,18 @@ public class SoundChangeApplier {
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
 	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
 
+	private static final Pattern CLOSE_PATTERN         = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern WRITE_PATTERN         = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern COMMENT_PATTERN       = Pattern.compile(COMMENT_STRING + ".*");
+	private static final Pattern SEGMENTATION_PATTERN  = Pattern.compile(SEGMENTATION + ": *");
+	private static final Pattern NORMALIZATION_PATTERN = Pattern.compile(NORMALIZATION + ": *");
+	private static final Pattern NEWLINE_PATTERN       = Pattern.compile("\\s*(\\r?\\n|\\r)\\s*");
+	private static final Pattern RESERVE_PATTERN       = Pattern.compile(RESERVE + ":? *");
+	private static final Pattern WHITESPACE_PATTERN    = Pattern.compile("\\s+");
+	private static final Pattern EXECUTE_PATTERN       = Pattern.compile(EXECUTE + "\\s+");
+	private static final Pattern IMPORT_PATTERN        = Pattern.compile(IMPORT + "\\s+");
+	private static final Pattern QUOTES_PATTERN        = Pattern.compile("\"|\'");
+
 	private final FileHandler    fileHandler;
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
@@ -81,34 +92,34 @@ public class SoundChangeApplier {
 	private NormalizerMode   normalizerMode   = NormalizerMode.NFC;
 
 	public SoundChangeApplier() {
-		model = new FeatureModel();
-		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons = new HashMap<String, List<List<Sequence>>>();
-		commands = new ArrayDeque<Command>();
+		model       = new FeatureModel();
+		variables   = new VariableStore(model);
+		lexicons    = new HashMap<String, List<List<Sequence>>>();
+		commands    = new ArrayDeque<Command>();
 		fileHandler = new DiskFileHandler();
 	}
 
-	public SoundChangeApplier(Iterable<String> commandsParam) throws ParseException {
+	public SoundChangeApplier(Iterable<String> commandsParam) {
 		this();
 		parse(commandsParam);
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String script) throws ParseException {
-		this(script.split("\\s*(\\r?\\n|\\r)\\s*")); // Splits newlines and removes padding whitespace
+	SoundChangeApplier(CharSequence script){
+		this(NEWLINE_PATTERN.split(script)); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String[] array) throws ParseException {
+	SoundChangeApplier(String[] array){
 		this(array, new NullFileHandler());
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) throws ParseException {
-		model = new FeatureModel();
-		variables = new VariableStore(model); // TODO: indicative of excess coupling?
-		lexicons = new HashMap<String, List<List<Sequence>>>();
-		commands = new ArrayDeque<Command>();
+	SoundChangeApplier(String[] array, FileHandler fileHandlerParam){
+		model       = new FeatureModel();
+		variables   = new VariableStore(model);
+		lexicons    = new HashMap<String, List<List<Sequence>>>();
+		commands    = new ArrayDeque<Command>();
 		fileHandler = fileHandlerParam;
 
 		Collection<String> list = new ArrayList<String>();
@@ -116,7 +127,7 @@ public class SoundChangeApplier {
 		parse(list);
 	}
 
-	public void addLexicon(String handle, List<List<String>> lexicon) {
+	public void addLexicon(String handle, Iterable<List<String>> lexicon) {
 		List<List<Sequence>> sequences = getSequences(lexicon);
 		lexicons.put(handle, sequences);
 	}
@@ -175,7 +186,7 @@ public class SoundChangeApplier {
 
 	// Testing only
 	List<Sequence> processLexicon(List<String> list) {
-		List<List<String>> lex = new ArrayList<List<String>>();
+		Collection<List<String>> lex = new ArrayList<List<String>>();
 		lex.add(list);
 
 		List<List<Sequence>> lexicon = getSequences(lex);
@@ -187,14 +198,13 @@ public class SoundChangeApplier {
 		return lexicon.get(0);
 	}
 
-	private void parse(Iterable<String> strings) throws ParseException {
+	private void parse(Iterable<String> strings){
 
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
-				String trimmedCommand = string.replaceAll(COMMENT_STRING + ".*", "");
+				String trimmedCommand = COMMENT_PATTERN.matcher(string).replaceAll("");
 
 				String command = normalize(trimmedCommand);
-
 				if (command.startsWith(EXECUTE)) {
 					executeScript(command);
 				} else if (command.startsWith(IMPORT)) {
@@ -206,7 +216,7 @@ public class SoundChangeApplier {
 				} else if (command.startsWith(CLOSE)) {
 					closeLexicon(command);
 				} else if (command.contains("=")) {
-					assignVariable(command);
+					variables.add(command);
 				} else if (command.contains(">")) {
 					commands.add(new Rule(command, lexicons, model, variables, segmentationMode));
 				} else if (command.startsWith(NORMALIZATION)) {
@@ -214,8 +224,8 @@ public class SoundChangeApplier {
 				} else if (command.startsWith(SEGMENTATION)) {
 					setSegmentation(command);
 				} else if (command.startsWith(RESERVE)) {
-					String reserve = command.replaceAll(RESERVE + ":? *", "");
-					for (String symbol : reserve.split(" +")) {
+					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
+					for (String symbol : WHITESPACE_PATTERN  .split(reserve)) {
 						model.reserveSymbol(symbol);
 					}
 				} else if (command.startsWith("BREAK")) {
@@ -228,20 +238,11 @@ public class SoundChangeApplier {
 		}
 	}
 
-	private void assignVariable(String command) {
-		try {
-			variables.add(command);
-		} catch (VariableDefinitionFormatException e) {
-			LOGGER.error("Error parsing variable assignment.", e);
-		}
-	}
-
 	/**
 	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that file into a lexicon stored against the file-handle;
-	 *
 	 * @param command the whole command staring from OPEN, specifying the path and file-handle
 	 */
-	private void openLexicon(String command) throws ParseException {
+	private void openLexicon(String command){
 		Pattern pattern = Pattern.compile(OPEN + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
 		Matcher matcher = pattern.matcher(command);
 
@@ -256,14 +257,11 @@ public class SoundChangeApplier {
 
 	/**
 	 * CLOSE FILEHANDLE (as) "some_output2.txt" to close the file-handle and save the lexicon to the specified file.
-	 *
 	 * @param command the whole command starting from CLOSE, specifying the file-handle and path
-	 * @throws ParseException
+	 * @throws org.haedus.exceptions.ParseException
 	 */
-	private void closeLexicon(String command) throws ParseException {
-		Pattern pattern = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-		Matcher matcher = pattern.matcher(command);
-
+	private void closeLexicon(String command){
+		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
@@ -277,12 +275,10 @@ public class SoundChangeApplier {
 	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified file, but leave the handle open
 	 *
 	 * @param command the whole command starting from WRITE, specifying the file-handle and path
-	 * @throws ParseException
+	 * @throws org.haedus.exceptions.ParseException
 	 */
-	private void writeLexicon(String command) throws ParseException {
-		Pattern pattern = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-		Matcher matcher = pattern.matcher(command);
-
+	private void writeLexicon(String command){
+		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
@@ -294,23 +290,22 @@ public class SoundChangeApplier {
 
 	/**
 	 * IMPORT other rule files, which basically inserts those commands into your current rule file;
-	 * Unlike other commands, this runs immediately and insert the
-	 *
+	 * Unlike other commands, this runs immediately and inserts the new commands into the current sound change applier
 	 * @param command the whole command starting with 'IMPORT'
 	 */
-	private void importScript(String command) throws ParseException {
-		String path = command.replaceAll(IMPORT + "\\s+", "").replaceAll("\"|\'", "");
+	private void importScript(CharSequence command){
+		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
+		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		List<String> strings = fileHandler.readLines(path);
 		parse(strings);
 	}
 
 	/**
 	 * EXECUTE other rule files, which just does what that rule file does in a separate process;
-	 *
 	 * @param command the whole command starting with 'EXECUTE'
 	 */
-	private void executeScript(String command) throws ParseException {
-		String path = command.replaceAll(EXECUTE + "\\s+", "");
+	private void executeScript(CharSequence command){
+		String path = EXECUTE_PATTERN.matcher(command).replaceAll("");
 		commands.add(new ScriptExecuteCommand(path));
 	}
 
@@ -319,12 +314,12 @@ public class SoundChangeApplier {
 	 *
 	 * @param command the whole command, beginning with NORMALIZATION
 	 */
-	private void setNormalization(String command) throws ParseException {
-		String mode = command.replaceAll(NORMALIZATION + ": *", "");
+	private void setNormalization(CharSequence command) {
+		String mode = NORMALIZATION_PATTERN.matcher(command).replaceAll("");
 		try {
 			normalizerMode = NormalizerMode.valueOf(mode);
 		} catch (IllegalArgumentException e) {
-			throw new ParseException(e.getMessage());
+			throw new ParseException(e);
 		}
 	}
 
@@ -333,15 +328,14 @@ public class SoundChangeApplier {
 	 *
 	 * @param command the whole command, beginning with SEGMENTATION
 	 */
-	private void setSegmentation(String command) throws ParseException {
-		String mode = command.replaceAll(SEGMENTATION + ": *", "");
-
+	private void setSegmentation(CharSequence command) {
+		String mode = SEGMENTATION_PATTERN.matcher(command).replaceAll("");
 		if (mode.startsWith("FALSE")) {
 			segmentationMode = SegmentationMode.NAIVE;
 		} else if (mode.startsWith("TRUE")) {
 			segmentationMode = SegmentationMode.DEFAULT;
 		} else {
-			throw new ParseException("Unrecognized segmentation mode \"" + mode + "\"");
+			throw new ParseException("Unrecognized segmentation mode \"" + mode + '"');
 		}
 	}
 

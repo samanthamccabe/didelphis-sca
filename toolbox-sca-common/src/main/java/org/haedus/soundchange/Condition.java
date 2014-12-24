@@ -21,6 +21,7 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.machines.Node;
+import org.haedus.machines.ParseDirection;
 import org.haedus.machines.StateMachine;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
@@ -56,11 +57,11 @@ public class Condition {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, StateMachine.ParseDirection.BACKWARD);
+				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, ParseDirection.BACKWARD);
 				postCondition = new StateMachine(featureModel, variableStore, segmentationMode);
 			} else if (conditions.length == 2) {
-				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, StateMachine.ParseDirection.BACKWARD);
-				postCondition = new StateMachine(conditions[1], featureModel, variableStore, segmentationMode, StateMachine.ParseDirection.FORWARD);
+				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, ParseDirection.BACKWARD);
+				postCondition = new StateMachine(conditions[1], featureModel, variableStore, segmentationMode, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
 				preCondition  = new StateMachine(featureModel, variableStore, segmentationMode);
 				postCondition = new StateMachine(featureModel, variableStore, segmentationMode);

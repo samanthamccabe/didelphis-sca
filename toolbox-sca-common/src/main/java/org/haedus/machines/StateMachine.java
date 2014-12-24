@@ -37,22 +37,9 @@ import java.util.Set;
  * Samantha Fiona Morrigan McCabe
  * 11/10/13.
  */
-public class StateMachine implements Node<Sequence> {
+public class StateMachine extends AbstractStateMachine {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
-
-	public enum ParseDirection {
-		FORWARD  ("Forward"),
-		BACKWARD ("Backward");
-
-		private final String value;
-
-		ParseDirection(String param) { value = param; }
-	}
-
-	private final VariableStore    variableStore;
-	private final FeatureModel     featureModel;
-	private final SegmentationMode segmentationMode;
 
 	private final Node<Sequence> startNode;
 	private final boolean        isAccepting;
@@ -61,18 +48,14 @@ public class StateMachine implements Node<Sequence> {
 
 	public StateMachine(FeatureModel model, VariableStore store, SegmentationMode modeParam) {
 		// We not want this constructor to be visible, so that
-		variableStore    = store;
-		featureModel     = model;
-		segmentationMode = modeParam;
+		super(model, store, modeParam);
 		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
 		startNode        = null;
 		isAccepting      = true; // Machine is empty, no start node, so it accepts all input
 	}
 
 	public StateMachine(String expression, FeatureModel model, VariableStore store, SegmentationMode modeParam, ParseDirection direction) {
-		variableStore    = store;
-		featureModel     = model;
-		segmentationMode = modeParam;
+		super(model, store, modeParam);
 		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
 		isAccepting      = false; // ok maybe i failed to understand how this works.
 
@@ -83,7 +66,7 @@ public class StateMachine implements Node<Sequence> {
 	@Override
 	public boolean matches(Sequence sequence) {
 
-		sequence.add(new Segment("#", featureModel.getFeaturesNaN(), featureModel));
+		sequence.add(sequenceFactory.getBoundarySegment());
 		// At the beginning of the process, we are in the start-state
 		// so we find out what arcs leave the node.
 		List<MatchState> states = new ArrayList<MatchState>();
@@ -173,7 +156,7 @@ public class StateMachine implements Node<Sequence> {
             for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
 	            if (symbol == null || symbol.isEmpty()) {
 		            swap.add(new MatchState(index, nextNode));
-	            } else if (variableStore.contains(symbol)) {
+	            } else if (sequenceFactory.hasVariable(symbol)) {
 		            addStateFromVariable(swap, index, tail, symbol, nextNode);
 	            } else if (tail.startsWith(symbol)) {
                     swap.add(new MatchState(index + symbol.size(), nextNode));
@@ -184,7 +167,7 @@ public class StateMachine implements Node<Sequence> {
 
 	// Checks of the tail starts with a symbol in the variable store
 	private void addStateFromVariable(Collection<MatchState> swap, int index, Sequence tail, Sequence symbol, Node<Sequence> nextNode) {
-		for (Sequence s : variableStore.get(symbol)) {
+		for (Sequence s : sequenceFactory.getVariableValues(symbol)) {
 		    if (tail.startsWith(s)) {
 		        swap.add(new MatchState(index + s.size(), nextNode));
 		    }
@@ -192,13 +175,7 @@ public class StateMachine implements Node<Sequence> {
 	}
 
 	private Node<Sequence> getNodeFromExpression(String string, ParseDirection direction) {
-		Collection<String> keys = new ArrayList<String>();
-		
-		keys.addAll(variableStore.getKeys());
-		keys.addAll(featureModel.getSymbols());
-		
-		List<String> list = Segmenter.getSegmentedString(string, keys, segmentationMode);
-
+		List<String> list = sequenceFactory.getSegmentedString(string);
 		Node<Sequence> root;
 		if (list.isEmpty()) {
 			root = NodeFactory.getEmptyNode();
@@ -250,7 +227,7 @@ public class StateMachine implements Node<Sequence> {
 
 		if (ex.isTerminal()) {
 			String element = ex.getString();
-			Sequence sequence = Segmenter.getSequence(element, featureModel, variableStore, segmentationMode);
+			Sequence sequence = sequenceFactory.getSequence(element);
 
 			if (ex.isOptional() && ex.isRepeatable()) {
 				start.add(sequence, start);
@@ -318,8 +295,8 @@ public class StateMachine implements Node<Sequence> {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj == null)                  return false;
-			if (obj.getClass() != getClass()) return false;
+			if (obj == null)                  { return false; }
+			if (obj.getClass() != getClass()) { return false; }
 
 			MatchState other = (MatchState) obj;
 			return index == other.index &&

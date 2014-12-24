@@ -22,97 +22,116 @@ public class SequenceFactory {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceFactory.class);
 
-	private FeatureModel     featureModel;
-	private SegmentationMode segmentationMode;
-	private VariableStore    variableStore;
-	// VariableStore is only accessed for it's keys
+	private final Segment boundarySegmentNAN;
+
+	private final FeatureModel     featureModel;
+	private final VariableStore    variableStore;	// VariableStore is only accessed for its keys
+	private final SegmentationMode segmentationMode;
 
 	public SequenceFactory() {
-		featureModel = new FeatureModel();
-		variableStore = new VariableStore();
-		segmentationMode = SegmentationMode.DEFAULT;
+		this(new FeatureModel(), new VariableStore(), SegmentationMode.DEFAULT);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		featureModel = modelParam;
-		variableStore = storeParam;
-		segmentationMode = SegmentationMode.DEFAULT;
+		this(modelParam, storeParam, SegmentationMode.DEFAULT);
+	}
+
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, SegmentationMode modeParam) {
+		featureModel     = modelParam;
+		variableStore    = storeParam;
+		segmentationMode = modeParam;
+
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		boundarySegmentNAN = new Segment("#", list, featureModel);
+	}
+
+	public Segment getBoundarySegment() {
+		return boundarySegmentNAN;
+	}
+
+	public Segment getSegment(String string) {
+		return Segmenter.getSegment(string, featureModel, variableStore, segmentationMode);
 	}
 
 	public Sequence getSequence(String word) {
 		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode);
 	}
 
-	public FeatureModel getFeatureModel() {
-		return featureModel;
+	public boolean hasVariable(Sequence label) {
+		return variableStore.contains(label);
 	}
 
-	public void setFeatureModel(FeatureModel featureModel) {
-		this.featureModel = featureModel;
+	public List<Sequence> getVariableValues(Sequence label) {
+		return variableStore.get(label);
+	}
+
+	public List<String> getSegmentedString(String string) {
+		Collection<String> keys = new ArrayList<String>();
+
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(featureModel.getSymbols());
+
+		return Segmenter.getSegmentedString(string, keys, segmentationMode);
+	}
+	public FeatureModel getFeatureModel() {
+		return featureModel;
 	}
 
 	public SegmentationMode getSegmentationMode() {
 		return segmentationMode;
 	}
 
-	public void setSegmentationMode(SegmentationMode segmentationMode) {
-		this.segmentationMode = segmentationMode;
-	}
-
 	public VariableStore getVariableStore() {
 		return variableStore;
 	}
 
-	public void setVariableStore(VariableStore variableStore) {
-		this.variableStore = variableStore;
+	private static boolean isCombiningClass(int type) {
+		return type == Character.MODIFIER_LETTER        || // LM
+			   type == Character.MODIFIER_SYMBOL        || // SK
+			   type == Character.COMBINING_SPACING_MARK || // MC
+			   type == Character.NON_SPACING_MARK;         // MN
 	}
 
-	private boolean isCombiningClass(int type) {
-		return (type == Character.MODIFIER_LETTER) || // LM
-		       (type == Character.MODIFIER_SYMBOL) || // SK
-		       (type == Character.COMBINING_SPACING_MARK) || // MC
-		       (type == Character.NON_SPACING_MARK);         // MN
+	private static boolean isDoubleWidthBinder(char ch) {
+		return (int) ch <= 866 && 860 <= (int) ch;
 	}
 
-	private boolean isDoubleWidthBinder(char ch) {
-		return ch <= 866 && 860 <= ch;
-	}
-
-	private boolean isSuperscriptAsciiDigit(int value) {
+	private static boolean isSuperscriptAsciiDigit(int value) {
 		// int literals are decimal char values
-		return (value == 178) ||
-		       (value == 179) ||
-		       (value == 185);
+		return value == 178 ||
+		       value == 179 ||
+		       value == 185;
 	}
 
-	private boolean isMathematicalSubOrSuper(int value) {
+	private static boolean isMathematicalSubOrSuper(int value) {
 		// int literals are decimal char values
-		return (value <= 8304) && (8348 <= value);
+		return value <= 8304 && 8348 <= value;
 	}
 
-	private boolean isCombingNOS(int value) {
+	private static boolean isCombingNOS(int value) {
 		// int literals are decimal char values
-		return (value >= 8304) &&
-		       (value <= 8348);
+		return value >= 8304 &&
+		       value <= 8348;
 	}
 
-	private String getBestMatch(String tail, Iterable<String> keys) {
+	private static String getBestMatch(String tail, Iterable<String> keys) {
 		String bestMatch = "";
 		for (String key : keys) {
 			if (tail.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
 			}
 		}
-
 		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(tail);
 		if (backReferenceMatcher.lookingAt()) {
 			bestMatch = backReferenceMatcher.group();
 		}
-
 		return bestMatch;
 	}
 
-	private boolean isAttachable(Character c) {
+	private static boolean isAttachable(Character c) {
 		int type = Character.getType(c);
 		int value = c;
 		return isSuperscriptAsciiDigit(value) ||
@@ -121,7 +140,7 @@ public class SequenceFactory {
 		       isCombiningClass(type);
 	}
 
-	private StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
+	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
 		segments.add(buffer.toString());
 		buffer = new StringBuilder();
 		buffer.append(key);

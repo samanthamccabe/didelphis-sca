@@ -54,7 +54,7 @@ public class FeatureModel {
 	private final Map<String, List<Double>> diacritics;
 	private final RectangularTable<Double>  weightTable;
 
-	private SegmentationMode segmentationMode;
+	private final SegmentationMode segmentationMode;
 
 	/**
 	 * Initializes an empty model

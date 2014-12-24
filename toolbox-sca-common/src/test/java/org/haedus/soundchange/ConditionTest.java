@@ -524,7 +524,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testWithVariables01() throws ParseException {
+	public void testWithVariables01(){
 
 		VariableStore vs = new VariableStore();
 		vs.add("C = p t k b d g pʰ tʰ kʰ");
@@ -546,7 +546,7 @@ public class ConditionTest {
 	}
 	
 	@Test
-	public void testVariablesDebug01() throws ParseException {
+	public void testVariablesDebug01(){
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 

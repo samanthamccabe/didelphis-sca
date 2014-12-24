@@ -281,12 +281,12 @@ public class Expression {
 		return expressions;
 	}
 
-	public List<Expression> getSubExpressions(StateMachine.ParseDirection direction) {
+	public List<Expression> getSubExpressions(ParseDirection direction) {
 		List<Expression> list = getSubExpressions();
-		if (direction == StateMachine.ParseDirection.BACKWARD) {
+		if (direction == ParseDirection.BACKWARD) {
 			Collections.reverse(list);
 			return list;
-		} else if (direction == StateMachine.ParseDirection.FORWARD) {
+		} else if (direction == ParseDirection.FORWARD) {
 			return list;
 		} else {
 			throw new UnsupportedOperationException("Unrecognized enum " + direction);

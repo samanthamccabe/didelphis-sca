@@ -34,7 +34,7 @@ public class ExpressionUtil {
 		List<Expression> list = new ArrayList<Expression>();
 
 		list.add(root);
-		addExpressinsToList(list, root);
+		addExpressionsToList(list, root);
 
 		for (int i = 0; i < list.size(); i++) {
 			Expression expression = list.get(i);
@@ -46,7 +46,7 @@ public class ExpressionUtil {
 			Expression expression = entry.getKey();
 			int index = entry.getValue();
 
-			for (Expression sub : expression.getSubExpressions(StateMachine.ParseDirection.FORWARD)) {
+			for (Expression sub : expression.getSubExpressions(ParseDirection.FORWARD)) {
 				Integer targetId = idMap.get(sub);
 				sb.append(makeEdge(index, targetId));
 			}
@@ -57,10 +57,10 @@ public class ExpressionUtil {
 		return sb.toString();
 	}
 
-	private static void addExpressinsToList(List<Expression> list, Expression exp) {
-		for (Expression sub : exp.getSubExpressions(StateMachine.ParseDirection.FORWARD)) {
+	private static void addExpressionsToList(List<Expression> list, Expression exp) {
+		for (Expression sub : exp.getSubExpressions(ParseDirection.FORWARD)) {
 			list.add(sub);
-			addExpressinsToList(list, sub);
+			addExpressionsToList(list, sub);
 		}
 	}
 
@@ -74,7 +74,7 @@ public class ExpressionUtil {
 		sb.append("label \"");
 
 		if (ex.isNegative()) {
-			sb.append("!");
+			sb.append('!');
 		}
 
 		if (ex.isParallel()) {

@@ -58,17 +58,17 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test(expected = ParseException.class)
-	public void testNormalizerBadMode() throws ParseException {
+	public void testNormalizerBadMode(){
 		new SoundChangeApplier(new String[]{ "NORMALIZATION:XXX" });
 	}
 
 	@Test(expected = ParseException.class)
-	public void testSegmentationBadMode() throws ParseException {
+	public void testSegmentationBadMode(){
 		new SoundChangeApplier(new String[]{ "SEGMENTATION:XXX" });
 	}
 
 	@Test
-	public void testBreak() throws ParseException {
+	public void testBreak(){
 		String[] commands = { "x > y",
 				"BREAK",
 				"a > b"
@@ -84,7 +84,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testNormalizerNFD() throws ParseException {
+	public void testNormalizerNFD(){
 		String[] commands = { "NORMALIZATION:NFD" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -107,7 +107,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testNormalizerNFC() throws ParseException {
+	public void testNormalizerNFC(){
 		String[] commands = { "NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -127,7 +127,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void TestNormalizerNFCvsNFD() throws ParseException {
+	public void TestNormalizerNFCvsNFD(){
 		String[] commands = { "NORMALIZATION:NFC" };
 
 		List<String> lexicon = new ArrayList<String>();
@@ -147,7 +147,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest01() throws ParseException {
+	public void simpleRuleTest01(){
 		String[] commands = {
 				"a > e",
 				"d > t / _#"
@@ -164,7 +164,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest02() throws ParseException {
+	public void simpleRuleTest02(){
 		String[] commands = {
 				"NORMALIZATION: NFD",
 				"ḱʰ ḱ ǵ > cʰ c ɟ",
@@ -185,7 +185,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest03() throws ParseException {
+	public void simpleRuleTest03(){
 		String[] commands = {
 				"- > 0",
 				"h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ",
@@ -222,7 +222,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleRuleTest04() throws ParseException {
+	public void simpleRuleTest04(){
 		String[] commands = {
 				"e é ē ê > a á ā â / {x ʕ}_",
 				"e é ē ê > a á ā â / _{x ʕ}",
@@ -253,7 +253,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void reassignmentTest01() throws ParseException {
+	public void reassignmentTest01(){
 		String[] commands = {
 				"% Comment",
 				"C = p t k pʰ tʰ kʰ n m r l",
@@ -274,7 +274,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void ruleTest01() throws ParseException {
+	public void ruleTest01(){
 		String[] commands = {
 				"% Comment",
 				"C = p t k pʰ tʰ kʰ n m r l",
@@ -307,7 +307,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void ruleTest02() throws ParseException {
+	public void ruleTest02(){
 
 		String[] commands = {
 				"K  = p  t  k",
@@ -384,7 +384,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testLoop01() throws ParseException {
+	public void testLoop01(){
 		String[] commands = {
 				"P = pw p t k",
 				"B = bw b d g",
@@ -399,7 +399,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testDebug002() throws ParseException {
+	public void testDebug002(){
 		String commands =
 				"AT = î\n" +
 				"C  = þ s n\n" +
@@ -423,7 +423,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleNosegmentation() throws ParseException {
+	public void simpleNosegmentation(){
 		String[] commands = {
 				"NORMALIZATION: NONE",
 				"SEGMENTATION: FALSE",
@@ -445,7 +445,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleNoSegmentation01() throws ParseException {
+	public void simpleNoSegmentation01(){
 		String[] commands = {
 				"NORMALIZATION: NONE",
 				"SEGMENTATION: FALSE",
@@ -465,7 +465,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void reserveTest() throws ParseException {
+	public void reserveTest(){
 		String[] commands = {
 				"SEGMENTATION: FALSE",
 				"RESERVE ph th kh"
@@ -481,7 +481,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void reserveNaiveSegmentationTest() throws ParseException {
+	public void reserveNaiveSegmentationTest(){
 		String[] commands = {
 				"SEGMENTATION: FALSE",
 				"RESERVE ph th kh",
@@ -499,7 +499,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void reserveDefaultSegmentationTest() throws ParseException {
+	public void reserveDefaultSegmentationTest(){
 		String[] commands = {
 				"SEGMENTATION: TRUE",
 				"RESERVE ph th kh",
@@ -517,7 +517,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testMetathesis01() throws ParseException {
+	public void testMetathesis01(){
 		String[] commands = {
 				"C = p t k",
 				"N = m n",
@@ -534,7 +534,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testOpen01() throws ParseException {
+	public void testOpen01(){
 
 		String[] lexicon = {
 				"apat",
@@ -563,7 +563,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testOpen02() throws ParseException {
+	public void testOpen02(){
 		String lexicon = "" +
 		                 "apat\n" +
 		                 "takan\n" +
@@ -590,7 +590,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void testWrite01() throws ParseException {
+	public void testWrite01(){
 		String lexicon = "" +
 		                 "apat\n" +
 		                 "takan\n" +

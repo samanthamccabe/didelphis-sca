@@ -21,7 +21,7 @@ public class ScriptExecuteCommand implements Command {
 
 	private final SoundChangeApplier sca;
 
-	public ScriptExecuteCommand(String pathParam) throws ParseException {
+	public ScriptExecuteCommand(String pathParam){
 		File file = new File(pathParam);
 		List<String> list;
 		try {

@@ -21,6 +21,10 @@ package org.haedus.exceptions;
  */
 public class VariableDefinitionFormatException extends ParseException {
 
+	public VariableDefinitionFormatException(Throwable throwable) {
+		super(throwable);
+	}
+
 	public VariableDefinitionFormatException(String message) {
 		super("Illegal Variable Definition:\n\t"+message);
 	}
