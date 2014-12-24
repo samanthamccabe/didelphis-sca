@@ -60,6 +60,7 @@ public class StateMachine implements Node<Sequence> {
 	private final Map<Sequence, Set<Node<Sequence>>> arcs;
 
 	public StateMachine(FeatureModel model, VariableStore store, SegmentationMode modeParam) {
+		// We not want this constructor to be visible, so that
 		variableStore    = store;
 		featureModel     = model;
 		segmentationMode = modeParam;
@@ -74,8 +75,7 @@ public class StateMachine implements Node<Sequence> {
 		segmentationMode = modeParam;
 		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
 		isAccepting      = false; // ok maybe i failed to understand how this works.
-//		this(model, store, modeParam);
-		
+
 		startNode = getNodeFromExpression(expression, direction);
 	}
 
@@ -158,7 +158,7 @@ public class StateMachine implements Node<Sequence> {
 
 	@Override
 	public void setAccepting(boolean acceptingParam) {
-
+		throw new UnsupportedOperationException("Attempt to set an immutable state-machine node as \"accepting\"!");
 	}
 
 	@Override
