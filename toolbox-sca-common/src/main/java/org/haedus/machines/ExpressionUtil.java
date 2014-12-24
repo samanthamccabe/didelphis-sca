@@ -46,7 +46,7 @@ public class ExpressionUtil {
 			Expression expression = entry.getKey();
 			int index = entry.getValue();
 
-			for (Expression sub : expression.getSubExpressions(true)) {
+			for (Expression sub : expression.getSubExpressions(StateMachine.ParseDirection.FORWARD)) {
 				Integer targetId = idMap.get(sub);
 				sb.append(makeEdge(index, targetId));
 			}
@@ -58,7 +58,7 @@ public class ExpressionUtil {
 	}
 
 	private static void addExpressinsToList(List<Expression> list, Expression exp) {
-		for (Expression sub : exp.getSubExpressions(true)) {
+		for (Expression sub : exp.getSubExpressions(StateMachine.ParseDirection.FORWARD)) {
 			list.add(sub);
 			addExpressinsToList(list, sub);
 		}

@@ -81,7 +81,7 @@ public class Expression {
 		this(list, false, false);
 	}
 
-	private LinkedList<Expression> parse(AbstractSequentialList<String> list) {
+	private static LinkedList<Expression> parse(AbstractSequentialList<String> list) {
 		LinkedList<Expression> expressionList = new LinkedList<Expression>();
 
 		boolean repeatable = false;
@@ -170,7 +170,7 @@ public class Expression {
 		return expressionList;
 	}
 
-	private Iterable<List<String>> getLists(List<String> list) {
+	private static Iterable<List<String>> getLists(List<String> list) {
 		String space = " |";
 
 		int spaceIndex = list.size();
@@ -182,8 +182,8 @@ public class Expression {
 			if (space.contains(currentString)) {
 				LinkedList<String> subList = new LinkedList<String>(list.subList(i + 1, spaceIndex));
 
-				boolean hasPairBraces = (subList.contains("{") == subList.contains("}"));
-				boolean hasPairParens = (subList.contains("(") == subList.contains(")"));
+				boolean hasPairBraces = subList.contains("{") == subList.contains("}");
+				boolean hasPairParens = subList.contains("(") == subList.contains(")");
 
 				if (hasPairBraces && hasPairParens) {
 					lists.add(subList);
@@ -202,35 +202,35 @@ public class Expression {
 	 * @param left     the left-bracket symbol
 	 * @param right    the right-bracket symbol
 	 * @param i        location of the current right-bracket
-	 * @return the index where the matching left-bracket is found
+	 * @return the index where the matching left-bracket is found; -1 if it is not found
 	 */
-	private int getIndex(List<String> segments, String left, String right, int i) {
+	private static int getIndex(List<String> segments, String left, String right, int i) {
 		int count = 0;
 		int index = i;
 
-		boolean notMatched = true;
+		boolean matched = false;
 
-		while (notMatched && (index >= 0) && (index <= segments.size())) {
+		while (!matched && index >= 0 && index <= segments.size()) {
 			String current = segments.get(index);
 			if (current.equals(left) && count == 1) {
-				notMatched = false;
+				matched = true;
 			} else if (current.equals(right)) {
 				count++;
 			} else if (current.equals(left)) {
 				count--;
 			}
-			if (notMatched) {
+			if (!matched) {
 				index--;
 			}
 		}
-		if (notMatched) {
+		if (!matched) {
 			index = -1;
 		}
 		return index;
 	}
 
 	public boolean isEmpty() {
-		return (segment.isEmpty() && isTerminal());
+		return segment.isEmpty() && isTerminal();
 	}
 
 	private void add(Expression ex) {
@@ -281,12 +281,16 @@ public class Expression {
 		return expressions;
 	}
 
-	public List<Expression> getSubExpressions(boolean isForward) {
+	public List<Expression> getSubExpressions(StateMachine.ParseDirection direction) {
 		List<Expression> list = getSubExpressions();
-		if (!isForward) {
+		if (direction == StateMachine.ParseDirection.BACKWARD) {
 			Collections.reverse(list);
+			return list;
+		} else if (direction == StateMachine.ParseDirection.FORWARD) {
+			return list;
+		} else {
+			throw new UnsupportedOperationException("Unrecognized enum " + direction);
 		}
-		return list;
 	}
 
 	public int subexpressionSize() {
@@ -304,27 +308,27 @@ public class Expression {
 	public String toString() {
 		String string = "";
 		if (isTerminal()) {
-			string = segment.toString();
+			string = segment;
 		} else {
 			for (Expression exp : expressions) {
 				String str = exp.toString();
 
 				if (isParallel) {
-					string = string.concat(str + " ");
+					string += str + ' ';
 				} else {
-					string = string.concat(str);
+					string += str;
 				}
 			}
 
 			if (isParallel) {
-				string = "{" + string.trim() + "}";
+				string = '{' + string.trim() + '}';
 			} else if (expressions.size() > 1) {
-				string = "(" + string.trim() + ")";
+				string = '(' + string.trim() + ')';
 			}
 		}
 
 		if (isNegative) {
-			string = "!" + string;
+			string = '!' + string;
 		}
 
 		return string.trim() + getSymbol();

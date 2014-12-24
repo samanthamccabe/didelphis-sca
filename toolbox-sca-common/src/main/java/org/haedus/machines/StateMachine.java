@@ -27,38 +27,60 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Samantha Fiona Morrigan McCabe
  * 11/10/13.
  */
-public class StateMachine {
+public class StateMachine implements Node<Sequence> {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	private final Node<Sequence>   startNode;
+	public enum ParseDirection {
+		FORWARD  ("Forward"),
+		BACKWARD ("Backward");
+
+		private final String value;
+
+		ParseDirection(String param) { value = param; }
+	}
+
 	private final VariableStore    variableStore;
 	private final FeatureModel     featureModel;
 	private final SegmentationMode segmentationMode;
 
-	public StateMachine() {
-		variableStore    = new VariableStore();
-		startNode        = new TerminalNode<Sequence>(0);
-		featureModel     = new FeatureModel();
-		segmentationMode = SegmentationMode.DEFAULT;
-	}
+	private final Node<Sequence> startNode;
+	private final boolean        isAccepting;
 
-	public StateMachine(String expression, FeatureModel model, VariableStore store, SegmentationMode modeParam, boolean isForward) {
+	private final Map<Sequence, Set<Node<Sequence>>> arcs;
+
+	public StateMachine(FeatureModel model, VariableStore store, SegmentationMode modeParam) {
 		variableStore    = store;
 		featureModel     = model;
 		segmentationMode = modeParam;
+		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
+		startNode        = null;
+		isAccepting      = true; // Machine is empty, no start node, so it accepts all input
+	}
+
+	public StateMachine(String expression, FeatureModel model, VariableStore store, SegmentationMode modeParam, ParseDirection direction) {
+		variableStore    = store;
+		featureModel     = model;
+		segmentationMode = modeParam;
+		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
+		isAccepting      = false; // ok maybe i failed to understand how this works.
+//		this(model, store, modeParam);
 		
-		startNode = getNodeFromExpression(expression, isForward);
+		startNode = getNodeFromExpression(expression, direction);
 	}
 
     // Determines if the Sequence is accepted by this machine
+	@Override
 	public boolean matches(Sequence sequence) {
 
 		sequence.add(new Segment("#", featureModel.getFeaturesNaN(), featureModel));
@@ -69,7 +91,7 @@ public class StateMachine {
 		// Add an initial state at the beginning of the sequence
 		states.add(new MatchState(0, startNode));
 		// if the condition is empty, it will always match
-		boolean match = startNode.isEmpty();
+		boolean match = startNode == null || startNode.isEmpty();
 		while (!match && !states.isEmpty()) {
 			for (MatchState state : states) {
 
@@ -84,13 +106,64 @@ public class StateMachine {
 				}
 			}
 			states = swap;
-			swap = new LinkedList<MatchState>();
+			swap = new ArrayList<MatchState>();
 		}
 		return match;
 	}
 
+	@Override
+	public void add(Node<Sequence> node) {
+		add(null, node);
+	}
+
+	@Override
+	public void add(Sequence arcValue, Node<Sequence> node) {
+		Set<Node<Sequence>> someNodes;
+		if (arcs.containsKey(arcValue)) {
+			someNodes = arcs.get(arcValue);
+			if (!someNodes.contains(node)) {
+				someNodes.add(node);
+			}
+		} else {
+			someNodes = new HashSet<Node<Sequence>>();
+			someNodes.add(node);
+		}
+		arcs.put(arcValue, someNodes);
+	}
+
+	@Override
+	public boolean hasArc(Sequence arcValue) {
+		return arcs.containsKey(arcValue);
+	}
+
+	@Override
+	public Collection<Node<Sequence>> getNodes(Sequence arcValue) {
+		return arcs.get(arcValue);
+	}
+
+	@Override
+	public Collection<Sequence> getKeys() {
+		return arcs.keySet();
+	}
+
+	@Override
+	public boolean isAccepting() {
+		return false;
+	}
+
+	@Override
+	public String getId() {
+		return null;
+	}
+
+	@Override
+	public void setAccepting(boolean acceptingParam) {
+
+	}
+
+	@Override
 	public boolean isEmpty() {
-		return startNode.isEmpty();
+		return arcs.isEmpty();
 	}
 
     private void updateSwapStates(Sequence testSequence, Collection<MatchState> swap, Node<Sequence> currentNode, int index) {
@@ -118,7 +191,7 @@ public class StateMachine {
 		}
 	}
 
-	private Node<Sequence> getNodeFromExpression(String string, boolean isForward) {
+	private Node<Sequence> getNodeFromExpression(String string, ParseDirection direction) {
 		Collection<String> keys = new ArrayList<String>();
 		
 		keys.addAll(variableStore.getKeys());
@@ -132,7 +205,7 @@ public class StateMachine {
 		} else {
 			root = NodeFactory.getNode();
 			Expression ex   = new Expression(list);
-			Node<Sequence> last = parse(ex, root, isForward);
+			Node<Sequence> last = parse(ex, root, direction);
 			last.setAccepting(true);
 			LOGGER.trace(ExpressionUtil.getGML(ex));
 		}
@@ -140,27 +213,27 @@ public class StateMachine {
 	}
 
     //
-	private Node<Sequence> parse(Expression expression, Node<Sequence> root, boolean forward) {
+	private Node<Sequence> parse(Expression expression, Node<Sequence> root, ParseDirection direction) {
 		Node<Sequence> current = root;
 
 		if (expression.isParallel()) {
 			Node<Sequence> tail = NodeFactory.getNode();
             if (expression.isNegative()) {
-                for (Expression ex : expression.getSubExpressions(forward)) {
-                    Node<Sequence> next = getNode(forward, current, ex);
+                for (Expression ex : expression.getSubExpressions(direction)) {
+                    Node<Sequence> next = getNode(current, ex, direction);
                     next.add(tail);
                 }
             } else {
 
-                for (Expression ex : expression.getSubExpressions(forward)) {
-                    Node<Sequence> next = getNode(forward, current, ex);
+                for (Expression ex : expression.getSubExpressions(direction)) {
+                    Node<Sequence> next = getNode(current, ex, direction);
                     next.add(tail);
                 }
                 current = tail;
             }
 		} else {
-			for (Expression ex : expression.getSubExpressions(forward)) {
-				current = getNode(forward, current, ex);
+			for (Expression ex : expression.getSubExpressions(direction)) {
+				current = getNode(current, ex, direction);
 			}
 		}
 		return current;
@@ -168,12 +241,12 @@ public class StateMachine {
 
 	/**
 	 * Processes an Expression into a state machine
-	 * @param forward determines if the Expression will be parsed forwards (left-to-right)
 	 * @param start the starting node of the machine
 	 * @param ex the Expression we wish to process
+	 * @param direction determines if the Expression will be parsed forwards (left-to-right)
 	 * @return the last node in the machine.
 	 */
-	private Node<Sequence> getNode(boolean forward, Node<Sequence> start, Expression ex) {
+	private Node<Sequence> getNode(Node<Sequence> start, Expression ex, ParseDirection direction) {
 
 		if (ex.isTerminal()) {
 			String element = ex.getString();
@@ -184,16 +257,17 @@ public class StateMachine {
 			} else {
 				Node<Sequence> next = NodeFactory.getNode();
 				start.add(sequence, next);
-				if (ex.isRepeatable())
+				if (ex.isRepeatable()) {
 					next.add(start);
-				else if (ex.isOptional())
+				} else if (ex.isOptional()) {
 					start.add(next);
+				}
 				start = next;
 			}
 		} else {
 			// This provides the start and end states of our machine
 			Node<Sequence> next = NodeFactory.getNode();
-			Node<Sequence> last = parse(ex, next, forward);
+			Node<Sequence> last = parse(ex, next, direction);
 
 			start.add(next);
 
@@ -203,20 +277,18 @@ public class StateMachine {
 				start.add(alpha);
 				start = alpha;
 			} else {
-				if (ex.isRepeatable())
+				if (ex.isRepeatable()) {
 					last.add(start);
-				else if (ex.isOptional())
+				} else if (ex.isOptional()) {
 					next.add(last);
+				}
 				start = last;
 			}
 		}
 		return start;
 	}
 
-	/**
-	 * Utility class for matching strings
-	 */
-	private final static class MatchState {
+	private static final class MatchState {
 
 		private final int            index; // Where in the sequence the cursor is
 		private final Node<Sequence> node;  // What node the cursor is currently on
@@ -236,7 +308,7 @@ public class StateMachine {
 		
 		@Override
 		public String toString() {
-			return "<" + index + ", " + node.getId() + ">";
+			return '<' + index + ", " + node.getId() + '>';
 		}
 		
 		@Override
@@ -250,8 +322,8 @@ public class StateMachine {
 			if (obj.getClass() != getClass()) return false;
 
 			MatchState other = (MatchState) obj;
-			return index == other.getIndex() &&
-			       node.equals(other.getNode());
+			return index == other.index &&
+			       node.equals(other.node);
 		}
 	}
 }

@@ -29,30 +29,18 @@ public class NodeFactory {
 
 	private static int indexCounter = 0;
 
-	private static final TerminalNode EMPTYNODE = new TerminalNode(0);
-    private static final TerminalNode DEADSTATE = new TerminalNode(Integer.MIN_VALUE);
+	private static final Node<Sequence> EMPTYNODE = new TerminalNode<Sequence>("EMPTY NODE");
 
 	public static Node<Sequence> getNode() {
 		return getNode(false);
 	}
 
 	public static Node<Sequence> getNode(boolean accepting) {
-		setIndexCounter(getIndexCounter() + 1);
-		return new TerminalNode(getIndexCounter(), accepting);
+		indexCounter++;
+		return new TerminalNode<Sequence>(String.valueOf(indexCounter), accepting);
 	}
-
-    public static Node<Sequence> getDeadState() { return DEADSTATE; }
 
 	public static Node<Sequence> getEmptyNode() {
 		return EMPTYNODE;
 	}
-
-	public static int getIndexCounter() {
-		return indexCounter;
-	}
-
-	public static void setIndexCounter(int indexCounter) {
-		NodeFactory.indexCounter = indexCounter;
-	}
-
 }

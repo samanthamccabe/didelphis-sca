@@ -16,31 +16,29 @@
 
 package org.haedus.machines;
 
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Samantha Fiona Morrigan McCabe
- * Date: 8/3/13
- * Time: 1:31 PM
- * To change this template use File | Settings | File Templates.
+ * Created by Samantha F M McCabe on 12/21/14.
  */
 public class TerminalNode<T> implements Node<T> {
 
 	private       boolean isAccepting;
-	private final int     id;
+	private final String  id;
 
 	private final Map<T, Set<Node<T>>> arcs;
 
-	protected TerminalNode(int i) {
-		id = i;
+	protected TerminalNode(String idParam) {
+		id = idParam;
 		isAccepting = false;
 		arcs = new HashMap<T, Set<Node<T>>>();
 	}
 
-	protected TerminalNode(int i, boolean accepting) {
-		id = i;
+	protected TerminalNode(String idParam, boolean accepting) {
+		id = idParam;
 		isAccepting = accepting;
 		arcs = new HashMap<T, Set<Node<T>>>();
 	}
@@ -51,16 +49,16 @@ public class TerminalNode<T> implements Node<T> {
 		if (!(obj instanceof TerminalNode)) return false;
 
 		TerminalNode other = (TerminalNode) obj;
-		return id == other.getId() &&
+		return id.equals(other.getId()) &&
 		       arcs.equals(other.arcs) &&
-		       isAccepting == other.isAccepting();
+		       isAccepting == other.isAccepting;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Node " + id + "\n");
+		StringBuilder sb = new StringBuilder("Node " + id + '\n');
 
-		for (Entry<T, Set<Node<T>>> entry : arcs.entrySet()) {
+		for (Map.Entry<T, Set<Node<T>>> entry : arcs.entrySet()) {
 			T key = entry.getKey();
 			Set<Node<T>> value = entry.getValue();
 
@@ -68,11 +66,10 @@ public class TerminalNode<T> implements Node<T> {
 			sb.append(" > [ ");
 			for (Node node : value) {
 				sb.append(node.getId());
-				sb.append(" ");
+				sb.append(' ');
 			}
-			sb.append("]");
+			sb.append(']');
 		}
-
 		return sb.toString();
 	}
 
@@ -80,16 +77,15 @@ public class TerminalNode<T> implements Node<T> {
 	public int hashCode() {
 		int code = 11;
 
-		code *= 31 + id;
-		code *= 31 + ((isAccepting) ? 1 : 0);
+		code *= 31 + id.hashCode();
+		code *= 31 + (isAccepting ? 1 : 0);
 
-		for (Entry<T, Set<Node<T>>> entry : arcs.entrySet()) {
+		for (Map.Entry<T, Set<Node<T>>> entry : arcs.entrySet()) {
 			if (entry != null) {
 				T key = entry.getKey();
-				code *= ((key != null) ? key.hashCode() : 0) + entry.getValue().size();
+				code *= (key != null ? key.hashCode() : 0) + entry.getValue().size();
 			}
 		}
-
 		return code;
 	}
 
@@ -106,7 +102,7 @@ public class TerminalNode<T> implements Node<T> {
 	}
 
 	@Override
-	public void add(Node node) {
+	public void add(Node<T> node) {
 		add(null, node);
 	}
 
@@ -146,12 +142,12 @@ public class TerminalNode<T> implements Node<T> {
 	}
 
 	@Override
-	public void setAccepting(boolean isAccepting) {
-		this.isAccepting = isAccepting;
+	public void setAccepting(boolean acceptingParam) {
+		isAccepting = acceptingParam;
 	}
 
 	@Override
-	public int getId() {
-		return id;
+	public String getId() {
+		return String.valueOf(id);
 	}
 }

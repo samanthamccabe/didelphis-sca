@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.soundchange.command;
 
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;

@@ -28,9 +28,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,22 +45,26 @@ public class VariableStore {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
+	private static final int     INITIAL_CAPACITY  = 20;
+	private static final Pattern EQUALS_PATTERN    = Pattern.compile("\\s*=\\s*");
+	private static final Pattern DELIMITER_PATTERN = Pattern.compile("\\s+");
+
 	private final Map<String, List<Sequence>> variables;
 
 	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
 	private final FeatureModel     featureModel;
-	private       SegmentationMode segmentationMode;
+	private final SegmentationMode segmentationMode;
 
 	public VariableStore() {
 		segmentationMode = SegmentationMode.DEFAULT;
 		featureModel     = new FeatureModel();
-		variables        = new HashMap<String, List<Sequence>>();
+		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
 	}
 
 	public VariableStore(FeatureModel modelParam) {
 		segmentationMode = SegmentationMode.DEFAULT;
 		featureModel     = modelParam;
-		variables        = new HashMap<String, List<Sequence>>();
+		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
 	}
 
 	public VariableStore(VariableStore otherStore) {
@@ -89,20 +95,20 @@ public class VariableStore {
 			sb.append(entry.getKey());
 			sb.append(" =");
 			for (Sequence sequence : entry.getValue()) {
-				sb.append(" ");
+				sb.append(' ');
 				sb.append(sequence);
 			}
-			sb.append("\n");
+			sb.append('\n');
 		}
 		return sb.toString().trim();
 	}
 
 	public void add(String command) throws VariableDefinitionFormatException {
-		String[] parts = command.trim().split("\\s*=\\s*");
+		String[] parts = EQUALS_PATTERN.split(command.trim());
 
 		if (parts.length == 2) {
 			String key = parts[0];
-			String[] elements = parts[1].split("\\s+");
+			String[] elements = DELIMITER_PATTERN.split(parts[1]);
 
 			List<Sequence> expanded = new ArrayList<Sequence>();
 			for (String value : elements) {
@@ -159,7 +165,6 @@ public class VariableStore {
 	public List<Sequence> get(String key) {
 		return variables.get(key);
 	}
-
 
 	private String getBestMatch(Sequence tail) {
 		String bestMatch = "";
