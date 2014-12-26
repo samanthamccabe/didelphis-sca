@@ -21,7 +21,7 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.machines.Node;
-import org.haedus.machines.ParseDirection;
+import org.haedus.datatypes.ParseDirection;
 import org.haedus.machines.StateMachine;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;

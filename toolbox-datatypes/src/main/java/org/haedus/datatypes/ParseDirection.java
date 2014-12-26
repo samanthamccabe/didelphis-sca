@@ -1,4 +1,4 @@
-package org.haedus.machines;
+package org.haedus.datatypes;
 
 /**
  * Created by samantha on 12/24/14.

@@ -8,6 +8,7 @@ import org.haedus.datatypes.Segmenter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -117,7 +118,12 @@ public class SequenceFactory {
 		       value <= 8348;
 	}
 
-	private static String getBestMatch(String tail, Iterable<String> keys) {
+	public String getBestMatch(String tail) {
+
+		Collection<String> keys = new HashSet<String>();
+		keys.addAll(featureModel.getSymbols());
+		keys.addAll(variableStore.getKeys());
+
 		String bestMatch = "";
 		for (String key : keys) {
 			if (tail.startsWith(key) && bestMatch.length() < key.length()) {

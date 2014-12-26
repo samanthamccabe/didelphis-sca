@@ -16,22 +16,25 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.Segmenter;
-import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -40,6 +43,9 @@ import java.util.Set;
 public class StateMachine extends AbstractStateMachine {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
+
+	public static final Pattern ILLEGAL_START_PATTERN = Pattern.compile("^([\\$\\^\\*\\?\\+\\)\\}\\]\\\\])");
+	public static final Pattern METACHARACTER_PATTERN = Pattern.compile("^[\\*\\?\\+]");
 
 	private final Node<Sequence> startNode;
 	private final boolean        isAccepting;
@@ -59,10 +65,85 @@ public class StateMachine extends AbstractStateMachine {
 		arcs             = new HashMap<Sequence, Set<Node<Sequence>>>();
 		isAccepting      = false; // ok maybe i failed to understand how this works.
 
-		startNode = getNodeFromExpression(expression, direction);
+//		startNode = getNodeFromExpression(expression, direction);
+		startNode = parseExpression(expression, direction);
 	}
 
-    // Determines if the Sequence is accepted by this machine
+	private Node<Sequence> parseExpression(String expression, ParseDirection direction) {
+		// Parse out each top-level expression
+		List<Thing> things = parseExpression(expression);
+		if (direction == ParseDirection.BACKWARD) { Collections.reverse(things); }
+
+		return null;
+	}
+
+	private List<Thing> parseExpression(String expression) {
+
+		Matcher matcher = ILLEGAL_START_PATTERN.matcher(expression);
+		if (matcher.lookingAt()) {
+			throw new ParseException("Expression stared with an illegal character: " + matcher.group(1) + " in " + expression);
+		}
+
+		List<Thing> list = new ArrayList<Thing>();
+		Thing buffer = new Thing();
+		for (int i = 0; i < expression.length(); ) {
+			char ch = expression.charAt(i);
+			if (ch == '*' || ch == '?' || ch == '+') {
+				// Last in an expressio
+				buffer.metacharater = ch;
+				buffer = updateBuffer(list, buffer);
+				i++;
+			} else if (ch == '!') {
+				// first in an expression
+				buffer = updateBuffer(list, buffer);
+				buffer.negative = true;
+				i++;
+			} else {
+				if (!buffer.expression.isEmpty() ) {
+					buffer = updateBuffer(list, buffer);
+				}
+
+				String tail = expression.substring(i);
+				String best = sequenceFactory.getBestMatch(tail);
+				if (best.isEmpty()) {
+					if (tail.startsWith("{")) {
+						int endIndex = getIndex(expression, '{', '}', i);
+						best = expression.substring(i, endIndex + 1);
+					} else if (tail.startsWith("(")) {
+						int endIndex = getIndex(expression, '(', ')', i);
+						best = expression.substring(i, endIndex + 1);
+					} else {
+						best = expression.substring(i, i + 1);
+					}
+				}
+				buffer.expression = best;
+				i += best.length();
+			}
+		}
+		list.add(buffer);
+		return list;
+	}
+
+	private static int getIndex(CharSequence string, char left, char right, int startIndex) {
+		int count = 1;
+		int endIndex = -1;
+
+		boolean matched = false;
+		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
+			char ch = string.charAt(i);
+			if (ch == right && count == 1) {
+				matched = true;
+				endIndex = i;
+			} else if (ch == right) {
+				count++;
+			} else if (ch == left) {
+				count--;
+			}
+		}
+		return endIndex;
+	}
+
+	// Determines if the Sequence is accepted by this machine
 	@Override
 	public boolean matches(Sequence sequence) {
 
@@ -184,7 +265,6 @@ public class StateMachine extends AbstractStateMachine {
 			Expression ex   = new Expression(list);
 			Node<Sequence> last = parse(ex, root, direction);
 			last.setAccepting(true);
-			LOGGER.trace(ExpressionUtil.getGML(ex));
 		}
 		return root;
 	}
@@ -301,6 +381,23 @@ public class StateMachine extends AbstractStateMachine {
 			MatchState other = (MatchState) obj;
 			return index == other.index &&
 			       node.equals(other.node);
+		}
+	}
+
+
+	private static Thing updateBuffer(Collection<Thing> list, Thing buffer) {
+		list.add(buffer);
+		return new Thing();
+	}
+
+	private static final class Thing {
+		private String expression = "";
+		private char metacharater;
+		private boolean negative;
+
+		@Override
+		public String toString() {
+			return (negative ? "!" : "") + expression + (metacharater != 0 ? metacharater : "");
 		}
 	}
 }

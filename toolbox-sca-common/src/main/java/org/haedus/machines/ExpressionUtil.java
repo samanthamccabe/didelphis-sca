@@ -16,6 +16,8 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.ParseDirection;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -16,6 +16,8 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.ParseDirection;
+
 import java.util.AbstractSequentialList;
 import java.util.Collection;
 import java.util.Collections;
