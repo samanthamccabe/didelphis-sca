@@ -1,6 +1,7 @@
 package org.haedus.machines;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Created by Samantha F M McCabe on 12/21/14.
@@ -15,10 +16,26 @@ public interface Node<T> {
 
     /**
      *
+     *
+     * @param startIndex
      * @param target
      * @return
      */
-    boolean matches(T target);
+    boolean matches(int startIndex, T target);
+
+    /**
+     * Checks if the current node contains another state machine inside it
+     * @return true iff this node contains a state machine
+     */
+    boolean containsStateMachine();
+
+    /**
+     *
+     * @param startIndex
+     * @param target
+     * @return
+     */
+    Collection<Integer> getMatchIndices(int startIndex, T target);
 
     /**
      * Adds a single node on a blank arc

@@ -79,6 +79,7 @@ public class VariableStore {
 		return variables.isEmpty();
 	}
 
+	@Deprecated // User should prefer contains(String)
 	public boolean contains(Sequence symbol) {
 		return contains(symbol.toString());
 	}
@@ -150,6 +151,7 @@ public class VariableStore {
 		return list;
 	}
 
+	@Deprecated
 	public List<Sequence> get(Sequence sequence) {
 		return get(sequence.toString());
 	}

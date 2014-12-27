@@ -1,57 +1,52 @@
 package org.haedus.machines;
 
+import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created by samantha on 12/24/14.
  */
-public class ParallelStateMachine extends AbstractStateMachine {
+public class ParallelStateMachine extends AbstractNode {
 
-	private final Set<StateMachine> machines;
+	private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
-	public ParallelStateMachine(String expression, SequenceFactory factoryParam) {
-		super(factoryParam);
-		machines = new HashSet<StateMachine>();
+	private final Set<Node<Sequence>> machines;
+
+	public ParallelStateMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+		super(id, factoryParam);
+		machines = new HashSet<Node<Sequence>>();
+
+		int i = 0;
+		for (String subexpression : WHITESPACE.split(expression)) {
+			// TODO: does not split nested sets correctly, not that we need to allow it
+			machines.add(new StateMachine(id + '-' + i, subexpression, factoryParam, direction));
+			i++;
+		}
 	}
 
 	@Override
-	public boolean isEmpty() {
-		return false;
+	public boolean matches(int startIndex, Sequence target) {
+		return !getMatchIndices(startIndex, target).isEmpty();
 	}
 
 	@Override
-	public boolean matches(Sequence target) {
-		return false;
+	public boolean containsStateMachine() {
+		return machines.isEmpty();
 	}
 
 	@Override
-	public void add(Node<Sequence> node) {
-
-	}
-
-	@Override
-	public void add(Sequence arcValue, Node<Sequence> node) {
-
-	}
-
-	@Override
-	public boolean hasArc(Sequence arcValue) {
-		return false;
-	}
-
-	@Override
-	public Collection<Node<Sequence>> getNodes(Sequence arcValue) {
-		return null;
-	}
-
-	@Override
-	public Collection<Sequence> getKeys() {
-		return null;
+	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
+		Collection<Integer> indices = new HashSet<Integer>();
+		for (Node<Sequence> machine : machines) {
+			indices.addAll(machine.getMatchIndices(startIndex, target));
+		}
+		return indices;
 	}
 
 	@Override
@@ -60,12 +55,7 @@ public class ParallelStateMachine extends AbstractStateMachine {
 	}
 
 	@Override
-	public String getId() {
-		return null;
-	}
-
-	@Override
 	public void setAccepting(boolean acceptingParam) {
-
+		throw new UnsupportedOperationException("Cannot set \"accepting\" value on immutable node");
 	}
 }

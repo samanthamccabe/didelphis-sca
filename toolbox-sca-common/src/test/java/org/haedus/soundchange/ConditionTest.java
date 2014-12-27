@@ -21,10 +21,8 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
-import org.haedus.exceptions.ParseException;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,37 +42,32 @@ public class ConditionTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionTest.class);
 
-	private static SequenceFactory factory;
-
-	@BeforeClass
-	public static void init() {
-		factory = new SequenceFactory();
-	}
+	private static final SequenceFactory FACTORY = SequenceFactory.getEmptyFactory();
 
 	// We just need to see that this parses correctly
 	@Test
-	public void testEmptyCondition() throws RuleFormatException {
+	public void testEmptyCondition() {
 		new Condition("_");
 	}
 
 	// We just need to see that this parses correctly
 	@Test(expected = RuleFormatException.class)
-	public void testBadCondition() throws RuleFormatException {
+	public void testBadCondition() {
 		new Condition("a_b_c");
 	}
 
 	@Test
-	public void testPostconditionMatching01() throws RuleFormatException {
+	public void testPostconditionMatching01() {
 		Condition condition = new Condition("a_x");
-		Sequence sequence = factory.getSequence("balx");
+		Sequence sequence = FACTORY.getSequence("balx");
 
 		assertTrue("", condition.isMatch(sequence, 2));
 	}
 
 	@Test
-	public void testPostconditionMatching02() throws RuleFormatException {
+	public void testPostconditionMatching02() {
 		Condition condition = new Condition("b_#");
-		Sequence sequence = factory.getSequence("aba");
+		Sequence sequence = FACTORY.getSequence("aba");
 
 		assertFalse("0", condition.isMatch(sequence, 0));
 		assertFalse("1", condition.isMatch(sequence, 1));
@@ -82,9 +75,9 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testPostconditionMatching03() throws RuleFormatException {
+	public void testPostconditionMatching03() {
 		Condition condition = new Condition("b_lx");
-		Sequence sequence = factory.getSequence("balx");
+		Sequence sequence = FACTORY.getSequence("balx");
 
 		assertTrue("1", condition.isMatch(sequence, 1));
 		assertFalse("2", condition.isMatch(sequence, 2));
@@ -92,21 +85,21 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testPostconditionMatching04() throws RuleFormatException {
+	public void testPostconditionMatching04() {
 		Condition condition = new Condition("_lxpld");
-		Sequence sequence = factory.getSequence("beralxpld");
+		Sequence sequence = FACTORY.getSequence("beralxpld");
 
 		assertTrue("T", condition.isMatch(sequence, 3));
 		assertFalse("F", condition.isMatch(sequence, 2));
 	}
 
 	@Test
-	public void testOptional01() throws RuleFormatException {
+	public void testOptional01() {
 
 		Condition condition = new Condition("_a?(b?c?)d?b");
 
 		String[] positive = {
-				"xb",     "xbb",
+				"xb", "xbb",
 				"xcb",    "xbcb",
 				"xab",    "xbab",
 				"xdb",    "xbdb",
@@ -120,20 +113,20 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testOptional02() throws RuleFormatException {
+	public void testOptional02() {
 
 		Condition condition = new Condition("_d?ab");
 
 		testTrue(condition,"xab",0);
 		testTrue(condition,"xdab",0);
 
-		assertFalse("xadb", condition.isMatch(factory.getSequence("xadb"), 0));
-		assertFalse("xacb", condition.isMatch(factory.getSequence("xacb"), 0));
-		assertFalse("xdb",  condition.isMatch(factory.getSequence("xdb"),  0));
+		assertFalse("xadb", condition.isMatch(FACTORY.getSequence("xadb"), 0));
+		assertFalse("xacb", condition.isMatch(FACTORY.getSequence("xacb"), 0));
+		assertFalse("xdb",  condition.isMatch(FACTORY.getSequence("xdb"), 0));
 	}
 
 	@Test
-	public void testOptional03() throws RuleFormatException {
+	public void testOptional03() {
 
 		Condition condition = new Condition("_a(l(hamb)?ra)?#");
 
@@ -144,7 +137,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testOptional04() throws RuleFormatException {
+	public void testOptional04() {
 
 		Condition condition = new Condition("_a(ba)?b");
 
@@ -154,61 +147,61 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testStar01() throws RuleFormatException {
+	public void testStar01() {
 
 		Condition condition = new Condition("_a*b");
 
-		assertTrue("xb", condition.isMatch(factory.getSequence("xb"), 0));
-		assertTrue("xab	", condition.isMatch(factory.getSequence("xab"), 0));
-		assertTrue("xaab", condition.isMatch(factory.getSequence("xaab"), 0));
-		assertTrue("xaaab", condition.isMatch(factory.getSequence("xaaab"), 0));
-		assertTrue("xaaaab", condition.isMatch(factory.getSequence("xaaaab"), 0));
-		assertTrue("xaaaaab", condition.isMatch(factory.getSequence("xaaaaab"), 0));
-		assertFalse("xcaaaab", condition.isMatch(factory.getSequence("xcaaaab"), 0));
+		assertTrue("xb", condition.isMatch(FACTORY.getSequence("xb"), 0));
+		assertTrue("xab	", condition.isMatch(FACTORY.getSequence("xab"), 0));
+		assertTrue("xaab", condition.isMatch(FACTORY.getSequence("xaab"), 0));
+		assertTrue("xaaab", condition.isMatch(FACTORY.getSequence("xaaab"), 0));
+		assertTrue("xaaaab", condition.isMatch(FACTORY.getSequence("xaaaab"), 0));
+		assertTrue("xaaaaab", condition.isMatch(FACTORY.getSequence("xaaaaab"), 0));
+		assertFalse("xcaaaab", condition.isMatch(FACTORY.getSequence("xcaaaab"), 0));
 	}
 
 	@Test
-	public void testStar02() throws RuleFormatException {
+	public void testStar02() {
 
 		Condition condition = new Condition("_aa*b");
 
-		assertFalse("xb", condition.isMatch(factory.getSequence("xb"), 0));
-		assertTrue("xab	", condition.isMatch(factory.getSequence("xab"), 0));
-		assertTrue("xaab", condition.isMatch(factory.getSequence("xaab"), 0));
-		assertTrue("xaaab", condition.isMatch(factory.getSequence("xaaab"), 0));
-		assertTrue("xaaaab", condition.isMatch(factory.getSequence("xaaaab"), 0));
-		assertTrue("xaaaaab", condition.isMatch(factory.getSequence("xaaaaab"), 0));
-		assertFalse("xcaaaab", condition.isMatch(factory.getSequence("xcaaaab"), 0));
+		assertFalse("xb", condition.isMatch(FACTORY.getSequence("xb"), 0));
+		assertTrue("xab	", condition.isMatch(FACTORY.getSequence("xab"), 0));
+		assertTrue("xaab", condition.isMatch(FACTORY.getSequence("xaab"), 0));
+		assertTrue("xaaab", condition.isMatch(FACTORY.getSequence("xaaab"), 0));
+		assertTrue("xaaaab", condition.isMatch(FACTORY.getSequence("xaaaab"), 0));
+		assertTrue("xaaaaab", condition.isMatch(FACTORY.getSequence("xaaaaab"), 0));
+		assertFalse("xcaaaab", condition.isMatch(FACTORY.getSequence("xcaaaab"), 0));
 	}
 
 	@Test
-	public void testStar03() throws RuleFormatException {
+	public void testStar03() {
 
 		Condition condition = new Condition("_da*b");
 
-		assertTrue("xdb", condition.isMatch(factory.getSequence("xdb"), 0));
-		assertTrue("xdab", condition.isMatch(factory.getSequence("xdab"), 0));
-		assertTrue("xdaab", condition.isMatch(factory.getSequence("xdaab"), 0));
-		assertTrue("xdaaab", condition.isMatch(factory.getSequence("xdaaab"), 0));
-		assertTrue("xdaaaab", condition.isMatch(factory.getSequence("xdaaaab"), 0));
-		assertTrue("xdaaaaab", condition.isMatch(factory.getSequence("xdaaaaab"), 0));
-		assertFalse("xdcaaaab", condition.isMatch(factory.getSequence("xdcaaaab"), 0));
+		assertTrue("xdb", condition.isMatch(FACTORY.getSequence("xdb"), 0));
+		assertTrue("xdab", condition.isMatch(FACTORY.getSequence("xdab"), 0));
+		assertTrue("xdaab", condition.isMatch(FACTORY.getSequence("xdaab"), 0));
+		assertTrue("xdaaab", condition.isMatch(FACTORY.getSequence("xdaaab"), 0));
+		assertTrue("xdaaaab", condition.isMatch(FACTORY.getSequence("xdaaaab"), 0));
+		assertTrue("xdaaaaab", condition.isMatch(FACTORY.getSequence("xdaaaaab"), 0));
+		assertFalse("xdcaaaab", condition.isMatch(FACTORY.getSequence("xdcaaaab"), 0));
 	}
 
 	@Test
-	public void testStar04() throws RuleFormatException {
+	public void testStar04() {
 
 		Condition condition = new Condition("_d(eo)*b");
 
-		assertTrue("xdb", condition.isMatch(factory.getSequence("xdb"), 0));
-		assertTrue("xdeob", condition.isMatch(factory.getSequence("xdeob"), 0));
-		assertTrue("xdeoeob", condition.isMatch(factory.getSequence("xdeoeob"), 0));
-		assertTrue("xdeoeoeob", condition.isMatch(factory.getSequence("xdeoeoeob"), 0));
-		assertFalse("xdcaaaab", condition.isMatch(factory.getSequence("xdcaaaab"), 0));
+		assertTrue("xdb", condition.isMatch(FACTORY.getSequence("xdb"), 0));
+		assertTrue("xdeob", condition.isMatch(FACTORY.getSequence("xdeob"), 0));
+		assertTrue("xdeoeob", condition.isMatch(FACTORY.getSequence("xdeoeob"), 0));
+		assertTrue("xdeoeoeob", condition.isMatch(FACTORY.getSequence("xdeoeoeob"), 0));
+		assertFalse("xdcaaaab", condition.isMatch(FACTORY.getSequence("xdcaaaab"), 0));
 	}
 
 	@Test
-	public void testStar05() throws RuleFormatException {
+	public void testStar05() {
 
 		Condition condition = new Condition("_d(eo*)*b");
 
@@ -226,7 +219,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testStar06() throws RuleFormatException {
+	public void testStar06() {
 
 		Condition condition = new Condition("_(ab)*#");
 		String[] positive = {
@@ -248,7 +241,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testPlus01() throws RuleFormatException {
+	public void testPlus01() {
 
 		Condition condition = new Condition("_a+b");
 
@@ -271,7 +264,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testPlus02() throws RuleFormatException {
+	public void testPlus02() {
 
 		Condition condition = new Condition("_a+l(ham+b)+ra");
 
@@ -285,7 +278,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testPlus03() throws RuleFormatException {
+	public void testPlus03() {
 
 		Condition condition = new Condition("_(a+l(ham+b)*ra)+");
 		String [] positive = {
@@ -309,7 +302,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testStar07() throws RuleFormatException {
+	public void testStar07() {
 
 		Condition condition = new Condition("_(a+l(ham+b)+ra)*");
 
@@ -330,7 +323,7 @@ public class ConditionTest {
 	}
 
 	@Test
-		 public void testGroups01() throws RuleFormatException {
+		 public void testGroups01() {
 		Condition condition = new Condition("_(ab)(cd)(ef)");
 
 		testTrue(condition,"xabcdef",0);
@@ -341,7 +334,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testGroups02() throws RuleFormatException {
+	public void testGroups02() {
 		Condition condition = new Condition("_(ab)*(cd)(ef)");
 		testTrue(condition, "xcdef",0);
 		testTrue(condition, "xabcdef",0);
@@ -357,7 +350,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testGroups03() throws RuleFormatException {
+	public void testGroups03() {
 		Condition condition = new Condition("_(ab)(cd)*(ef)");
 		testTrue(condition, "xabef",0);
 		testTrue(condition, "xabcdef",0);
@@ -365,7 +358,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testGroups04() throws RuleFormatException {
+	public void testGroups04() {
 		Condition condition = new Condition("_(ab)(cd)(ef)*");
 		testTrue(condition, "xabcd",0);
 		testTrue(condition, "xabcdef",0);
@@ -373,28 +366,28 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testGroups05() throws RuleFormatException {
+	public void testGroups05() {
 		Condition condition = new Condition("_(ab)?(cd)(ef)");
 		testTrue(condition, "xabcdef",0);
 		testTrue(condition, "xcdef",0);
 	}
 
 	@Test
-	public void testGroups06() throws RuleFormatException {
+	public void testGroups06() {
 		Condition condition = new Condition("_(ab)(cd)?(ef)");
 		testTrue(condition, "xabcdef",0);
 		testTrue(condition, "xabef",0);
 	}
 
 	@Test
-	public void testGroups07() throws RuleFormatException {
+	public void testGroups07() {
 		Condition condition = new Condition("_(ab)(cd)(ef)?");
 		testTrue(condition, "xabcdef",0);
 		testTrue(condition, "xabcd",0);
 	}
 
 	@Test
-	public void testGroups08() throws RuleFormatException {
+	public void testGroups08() {
 		Condition condition = new Condition("_(ab)?(cd)?(ef)?");
 
 		testTrue(condition, "xabcdef",0);
@@ -408,7 +401,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testFullCondition()  throws RuleFormatException {
+	public void testFullCondition()  {
 		Condition condition = new Condition("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?");
 		testTrue(condition, "xabcdef",0);
 		testTrue(condition, "efxabcdef",2);
@@ -428,7 +421,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet01()  throws RuleFormatException {
+	public void testSet01()  {
 		Condition condition = new Condition("_{a b c}ds");
 		testTrue(condition,  "xads",0);
 		testTrue(condition,  "xbds",0);
@@ -437,7 +430,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet02()  throws RuleFormatException {
+	public void testSet02()  {
 		Condition condition = new Condition("_{ab cd ef}tr");
 		testTrue(condition,  "xabtr",0);
 		testTrue(condition,  "xcdtr",0);
@@ -447,7 +440,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet04()  throws RuleFormatException {
+	public void testSet04()  {
 		Condition condition = new Condition("_{ab* cd+ ef}tr");
 
 		testTrue(condition,  "xabtr", 0);
@@ -466,7 +459,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet05()  throws RuleFormatException {
+	public void testSet05()  {
 		Condition condition = new Condition("_{ab* (cd?)+ ((ae)*f)+}tr");
 
 		testTrue(condition,  "xabtr",0);
@@ -487,7 +480,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet06()  throws RuleFormatException {
+	public void testSet06()  {
 		Condition condition = new Condition("_{ab {cd xy} ef}tr");
 		testTrue(condition,  "xabtr",0);
 		testTrue(condition,  "xcdtr",0);
@@ -498,14 +491,14 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testSet07() throws RuleFormatException {
+	public void testSet07() {
 		Condition condition = new Condition("_{ x ɣ }");
 		testTrue(condition,  "pxi");
 		testFalse(condition, "paxi");
 	}
 
 	@Test
-	public void testComplex01() throws RuleFormatException {
+	public void testComplex01() {
 		Condition condition = new Condition("_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
 
 		testTrue(condition, "pʰāḱʰus");
@@ -517,7 +510,7 @@ public class ConditionTest {
 	}
 
 	@Test
-	public void testAdditional01() throws RuleFormatException {
+	public void testAdditional01() {
 
 		testTrue(new Condition("_c+#"),  "abaccc", 2);
 		testTrue(new Condition("_#"),    "abad",   3);
@@ -526,10 +519,11 @@ public class ConditionTest {
 	@Test
 	public void testWithVariables01(){
 
-		VariableStore vs = new VariableStore();
-		vs.add("C = p t k b d g pʰ tʰ kʰ");
+		VariableStore store = new VariableStore();
+		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		Condition condition = new Condition("_C+#", new FeatureModel(), vs, SegmentationMode.DEFAULT);
+		SequenceFactory sequenceFactory = new SequenceFactory(new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Condition condition = new Condition("_C+#", sequenceFactory);
 
 		testTrue(condition,  "abaptk",  2);
 		testTrue(condition,  "abapppp", 2);
@@ -550,14 +544,15 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		Condition condition = new Condition("_C+#", new FeatureModel(), store, SegmentationMode.DEFAULT);
+		SequenceFactory sequenceFactory = new SequenceFactory(new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Condition condition = new Condition("_C+#", sequenceFactory);
 		
 		testTrue(condition,  "abatʰkʰ", 2);
 	}
 
 	@Ignore
 	@Test
-	public void testNegative00() throws RuleFormatException {
+	public void testNegative00() {
 		Condition condition = new Condition("_!a#");
 
 		testTrue(condition,  "zb", 0);
@@ -570,7 +565,7 @@ public class ConditionTest {
 
 	@Ignore
 	@Test
-	public void testNegative01() throws RuleFormatException {
+	public void testNegative01() {
 		Condition condition = new Condition("_!(abc)#");
 
 		testTrue(condition,  "zbab", 0);
@@ -586,7 +581,7 @@ public class ConditionTest {
 
 	@Ignore
 	@Test
-	public void testNegative02() throws RuleFormatException {
+	public void testNegative02() {
 		Condition condition = new Condition("_!{a b c}#");
 
 		testTrue(condition, "yz", 0);
@@ -600,31 +595,31 @@ public class ConditionTest {
 		testFalse(condition, "xc",  0);
 	}
 
-	private void testTrue(Condition condition, String testString, int index) {
-		Sequence word = factory.getSequence(testString);
+	private static void testTrue(Condition condition, String testString, int index) {
+		Sequence word = FACTORY.getSequence(testString);
 		assertTrue(testString, condition.isMatch(word, index));
 	}
 
-	private void testFalse(Condition condition, String testString, int index) {
-		Sequence word = factory.getSequence(testString);
+	private static void testFalse(Condition condition, String testString, int index) {
+		Sequence word = FACTORY.getSequence(testString);
 		assertFalse(testString, condition.isMatch(word, index));
 	}
 
-	private void testFalse(Condition condition, String testString) {
+	private static void testFalse(Condition condition, String testString) {
 		testFalse(condition, testString, 0);
 	}
 
-	private void testTrue(Condition condition, String testString) {
+	private static void testTrue(Condition condition, String testString) {
 		testTrue(condition, testString, 0);
 	}
 
-	private void testPositive(Condition condition, String[] positive) {
+	private static void testPositive(Condition condition, String[] positive) {
 		for (String p : positive) {
 			testTrue(condition, p, 0);
 		}
 	}
 
-	private void testNegative(Condition condition, String[] negative) {
+	private static void testNegative(Condition condition, String[] negative) {
 		for (String n : negative) {
 			testFalse(condition, n, 0);
 		}

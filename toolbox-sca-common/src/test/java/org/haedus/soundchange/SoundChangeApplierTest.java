@@ -114,7 +114,7 @@ public class SoundChangeApplierTest {
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
 		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
 
-		SequenceFactory factory = new SequenceFactory();
+		SequenceFactory factory = SequenceFactory.getEmptyFactory();
 		List<Sequence> expected = new ArrayList<Sequence>();
 		List<Sequence> received = soundChangeApplier.processLexicon(lexicon);
 
@@ -134,7 +134,7 @@ public class SoundChangeApplierTest {
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
 		SoundChangeApplier soundChangeApplier = new SoundChangeApplier(commands);
 
-		SequenceFactory factory = new SequenceFactory();
+		SequenceFactory factory = SequenceFactory.getEmptyFactory();
 		List<Sequence> expected = new ArrayList<Sequence>();
 		List<Sequence> received = soundChangeApplier.processLexicon(lexicon);
 

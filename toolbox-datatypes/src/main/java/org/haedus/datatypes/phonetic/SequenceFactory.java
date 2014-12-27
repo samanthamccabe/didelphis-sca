@@ -19,17 +19,20 @@ import java.util.regex.Pattern;
  */
 public class SequenceFactory {
 
-	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
-
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceFactory.class);
+
+	private static final SequenceFactory EMPTY_FACTORY = new SequenceFactory();
+	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private final Segment boundarySegmentNAN;
 
 	private final FeatureModel     featureModel;
-	private final VariableStore    variableStore;	// VariableStore is only accessed for its keys
+	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
 	private final SegmentationMode segmentationMode;
 
-	public SequenceFactory() {
+	public static SequenceFactory getEmptyFactory() { return EMPTY_FACTORY;}
+
+	private SequenceFactory() {
 		this(new FeatureModel(), new VariableStore(), SegmentationMode.DEFAULT);
 	}
 
@@ -38,8 +41,8 @@ public class SequenceFactory {
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, SegmentationMode modeParam) {
-		featureModel     = modelParam;
-		variableStore    = storeParam;
+		featureModel = modelParam;
+		variableStore = storeParam;
 		segmentationMode = modeParam;
 
 		List<Double> list = new ArrayList<Double>();
@@ -57,15 +60,19 @@ public class SequenceFactory {
 		return Segmenter.getSegment(string, featureModel, variableStore, segmentationMode);
 	}
 
+	public Sequence getNewSequence() {
+		return getSequence("");
+	}
+
 	public Sequence getSequence(String word) {
 		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode);
 	}
 
-	public boolean hasVariable(Sequence label) {
+	public boolean hasVariable(String label) {
 		return variableStore.contains(label);
 	}
 
-	public List<Sequence> getVariableValues(Sequence label) {
+	public List<Sequence> getVariableValues(String label) {
 		return variableStore.get(label);
 	}
 

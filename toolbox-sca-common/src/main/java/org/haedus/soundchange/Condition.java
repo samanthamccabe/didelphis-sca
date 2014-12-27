@@ -16,10 +16,8 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.machines.Node;
 import org.haedus.datatypes.ParseDirection;
 import org.haedus.machines.StateMachine;
@@ -37,34 +35,29 @@ public class Condition {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
 	private final String           conditionText;
-	private final Node<Sequence> preCondition;
-	private final Node<Sequence> postCondition;
-	private final FeatureModel     featureModel;
-	private final VariableStore    variableStore;
-	private final SegmentationMode segmentationMode;
+	private final Node<Sequence>  preCondition;
+	private final Node<Sequence>  postCondition;
+	private final SequenceFactory sequenceFactory;
 
 	// package-private: testing only
-	Condition(String condition) throws RuleFormatException {
-		this(condition, new FeatureModel(), new VariableStore(), SegmentationMode.DEFAULT);
+	Condition(String condition) {
+		this(condition, SequenceFactory.getEmptyFactory());
 	}
 
-	public Condition(String condition, FeatureModel model, VariableStore variables, SegmentationMode segmentationModeParam) throws RuleFormatException {
+	public Condition(String condition, SequenceFactory factoryParam) {
 		conditionText    = cleanup(condition);
-		variableStore    = variables;
-		featureModel     = model;
-		segmentationMode = segmentationModeParam;
-
+		sequenceFactory = factoryParam;
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, ParseDirection.BACKWARD);
-				postCondition = new StateMachine(featureModel, variableStore, segmentationMode);
+				preCondition  = new StateMachine("pre", conditions[0], sequenceFactory, ParseDirection.BACKWARD);
+				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
-				preCondition  = new StateMachine(conditions[0], featureModel, variableStore, segmentationMode, ParseDirection.BACKWARD);
-				postCondition = new StateMachine(conditions[1], featureModel, variableStore, segmentationMode, ParseDirection.FORWARD);
+				preCondition  = new StateMachine("pre",  conditions[0], sequenceFactory, ParseDirection.BACKWARD);
+				postCondition = new StateMachine("post", conditions[1], sequenceFactory, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
-				preCondition  = new StateMachine(featureModel, variableStore, segmentationMode);
-				postCondition = new StateMachine(featureModel, variableStore, segmentationMode);
+				preCondition  = StateMachine.EMPTY_MACHINE;
+				postCondition = StateMachine.EMPTY_MACHINE;
 			} else {
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
@@ -112,8 +105,8 @@ public class Condition {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 
-			preconditionMatch  = preCondition.matches(head.getReverseSequence());
-			postconditionMatch = postCondition.matches(tail);
+			preconditionMatch  = preCondition.matches(0, head.getReverseSequence());
+			postconditionMatch = postCondition.matches(0, tail);
 		}
 		return preconditionMatch && postconditionMatch;
 	}

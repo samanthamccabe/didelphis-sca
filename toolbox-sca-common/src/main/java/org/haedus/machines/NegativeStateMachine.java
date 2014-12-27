@@ -1,68 +1,41 @@
 package org.haedus.machines;
 
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.datatypes.phonetic.VariableStore;
 
 import java.util.Collection;
 
 /**
  * Created by samantha on 12/24/14.
  */
-public class NegativeStateMachine extends AbstractStateMachine {
+public class NegativeStateMachine extends AbstractNode {
 
-	private final StateMachine machine;
+	private final Node<Sequence> machine;
 
-	public NegativeStateMachine(StateMachine machineParam, SequenceFactory factoryParam) {
-		super(factoryParam);
-		machine = machineParam;
+	public NegativeStateMachine(String id, String expression, SequenceFactory factoryParam) {
+		super(id, factoryParam);
+		machine = null; // TODO: parse this
 	}
 
 	@Override
-	public boolean isEmpty() {
+	public boolean matches(int startIndex, Sequence target) {
 		return false;
 	}
 
 	@Override
-	public boolean matches(Sequence target) {
-		return false;
+	public boolean containsStateMachine() {
+		return true;
 	}
 
 	@Override
-	public void add(Node<Sequence> node) {
-
-	}
-
-	@Override
-	public void add(Sequence arcValue, Node<Sequence> node) {
-
-	}
-
-	@Override
-	public boolean hasArc(Sequence arcValue) {
-		return false;
-	}
-
-	@Override
-	public Collection<Node<Sequence>> getNodes(Sequence arcValue) {
+	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 		return null;
 	}
 
-	@Override
-	public Collection<Sequence> getKeys() {
-		return null;
-	}
 
 	@Override
 	public boolean isAccepting() {
 		return false;
-	}
-
-	@Override
-	public String getId() {
-		return null;
 	}
 
 	@Override

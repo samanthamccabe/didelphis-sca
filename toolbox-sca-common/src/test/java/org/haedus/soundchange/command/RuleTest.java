@@ -21,15 +21,11 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
-import org.haedus.exceptions.ParseException;
-import org.haedus.exceptions.VariableDefinitionFormatException;
 
 import org.haedus.soundchange.exceptions.RuleFormatException;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-
 
 /**
  * Created with IntelliJ IDEA.
@@ -40,10 +36,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
-	private static final SequenceFactory factory= new SequenceFactory();
+	private static final SequenceFactory FACTORY = SequenceFactory.getEmptyFactory();
 
 	@Test
-	public void testMetathesis01() throws VariableDefinitionFormatException, RuleFormatException {
+	public void testMetathesis01() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
 		store.add("N = m n");
@@ -64,7 +60,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testMetathesis02() throws VariableDefinitionFormatException, RuleFormatException {
+	public void testMetathesis02() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
 		store.add("N = m n");
@@ -86,7 +82,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testMetathesis03() throws VariableDefinitionFormatException, RuleFormatException {
+	public void testMetathesis03() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
 		store.add("G = b d g");
@@ -108,32 +104,32 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testDeletion01() throws RuleFormatException {
+	public void testDeletion01() {
 		Rule rule = new Rule("∅ - > 0");
 		testRule(rule, "∅-s-irentu-pʰen", "sirentupʰen");
 	}
 
 	@Test
-	public void testDeletion02() throws RuleFormatException {
+	public void testDeletion02() {
 		Rule rule = new Rule("a > 0");
 		testRule(rule, "aaaabbba", "bbb");
 	}
 
 	@Test
-	public void testDeletion03() throws RuleFormatException {
+	public void testDeletion03() {
 		Rule rule = new Rule("a b > 0");
 		testRule(rule, "aaaaccbbccbba", "cccc");
 	}
 
 	@Test
-	public void testRule01() throws RuleFormatException {
+	public void testRule01() {
 		Rule rule = new Rule("a > b");
 
 		testRule(rule, "aaaaaaccca", "bbbbbbcccb");
 	}
 
 	@Test
-	public void testRule02() throws RuleFormatException {
+	public void testRule02() {
 		Rule rule = new Rule("a e > æ ɛ");
 
 		testRule(rule, "ate", "ætɛ");
@@ -141,14 +137,14 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testRule03() throws RuleFormatException {
+	public void testRule03() {
 		Rule rule = new Rule("a b c d e f g > A B C D E F G");
 
 		testRule(rule, "abcdefghijk", "ABCDEFGhijk");
 	}
 
 	@Test
-	public void testConditional01() throws RuleFormatException {
+	public void testConditional01() {
 		Rule rule = new Rule("a > o / g_");
 
 		testRule(rule, "ga", "go");
@@ -156,7 +152,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional02() throws RuleFormatException {
+	public void testConditional02() {
 		Rule rule = new Rule("a > e / _c");
 		testRule(rule, "abacaba", "abecaba");
 		testRule(rule, "ababaca", "ababeca");
@@ -165,7 +161,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional03() throws RuleFormatException {
+	public void testConditional03() {
 		Rule rule = new Rule("a > e / _c+#");
 		testRule(rule, "abac", "abec");
 		testRule(rule, "abacc", "abecc");
@@ -175,7 +171,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testUnconditional04() throws RuleFormatException {
+	public void testUnconditional04() {
 		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
 		testRule(rule, "keʔe", "kē");
 		testRule(rule, "kaʔa", "kā");
@@ -184,7 +180,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional05() throws RuleFormatException {
+	public void testConditional05() {
 		Rule rule = new Rule("rˌh lˌh > ər əl / _a");
 		testRule(rule, "krˌha", "kəra");
 		testRule(rule, "klˌha", "kəla");
@@ -192,7 +188,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional06() throws RuleFormatException {
+	public void testConditional06() {
 		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
 
 		testRule(rule, "pʰāḱʰus", "bāḱʰus");
@@ -204,7 +200,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional07() throws RuleFormatException {
+	public void testConditional07() {
 		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
 
 		testRule(rule, "pʰaḱʰus", "baḱʰus");
@@ -212,7 +208,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testConditional08() throws RuleFormatException {
+	public void testConditional08() {
 		Rule rule = new Rule("d > t / _#");
 
 		testRule(rule, "abad", "abat");
@@ -220,16 +216,16 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testLoop01() throws RuleFormatException {
+	public void testLoop01() {
 		Rule rule = new Rule("q > qn");
 
 		testRule(rule, "aqa", "aqna");
 	}
 
 	@Test
-	public void testUnconditional() throws RuleFormatException {
-		Sequence word     = factory.getSequence("h₁óh₁es-");
-		Sequence expected = factory.getSequence("ʔóʔes-");
+	public void testUnconditional() {
+		Sequence word     = FACTORY.getSequence("h₁óh₁es-");
+		Sequence expected = FACTORY.getSequence("ʔóʔes-");
 
 		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ");
 
@@ -237,8 +233,8 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testUnconditional02() throws RuleFormatException {
-		Sequence expected = factory.getSequence("telə");
+	public void testUnconditional02() {
+		Sequence expected = FACTORY.getSequence("telə");
 
 		Rule rule = new Rule("eʔé > ê");
 
@@ -246,9 +242,9 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testDebug01() throws VariableDefinitionFormatException, RuleFormatException {
-		Sequence original = factory.getSequence("mlan");
-		Sequence expected = factory.getSequence("blan");
+	public void testDebug01() {
+		Sequence original = FACTORY.getSequence("mlan");
+		Sequence expected = FACTORY.getSequence("blan");
 
 		VariableStore vs = new VariableStore();
 		vs.add("V = a e i o u");
@@ -259,7 +255,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testUnconditional03() throws RuleFormatException {
+	public void testUnconditional03() {
 		Rule rule = new Rule("ox > l");
 
 		testRule(rule, "oxoxoxox", "llll");
@@ -269,9 +265,9 @@ public class RuleTest {
 
 	// "trh₂-we"
 	@Test
-	public void testDebug02() throws VariableDefinitionFormatException, RuleFormatException {
-		Sequence original = factory.getSequence("trh₂we");
-		Sequence expected = factory.getSequence("tə̄rwe");
+	public void testDebug02() {
+		Sequence original = FACTORY.getSequence("trh₂we");
+		Sequence expected = FACTORY.getSequence("tə̄rwe");
 
 		VariableStore vs = new VariableStore();
 		vs.add("X  = h₁  h₂ h₃ h₄" );
@@ -302,9 +298,9 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testDebug03() throws RuleFormatException {
-		Sequence original = factory.getSequence("pʰabopa");
-		Sequence expected = factory.getSequence("papoba");
+	public void testDebug03() {
+		Sequence original = FACTORY.getSequence("pʰabopa");
+		Sequence expected = FACTORY.getSequence("papoba");
 
 		Rule rule = new Rule("pʰ p b > p b p");
 
@@ -313,7 +309,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testCompound01() throws RuleFormatException {
+	public void testCompound01() {
 		Rule rule = new Rule("a > b / x_ OR _y");
 
 		testRule(rule, "axa", "axb");
@@ -323,7 +319,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testCompound02() throws RuleFormatException {
+	public void testCompound02() {
 		Rule rule = new Rule("a > b / x_ NOT _y");
 
 		testRule(rule, "axa",   "axb");
@@ -332,7 +328,7 @@ public class RuleTest {
 	}
 
 	@Test
-	public void testCompound03() throws VariableDefinitionFormatException, RuleFormatException {
+	public void testCompound03() {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
@@ -347,33 +343,33 @@ public class RuleTest {
 	 | Exception Tests                                                      |
 	 +======================================================================*/
 	@Test(expected = RuleFormatException.class)
-	public void testRuleException01() throws RuleFormatException {
+	public void testRuleException01() {
 		new Rule(" > ");
 	}
 
 	@Test(expected = RuleFormatException.class)
-	public void testRuleException02() throws RuleFormatException {
+	public void testRuleException02() {
 		new Rule("a > b /");
 	}
 
 	@Test(expected = RuleFormatException.class)
-	public void testRuleException03() throws RuleFormatException {
+	public void testRuleException03() {
 		new Rule("a > / b");
 	}
 
 	@Test(expected = RuleFormatException.class)
-	public void testRuleException04() throws RuleFormatException {
+	public void testRuleException04() {
 		new Rule(" > a / b");
 	}
 
 	@Test(expected = RuleFormatException.class)
-	public void testRuleException05() throws RuleFormatException {
+	public void testRuleException05() {
 		new Rule(" > / b");
 	}
 
 	private static void testRule(Rule rule, String seq, String exp) {
-		Sequence sequence = factory.getSequence(seq);
-		Sequence expected = factory.getSequence(exp);
+		Sequence sequence = FACTORY.getSequence(seq);
+		Sequence expected = FACTORY.getSequence(exp);
 		Sequence received = rule.apply(sequence);
 
 		assertEquals(expected, received);

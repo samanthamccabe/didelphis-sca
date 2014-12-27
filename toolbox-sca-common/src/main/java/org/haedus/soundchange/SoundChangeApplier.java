@@ -20,6 +20,7 @@ import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.DiskFileHandler;
@@ -218,7 +219,10 @@ public class SoundChangeApplier {
 				} else if (command.contains("=")) {
 					variables.add(command);
 				} else if (command.contains(">")) {
-					commands.add(new Rule(command, lexicons, model, variables, segmentationMode));
+					// This is probably the correct scope; if other commands change the variables or segmentation mode,
+					// we could get unexpected behavior if this is initialized outside the loop[
+					SequenceFactory factory = new SequenceFactory(model, variables, segmentationMode);
+					commands.add(new Rule(command, lexicons, factory));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
 				} else if (command.startsWith(SEGMENTATION)) {

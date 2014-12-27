@@ -17,6 +17,7 @@
 package org.haedus.machines;
 
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,18 +30,12 @@ public class NodeFactory {
 
 	private static int indexCounter = 0;
 
-	private static final Node<Sequence> EMPTYNODE = new TerminalNode<Sequence>("EMPTY NODE");
-
-	public static Node<Sequence> getNode() {
-		return getNode(false);
+	public static Node<Sequence> getNode(SequenceFactory factory) {
+		return getNode(factory, false);
 	}
 
-	public static Node<Sequence> getNode(boolean accepting) {
+	public static Node<Sequence> getNode(SequenceFactory factory, boolean accepting) {
 		indexCounter++;
-		return new TerminalNode<Sequence>(String.valueOf(indexCounter), accepting);
-	}
-
-	public static Node<Sequence> getEmptyNode() {
-		return EMPTYNODE;
+		return new PlainNode("N-"+indexCounter, factory, accepting);
 	}
 }

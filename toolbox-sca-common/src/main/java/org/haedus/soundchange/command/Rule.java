@@ -16,11 +16,12 @@
 
 package org.haedus.soundchange.command;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.Condition;
 import org.haedus.soundchange.exceptions.RuleFormatException;
@@ -47,45 +48,48 @@ public class Rule implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
-	private static final Pattern BACKREFERENCE = Pattern.compile("\\$([^\\$]*)(\\d+)");
-	private static final Pattern NOT_PATTERN   = Pattern.compile("\\s+NOT\\s+");
-	private static final Pattern OR_PATTERN    = Pattern.compile("\\s+OR\\s+");
+	private static final Pattern BACKREFERENCE      = Pattern.compile("\\$([^\\$]*)(\\d+)");
+	private static final Pattern NOT_PATTERN        = Pattern.compile("\\s+NOT\\s+");
+	private static final Pattern OR_PATTERN         = Pattern.compile("\\s+OR\\s+");
+	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+	private static final Pattern TRANSFORM_PATTERN  = Pattern.compile("\\s*>\\s*");
 
+	private final String          ruleText;
+	private final List<Condition> conditions;
+	private final List<Condition> exceptions;
 
-	private final String           ruleText;
-	private final List<Condition>  conditions;
-	private final List<Condition>  exceptions;
-	private final VariableStore    variableStore;
-	private final FeatureModel     featureModel;
-	private final SegmentationMode segmentationMode;
+	private final SequenceFactory factory;
 
 	private final Map<Sequence, Sequence> transform;
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
-	public Rule(String rule) throws RuleFormatException {
+	public Rule(String rule) {
 		this(rule, new VariableStore(), SegmentationMode.DEFAULT);
 	}
 
-	public Rule(String rule, VariableStore variables, SegmentationMode mode) throws RuleFormatException {
+	public Rule(String rule, VariableStore variables, SegmentationMode mode) {
 		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, mode);
 	}
 
-	public Rule(String rule, FeatureModel model, VariableStore variables, SegmentationMode mode) throws RuleFormatException {
+	public Rule(String rule, FeatureModel model, VariableStore variables, SegmentationMode mode) {
 		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, mode);
 	}
 
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode mode) throws RuleFormatException {
-		ruleText         = rule;
-		featureModel     = model;
-		lexicons         = lexiconsParam;
-		transform        = new LinkedHashMap<Sequence, Sequence>();
-		exceptions       = new ArrayList<Condition>();
-		conditions       = new ArrayList<Condition>();
-		variableStore    = new VariableStore(variables);
-		segmentationMode = mode;
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, SequenceFactory factoryParam) {
+		ruleText   = rule;
+		lexicons   = lexiconsParam;
+		factory    = factoryParam;
+		transform  = new LinkedHashMap<Sequence, Sequence>();
+		exceptions = new ArrayList<Condition>();
+		conditions = new ArrayList<Condition>();
 
 		populateConditions();
+	}
+
+	@Deprecated
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode mode) throws RuleFormatException {
+		this(rule, lexiconsParam, new SequenceFactory(model, variables, mode));
 	}
 
 	@Override
@@ -123,7 +127,7 @@ public class Rule implements Command {
 		}
 	}
 
-	// exposed for testing only
+	@VisibleForTesting
 	Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
 		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found
@@ -137,8 +141,8 @@ public class Rule implements Command {
 
 				if (index < output.size()) {
 
-					Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
-					Map<Integer, String> variableMap = new HashMap<Integer, String>();
+					Map<Integer, Integer> indexMap    = new HashMap<Integer, Integer>();
+					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
 					int referenceIndex = 1;
@@ -147,8 +151,8 @@ public class Rule implements Command {
 					for (int i = 0; i < source.size() && match; i++) {
 						Sequence subSequence = output.getSubsequence(testIndex);
 						Segment segment = source.get(i);
-						if (variableStore.contains(segment.getSymbol())) {
-							List<Sequence> elements = variableStore.get(segment.getSymbol());
+						if (factory.hasVariable(segment.getSymbol())) {
+							List<Sequence> elements = factory.getVariableValues(segment.getSymbol());
 							boolean elementMatches = false;
 							for (int k = 0; k < elements.size() && !elementMatches; k++) {
 								Sequence element = elements.get(k);
@@ -176,7 +180,7 @@ public class Rule implements Command {
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
 						// Generate replacement
-						Sequence replacement = getReplacementSequence(target, indexMap, variableMap);
+						Sequence replacement = getReplacementSequence(target, variableMap, indexMap);
 						noMatch = false;
 						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
@@ -193,45 +197,56 @@ public class Rule implements Command {
 		return output;
 	}
 
-	private void populateConditions() throws RuleFormatException {
-		String s1;
+	private void populateConditions() {
+		String transformString;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
 			String[] array = ruleText.split("/");
 			if (array.length <= 1) {
 				throw new RuleFormatException("Condition was empty!");
 			} else {
-				s1 = array[0].trim();
+				transformString = array[0].trim();
 
 				String conditionString = array[1].trim();
 				if (conditionString.contains("NOT")) {
 					String[] split = NOT_PATTERN.split(conditionString);
 					if (split.length == 2) {
 						for (String con : OR_PATTERN.split(split[0])) {
-							conditions.add(new Condition(con, featureModel,variableStore,  segmentationMode));
+							conditions.add(new Condition(con, factory));
 						}
 						for (String exc : OR_PATTERN.split(split[1])) {
-							exceptions.add(new Condition(exc, featureModel, variableStore, segmentationMode));
+							exceptions.add(new Condition(exc, factory));
 						}
 					} else {
 						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
 					}
 				} else {
 					for (String s : OR_PATTERN.split(conditionString)) {
-						conditions.add(new Condition(s, featureModel, variableStore, segmentationMode));
+						conditions.add(new Condition(s, factory));
 					}
 				}
 			}
 		} else {
-			s1 = ruleText;
-			conditions.add(new Condition("_", featureModel, variableStore, segmentationMode));
+			transformString = ruleText;
+			conditions.add(new Condition("_", factory));
 		}
-		parseTransform(s1, segmentationMode);
+		parseTransform(transformString);
 	}
 
-	private Sequence getReplacementSequence(Sequence target, Map<Integer, Integer> indexMap, Map<Integer, String> variableMap) {
+	/**
+	 * Generates an appropriate sequence by filling in backreferences based on the provided maps.
+	 * @param target the "target" pattern; provides a template of indexed variables and backreferences to be filled in
+	 * @param variableMap Tracks the order of variables used in the "source" pattern; i.e. the 2nd variable in the source
+	 *                    pattern is referenced via {@code $2}. Unlike standard regular expressions, all variables are
+	 *                    tracked, rather than tracking explicit groups
+	 * @param indexMap tracks which variable values are matched by the "source" pattern; a value of (2 -> 4) would
+	 *                 indicate that the source matched the 4th value of the 2nd variable. This permits proper mapping
+	 *                 between source and target symbols when using backreferences and indexed variables
+	 * @return a Sequence object with variables and references filled in according to the provided maps
+	 */
+	private Sequence getReplacementSequence(Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap) {
 		int variableIndex = 1;
-		Sequence replacement = new Sequence(featureModel);
+		Sequence replacement = factory.getNewSequence();
 		// Step through the target pattern
 		for (int i = 0; i < target.size(); i++) {
 			Segment segment = target.get(i);
@@ -252,10 +267,10 @@ public class Rule implements Command {
 					variable = symbol;
 				}
 
-				Sequence sequence = variableStore.get(variable).get(integer);
+				Sequence sequence = factory.getVariableValues(variable).get(integer);
 				replacement.add(sequence);
-			} else if (variableStore.contains(segment.getSymbol())) {
-				List<Sequence> elements = variableStore.get(segment.getSymbol());
+			} else if (factory.hasVariable(segment.getSymbol())) {
+				List<Sequence> elements = factory.getVariableValues(segment.getSymbol());
 				Integer anIndex = indexMap.get(variableIndex);
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
@@ -283,9 +298,9 @@ public class Rule implements Command {
 		return conditionMatch && !exceptionMatch;
 	}
 
-	private void parseTransform(String transformation, SegmentationMode segmentationMode) throws RuleFormatException {
+	private void parseTransform(String transformation) {
 		if (transformation.contains(">")) {
-			String[] array = transformation.split("\\s*>\\s*");
+			String[] array = TRANSFORM_PATTERN.split(transformation);
 
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transformation);
@@ -293,15 +308,15 @@ public class Rule implements Command {
 				List<String> sourceString = new ArrayList<String>();
 				List<String> targetString = new ArrayList<String>();
 
-				Collections.addAll(sourceString, array[0].split("\\s+"));
-				Collections.addAll(targetString, array[1].split("\\s+"));
+				Collections.addAll(sourceString, WHITESPACE_PATTERN.split(array[0]));
+				Collections.addAll(targetString, WHITESPACE_PATTERN.split(array[1]));
 
 				balanceTransform(sourceString, targetString);
 
 				for (int i = 0; i < sourceString.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
-					Sequence source = Segmenter.getSequence(sourceString.get(i), featureModel, variableStore, segmentationMode);
-					Sequence target = Segmenter.getSequence(targetString.get(i), featureModel, variableStore, segmentationMode);
+					Sequence source = factory.getSequence(sourceString.get(i));
+					Sequence target = factory.getSequence(targetString.get(i));
 
 					transform.put(source, target);
 				}
@@ -311,7 +326,7 @@ public class Rule implements Command {
 		}
 	}
 
-	private void balanceTransform(List<String> source, List<String> target) throws RuleFormatException {
+	private static void balanceTransform(List<String> source, List<String> target) {
 		if (target.size() > source.size()) {
 			throw new RuleFormatException("Source/Target totalSize error! " + source + " < " + target);
 		}
