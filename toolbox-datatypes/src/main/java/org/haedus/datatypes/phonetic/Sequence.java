@@ -164,15 +164,16 @@ public class Sequence implements Iterable<Segment> {
 		return index;
 	}
 
-	public int indexOf(Sequence sequence, int start) {
+	public int indexOf(Sequence target, int start) {
 
 		int index = -1;
 		if (start < size()) {
 			Sequence subsequence = getSubsequence(start);
-			index = subsequence.indexOf(sequence);
+			index = subsequence.indexOf(target);
 
-			if (index > -1)
+			if (index > -1) {
 				index += start;
+			}
 		}
 		return index;
 	}
@@ -228,10 +229,8 @@ public class Sequence implements Iterable<Segment> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj.getClass() != getClass())
-			return false;
+		if (obj == null)                  { return false; }
+		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
 		boolean sequenceEquals = sequence.equals(object.sequence);
 		boolean featuresEquals = featureModel.equals(object.featureModel);
@@ -244,9 +243,9 @@ public class Sequence implements Iterable<Segment> {
 		String s = "";
 
 		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol());
+			s = s + a_sequence.getSymbol();
 		}
-		return s.trim();
+		return s;
 	}
 
 	public boolean isEmpty() {
@@ -270,7 +269,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public boolean contains(Sequence sequence) {
-		return (indexOf(sequence) >= 0);
+		return indexOf(sequence) >= 0;
 	}
 
 	public boolean startsWith(Segment segment) {
@@ -278,7 +277,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public boolean startsWith(Sequence sequence) {
-		return (indexOf(sequence) == 0);
+		return indexOf(sequence) == 0;
 	}
 
 	public FeatureModel getFeatureModel() {

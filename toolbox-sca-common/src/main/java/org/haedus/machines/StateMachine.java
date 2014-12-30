@@ -19,17 +19,13 @@ package org.haedus.machines;
 import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -41,77 +37,20 @@ public class StateMachine extends AbstractNode {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	public static final  Pattern ILLEGAL_START_PATTERN = Pattern.compile("^([\\$\\^\\*\\?\\+\\)\\}\\]\\\\])");
-	public static final  Pattern METACHARACTER_PATTERN = Pattern.compile("^[\\*\\?\\+]");
-	private static final Pattern PARENTHESIS_PATTERN   = Pattern.compile("\\(\\s*(.*)\\s*\\)");
-	private static final Pattern CURLY_BRACES_PATTERN  = Pattern.compile("\\{\\s*(.*)\\s*\\}");
-
-	private final String inputExpression;
+	private final String         expression;
 	private final Node<Sequence> startNode;
-	private final boolean        isAccepting;
 
 	private StateMachine() {
-		super("S-EMPTY", null);
-		isAccepting = true;
-		startNode = null;
-		inputExpression = "";
+		super("S-EMPTY", null, true); // degenerate machines are always accepting
+		startNode  = null;
+		expression = "";
 	}
 
-	public StateMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		super(id, factoryParam);
-
-		isAccepting = false; // ok maybe i failed to understand how this works.
-		startNode = parseExpression(expression, direction);
-		inputExpression = expression;
-	}
-
-	private Node<Sequence> parseExpression(String expression, ParseDirection direction) {
-		// Parse out each top-level expression
-		int count = 0;
-		Node<Sequence> node;
-		if (expression == null || expression.isEmpty()) {
-			node = null;
-		} else {
-			node = NodeFactory.getNode(factory, false);
-
-			List<Thing> things = parseExpression(expression);
-			if (direction == ParseDirection.BACKWARD) { Collections.reverse(things); }
-
-			Node<Sequence> previousNode = node;
-			for (Thing thing : things) {
-				Node<Sequence> currentNode;
-				String exp = thing.expression;
-				if (exp.startsWith("{")) {
-					String internal = CURLY_BRACES_PATTERN.matcher(exp).replaceAll("$1");
-					currentNode = new ParallelStateMachine("P-" + count, internal, factory, direction);
-				} else if (exp.startsWith("(")) {
-					String internal = PARENTHESIS_PATTERN.matcher(exp).replaceAll("$1");
-					currentNode = new StateMachine("S-" + count, internal, factory, direction);
-				} else {
-					currentNode = NodeFactory.getNode(factory);
-				}
-
-				char meta = thing.metacharacter;
-				if /****/ (meta == '?') {
-					previousNode.add(factory.getSequence(exp), currentNode);
-					previousNode.add(currentNode);
-					previousNode = currentNode;
-				} else if (meta == '*') {
-					previousNode.add(factory.getSequence(exp), currentNode);
-					currentNode.add(previousNode);
-					// Don't change "previous" to current
-				} else if (meta == '+') {
-					previousNode.add(factory.getSequence(exp), currentNode);
-					currentNode.add(previousNode);
-					previousNode = currentNode;
-				} else {
-					previousNode.add(factory.getSequence(exp), currentNode);
-					previousNode = currentNode;
-				}
-			}
-		}
-
-		return node;
+	// For use with NodeFactory only
+	StateMachine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean isAccepting) {
+		super(id, factoryParam, isAccepting);
+		startNode  = getStartNode(expressionParam, direction);
+		expression = expressionParam;
 	}
 
 	/**
@@ -163,72 +102,6 @@ public class StateMachine extends AbstractNode {
 		return start;
 	}
 
-	private List<Thing> parseExpression(String expression) {
-
-		Matcher matcher = ILLEGAL_START_PATTERN.matcher(expression);
-		if (matcher.lookingAt()) {
-			throw new ParseException("Expression stared with an illegal character: " + matcher.group(1) + " in " + expression);
-		}
-
-		List<Thing> list = new ArrayList<Thing>();
-		Thing buffer = new Thing();
-		for (int i = 0; i < expression.length(); ) {
-			char ch = expression.charAt(i);
-			if (ch == '*' || ch == '?' || ch == '+') {
-				// Last in an expressio
-				buffer.metacharacter = ch;
-				buffer = updateBuffer(list, buffer);
-				i++;
-			} else if (ch == '!') {
-				// first in an expression
-				buffer = updateBuffer(list, buffer);
-				buffer.negative = true;
-				i++;
-			} else {
-				if (!buffer.expression.isEmpty() ) {
-					buffer = updateBuffer(list, buffer);
-				}
-
-				String tail = expression.substring(i);
-				String best = factory.getBestMatch(tail);
-				if (best.isEmpty()) {
-					if (tail.startsWith("{")) {
-						int endIndex = getIndex(expression, '{', '}', i);
-						best = expression.substring(i, endIndex + 1);
-					} else if (tail.startsWith("(")) {
-						int endIndex = getIndex(expression, '(', ')', i);
-						best = expression.substring(i, endIndex + 1);
-					} else {
-						best = expression.substring(i, i + 1);
-					}
-				}
-				buffer.expression = best;
-				i += best.length();
-			}
-		}
-		list.add(buffer);
-		return list;
-	}
-
-	private static int getIndex(CharSequence string, char left, char right, int startIndex) {
-		int count = 1;
-		int endIndex = -1;
-
-		boolean matched = false;
-		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
-			char ch = string.charAt(i);
-			if (ch == right && count == 1) {
-				matched = true;
-				endIndex = i;
-			} else if (ch == right) {
-				count++;
-			} else if (ch == left) {
-				count--;
-			}
-		}
-		return endIndex;
-	}
-
 	// Determines if the Sequence is accepted by this machine
 	@Override
 	public boolean matches(int startIndex, Sequence sequence) {
@@ -242,127 +115,103 @@ public class StateMachine extends AbstractNode {
 
 	@Override
 	public String toString() {
-		return getId() + ' ' + inputExpression;
+		return getId() + ' ' + expression;
 	}
 
 	@Override
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 
 		Collection<Integer> indices = new HashSet<Integer>();
-
 		if (startNode == null) {
 			indices.add(startIndex);
 		} else {
-		Sequence sequence = new Sequence(target);
-		sequence.add(factory.getBoundarySegment());
-		// At the beginning of the process, we are in the start-state
-		// so we find out what arcs leave the node.
-		List<MatchState> states = new ArrayList<MatchState>();
-		List<MatchState> swap   = new ArrayList<MatchState>();
-		// Add an initial state at the beginning of the sequence
-		states.add(new MatchState(0, startNode));
-		// if the condition is empty, it will always match
-		while (!states.isEmpty()) {
-			for (MatchState state : states) {
+			Sequence sequence = new Sequence(target);
+			sequence.add(factory.getBoundarySegment());
+			// At the beginning of the process, we are in the start-state
+			// so we find out what arcs leave the node.
+			List<MatchState> states = new ArrayList<MatchState>();
+			List<MatchState> swap   = new ArrayList<MatchState>();
+			// Add an initial state at the beginning of the sequence
+			states.add(new MatchState(startIndex, startNode));
+			// if the condition is empty, it will always match
+			while (!states.isEmpty()) {
+				for (MatchState state : states) {
 
-				Node<Sequence> currentNode = state.getNode();
-				int index = state.getIndex();
+					Node<Sequence> currentNode = state.getNode();
+					int index = state.getIndex();
+						// Check internal state machines
+						Collection<Integer> matchIndices;
+						if (currentNode.containsStateMachine()) {
+							matchIndices = currentNode.getMatchIndices(index, target);
+						} else {
+							matchIndices = new HashSet<Integer>();
+							matchIndices.add(index);
+						}
 
-				if (!currentNode.isAccepting() && !currentNode.isEmpty()) {
-					updateSwapStates(sequence, swap, currentNode, index);
+						if(currentNode.isAccepting() || currentNode.isTerminal()) {
+							indices.addAll(matchIndices);
+						} else {
+							for (Integer matchIndex : matchIndices) {
+								Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
+								swap.addAll(matchStates);
+							}
+						}
 				}
-				else {
-//					match = true;
-//					break;
-					indices.add(index);
-				}
+				states = swap;
+				swap = new ArrayList<MatchState>();
 			}
-			states = swap;
-			swap = new ArrayList<MatchState>();
-		}}
+		}
 		return indices;
 	}
 
-
-	@Override
-	public boolean isAccepting() {
-		return false;
-	}
-
-	@Override
-	public void setAccepting(boolean acceptingParam) {
-		throw new UnsupportedOperationException("Attempt to set an immutable state-machine node as \"accepting\"!");
-	}
-
-    private void updateSwapStates(Sequence testSequence, Collection<MatchState> swap, Node<Sequence> currentNode, int index) {
+    private Collection<MatchState> updateSwapStates(Sequence testSequence, Node<Sequence> currentNode, int index) {
         Sequence tail = testSequence.getSubsequence(index);
+
+		Collection<MatchState> states = new HashSet<MatchState>();
 
         for (Sequence symbol : currentNode.getKeys()) {
             for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
 	            if (symbol == null || symbol.isEmpty()) {
-		            swap.add(new MatchState(index, nextNode));
+		            states.add(new MatchState(index, nextNode));
 	            } else if (factory.hasVariable(symbol.toString())) {
-		            addStateFromVariable(swap, index, tail, symbol, nextNode);
-	            } else if (tail.startsWith(symbol)) {
-                    swap.add(new MatchState(index + symbol.size(), nextNode));
+					for (Sequence s : factory.getVariableValues(symbol.toString())) {
+						if (tail.startsWith(s)) {
+							states.add(new MatchState(index + s.size(), nextNode));
+						}
+					}
+				} else if (tail.startsWith(symbol)) {
+                    states.add(new MatchState(index + symbol.size(), nextNode));
                 }
             }
         }
+		return states;
     }
 
-	// Checks of the tail starts with a symbol in the variable store
-	private void addStateFromVariable(Collection<MatchState> swap, int index, Sequence tail, Sequence symbol, Node<Sequence> nextNode) {
-		for (Sequence s : factory.getVariableValues(symbol.toString())) {
-		    if (tail.startsWith(s)) {
-		        swap.add(new MatchState(index + s.size(), nextNode));
-		    }
-		}
-	}
-
-//	private Node<Sequence> getNodeFromExpression(String string, ParseDirection direction) {
-//		List<String> list = sequenceFactory.getSegmentedString(string);
-//		Node<Sequence> root;
-//		if (list.isEmpty()) {
-//			root = NodeFactory.getEmptyNode();
-//		} else {
-//			root = NodeFactory.getNode();
-//			Expression ex   = new Expression(list);
-//			Node<Sequence> last = parse(ex, root, direction);
-//			last.setAccepting(true);
-//		}
-//		return root;
-//	}
-
     //
-	private Node<Sequence> parse(Expression expression, Node<Sequence> root, ParseDirection direction) {
+	private Node<Sequence> parse(Expression expressionParam, Node<Sequence> root, ParseDirection direction) {
 		Node<Sequence> current = root;
 
-		if (expression.isParallel()) {
+		if (expressionParam.isParallel()) {
 			Node<Sequence> tail = NodeFactory.getNode(factory);
-            if (expression.isNegative()) {
-                for (Expression ex : expression.getSubExpressions(direction)) {
+            if (expressionParam.isNegative()) {
+                for (Expression ex : expressionParam.getSubExpressions(direction)) {
                     Node<Sequence> next = getNode(current, ex, direction);
                     next.add(tail);
                 }
             } else {
 
-                for (Expression ex : expression.getSubExpressions(direction)) {
+                for (Expression ex : expressionParam.getSubExpressions(direction)) {
                     Node<Sequence> next = getNode(current, ex, direction);
                     next.add(tail);
                 }
                 current = tail;
             }
 		} else {
-			for (Expression ex : expression.getSubExpressions(direction)) {
+			for (Expression ex : expressionParam.getSubExpressions(direction)) {
 				current = getNode(current, ex, direction);
 			}
 		}
 		return current;
-	}
-
-	private static Thing updateBuffer(Collection<Thing> list, Thing buffer) {
-		list.add(buffer);
-		return new Thing();
 	}
 
 	private static final class MatchState {
@@ -385,7 +234,7 @@ public class StateMachine extends AbstractNode {
 
 		@Override
 		public String toString() {
-			return '<' + index + ", " + node.getId() + '>';
+			return "<<" + index + ", " + node.toString() + ">>";
 		}
 
 		@Override
@@ -401,17 +250,6 @@ public class StateMachine extends AbstractNode {
 			MatchState other = (MatchState) obj;
 			return index == other.index &&
 					node.equals(other.node);
-		}
-	}
-
-	private static final class Thing {
-		private String expression = "";
-		private char    metacharacter;
-		private boolean negative;
-
-		@Override
-		public String toString() {
-			return (negative ? "!" : "") + expression + (metacharacter != 0 ? metacharacter : "");
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.haedus.machines;
 
+import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
@@ -28,14 +29,32 @@ import org.haedus.datatypes.phonetic.SequenceFactory;
  */
 public class NodeFactory {
 
-	private static int indexCounter = 0;
+	private static int parallelCounter = 0;
+	private static int machineCounter  = 0;
+	private static int nodeCounter     = 0;
+
+	private static final Node<Sequence> BLANK_NODE = new PlainNode("EMPTY_NODE", null, true);
+
+	public static Node<Sequence> getParallelStateMachine(String expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
+		parallelCounter++;
+		return new ParallelStateMachine("P-" + parallelCounter, expression, factoryParam, direction, accepting);
+	}
+
+	public static Node<Sequence> getStateMachine(String expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
+		machineCounter++;
+		return new StateMachine("S-" + machineCounter, expression, factoryParam, direction, accepting);
+	}
 
 	public static Node<Sequence> getNode(SequenceFactory factory) {
 		return getNode(factory, false);
 	}
 
 	public static Node<Sequence> getNode(SequenceFactory factory, boolean accepting) {
-		indexCounter++;
-		return new PlainNode("N-"+indexCounter, factory, accepting);
+		nodeCounter++;
+		return new PlainNode("N-" + nodeCounter, factory, accepting);
+	}
+
+	public static Node<Sequence> getBlankNode() {
+		return BLANK_NODE;
 	}
 }

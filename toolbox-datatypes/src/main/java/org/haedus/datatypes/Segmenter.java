@@ -21,6 +21,7 @@
 
 package org.haedus.datatypes;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.phonetic.FeatureModel;
@@ -45,9 +46,10 @@ public final class Segmenter {
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	private static final transient org.slf4j.Logger LOGGER       = LoggerFactory.getLogger(Segmenter.class);
-	public static final            int              BINDER_START = 860;
-	public static final int BINDER_END = 866;
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
+
+	public static final int BINDER_START = 860;
+	public static final int BINDER_END   = 866;
 
 	// Prevent the class from being instantiated
 	private Segmenter() {
@@ -70,11 +72,11 @@ public final class Segmenter {
 		List<Thing> segmentedThing = getSegmentedThing(word, keys, modeParam);
 		List<String> list = new ArrayList<String>();
 		for (Thing thing : segmentedThing) {
-			String string = thing.getHead();
+			String head = thing.getHead();
 			for (String s : thing.getTail()) {
-				string += s;
+				head += s;
 			}
-			list.add(string);
+			list.add(head);
 		}
 		return list;
 	}
@@ -123,7 +125,7 @@ public final class Segmenter {
 			String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
 			if (i == 0) {
 				// Assume that the first symbol must be a diacritic
-				// This doesn't universally word (prenasalized, preaspirated), but we don't support this in our model yet
+				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
 				if (key.isEmpty()) {
 					thing.appendHead(word.charAt(0));
 				} else {

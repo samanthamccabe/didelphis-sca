@@ -4,6 +4,7 @@ import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,16 +19,42 @@ public class ParallelStateMachine extends AbstractNode {
 
 	private final Set<Node<Sequence>> machines;
 
-	public ParallelStateMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		super(id, factoryParam);
+	ParallelStateMachine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean acceptingParam) {
+		super(id, factoryParam, acceptingParam);
 		machines = new HashSet<Node<Sequence>>();
 
-		int i = 0;
-		for (String subexpression : WHITESPACE.split(expression)) {
-			// TODO: does not split nested sets correctly, not that we need to allow it
-			machines.add(new StateMachine(id + '-' + i, subexpression, factoryParam, direction));
-			i++;
+		Collection<String> subExpressions = parseSubExpressions(expressionParam);
+		for (String subExpression : subExpressions) {
+			machines.add(NodeFactory.getStateMachine(subExpression, factoryParam, direction, false));
 		}
+	}
+
+	private static Collection<String> parseSubExpressions(String expressionParam) {
+		Collection<String> subExpressions = new ArrayList<String>();
+
+		StringBuilder buffer = new StringBuilder();
+		for (int i =0; i < expressionParam.length();) {
+			char c = expressionParam.charAt(i);
+			/*  */ if (c == '{') {
+				int index = getIndex(expressionParam, '{','}', i);
+				buffer.append(expressionParam.substring(i, index));
+			} else if (c == '(') {
+				int index = getIndex(expressionParam, '(',')', i);
+				buffer.append(expressionParam.substring(i, index));
+			} else if (c != ' ') {
+				buffer .append(c);
+				i++;
+			} else if (buffer.length() > 0) { // No isEmpty() call available
+				subExpressions.add(buffer.toString());
+				buffer = new StringBuilder();
+				i++;
+			}
+		}
+
+		if (buffer.length() > 0) {
+			subExpressions.add(buffer.toString());
+		}
+		return subExpressions;
 	}
 
 	@Override
@@ -37,7 +64,7 @@ public class ParallelStateMachine extends AbstractNode {
 
 	@Override
 	public boolean containsStateMachine() {
-		return machines.isEmpty();
+		return !machines.isEmpty();
 	}
 
 	@Override
@@ -50,12 +77,7 @@ public class ParallelStateMachine extends AbstractNode {
 	}
 
 	@Override
-	public boolean isAccepting() {
-		return false;
-	}
-
-	@Override
-	public void setAccepting(boolean acceptingParam) {
-		throw new UnsupportedOperationException("Cannot set \"accepting\" value on immutable node");
+	public String toString() {
+		return getId() + machines;
 	}
 }

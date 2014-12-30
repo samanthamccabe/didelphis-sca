@@ -423,7 +423,7 @@ public class SoundChangeApplierTest {
 	}
 
 	@Test
-	public void simpleNosegmentation(){
+	public void simpleNoSegmentation(){
 		String[] commands = {
 				"NORMALIZATION: NONE",
 				"SEGMENTATION: FALSE",

@@ -20,6 +20,7 @@ import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.machines.Node;
 import org.haedus.datatypes.ParseDirection;
+import org.haedus.machines.NodeFactory;
 import org.haedus.machines.StateMachine;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
@@ -34,10 +35,9 @@ public class Condition {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
-	private final String           conditionText;
+	private final String          conditionText;
 	private final Node<Sequence>  preCondition;
 	private final Node<Sequence>  postCondition;
-	private final SequenceFactory sequenceFactory;
 
 	// package-private: testing only
 	Condition(String condition) {
@@ -46,15 +46,15 @@ public class Condition {
 
 	public Condition(String condition, SequenceFactory factoryParam) {
 		conditionText    = cleanup(condition);
-		sequenceFactory = factoryParam;
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = new StateMachine("pre", conditions[0], sequenceFactory, ParseDirection.BACKWARD);
-				postCondition = StateMachine.EMPTY_MACHINE;
+//				preCondition  = new StateMachine("pre", conditions[0], sequenceFactory, ParseDirection.BACKWARD);
+				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
+				postCondition = NodeFactory.getBlankNode();
 			} else if (conditions.length == 2) {
-				preCondition  = new StateMachine("pre",  conditions[0], sequenceFactory, ParseDirection.BACKWARD);
-				postCondition = new StateMachine("post", conditions[1], sequenceFactory, ParseDirection.FORWARD);
+				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
+				postCondition = NodeFactory.getStateMachine(conditions[1], factoryParam, ParseDirection.FORWARD,  true);
 			} else if (conditions.length == 0) {
 				preCondition  = StateMachine.EMPTY_MACHINE;
 				postCondition = StateMachine.EMPTY_MACHINE;
@@ -112,7 +112,7 @@ public class Condition {
 	}
 
 	public boolean isEmpty() {
-		return preCondition.isEmpty() && postCondition.isEmpty();
+		return preCondition.isTerminal() && postCondition.isTerminal();
 	}
 }
 

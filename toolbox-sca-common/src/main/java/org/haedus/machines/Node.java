@@ -12,7 +12,7 @@ public interface Node<T> {
      * Checks if the object has any outgoing connections to other nodes
      * @return true iff
      */
-    boolean isEmpty();
+    boolean isTerminal();
 
     /**
      *
@@ -70,13 +70,11 @@ public interface Node<T> {
      */
     Collection<T> getKeys();
 
-    boolean isAccepting();
-
     /**
      * Each node should have an id associated with it; this method returns it
      * @return the node's id code
      */
     String getId();
 
-    void setAccepting(boolean acceptingParam);
+    boolean isAccepting();
 }

@@ -12,8 +12,8 @@ public class NegativeStateMachine extends AbstractNode {
 
 	private final Node<Sequence> machine;
 
-	public NegativeStateMachine(String id, String expression, SequenceFactory factoryParam) {
-		super(id, factoryParam);
+	public NegativeStateMachine(String id, String expression, SequenceFactory factoryParam, boolean accepting) {
+		super(id, factoryParam, accepting);
 		machine = null; // TODO: parse this
 	}
 
@@ -30,16 +30,5 @@ public class NegativeStateMachine extends AbstractNode {
 	@Override
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 		return null;
-	}
-
-
-	@Override
-	public boolean isAccepting() {
-		return false;
-	}
-
-	@Override
-	public void setAccepting(boolean acceptingParam) {
-
 	}
 }

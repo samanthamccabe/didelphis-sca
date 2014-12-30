@@ -26,31 +26,9 @@ import org.haedus.datatypes.phonetic.SequenceFactory;
  */
 public class PlainNode extends AbstractNode {
 
-	private boolean isAccepting;
-
 	// package-access only, for factory instantiation
 	PlainNode(String idParam, SequenceFactory factoryParam, boolean accepting) {
-		super(idParam, factoryParam);
-		isAccepting = accepting;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)                 { return false; }
-		if (!(obj instanceof PlainNode)) { return false; }
-
-		PlainNode other = (PlainNode) obj;
-		return super.equals(obj) && isAccepting == other.isAccepting; // TODO: this might be a terrible idea
-	}
-
-	@Override
-	public int hashCode() {
-		int code = 11;
-
-		code *= 31 + super.hashCode();
-		code *= 31 + (isAccepting ? 1 : 0);
-
-		return code;
+		super(idParam, factoryParam, accepting);
 	}
 
 	@Override
@@ -73,12 +51,7 @@ public class PlainNode extends AbstractNode {
 	}
 
 	@Override
-	public boolean isAccepting() {
-		return isAccepting;
-	}
-
-	@Override
-	public void setAccepting(boolean acceptingParam) {
-		isAccepting = acceptingParam;
+	public String toString() {
+		return getId() + ": " + getKeys();
 	}
 }
