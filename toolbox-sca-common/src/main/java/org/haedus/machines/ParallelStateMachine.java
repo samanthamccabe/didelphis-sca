@@ -38,9 +38,11 @@ public class ParallelStateMachine extends AbstractNode {
 			/*  */ if (c == '{') {
 				int index = getIndex(expressionParam, '{','}', i);
 				buffer.append(expressionParam.substring(i, index));
+				i = index;
 			} else if (c == '(') {
 				int index = getIndex(expressionParam, '(',')', i);
 				buffer.append(expressionParam.substring(i, index));
+				i = index;
 			} else if (c != ' ') {
 				buffer .append(c);
 				i++;

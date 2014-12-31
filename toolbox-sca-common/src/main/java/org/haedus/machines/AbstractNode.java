@@ -35,10 +35,10 @@ public abstract class AbstractNode implements Node<Sequence> {
 	private final Map<Sequence, Set<Node<Sequence>>> arcs;
 
 	protected AbstractNode(String idParam, SequenceFactory factoryParam, boolean acceptingParam) {
-		factory   = factoryParam;
-		nodeId    = idParam;
+		factory = factoryParam;
+		nodeId = idParam;
 		accepting = acceptingParam;
-		arcs      = new HashMap<Sequence, Set<Node<Sequence>>>();
+		arcs = new HashMap<Sequence, Set<Node<Sequence>>>();
 	}
 
 	protected static int getIndex(CharSequence string, char left, char right, int startIndex) {
@@ -162,7 +162,7 @@ public abstract class AbstractNode implements Node<Sequence> {
 				// Construct nodes
 				char meta = thing.getMetacharacter();
 				if (exp == null) {
-					previous = constructRecursiveNode(previous, current, meta);
+					previous = constructRecursiveNode(previous, current, meta, !it.hasNext());
 				} else {
 					previous = constructTerminalNode(previous, current, exp, meta);
 				}
@@ -179,8 +179,8 @@ public abstract class AbstractNode implements Node<Sequence> {
 			previousNode.add(currentNode);
 			referenceNode = currentNode;
 		} else if (meta == '*') {
-			previousNode.add(sequence, currentNode);
-			currentNode.add(previousNode);
+			previousNode.add(currentNode);
+			currentNode.add(sequence, previousNode);
 			// Don't change "previous" to current
 			referenceNode = previousNode;
 		} else if (meta == '+') {
@@ -243,8 +243,8 @@ public abstract class AbstractNode implements Node<Sequence> {
 		return list;
 	}
 
-	private Node<Sequence> constructRecursiveNode(Node<Sequence> previousNode, Node<Sequence> machineNode, char meta) {
-		Node<Sequence> nextNode = NodeFactory.getNode(factory);
+	private Node<Sequence> constructRecursiveNode(Node<Sequence> previousNode, Node<Sequence> machineNode, char meta, boolean b) {
+		Node<Sequence> nextNode = NodeFactory.getNode(factory, b);
 		// currentNode contains the machine
 		if /****/ (meta == '?') {
 			// P --> M --> N

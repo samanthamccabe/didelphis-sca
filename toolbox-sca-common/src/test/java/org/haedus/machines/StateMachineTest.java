@@ -96,6 +96,24 @@ public class StateMachineTest {
 	}
 
 	@Test
+	public void testGroupStar02() {
+		Node<Sequence> stateMachine = getMachine("d(eo*)*b");
+
+		test(stateMachine, "db");
+		test(stateMachine, "deb");
+		test(stateMachine, "deeb");
+		test(stateMachine, "deob");
+		test(stateMachine, "deoob");
+		test(stateMachine, "deoeob");
+		test(stateMachine, "deoeoob");
+
+		fail(stateMachine, "abcd");
+		fail(stateMachine, "ab");
+		fail(stateMachine, "bcdef");
+		fail(stateMachine, "abbcdef");
+	}
+
+	@Test
 	public void testGroupOptional01() {
 		Node<Sequence> stateMachine = getMachine("(ab)?(cd)(ef)");
 
@@ -121,6 +139,38 @@ public class StateMachineTest {
 		test(stateMachine, "xytr");
 		test(stateMachine, "eftr");
 		fail(stateMachine, " ");
+	}
+
+	@Test
+	public void testGroupPlus01() {
+		Node<Sequence> machine = getMachine("(ab)+");
+
+		test(machine, "ab");
+		test(machine, "abab");
+		test(machine, "ababab");
+
+	}
+
+	@Test
+	public void testComplexGroups01() {
+		Node<Sequence> machine = getMachine("(a+l(ham+b)*ra)+");
+
+		test(machine, "alhambra");
+	}
+
+	@Test
+	public void testComplexGroups02() {
+		Node<Sequence> machine = getMachine("{ab* (cd?)+ ((ae)*f)+}tr");
+
+		test(machine, "abtr");
+		test(machine, "cdtr");
+	}
+
+	@Test
+	public void testComplex01() {
+		Node<Sequence> machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
+
+		test(machine, "āḱʰus");
 	}
 
 	private static Node<Sequence> getMachine(String expression) {

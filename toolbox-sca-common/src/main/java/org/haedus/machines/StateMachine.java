@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2014 Haedus - Fabrica Codicis-
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,12 +150,13 @@ public class StateMachine extends AbstractNode {
 
 						if(currentNode.isAccepting() || currentNode.isTerminal()) {
 							indices.addAll(matchIndices);
-						} else {
+//						} else {
+						}
 							for (Integer matchIndex : matchIndices) {
 								Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
 								swap.addAll(matchStates);
 							}
-						}
+//						}
 				}
 				states = swap;
 				swap = new ArrayList<MatchState>();
