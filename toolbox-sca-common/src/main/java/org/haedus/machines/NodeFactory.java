@@ -20,6 +20,8 @@ import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Samantha Fiona Morrigan McCabe
@@ -35,9 +37,19 @@ public class NodeFactory {
 
 	private static final Node<Sequence> BLANK_NODE = new PlainNode("EMPTY_NODE", null, true);
 
+	public static Node<Sequence> getParallelStateMachine(List<Expression> expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
+		parallelCounter++;
+		return new ParallelStateMachine("P-" + parallelCounter, expression, factoryParam, direction, accepting);
+	}
+
 	public static Node<Sequence> getParallelStateMachine(String expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
 		parallelCounter++;
 		return new ParallelStateMachine("P-" + parallelCounter, expression, factoryParam, direction, accepting);
+	}
+
+	public static Node<Sequence> getStateMachine(List<Expression> expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
+		machineCounter++;
+		return new StateMachine("S-" + machineCounter, expression, factoryParam, direction, accepting);
 	}
 
 	public static Node<Sequence> getStateMachine(String expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {

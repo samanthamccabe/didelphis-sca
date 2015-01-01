@@ -159,4 +159,13 @@ public class SequenceFactory {
 		buffer.append(key);
 		return buffer;
 	}
+
+	public List<String> getSegmentedStringSkippingBrackets(String string) {
+		Collection<String> keys = new ArrayList<String>();
+
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(featureModel.getSymbols());
+
+		return Segmenter.getSegmentedStringSkippingBrackets(string, keys, segmentationMode);
+	}
 }

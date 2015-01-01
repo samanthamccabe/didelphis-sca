@@ -7,6 +7,7 @@ import org.haedus.datatypes.phonetic.SequenceFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -15,10 +16,9 @@ import java.util.regex.Pattern;
  */
 public class ParallelStateMachine extends AbstractNode {
 
-	private static final Pattern WHITESPACE = Pattern.compile("\\s+");
-
 	private final Set<Node<Sequence>> machines;
 
+	@Deprecated
 	ParallelStateMachine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean acceptingParam) {
 		super(id, factoryParam, acceptingParam);
 		machines = new HashSet<Node<Sequence>>();
@@ -28,6 +28,58 @@ public class ParallelStateMachine extends AbstractNode {
 			machines.add(NodeFactory.getStateMachine(subExpression, factoryParam, direction, false));
 		}
 	}
+
+	ParallelStateMachine(String id, List<Expression> expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean acceptingParam) {
+		super(id, factoryParam, acceptingParam);
+		machines = new HashSet<Node<Sequence>>();
+
+//		Collection<List<Expression>> subExpressions = parseSubExpressions(expressionParam);
+//		for (List<String> subExpression : subExpressions) {
+//			machines.add(NodeFactory.getStateMachine(subExpression, factoryParam, direction, false));
+//		}
+	}
+
+/*
+	private static List<List<Expression>> parseSubExpressions(List<Expression> expressionParam) {
+		List<List<Expression>> subExpressions = new ArrayList<List<Expression>>();
+
+//		StringBuilder buffer = new StringBuilder();
+		List<String> list = new ArrayList<String>();
+		for (int i =0; i < expressionParam.size(); i++) {
+//			char c = expressionParam.charAt(i);
+			Expression expression = expressionParam.get(i);
+			*/
+/*  *//*
+ if (expression.getExpression().get(0).equals("{")) {
+				int index = getIndex(expressionParam, "{","}", i);
+//				buffer.append(expressionParam.subList(i, index));
+				list.addAll(expressionParam.subList(i, index));
+//				i = index;
+			} else if (expression.equals("(")) {
+				int index = getIndex(expressionParam, "(",")", i);
+//				buffer.append(expressionParam.subList(i, index));
+				list.addAll(expressionParam.subList(i, index));
+//				i = index;
+			} else if (!expression.equals(" ")) {
+//				buffer.append(c);
+				list.add(expression);
+//				i++;
+			} else if (!list.isEmpty()) { // No isEmpty() call available
+//				subExpressions.add(buffer.toString());
+				subExpressions.add(list);
+//				buffer = new StringBuilder();
+				list = new ArrayList<String>();
+//				i++;
+			}
+		}
+
+		if (!list.isEmpty()) {
+//			subExpressions.add(buffer.toString());
+			subExpressions.add(list);
+		}
+		return subExpressions;
+	}
+*/
 
 	private static Collection<String> parseSubExpressions(String expressionParam) {
 		Collection<String> subExpressions = new ArrayList<String>();

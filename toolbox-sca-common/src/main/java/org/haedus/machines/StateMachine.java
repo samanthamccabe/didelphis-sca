@@ -37,30 +37,32 @@ public class StateMachine extends AbstractNode {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
-	private final String         expression;
+//	private final String         expression;
 	private final Node<Sequence> startNode;
 
 	private StateMachine() {
 		super("S-EMPTY", null, true); // degenerate machines are always accepting
 		startNode  = null;
-		expression = "";
+//		expression = "";
 	}
 
 	// For use with NodeFactory only
 	StateMachine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean isAccepting) {
 		super(id, factoryParam, isAccepting);
-		startNode  = getStartNode(expressionParam, direction);
-		expression = expressionParam;
+		List<String> strings = factory.getSegmentedString(expressionParam);
+		List<Expression> expressions = parse(strings, direction);
+		startNode  = getStartNode(expressions, direction);
+//		expression = expressionParam;
 	}
 
-	/**
-	 * Processes an Expression into a state machine
-	 * @param start the starting node of the machine
-	 * @param ex the Expression we wish to process
-	 * @param direction determines if the Expression will be parsed forwards (left-to-right)
-	 * @return the last node in the machine.
-	 */
-	private Node<Sequence> getNode(Node<Sequence> start, Expression ex, ParseDirection direction) {
+	// For use with NodeFactory only
+	StateMachine(String id, List<Expression> expressionParam, SequenceFactory factoryParam, ParseDirection direction, boolean isAccepting) {
+		super(id, factoryParam, isAccepting);
+		startNode  = getStartNode(expressionParam, direction);
+//		expression = expressionParam;
+	}
+
+/*	private Node<Sequence> getNode(Node<Sequence> start, Expression ex, ParseDirection direction) {
 
 		if (ex.isTerminal()) {
 			String element = ex.getString();
@@ -100,7 +102,7 @@ public class StateMachine extends AbstractNode {
 			}
 		}
 		return start;
-	}
+	}*/
 
 	// Determines if the Sequence is accepted by this machine
 	@Override
@@ -115,7 +117,7 @@ public class StateMachine extends AbstractNode {
 
 	@Override
 	public String toString() {
-		return getId() + ' ' + expression;
+		return getId() /*+ ' ' + expression*/;
 	}
 
 	@Override
@@ -150,13 +152,12 @@ public class StateMachine extends AbstractNode {
 
 						if(currentNode.isAccepting() || currentNode.isTerminal()) {
 							indices.addAll(matchIndices);
-//						} else {
 						}
-							for (Integer matchIndex : matchIndices) {
-								Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
-								swap.addAll(matchStates);
-							}
-//						}
+
+						for (Integer matchIndex : matchIndices) {
+							Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
+							swap.addAll(matchStates);
+						}
 				}
 				states = swap;
 				swap = new ArrayList<MatchState>();
@@ -189,31 +190,31 @@ public class StateMachine extends AbstractNode {
     }
 
     //
-	private Node<Sequence> parse(Expression expressionParam, Node<Sequence> root, ParseDirection direction) {
-		Node<Sequence> current = root;
-
-		if (expressionParam.isParallel()) {
-			Node<Sequence> tail = NodeFactory.getNode(factory);
-            if (expressionParam.isNegative()) {
-                for (Expression ex : expressionParam.getSubExpressions(direction)) {
-                    Node<Sequence> next = getNode(current, ex, direction);
-                    next.add(tail);
-                }
-            } else {
-
-                for (Expression ex : expressionParam.getSubExpressions(direction)) {
-                    Node<Sequence> next = getNode(current, ex, direction);
-                    next.add(tail);
-                }
-                current = tail;
-            }
-		} else {
-			for (Expression ex : expressionParam.getSubExpressions(direction)) {
-				current = getNode(current, ex, direction);
-			}
-		}
-		return current;
-	}
+//	private Node<Sequence> parse(Expression expressionParam, Node<Sequence> root, ParseDirection direction) {
+//		Node<Sequence> current = root;
+//
+//		if (expressionParam.isParallel()) {
+//			Node<Sequence> tail = NodeFactory.getNode(factory);
+//            if (expressionParam.isNegative()) {
+//                for (Expression ex : expressionParam.getSubExpressions(direction)) {
+//                    Node<Sequence> next = getNode(current, ex, direction);
+//                    next.add(tail);
+//                }
+//            } else {
+//
+//                for (Expression ex : expressionParam.getSubExpressions(direction)) {
+//                    Node<Sequence> next = getNode(current, ex, direction);
+//                    next.add(tail);
+//                }
+//                current = tail;
+//            }
+//		} else {
+//			for (Expression ex : expressionParam.getSubExpressions(direction)) {
+//				current = getNode(current, ex, direction);
+//			}
+//		}
+//		return current;
+//	}
 
 	private static final class MatchState {
 

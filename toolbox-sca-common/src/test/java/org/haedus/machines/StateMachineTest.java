@@ -48,7 +48,7 @@ public class StateMachineTest {
 	public void testStateMachineStar() {
 		Node<Sequence> stateMachine = getMachine("aa*");
 
-		fail(stateMachine, "a");
+		test(stateMachine, "a");
 		test(stateMachine, "aa");
 		test(stateMachine, "aaa");
 		test(stateMachine, "aaaa");

@@ -48,20 +48,25 @@ public final class Segmenter {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
-	public static final int BINDER_START = 860;
-	public static final int BINDER_END   = 866;
+	public static final int BINDER_START      = 860;
+	public static final int BINDER_END        = 866;
+	public static final int SUPERSCRIPT_ZERO  = 8304;
+	public static final int SUBSCRIPT_SMALL_T = 8348;
+	public static final int SUPERSCRIPT_TWO   = 178;
+	public static final int SUPERSCRIPT_THREE = 179;
+	public static final int SUPERSCRIPT_ONE = 185;
 
 	// Prevent the class from being instantiated
-	private Segmenter() {
-	}
+	private Segmenter() {}
 
+	@Deprecated
 	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, SegmentationMode mode) {
 		Collection<String> keys = getKeys(model, variables);
-		List<Thing> segmentedThing = getSegmentedThing(string, keys, mode);
-		if (segmentedThing.size() >= 1) {
-			Thing thing = segmentedThing.get(0);
-			String head = thing.getHead();
-			List<String> tail = thing.getTail();
+		List<Symbol> segmentedSymbol = getCompositeSymbols(string, keys, mode);
+		if (segmentedSymbol.size() >= 1) {
+			Symbol symbol = segmentedSymbol.get(0);
+			String head = symbol.getHead();
+			List<String> tail = symbol.getTail();
 			return model.getSegment(head, tail);
 		} else {
 			return null;
@@ -69,36 +74,34 @@ public final class Segmenter {
 	}
 
 	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode modeParam) {
-		List<Thing> segmentedThing = getSegmentedThing(word, keys, modeParam);
+		List<Symbol> segmentedSymbol = getCompositeSymbols(word, keys, modeParam);
 		List<String> list = new ArrayList<String>();
-		for (Thing thing : segmentedThing) {
-			String head = thing.getHead();
-			for (String s : thing.getTail()) {
-				head += s;
+		for (Symbol symbol : segmentedSymbol) {
+			StringBuilder head = new StringBuilder(symbol.getHead());
+			for (String s : symbol.getTail()) {
+				head.append(s);
 			}
-			list.add(head);
+			list.add(head.toString());
 		}
 		return list;
 	}
 
-	// Will throw null if segmentation mode is not supported
-	private static List<Thing> getSegmentedThing(String word, Iterable<String> keys, SegmentationMode modeParam) {
-		List<Thing> list;
+	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, SegmentationMode modeParam) {
 		if (modeParam == SegmentationMode.DEFAULT) {
-			list = getThings(word, keys);
+			return getThings(word, keys);
 		} else if (modeParam == SegmentationMode.NAIVE) {
-			list = segmentNaively(word, keys);
+			return segmentNaively(word, keys);
 		} else {
 			throw new UnsupportedOperationException("Unsupported segmentation mode " + modeParam);
 		}
-		return list;
 	}
 
+	@Deprecated
 	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode mode) {
 		Collection<String> keys = getKeys(model, variables);
-		List<Thing> list = getSegmentedThing(word, keys, mode);
+		List<Symbol> list = getCompositeSymbols(word, keys, mode);
 		Sequence sequence = new Sequence(model);
-		for (Thing item : list) {
+		for (Symbol item : list) {
 			String head = item.getHead();
 			List<String> tail = item.getTail();
 
@@ -115,10 +118,10 @@ public final class Segmenter {
 		return keys;
 	}
 
-	private static List<Thing> getThings(String word, Iterable<String> keys) {
-		List<Thing> segments = new ArrayList<Thing>();
+	private static List<Symbol> getThings(String word, Iterable<String> keys) {
+		List<Symbol> segments = new ArrayList<Symbol>();
 
-		Thing thing = new Thing();
+		Symbol symbol = new Symbol();
 		int length = word.length();
 		for (int i = 0; i < length; i++) {
 			String substring = word.substring(i);       // Get the word from current position on
@@ -127,9 +130,9 @@ public final class Segmenter {
 				// Assume that the first symbol must be a diacritic
 				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
 				if (key.isEmpty()) {
-					thing.appendHead(word.charAt(0));
+					symbol.appendHead(word.charAt(0));
 				} else {
-					thing.appendHead(key);
+					symbol.appendHead(key);
 					i = key.length() - 1;
 				}
 			} else {
@@ -138,24 +141,24 @@ public final class Segmenter {
 					if (isDoubleWidthBinder(ch) && i < length - 1) {
 						i++;
 						// Jump ahead and grab the next character
-						thing.appendHead(word.charAt(i));
+						symbol.appendHead(word.charAt(i));
 					} else {
-						thing.appendTail(ch);
+						symbol.appendTail(ch);
 					}
 				} else {
 					// Not a diacritic
-					segments.add(thing);
-					thing = new Thing();
+					segments.add(symbol);
+					symbol = new Symbol();
 					if (key.isEmpty()) {
-						thing.appendHead(ch);
+						symbol.appendHead(ch);
 					} else {
-						thing.appendHead(key);
+						symbol.appendHead(key);
 						i += key.length() - 1;
 					}
 				}
 			}
 		}
-		segments.add(thing);
+		segments.add(symbol);
 		return segments;
 	}
 
@@ -186,23 +189,23 @@ public final class Segmenter {
 		       isDoubleWidthBinder(ch);
 	}
 
-	private static boolean isCombingNOS(int value) {
+	private static boolean isCombingNOS(char value) {
 		// int literals are decimal char values
-		return (value >= 8304) &&
-		       (value <= 8348);
+		return  value >= SUPERSCRIPT_ZERO &&
+				value <= SUBSCRIPT_SMALL_T;
 	}
 
 	private static boolean isCombiningClass(char ch) {
 		int type = Character.getType(ch);
-		return (type == Character.MODIFIER_LETTER)        || // LM
-		       (type == Character.MODIFIER_SYMBOL)        || // SK
-		       (type == Character.COMBINING_SPACING_MARK) || // MC
-		       (type == Character.NON_SPACING_MARK);         // MN
+		return  type == Character.MODIFIER_LETTER || // LM
+				type == Character.MODIFIER_SYMBOL || // SK
+				type == Character.COMBINING_SPACING_MARK || // MC
+				type == Character.NON_SPACING_MARK;         // MN
 	}
 
 	private static String removeDoubleWidthBinders(String string) {
 		for (char c = BINDER_START; c <= BINDER_END; c++) {
-			string = string.replace(c+"", "");
+			string = string.replace(String.valueOf(c), "");
 			// TODO: this is awful
 		}
 		return string;
@@ -212,16 +215,16 @@ public final class Segmenter {
 		return ch <= BINDER_END && BINDER_START <= ch;
 	}
 
-	private static boolean isSuperscriptAsciiDigit(int value) {
+	private static boolean isSuperscriptAsciiDigit(char value) {
 		// int literals are decimal char values
-		return (value == 178) ||
-		       (value == 179) ||
-		       (value == 185);
+		return  value == SUPERSCRIPT_TWO   ||
+				value == SUPERSCRIPT_THREE ||
+				value == SUPERSCRIPT_ONE;
 	}
 
-	private static boolean isMathematicalSubOrSuper(int value) {
+	private static boolean isMathematicalSubOrSuper(char value) {
 		// int literals are decimal char values
-		return (value <= 8304) && (8348 <= value);
+		return value <= SUPERSCRIPT_ZERO && SUBSCRIPT_SMALL_T <= value;
 	}
 
 	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
@@ -231,68 +234,80 @@ public final class Segmenter {
 		return buffer;
 	}
 
-	private static List<Thing> segmentNaively(String word, Iterable<String> keys) {
-		List<Thing> segments = new ArrayList<Thing>();
+	private static List<Symbol> segmentNaively(String word, Iterable<String> keys) {
+		List<Symbol> segments = new ArrayList<Symbol>();
 		for (int i = 0; i < word.length(); i++) {
 
 			String key = getBestMatch(word.substring(i), keys);
-			Thing thing = new Thing();
+			Symbol symbol = new Symbol();
 			if (key.isEmpty()) {
-//				segments.add(word.substring(i, i + 1));
-				thing.appendHead(word.substring(i, i + 1));
+				symbol.appendHead(word.substring(i, i + 1));
 			} else {
-//				segments.add(key);
-				thing.appendHead(key);
+				symbol.appendHead(key);
 				i = i + key.length() - 1;
 			}
 
-			if (!thing.isEmpty()) {
-				segments.add(thing);
+			if (!symbol.isEmpty()) {
+				segments.add(symbol);
 			}
 		}
 		return segments;
 	}
 
-	private static final class Thing {
-		private final StringBuilder head;
-		private final List<String> tail;
+	public static List<String> getSegmentedStringSkippingBrackets(String string, Iterable<String> keys, SegmentationMode modeParam) {
+		List<Symbol> symbols = getCompositeSymbols(string, keys, modeParam);
+		List<String> list = new ArrayList<String>();
+		for (Symbol symbol : symbols) {
+			StringBuilder head = new StringBuilder(symbol.getHead());
+			for (String s : symbol.getTail()) {
+				head.append(s);
+			}
+			list.add(head.toString());
+		}
+		return list;
+	}
 
-		public Thing() {
+	private static final class Symbol {
+		@SuppressWarnings("StringBufferField")
+		private final StringBuilder head;
+		private final List<String>  tail;
+
+		private Symbol() {
 			head = new StringBuilder();
 			tail = new ArrayList<String>();
 		}
 
-		public boolean isEmpty() {
+		private boolean isEmpty() {
 			return head.length() == 0;
 		}
 
-		public String getHead() {
+		private String getHead() {
 			return head.toString();
 		}
 
-		public List<String> getTail() {
+		private List<String> getTail() {
 			return tail;
 		}
 
-		public void appendHead(String string) {
+		private void appendHead(String string) {
 			head.append(string);
 		}
 
-		public void appendTail(String string) {
+		private void appendTail(String string) {
 			tail.add(string);
 		}
 
-		public void appendHead(char ch) {
+		private void appendHead(char ch) {
 			head.append(ch);
 		}
 
-		public void appendTail(char ch) {
-			tail.add("" + ch);
+		private void appendTail(char ch) {
+			tail.add(String.valueOf(ch));
 		}
 
 		@Override
 		public String toString() {
-			return head + " " + tail.toString();
+			return head + " " + tail;
 		}
 	}
 }

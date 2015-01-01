@@ -3,7 +3,6 @@ package org.haedus.machines;
 import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.exceptions.ParseException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,18 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by samantha on 12/24/14.
  */
 public abstract class AbstractNode implements Node<Sequence> {
-
-	private static final Pattern ILLEGAL_START_PATTERN = Pattern.compile("^([\\$\\^\\*\\?\\+\\)\\}\\]\\\\])");
-	private static final Pattern METACHARACTER_PATTERN = Pattern.compile("^[\\*\\?\\+]");
-	private static final Pattern PARENTHESIS_PATTERN   = Pattern.compile("\\(\\s*(.*)\\s*\\)");
-	private static final Pattern CURLY_BRACES_PATTERN  = Pattern.compile("\\{\\s*(.*)\\s*\\}");
 
 	protected final SequenceFactory factory;
 
@@ -39,6 +31,25 @@ public abstract class AbstractNode implements Node<Sequence> {
 		nodeId = idParam;
 		accepting = acceptingParam;
 		arcs = new HashMap<Sequence, Set<Node<Sequence>>>();
+	}
+
+	protected static int getIndex(List<String> list, String left, String right, int startIndex) {
+		int count = 1;
+		int endIndex = -1;
+
+		boolean matched = false;
+		for (int i = startIndex + 1; i < list.size() && !matched; i++) {
+			String ch = list.get(i);
+			if (ch.equals(right) && count == 1) {
+				matched = true;
+				endIndex = i;
+			} else if (ch.equals(right)) {
+				count++;
+			} else if (ch.equals(left)) {
+				count--;
+			}
+		}
+		return endIndex;
 	}
 
 	protected static int getIndex(CharSequence string, char left, char right, int startIndex) {
@@ -60,9 +71,9 @@ public abstract class AbstractNode implements Node<Sequence> {
 		return endIndex;
 	}
 
-	private static Thing updateBuffer(Collection<Thing> list, Thing buffer) {
+	private static Expression updateBuffer(Collection<Expression> list, Expression buffer) {
 		list.add(buffer);
-		return new Thing();
+		return new Expression();
 	}
 
 	@Override
@@ -132,35 +143,79 @@ public abstract class AbstractNode implements Node<Sequence> {
 		return accepting;
 	}
 
-	protected Node<Sequence> getStartNode(String expressionParam, ParseDirection direction) {
+	protected static List<Expression> parse(List<String> expression, ParseDirection direction) {
+		List<Expression> list = new ArrayList<Expression>();
+		if (!expression.isEmpty()) {
+
+			Expression buffer = new Expression();
+			for (int i = 0; i < expression.size();) {
+				String symbol = expression.get(i);
+				if (symbol.equals("*") || symbol.equals("?") || symbol.equals("+")) {
+					buffer.setMetacharacter(symbol);
+					buffer = updateBuffer(list, buffer);
+					i++;
+				} else if (symbol.equals("!")) {
+					// first in an expression
+					buffer = updateBuffer(list, buffer);
+					buffer.setNegative(true);
+					i++;
+				} else {
+					if (!buffer.getExpression().isEmpty()) {
+						buffer = updateBuffer(list, buffer);
+					}
+					/*****/if(symbol.equals("{")) {
+						int endIndex = getIndex(expression, "{", "}", i);
+						List<String> expParam = expression.subList(i, endIndex+1);
+						buffer.setExpression(expParam);
+						i = endIndex + 1;
+					} else if (symbol.equals("(")) {
+						int endIndex = getIndex(expression, "(", ")", i);
+						List<String> expParam = expression.subList(i, endIndex+1);
+						buffer.setExpression(expParam);
+						i = endIndex + 1;
+					} else {
+						buffer.setExpression(expression.subList(i, i+1));
+						i++;
+					}
+				}
+			}
+			if (!buffer.getExpression().isEmpty()) {
+				list.add(buffer);
+			}
+		}
+		return list;
+	}
+
+	protected Node<Sequence> getStartNode(List<Expression> expressions, ParseDirection direction) {
 		// Parse out each top-level expression
 		Node<Sequence> node;
-		if (expressionParam == null || expressionParam.isEmpty()) {
+		if (expressions == null || expressions.isEmpty()) {
 			node = null;
 		} else {
+
+			if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
+
 			node = NodeFactory.getNode(factory, false);
-
-			List<Thing> things = parseExpression(expressionParam);
-			if (direction == ParseDirection.BACKWARD) { Collections.reverse(things); }
-
 			Node<Sequence> previous = node;
-			for (Iterator<Thing> it = things.iterator(); it.hasNext(); ) {
-				Thing thing = it.next();
+			for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
+				Expression thing = it.next();
 				Node<Sequence> current;
-				String exp = thing.getExpression();
-				if (exp.startsWith("{")) {
-					String internal = CURLY_BRACES_PATTERN.matcher(exp).replaceAll("$1");
-					current = NodeFactory.getParallelStateMachine(internal, factory, direction, false); // Never accepting?
-					exp = null; // Ideally, we shouldn't do this
-				} else if (exp.startsWith("(")) {
-					String internal = PARENTHESIS_PATTERN.matcher(exp).replaceAll("$1");
-					current = NodeFactory.getStateMachine(internal, factory, direction, false); // Never accepting?
-					exp = null; // Ideally, we shouldn't do this
+				List<String> exp = thing.getExpression();
+				if (exp.get(0).equals("{")) {
+//					String internal = CURLY_BRACES_PATTERN.matcher(exp).replaceAll("$1");
+					List<Expression> subExpression = expressions.subList(1, expressions.size()-1);
+					current = NodeFactory.getParallelStateMachine(subExpression, factory, direction, false); // Never accepting?
+//					exp = null; // Ideally, we shouldn't do this
+				} else if (exp.get(0).equals("(")) {
+//					String internal = PARENTHESIS_PATTERN.matcher(exp).replaceAll("$1");
+					List<Expression> subExpression = expressions.subList(1, expressions.size()-1);
+					current = NodeFactory.getStateMachine(subExpression, factory, direction, false); // Never accepting?
+//					exp = null; // Ideally, we shouldn't do this
 				} else {
 					current = NodeFactory.getNode(factory, !it.hasNext());
 				}
 				// Construct nodes
-				char meta = thing.getMetacharacter();
+				String meta = thing.getMetacharacter();
 				if (exp == null) {
 					previous = constructRecursiveNode(previous, current, meta, !it.hasNext());
 				} else {
@@ -171,19 +226,22 @@ public abstract class AbstractNode implements Node<Sequence> {
 		return node;
 	}
 
-	protected Node<Sequence> constructTerminalNode(Node<Sequence> previousNode, Node<Sequence> currentNode, String exp, char meta) {
+	protected Node<Sequence> constructTerminalNode(Node<Sequence> previousNode, Node<Sequence> currentNode, List<String> exp, String meta) {
 		Node<Sequence> referenceNode;
-		Sequence sequence = factory.getSequence(exp);
-		if /****/ (meta == '?') {
+		if (exp.size() > 1) {
+			throw new IllegalArgumentException("Expression has unexpected size > 1 " + exp);
+		}
+		Sequence sequence = factory.getSequence(exp.get(0));
+		if /****/ (meta.equals("?")) {
 			previousNode.add(sequence, currentNode);
 			previousNode.add(currentNode);
 			referenceNode = currentNode;
-		} else if (meta == '*') {
+		} else if (meta.equals("*")) {
 			previousNode.add(currentNode);
 			currentNode.add(sequence, previousNode);
 			// Don't change "previous" to current
 			referenceNode = previousNode;
-		} else if (meta == '+') {
+		} else if (meta.equals("+")) {
 			previousNode.add(sequence, currentNode);
 			currentNode.add(previousNode);
 			referenceNode = currentNode;
@@ -194,6 +252,7 @@ public abstract class AbstractNode implements Node<Sequence> {
 		return referenceNode;
 	}
 
+	/*
 	protected List<Thing> parseExpression(String expressionParam) {
 
 		Matcher matcher = ILLEGAL_START_PATTERN.matcher(expressionParam);
@@ -242,21 +301,22 @@ public abstract class AbstractNode implements Node<Sequence> {
 		}
 		return list;
 	}
+*/
 
-	private Node<Sequence> constructRecursiveNode(Node<Sequence> previousNode, Node<Sequence> machineNode, char meta, boolean b) {
+	private Node<Sequence> constructRecursiveNode(Node<Sequence> previousNode, Node<Sequence> machineNode, String meta, boolean b) {
 		Node<Sequence> nextNode = NodeFactory.getNode(factory, b);
 		// currentNode contains the machine
-		if /****/ (meta == '?') {
+		if /****/ (meta.equals("?")) {
 			// P --> M --> N
 			previousNode.add(machineNode);
 			machineNode.add(nextNode);
 			// P --> N
 			previousNode.add(nextNode);
-		} else if (meta == '*') {
+		} else if (meta.equals("*")) {
 			previousNode.add(machineNode);
 			machineNode.add(previousNode);
 			previousNode.add(nextNode);
-		} else if (meta == '+') {
+		} else if (meta.equals("+")) {
 			previousNode.add(machineNode);
 			machineNode.add(nextNode);
 			nextNode.add(previousNode);
@@ -266,40 +326,5 @@ public abstract class AbstractNode implements Node<Sequence> {
 		}
 		previousNode = nextNode;
 		return previousNode;
-	}
-
-	protected static final class Thing {
-		private String expression = "";
-		private char    metacharacter;
-		private boolean negative;
-
-		@Override
-		public String toString() {
-			return (negative ? "!" : "") + expression + (metacharacter != 0 ? metacharacter : "");
-		}
-
-		public String getExpression() {
-			return expression;
-		}
-
-		public void setExpression(String expParam) {
-			expression = expParam;
-		}
-
-		public char getMetacharacter() {
-			return metacharacter;
-		}
-
-		public void setMetacharacter(char metaParam) {
-			metacharacter = metaParam;
-		}
-
-		public boolean isNegative() {
-			return negative;
-		}
-
-		public void setNegative(boolean negParam) {
-			negative = negParam;
-		}
 	}
 }
