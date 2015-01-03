@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,7 +52,7 @@ public final class Segmenter {
 	public static final int SUBSCRIPT_SMALL_T = 8348;
 	public static final int SUPERSCRIPT_TWO   = 178;
 	public static final int SUPERSCRIPT_THREE = 179;
-	public static final int SUPERSCRIPT_ONE = 185;
+	public static final int SUPERSCRIPT_ONE   = 185;
 
 	// Prevent the class from being instantiated
 	private Segmenter() {}
@@ -123,42 +121,74 @@ public final class Segmenter {
 
 		Symbol symbol = new Symbol();
 		int length = word.length();
-		for (int i = 0; i < length; i++) {
-			String substring = word.substring(i);       // Get the word from current position on
-			String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
-			if (i == 0) {
-				// Assume that the first symbol must be a diacritic
-				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
-				if (key.isEmpty()) {
-					symbol.appendHead(word.charAt(0));
-				} else {
-					symbol.appendHead(key);
-					i = key.length() - 1;
-				}
-			} else {
-				char ch = word.charAt(i); // Grab current character
-				if (isAttachable(ch)) {   // is it a standard diacritic?
-					if (isDoubleWidthBinder(ch) && i < length - 1) {
-						i++;
-						// Jump ahead and grab the next character
-						symbol.appendHead(word.charAt(i));
-					} else {
-						symbol.appendTail(ch);
-					}
-				} else {
-					// Not a diacritic
+		for (int i = 0; i < length;) {
+
+			if (word.charAt(i) == '{') {
+				if (!symbol.isEmpty()) {
 					segments.add(symbol);
 					symbol = new Symbol();
+				}
+
+				int index = getIndex(word, '{', '}', i) + 1;
+				String substring = word.substring(i, index);
+				symbol.appendHead(substring);
+
+				segments.add(symbol);
+				symbol = new Symbol();
+				i = index;
+			} else if (word.charAt(i) == '(') {
+				if (!symbol.isEmpty()) {
+					segments.add(symbol);
+					symbol = new Symbol();
+				}
+
+				int index = getIndex(word, '(', ')', i) + 1;
+				String substring = word.substring(i, index);
+				symbol.appendHead(substring);
+
+				segments.add(symbol);
+				symbol = new Symbol();
+				i = index;
+			} else {
+				String substring = word.substring(i);       // Get the word from current position on
+				String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
+				if (i == 0) {
+					// Assume that the first symbol must be a base-character
+					// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
 					if (key.isEmpty()) {
-						symbol.appendHead(ch);
+						symbol.appendHead(word.charAt(0));
 					} else {
 						symbol.appendHead(key);
-						i += key.length() - 1;
+						i = key.length() - 1;
+					}
+				} else {
+					char ch = word.charAt(i); // Grab current character
+					if (isAttachable(ch)) {   // is it a standard diacritic?
+						if (isDoubleWidthBinder(ch) && i < length - 1) {
+							i++;
+							// Jump ahead and grab the next character
+							symbol.appendHead(word.charAt(i));
+						} else {
+							symbol.appendTail(ch);
+						}
+					} else {
+						// Not a diacritic
+						if (!symbol.isEmpty()) { segments.add(symbol); }
+						symbol = new Symbol();
+						if (key.isEmpty()) {
+							symbol.appendHead(ch);
+						} else {
+							symbol.appendHead(key);
+							i += key.length() - 1;
+						}
+						segments.add(symbol);
+						symbol = new Symbol();
 					}
 				}
+				i++;
 			}
 		}
-		segments.add(symbol);
+		if (!symbol.isEmpty()) { segments.add(symbol); }
 		return segments;
 	}
 
@@ -197,8 +227,8 @@ public final class Segmenter {
 
 	private static boolean isCombiningClass(char ch) {
 		int type = Character.getType(ch);
-		return  type == Character.MODIFIER_LETTER || // LM
-				type == Character.MODIFIER_SYMBOL || // SK
+		return  type == Character.MODIFIER_LETTER        || // LM
+				type == Character.MODIFIER_SYMBOL        || // SK
 				type == Character.COMBINING_SPACING_MARK || // MC
 				type == Character.NON_SPACING_MARK;         // MN
 	}
@@ -254,17 +284,23 @@ public final class Segmenter {
 		return segments;
 	}
 
-	public static List<String> getSegmentedStringSkippingBrackets(String string, Iterable<String> keys, SegmentationMode modeParam) {
-		List<Symbol> symbols = getCompositeSymbols(string, keys, modeParam);
-		List<String> list = new ArrayList<String>();
-		for (Symbol symbol : symbols) {
-			StringBuilder head = new StringBuilder(symbol.getHead());
-			for (String s : symbol.getTail()) {
-				head.append(s);
+	private static int getIndex(CharSequence string, char left, char right, int startIndex) {
+		int count = 1;
+		int endIndex = -1;
+
+		boolean matched = false;
+		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
+			char ch = string.charAt(i);
+			if (ch == right && count == 1) {
+				matched = true;
+				endIndex = i;
+			} else if (ch == right) {
+				count++;
+			} else if (ch == left) {
+				count--;
 			}
-			list.add(head.toString());
 		}
-		return list;
+		return endIndex;
 	}
 
 	private static final class Symbol {
