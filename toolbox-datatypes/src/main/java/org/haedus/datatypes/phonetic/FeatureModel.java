@@ -46,6 +46,8 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
+	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
+
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
@@ -55,9 +57,9 @@ public class FeatureModel {
 	private final SegmentationMode segmentationMode;
 
 	/**
-	 * Initializes an empty model
+	 * Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	 */
-	public FeatureModel() {
+	private FeatureModel() {
 		featureNames     = new HashMap<String, Integer>();
 		featureAliases   = new HashMap<String, Integer>();
 		featureMap       = new LinkedHashMap<String, List<Double>>();
@@ -86,7 +88,7 @@ public class FeatureModel {
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
-		List<Double> featureArray = getValue(head);
+		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 
 		String symbol = head;
 		for (String modifier : modifiers) {

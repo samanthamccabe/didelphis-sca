@@ -62,7 +62,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	private Sequence() {
-		this(new FeatureModel());
+		this(FeatureModel.EMPTY_MODEL);
 	}
 
 	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {

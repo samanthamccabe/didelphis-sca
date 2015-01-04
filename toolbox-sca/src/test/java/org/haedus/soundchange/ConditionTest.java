@@ -520,7 +520,7 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(new FeatureModel(), store, SegmentationMode.DEFAULT);
+		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 
 		testTrue(condition,  "abaptk",  2);
@@ -542,7 +542,7 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(new FeatureModel(), store, SegmentationMode.DEFAULT);
+		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 		
 		testTrue(condition,  "abatʰkʰ", 2);

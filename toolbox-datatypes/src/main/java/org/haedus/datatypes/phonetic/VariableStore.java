@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.exceptions.VariableDefinitionFormatException;
@@ -52,15 +53,20 @@ public class VariableStore {
 	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
 	private final FeatureModel     featureModel;
 	private final SegmentationMode segmentationMode;
+	private final NormalizerMode   normalizerMode;
 
 	public VariableStore() {
-		segmentationMode = SegmentationMode.DEFAULT;
-		featureModel     = new FeatureModel();
-		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
+		this(FeatureModel.EMPTY_MODEL, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+
 	}
 
 	public VariableStore(FeatureModel modelParam) {
-		segmentationMode = SegmentationMode.DEFAULT;
+		this(modelParam, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+	}
+
+	public VariableStore(FeatureModel modelParam, SegmentationMode segParam, NormalizerMode normParam) {
+		segmentationMode = segParam;
+		normalizerMode   = normParam;
 		featureModel     = modelParam;
 		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
 	}
@@ -71,6 +77,7 @@ public class VariableStore {
 
 		featureModel     = otherStore.featureModel;
 		segmentationMode = otherStore.segmentationMode;
+		normalizerMode   = otherStore.normalizerMode;
 	}
 
 	public boolean isEmpty() {
@@ -123,7 +130,7 @@ public class VariableStore {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-		list.add(Segmenter.getSequence(element, featureModel, this, segmentationMode));
+		list.add(Segmenter.getSequence(element, featureModel, this, segmentationMode, normalizerMode));
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -133,7 +140,7 @@ public class VariableStore {
 				for (int i = 0; i < sequence.size(); i++) {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
-						Sequence best = Segmenter.getSequence(element, featureModel, this, segmentationMode);
+						Sequence best = Segmenter.getSequence(element, featureModel, this, segmentationMode, normalizerMode);
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
@@ -175,5 +182,4 @@ public class VariableStore {
 		}
 		return bestMatch;
 	}
-
 }

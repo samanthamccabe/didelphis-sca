@@ -42,7 +42,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		Rule rule = new Rule("CN > $2$1", new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Rule rule = new Rule("CN > $2$1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
 
 		testRule(rule, "pn", "np");
 		testRule(rule, "tn", "nt");
@@ -64,7 +64,7 @@ public class RuleTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		Rule rule = new Rule("CVN > $3V$1", new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Rule rule = new Rule("CVN > $3V$1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
 
 		testRule(rule, "pan", "nap");
 		testRule(rule, "tin", "nit");
@@ -86,7 +86,7 @@ public class RuleTest {
 		store.add("G = b d g");
 		store.add("N = m n");
 
-		Rule rule = new Rule("CN > $2$G1", new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Rule rule = new Rule("CN > $2$G1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
 
 		testRule(rule, "pn", "nb");
 		testRule(rule, "tn", "nd");
@@ -330,7 +330,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		Rule rule = new Rule("a > b / C_ NOT x_", new FeatureModel(), store, SegmentationMode.DEFAULT);
+		Rule rule = new Rule("a > b / C_ NOT x_", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
 
 		testRule(rule, "axa",   "axa");
 		testRule(rule, "aya",   "ayb");

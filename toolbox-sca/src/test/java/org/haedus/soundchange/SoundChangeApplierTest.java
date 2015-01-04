@@ -14,9 +14,9 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
-import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -98,7 +98,8 @@ public class SoundChangeApplierTest {
 					word,
 					soundChangeApplier.getFeatureModel(),
 					soundChangeApplier.getVariables(),
-					SegmentationMode.DEFAULT);
+					SegmentationMode.DEFAULT,
+					NormalizerMode.NFD);
 			expected.add(sequence);
 		}
 		assertEquals(expected, received);
@@ -632,7 +633,8 @@ public class SoundChangeApplierTest {
 			list.add(Segmenter.getSequence(s2,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					sca.getSegmentationMode()));
+					sca.getSegmentationMode(),
+					sca.getNormalizerMode()));
 		}
 		return list;
 	}

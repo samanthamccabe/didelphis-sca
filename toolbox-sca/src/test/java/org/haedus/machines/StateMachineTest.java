@@ -181,14 +181,35 @@ public class StateMachineTest {
 	}
 
 	@Test
-	public void testComplex01() {
+	public void testComplex02() {
 		Node<Sequence> machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "āḱʰus");
 	}
 
 	@Test
-	public void testComplex02() {
+	public void testComplex03() {
+		Node<Sequence> machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
+
+//		test(machine, "pʰus");
+//		test(machine, "tʰus");
+//		test(machine, "kʰus");
+//		test(machine, "ḱʰus");
+		test(machine, "aḱʰus");
+	}
+
+	@Test
+	public void testComplex04() {
+		Node<Sequence> machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
+
+		test(machine, "apʰus");
+		test(machine, "atʰus");
+		test(machine, "akʰus");
+		test(machine, "aḱʰus");
+	}
+
+	@Test
+	public void testComplex01() {
 		Node<Sequence> machine = getMachine("a?(b?c?)d?b");
 
 		test(machine, "b");

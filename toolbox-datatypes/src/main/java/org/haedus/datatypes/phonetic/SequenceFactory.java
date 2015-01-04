@@ -14,12 +14,14 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,21 +45,23 @@ public class SequenceFactory {
 	private final FeatureModel     featureModel;
 	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
 	private final SegmentationMode segmentationMode;
+	private final NormalizerMode   normalizerMode;
 
 	public static SequenceFactory getEmptyFactory() { return EMPTY_FACTORY;}
 
 	private SequenceFactory() {
-		this(new FeatureModel(), new VariableStore(), SegmentationMode.DEFAULT);
+		this(FeatureModel.EMPTY_MODEL, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		this(modelParam, storeParam, SegmentationMode.DEFAULT);
+		this(modelParam, storeParam, SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, SegmentationMode modeParam) {
-		featureModel = modelParam;
-		variableStore = storeParam;
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, SegmentationMode modeParam, NormalizerMode normParam) {
+		featureModel     = modelParam;
+		variableStore    = storeParam;
 		segmentationMode = modeParam;
+		normalizerMode   = normParam;
 
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
@@ -71,7 +75,7 @@ public class SequenceFactory {
 	}
 
 	public Segment getSegment(String string) {
-		return Segmenter.getSegment(string, featureModel, variableStore, segmentationMode);
+		return Segmenter.getSegment(string, featureModel, variableStore, segmentationMode, normalizerMode);
 	}
 
 	public Sequence getNewSequence() {
@@ -79,7 +83,7 @@ public class SequenceFactory {
 	}
 
 	public Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode);
+		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode, normalizerMode);
 	}
 
 	public boolean hasVariable(String label) {
@@ -92,11 +96,10 @@ public class SequenceFactory {
 
 	public List<String> getSegmentedString(String string) {
 		Collection<String> keys = new ArrayList<String>();
-
 		keys.addAll(variableStore.getKeys());
 		keys.addAll(featureModel.getSymbols());
 
-		return Segmenter.getSegmentedString(string, keys, segmentationMode);
+		return Segmenter.getSegmentedString(string, keys, segmentationMode, normalizerMode);
 	}
 	public FeatureModel getFeatureModel() {
 		return featureModel;

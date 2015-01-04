@@ -14,6 +14,7 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
@@ -91,10 +92,10 @@ public class SoundChangeApplier {
 	private NormalizerMode   normalizerMode   = NormalizerMode.NFC;
 
 	public SoundChangeApplier() {
-		model       = new FeatureModel();
-		variables   = new VariableStore(model);
-		lexicons    = new HashMap<String, List<List<Sequence>>>();
-		commands    = new ArrayDeque<Command>();
+		model = FeatureModel.EMPTY_MODEL;
+		variables = new VariableStore(model);
+		lexicons = new HashMap<String, List<List<Sequence>>>();
+		commands = new ArrayDeque<Command>();
 		fileHandler = new DiskFileHandler();
 	}
 
@@ -104,21 +105,21 @@ public class SoundChangeApplier {
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(CharSequence script){
+	SoundChangeApplier(CharSequence script) {
 		this(NEWLINE_PATTERN.split(script)); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String[] array){
+	SoundChangeApplier(String[] array) {
 		this(array, new NullFileHandler());
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(String[] array, FileHandler fileHandlerParam){
-		model       = new FeatureModel();
-		variables   = new VariableStore(model);
-		lexicons    = new HashMap<String, List<List<Sequence>>>();
-		commands    = new ArrayDeque<Command>();
+	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) {
+		model = FeatureModel.EMPTY_MODEL;
+		variables = new VariableStore(model);
+		lexicons = new HashMap<String, List<List<Sequence>>>();
+		commands = new ArrayDeque<Command>();
 		fileHandler = fileHandlerParam;
 
 		Collection<String> list = new ArrayList<String>();
@@ -175,7 +176,7 @@ public class SoundChangeApplier {
 			List<Sequence> sequences = new ArrayList<Sequence>();
 			for (String item : line) {
 				String word = normalize(item);
-				Sequence sequence = Segmenter.getSequence(word, model, variables, segmentationMode);
+				Sequence sequence = Segmenter.getSequence(word, model, variables, segmentationMode, normalizerMode);
 				sequences.add(sequence);
 			}
 			lexicon.add(sequences);
@@ -198,7 +199,7 @@ public class SoundChangeApplier {
 	}
 
 	private void parse(Iterable<String> strings){
-
+		SequenceFactory factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String trimmedCommand = COMMENT_PATTERN.matcher(string).replaceAll("");
@@ -219,7 +220,6 @@ public class SoundChangeApplier {
 				} else if (command.contains(">")) {
 					// This is probably the correct scope; if other commands change the variables or segmentation mode,
 					// we could get unexpected behavior if this is initialized outside the loop[
-					SequenceFactory factory = new SequenceFactory(model, variables, segmentationMode);
 					commands.add(new Rule(command, lexicons, factory));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
@@ -327,7 +327,6 @@ public class SoundChangeApplier {
 
 	/**
 	 * Sets the segmentation mode of the sound change applier
-	 *
 	 * @param command the whole command, beginning with SEGMENTATION
 	 */
 	private void setSegmentation(CharSequence command) {

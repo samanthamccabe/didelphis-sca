@@ -56,7 +56,7 @@ public class Segment {
 	@Deprecated
 	Segment(String string) {
 		symbol   = string;
-		model    = new FeatureModel();
+		model    = FeatureModel.EMPTY_MODEL;
 		features = new ArrayList<Double>();
 	}
 

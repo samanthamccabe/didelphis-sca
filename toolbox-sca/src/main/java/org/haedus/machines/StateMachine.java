@@ -74,7 +74,6 @@ public class StateMachine extends AbstractNode {
 		if (startNode == null) {
 			indices.add(startIndex);
 		} else {
-
 			Sequence sequence = new Sequence(target);
 			sequence.add(factory.getBoundarySegment());
 			// At the beginning of the process, we are in the start-state

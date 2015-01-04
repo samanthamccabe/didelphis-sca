@@ -87,7 +87,8 @@ public class ParallelStateMachine extends AbstractNode {
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 		Collection<Integer> indices = new HashSet<Integer>();
 		for (Node<Sequence> machine : machines) {
-			indices.addAll(machine.getMatchIndices(startIndex, target));
+			Collection<Integer> matchIndices = machine.getMatchIndices(startIndex, target);
+			indices.addAll(matchIndices);
 		}
 		return indices;
 	}

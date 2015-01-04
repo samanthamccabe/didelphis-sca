@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -43,7 +44,7 @@ public class SegmenterTest
 	public void testString() {
 		String word = "t͜sʰ";
 
-		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), SegmentationMode.DEFAULT);
+		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 		assertFalse("Nothing was returned by the Segmenter!",segmentedString.isEmpty());
 	}
 
@@ -51,15 +52,26 @@ public class SegmenterTest
 	public void testSequence() {
 		String word = "t͜sʰ";
 
-//		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), SegmentationMode.DEFAULT);
-//		assertFalse("Nothing was returned by the Segmenter!",segmentedString.isEmpty());
-		Sequence sequence = Segmenter.getSequence(word, model, new VariableStore(), SegmentationMode.DEFAULT);
+		Sequence sequence = getSequence(word);
+		assertTrue(!sequence.isEmpty());
+	}
+
+	@Test
+	public void testSequence02() {
+		String word = "aḱʰus";
+
+		Sequence sequence = getSequence(word);
+		assertTrue(sequence.size() == 4);
 	}
 
 	@Test
 	public void testSegment() {
-		Sequence sequence = Segmenter.getSequence("aː", model, new VariableStore(), SegmentationMode.DEFAULT);
+		Sequence sequence = getSequence("aː");
 
 		assertTrue(!sequence.isEmpty());
+	}
+
+	private static Sequence getSequence(String word) {
+		return Segmenter.getSequence(word, model, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 }

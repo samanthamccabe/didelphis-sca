@@ -15,6 +15,7 @@
 package org.haedus.soundchange.command;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
@@ -67,7 +68,7 @@ public class Rule implements Command {
 	}
 
 	public Rule(String rule, VariableStore variables, SegmentationMode mode) {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), new FeatureModel(), variables, mode);
+		this(rule, new HashMap<String, List<List<Sequence>>>(), FeatureModel.EMPTY_MODEL, variables, mode);
 	}
 
 	public Rule(String rule, FeatureModel model, VariableStore variables, SegmentationMode mode) {
@@ -81,13 +82,12 @@ public class Rule implements Command {
 		transform  = new LinkedHashMap<Sequence, Sequence>();
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
-
 		populateConditions();
 	}
 
 	@Deprecated
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode mode) throws RuleFormatException {
-		this(rule, lexiconsParam, new SequenceFactory(model, variables, mode));
+	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode mode) {
+		this(rule, lexiconsParam, new SequenceFactory(model, variables, mode, NormalizerMode.NFD));
 	}
 
 	@Override

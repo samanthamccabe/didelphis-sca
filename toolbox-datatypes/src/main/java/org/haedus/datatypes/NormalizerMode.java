@@ -12,7 +12,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.datatypes;
 
 /**
  * Class NormalizationMode
@@ -29,7 +29,12 @@ public enum NormalizerMode {
 
 	private final String value;
 
-	NormalizerMode(String value) {
-		this.value = value;
+	NormalizerMode(String v) {
+		value = v;
+	}
+
+	@Override
+	public String toString() {
+		return value;
 	}
 }

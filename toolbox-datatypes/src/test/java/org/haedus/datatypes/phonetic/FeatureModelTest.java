@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -64,8 +65,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSemivowels() {
-		Segment left  = Segmenter.getSegment("a", model, new VariableStore(), SegmentationMode.DEFAULT);
-		Segment right = Segmenter.getSegment("n", model, new VariableStore(), SegmentationMode.DEFAULT);
+		Segment left  = Segmenter.getSegment("a", model, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment right = Segmenter.getSegment("n", model, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 
 		LOGGER.info(left.toStringLong());
 		LOGGER.info(right.toStringLong());
@@ -82,8 +83,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSame() {
-		Segment left  = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT);
-		Segment right = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT);
+		Segment left  = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment right = Segmenter.getSegment("t", model, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 
 		double v = model.computeScore(left, right);
 		assertTrue("Value was " + v + " not zero",v == 0.0);
