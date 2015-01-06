@@ -49,7 +49,7 @@ public class Condition {
 			if (conditions.length == 1) {
 //				preCondition  = new StateMachine("pre", conditions[0], sequenceFactory, ParseDirection.BACKWARD);
 				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
-				postCondition = NodeFactory.getBlankNode();
+				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
 				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
 				postCondition = NodeFactory.getStateMachine(conditions[1], factoryParam, ParseDirection.FORWARD,  true);

@@ -47,23 +47,21 @@ public class ParallelStateMachine extends AbstractNode {
 		Collection<String> subExpressions = new ArrayList<String>();
 
 		StringBuilder buffer = new StringBuilder();
-		for (int i =0; i < expressionParam.length();) {
+		for (int i =0; i < expressionParam.length(); i++) {
 			char c = expressionParam.charAt(i);
 			/*  */ if (c == '{') {
 				int index = getIndex(expressionParam, '{','}', i);
 				buffer.append(expressionParam.substring(i, index));
-				i = index;
+				i = index - 1;
 			} else if (c == '(') {
 				int index = getIndex(expressionParam, '(',')', i);
 				buffer.append(expressionParam.substring(i, index));
-				i = index;
+				i = index - 1;
 			} else if (c != ' ') {
 				buffer .append(c);
-				i++;
 			} else if (buffer.length() > 0) { // No isEmpty() call available
 				subExpressions.add(buffer.toString());
 				buffer = new StringBuilder();
-				i++;
 			}
 		}
 

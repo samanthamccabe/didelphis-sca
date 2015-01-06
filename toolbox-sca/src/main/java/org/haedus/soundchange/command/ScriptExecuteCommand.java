@@ -37,13 +37,13 @@ public class ScriptExecuteCommand implements Command {
 
 	public ScriptExecuteCommand(String pathParam){
 		File file = new File(pathParam);
-		List<String> list;
+		String data;
 		try {
-			list = FileUtils.readLines(file, "UTF-8");
+			data = FileUtils.readFileToString(file, "UTF-8");
 		} catch (IOException e) {
-			throw new ParseException(e.getMessage());
+			throw new ParseException(e);
 		}
-		sca = new SoundChangeApplier(list);
+		sca = new SoundChangeApplier(data);
 	}
 
 	@Override

@@ -72,8 +72,7 @@ public class VariableStore {
 	}
 
 	public VariableStore(VariableStore otherStore) {
-		variables = new HashMap<String, List<Sequence>>();
-		variables.putAll(otherStore.variables);
+		variables = new HashMap<String, List<Sequence>>(otherStore.variables);
 
 		featureModel     = otherStore.featureModel;
 		segmentationMode = otherStore.segmentationMode;

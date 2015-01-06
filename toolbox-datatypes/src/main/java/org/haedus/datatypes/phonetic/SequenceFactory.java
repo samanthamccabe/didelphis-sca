@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 11/23/2014
  */
 public class SequenceFactory {

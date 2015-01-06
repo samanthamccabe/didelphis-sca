@@ -156,6 +156,15 @@ public class StateMachineTest {
 	}
 
 	@Test
+	public void testSetsExtraSpace01() {
+		Node<Sequence> machine = getMachine("{cʰ  c  ɟ}");
+
+		test(machine, "cʰ");
+		test(machine, "c");
+		test(machine, "ɟ");
+	}
+
+	@Test
 	public void testGroupPlus01() {
 		Node<Sequence> machine = getMachine("(ab)+");
 
@@ -191,10 +200,10 @@ public class StateMachineTest {
 	public void testComplex03() {
 		Node<Sequence> machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
 
-//		test(machine, "pʰus");
-//		test(machine, "tʰus");
-//		test(machine, "kʰus");
-//		test(machine, "ḱʰus");
+		test(machine, "pʰus");
+		test(machine, "tʰus");
+		test(machine, "kʰus");
+		test(machine, "ḱʰus");
 		test(machine, "aḱʰus");
 	}
 

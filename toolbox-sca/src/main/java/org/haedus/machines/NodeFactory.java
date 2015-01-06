@@ -33,8 +33,6 @@ public class NodeFactory {
 	private static int machineCounter  = 0;
 	private static int nodeCounter     = 0;
 
-	private static final Node<Sequence> BLANK_NODE = new PlainNode("EMPTY_NODE", null, true);
-
 	private NodeFactory() {
 	}
 
@@ -56,8 +54,5 @@ public class NodeFactory {
 		nodeCounter++;
 		return new PlainNode("N-" + nodeCounter, factory, accepting);
 	}
-
-	public static Node<Sequence> getBlankNode() {
-		return BLANK_NODE;
-	}
 }
+

@@ -89,24 +89,23 @@ public class SoundChangeApplier {
 	private final Map<String, List<List<Sequence>>> lexicons;
 
 	private SegmentationMode segmentationMode = SegmentationMode.DEFAULT;
-	private NormalizerMode   normalizerMode   = NormalizerMode.NFC;
+	private NormalizerMode   normalizerMode   = NormalizerMode.NFD;
 
 	public SoundChangeApplier() {
-		model = FeatureModel.EMPTY_MODEL;
-		variables = new VariableStore(model);
-		lexicons = new HashMap<String, List<List<Sequence>>>();
-		commands = new ArrayDeque<Command>();
+		model       = FeatureModel.EMPTY_MODEL;
+		variables   = new VariableStore(model);
+		lexicons    = new HashMap<String, List<List<Sequence>>>();
+		commands    = new ArrayDeque<Command>();
 		fileHandler = new DiskFileHandler();
 	}
 
-	public SoundChangeApplier(Iterable<String> commandsParam) {
-		this();
-		parse(commandsParam);
+	public SoundChangeApplier(CharSequence script) {
+		this(script, new DiskFileHandler());
 	}
 
 	// Package-private: for tests only
-	SoundChangeApplier(CharSequence script) {
-		this(NEWLINE_PATTERN.split(script)); // Splits newlines and removes padding whitespace
+	SoundChangeApplier(CharSequence script, FileHandler fileHandlerParam) {
+		this(NEWLINE_PATTERN.split(script), fileHandlerParam); // Splits newlines and removes padding whitespace
 	}
 
 	// Package-private: for tests only
@@ -116,10 +115,10 @@ public class SoundChangeApplier {
 
 	// Package-private: for tests only
 	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) {
-		model = FeatureModel.EMPTY_MODEL;
+		model     = FeatureModel.EMPTY_MODEL;
 		variables = new VariableStore(model);
-		lexicons = new HashMap<String, List<List<Sequence>>>();
-		commands = new ArrayDeque<Command>();
+		lexicons  = new HashMap<String, List<List<Sequence>>>();
+		commands  = new ArrayDeque<Command>();
 		fileHandler = fileHandlerParam;
 
 		Collection<String> list = new ArrayList<String>();
@@ -199,11 +198,10 @@ public class SoundChangeApplier {
 	}
 
 	private void parse(Iterable<String> strings){
-		SequenceFactory factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
+
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String trimmedCommand = COMMENT_PATTERN.matcher(string).replaceAll("");
-
 				String command = normalize(trimmedCommand);
 				if (command.startsWith(EXECUTE)) {
 					executeScript(command);
@@ -217,14 +215,18 @@ public class SoundChangeApplier {
 					closeLexicon(command);
 				} else if (command.contains("=")) {
 					variables.add(command);
+//					factory = new SequenceFactory(model, new VariableStore(variables), segmentationMode, normalizerMode);
 				} else if (command.contains(">")) {
 					// This is probably the correct scope; if other commands change the variables or segmentation mode,
-					// we could get unexpected behavior if this is initialized outside the loop[
+					// we could get unexpected behavior if this is initialized outside the loop
+					SequenceFactory factory = new SequenceFactory(model, new VariableStore(variables), segmentationMode, normalizerMode);
 					commands.add(new Rule(command, lexicons, factory));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
+//					factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
 				} else if (command.startsWith(SEGMENTATION)) {
 					setSegmentation(command);
+//					factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
 				} else if (command.startsWith(RESERVE)) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 					for (String symbol : WHITESPACE_PATTERN  .split(reserve)) {

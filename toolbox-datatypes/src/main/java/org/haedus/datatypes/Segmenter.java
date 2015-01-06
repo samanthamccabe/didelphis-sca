@@ -89,16 +89,66 @@ public final class Segmenter {
 
 	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, SegmentationMode segParam) {
 
+		List<Symbol> symbols = new ArrayList<Symbol>();
+		List<String> separatedString = separateBrackets(word);
+
 		if (segParam == SegmentationMode.DEFAULT) {
-			return getThings(word, keys);
+			for (String s : separatedString) {
+				if (s.startsWith("{") || s.startsWith("(")) {
+					symbols.add(new Symbol(s));
+				} else {
+					symbols.addAll(getThings(s, keys));
+				}
+			}
 		} else if (segParam == SegmentationMode.NAIVE) {
-			return segmentNaively(word, keys);
+			for (String s : separatedString) {
+				if (s.startsWith("{") || s.startsWith("(")) {
+					symbols.add(new Symbol(s));
+				} else {
+					symbols.addAll(segmentNaively(s, keys));
+				}
+			}
 		} else {
 			throw new UnsupportedOperationException("Unsupported segmentation mode " + segParam);
 		}
+		return symbols;
 	}
 
-	@Deprecated
+	private static List<String> separateBrackets(String word) {
+		List<String> list = new ArrayList<String>();
+
+		StringBuilder buffer = new StringBuilder();
+		for (int i = 0; i < word.length();) {
+			char c = word.charAt(i);
+
+			if (c == '{') {
+				if (buffer.length() != 0) {
+					list.add(buffer.toString());
+					buffer = new StringBuilder();
+				}
+				int index = getIndex(word, '{', '}', i) + 1;
+				list.add(word.substring(i , index));
+				i = index;
+			} else if (c == '(') {
+				if (buffer.length() != 0) {
+					list.add(buffer.toString());
+					buffer = new StringBuilder();
+				}
+				int index = getIndex(word, '(', ')', i) + 1;
+				list.add(word.substring(i, index));
+				i = index;
+			} else {
+				buffer.append(c);
+				i++;
+			}
+
+		}
+		if (buffer.length() != 0) {
+			list.add(buffer.toString());
+		}
+		return list;
+	}
+
 	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
 		Collection<String> keys = getKeys(model, variables);
 		String normalString = normalize(word, normalizerParam);
@@ -127,7 +177,7 @@ public final class Segmenter {
 		Symbol symbol = new Symbol();
 		int length = word.length();
 		for (int i = 0; i < length; ) {
-			if (word.charAt(i) == '{') {
+/*			if (word.charAt(i) == '{') {
 				if (!symbol.isEmpty()) {
 					segments.add(symbol);
 					symbol = new Symbol();
@@ -152,7 +202,8 @@ public final class Segmenter {
 				segments.add(symbol);
 				symbol = new Symbol();
 				i = index;
-			} else {
+			} else */
+			{
 				String substring = word.substring(i);       // Get the word from current position on
 				String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
 //				if (i == 0) {
@@ -315,6 +366,11 @@ public final class Segmenter {
 		@SuppressWarnings("StringBufferField")
 		private final StringBuilder head;
 		private final List<String>  tail;
+
+		private Symbol(String headParam) {
+			this();
+			head.append(headParam);
+		}
 
 		private Symbol() {
 			head = new StringBuilder();

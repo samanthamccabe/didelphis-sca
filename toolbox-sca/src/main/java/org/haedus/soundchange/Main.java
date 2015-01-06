@@ -36,6 +36,9 @@ import java.util.List;
 public class Main {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+	private Main() {
+	}
+
 	public static void main(String[] args) throws IOException, ParseException
 	{
 		// TODO: step through the args and see if there are flags; if not, check for the 3 arguments
@@ -57,7 +60,7 @@ public class Main {
 		double startTime = System.nanoTime();
 		if (enhanced) {
 			if (filePaths.size() == 1) {
-				List<String> rules = FileUtils.readLines(new File(filePaths.get(0)), "UTF-8");
+				String rules = FileUtils.readFileToString(new File(filePaths.get(0)), "UTF-8");
 				new SoundChangeApplier(rules).process();
 			} else {
 				LOGGER.warn("Found more than 1 file parameter in enhanced mode; only using the first! {}", filePaths);

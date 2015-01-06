@@ -15,7 +15,7 @@
 package org.haedus.datatypes;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 11/23/2014
  */
 public enum SegmentationMode {

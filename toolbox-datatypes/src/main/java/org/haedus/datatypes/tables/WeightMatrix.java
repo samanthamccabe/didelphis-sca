@@ -19,7 +19,7 @@ import java.text.NumberFormat;
 import java.util.List;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 12/14/2014
  */
 public class WeightMatrix extends SymmetricTable<Double> {

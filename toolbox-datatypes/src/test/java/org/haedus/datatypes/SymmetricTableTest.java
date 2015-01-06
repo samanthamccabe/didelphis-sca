@@ -23,13 +23,12 @@ import org.haedus.datatypes.tables.SymmetricTable;
 import org.haedus.datatypes.tables.Table;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 12/11/2014
  */
 public class SymmetricTableTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SymmetricTableTest.class);
-
 
 	private static Table<String> indexedList;
 

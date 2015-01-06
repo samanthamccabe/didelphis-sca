@@ -15,7 +15,7 @@
 package org.haedus.datatypes.tables;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 11/30/2014
  */
 public interface Table<T> {
