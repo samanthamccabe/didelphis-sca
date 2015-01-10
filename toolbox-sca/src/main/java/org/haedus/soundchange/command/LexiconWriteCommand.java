@@ -14,6 +14,8 @@
 
 package org.haedus.soundchange.command;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.io.FileHandler;
 
@@ -51,5 +53,27 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 			if (i1.hasNext()) sb.append("\n");
 		}
 		fileHandler.writeString(filePath, sb.toString().trim());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		LexiconWriteCommand rhs = (LexiconWriteCommand) obj;
+		return new EqualsBuilder()
+				.appendSuper(super.equals(obj))
+				.append(lexicons, rhs.lexicons)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.appendSuper(super.hashCode())
+				.append(lexicons)
+				.toHashCode();
 	}
 }

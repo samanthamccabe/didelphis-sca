@@ -219,9 +219,8 @@ public class Sequence implements Iterable<Segment> {
 	@Override
 	public int hashCode() {
 		int hash = 23;
-		for (Segment segment : sequence) {
-			hash *= segment.hashCode() + 1;
-		}
+		hash *= sequence.hashCode();
+		hash *= featureModel.hashCode();
 		return hash;
 	}
 
@@ -232,8 +231,7 @@ public class Sequence implements Iterable<Segment> {
 		Sequence object = (Sequence) obj;
 		boolean sequenceEquals = sequence.equals(object.sequence);
 		boolean featuresEquals = featureModel.equals(object.featureModel);
-		return sequenceEquals &&
-		       featuresEquals;
+		return sequenceEquals && featuresEquals;
 	}
 
 	@Override
@@ -241,7 +239,7 @@ public class Sequence implements Iterable<Segment> {
 		String s = "";
 
 		for (Segment a_sequence : sequence) {
-			s = s + a_sequence.getSymbol();
+			s += a_sequence.getSymbol();
 		}
 		return s;
 	}

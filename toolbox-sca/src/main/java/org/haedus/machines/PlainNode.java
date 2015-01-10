@@ -16,6 +16,9 @@ package org.haedus.machines;
 
 import java.util.Collection;
 import java.util.HashSet;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
@@ -52,4 +55,5 @@ public class PlainNode extends AbstractNode {
 	public String toString() {
 		return getId() + ": " + getKeys();
 	}
+
 }

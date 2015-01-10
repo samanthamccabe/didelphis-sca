@@ -66,7 +66,11 @@ public class Segment {
 
 	@Override
 	public int hashCode() {
-		return 19 * symbol.hashCode() * features.hashCode() * model.hashCode();
+		int hash = 19;
+		hash *= 31 + symbol.hashCode();
+		hash *= 31 + features.hashCode();
+		hash *= 31 + model.hashCode();
+		return hash;
 	}
 
 	@Override

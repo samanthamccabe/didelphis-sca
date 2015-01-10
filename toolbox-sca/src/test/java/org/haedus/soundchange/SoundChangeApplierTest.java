@@ -49,6 +49,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class SoundChangeApplierTest {
 
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(SoundChangeApplierTest.class);
+
+
 	public static final ClassPathFileHandler CLASSPATH_HANDLER = new ClassPathFileHandler();
 
 	private static void assertNotEquals(Object expected, Object received) {
@@ -78,7 +81,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -157,7 +160,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -178,7 +181,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -208,7 +211,7 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -239,7 +242,7 @@ public class SoundChangeApplierTest {
 		SoundChangeApplier sca = new SoundChangeApplier(commands);
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -362,35 +365,11 @@ public class SoundChangeApplierTest {
 
 		SoundChangeApplier sca = new SoundChangeApplier("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
 
-		List<Sequence> received  = sca.processLexicon(words);
-		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
-	}
-
-	@Test
-	public void testRuleLarge01a() throws Exception {
-		SoundChangeApplier sca = new SoundChangeApplier("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
-
-
-		List<String> words    = toList("h₂oḱ-ri-");
-		List<String> expected = toList("xocri");
+		LOGGER.info("{}",sca.hashCode());
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
-	}
-
-	@Test
-	public void testRuleLarge01b() throws Exception {
-		SoundChangeApplier sca = new SoundChangeApplier("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
-
-
-		List<String> words    = toList("ǵʰes-l-dḱomth₂");
-		List<String> expected = toList("cʰesəlccomtʰə");
-
-		List<Sequence> received  = sca.processLexicon(words);
-		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -451,7 +430,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -471,7 +450,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -505,7 +484,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -523,7 +502,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -540,7 +519,7 @@ public class SoundChangeApplierTest {
 
 		List<Sequence> received  = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
-		testLists(received, sequences);
+		testLists(sequences, received);
 	}
 
 	@Test
@@ -659,10 +638,10 @@ public class SoundChangeApplierTest {
 		return list;
 	}
 
-	private static void testLists(List<Sequence> received, List<Sequence> sequences) {
-		assertEquals(sequences.size(), received.size());
-		for (int i = 0; i < sequences.size(); i++) {
-			assertEquals(sequences.get(i), received.get(i));
+	private static void testLists(List<Sequence> expected, List<Sequence> received) {
+		assertEquals(expected.size(), received.size());
+		for (int i = 0; i < expected.size(); i++) {
+			assertEquals(expected.get(i), received.get(i));
 		}
 	}
 }

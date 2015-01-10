@@ -14,6 +14,8 @@
 
 package org.haedus.soundchange;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.machines.Node;
@@ -111,6 +113,28 @@ public class Condition {
 
 	public boolean isEmpty() {
 		return preCondition.isTerminal() && postCondition.isTerminal();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Condition rhs = (Condition) obj;
+		return new EqualsBuilder()
+				.append(preCondition, rhs.preCondition)
+				.append(postCondition, rhs.postCondition)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(preCondition)
+				.append(postCondition)
+				.toHashCode();
 	}
 }
 

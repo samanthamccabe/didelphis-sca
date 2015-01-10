@@ -14,6 +14,8 @@
 
 package org.haedus.machines;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -113,7 +115,29 @@ public class StateMachine extends AbstractNode {
 		return indices;
 	}
 
-    private Collection<MatchState> updateSwapStates(Sequence testSequence, Node<Sequence> currentNode, int index) {
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		StateMachine rhs = (StateMachine) obj;
+		return new EqualsBuilder()
+				.appendSuper(super.equals(obj))
+				.append(startNode, rhs.startNode)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.appendSuper(super.hashCode())
+				.append(startNode)
+				.toHashCode();
+	}
+
+	private Collection<MatchState> updateSwapStates(Sequence testSequence, Node<Sequence> currentNode, int index) {
         Sequence tail = testSequence.getSubsequence(index);
 
 		Collection<MatchState> states = new HashSet<MatchState>();

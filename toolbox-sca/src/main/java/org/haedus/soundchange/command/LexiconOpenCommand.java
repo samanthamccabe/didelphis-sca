@@ -14,6 +14,8 @@
 
 package org.haedus.soundchange.command;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.io.FileHandler;
 import org.haedus.soundchange.SoundChangeApplier;
 
@@ -36,5 +38,27 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 	public void execute() {
 		List<List<String>> lexicon = fileHandler.readTable(filePath);
 		soundChangeApplier.addLexicon(fileHandle, lexicon);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		LexiconOpenCommand rhs = (LexiconOpenCommand) obj;
+		return new EqualsBuilder()
+				.appendSuper(super.equals(obj))
+				.append(this.soundChangeApplier, rhs.soundChangeApplier)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.appendSuper(super.hashCode())
+				.append(soundChangeApplier)
+				.toHashCode();
 	}
 }

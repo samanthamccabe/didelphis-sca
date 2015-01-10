@@ -89,10 +89,12 @@ X  > 0   / [Obstruent]_V
 X  > 0   / VA_V
 xa xə > 0 / @VL_
 xu xo > u / @VL_
+
 ʔ > y / [E]_{[A] [O]}
 ʔ > w / [O]_{[A] [E]}
 x > w / [A]_[O]
 x > w / [O]_[A]
+
 % Desyllabification of Semivowels
 i u > y w / _VC
 iuiX uiuX > iwī uyū / C_
@@ -101,15 +103,16 @@ i u > y w / _@AE
 i u > y w / @AE_@VL
 i u > y w / {X C}_V
 y w > i u / _{C X #}
+
 @VSī @VSū > @VLi @VLu / _{C #}
 @VSī @VSū > @VLy @VLw / _V
 @VSī @VSū > @VLi @VLu / _{y w}
+
 X > ə / {# [OBSTRUENT]}_C
-X > ə / C_#
-X > ə / A_A#
-X > 0 / _{C #}
-X > 0 / C_
+X > ə / C_# OR A_A#
+X > 0 / _{C #} OR C_
 ʔ  > 0 / #_
+
 iʔə uʔə > ī ū
 Xə > 0  / @VL_
 % GRASSMANN'S LAW

@@ -14,6 +14,9 @@
 
 package org.haedus.soundchange;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
@@ -181,6 +184,38 @@ public class SoundChangeApplier {
 			lexicon.add(sequences);
 		}
 		return lexicon;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		SoundChangeApplier rhs = (SoundChangeApplier) obj;
+		return new EqualsBuilder()
+				.append(fileHandler, rhs.fileHandler)
+				.append(model, rhs.model)
+				.append(commands, rhs.commands)
+				.append(variables, rhs.variables)
+				.append(lexicons, rhs.lexicons)
+				.append(segmentationMode, rhs.segmentationMode)
+				.append(normalizerMode, rhs.normalizerMode)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(fileHandler)
+				.append(model)
+				.append(commands)
+				.append(variables)
+				.append(lexicons)
+				.append(segmentationMode)
+				.append(normalizerMode)
+				.toHashCode();
 	}
 
 	// Testing only

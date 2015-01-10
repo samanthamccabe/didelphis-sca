@@ -15,6 +15,8 @@
 package org.haedus.soundchange.command;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
@@ -123,6 +125,36 @@ public class Rule implements Command {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Rule rhs = (Rule) obj;
+		return new EqualsBuilder()
+				.append(ruleText, rhs.ruleText)
+				.append(conditions, rhs.conditions)
+				.append(exceptions, rhs.exceptions)
+				.append(factory, rhs.factory)
+				.append(transform, rhs.transform)
+				.append(lexicons, rhs.lexicons)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(ruleText)
+				.append(conditions)
+				.append(exceptions)
+				.append(factory)
+				.append(transform)
+				.append(lexicons)
+				.toHashCode();
 	}
 
 	@VisibleForTesting

@@ -14,6 +14,9 @@
 
 package org.haedus.io;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +35,26 @@ public class MockFileHandler implements FileHandler {
 
 	public MockFileHandler(Map<String, String> input) {
 		mockFileSystem = input;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		MockFileHandler rhs = (MockFileHandler) obj;
+		return new EqualsBuilder()
+				.append(mockFileSystem, rhs.mockFileSystem)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(mockFileSystem)
+				.toHashCode();
 	}
 
 	private String readString(String path) {

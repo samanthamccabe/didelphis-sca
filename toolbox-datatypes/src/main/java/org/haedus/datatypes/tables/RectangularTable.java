@@ -14,6 +14,9 @@
 
 package org.haedus.datatypes.tables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +69,30 @@ public class RectangularTable<T> implements Table<T> {
 		array.set(index, t);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		RectangularTable rhs = (RectangularTable) obj;
+		return new EqualsBuilder()
+				.append(numberRows, rhs.numberRows)
+				.append(numberColumns, rhs.numberColumns)
+				.append(array, rhs.array)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(numberRows)
+				.append(numberColumns)
+				.append(array)
+				.toHashCode();
+	}
+
 	/**
 	 * Computes and returns the absolute index of the internal array based on the provided coordinates.
 	 * @param i the column position
@@ -74,28 +101,6 @@ public class RectangularTable<T> implements Table<T> {
 	 */
 	private int getIndex(int i, int j) {
 	    return (i + (j * numberRows));
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-
-		if (obj == null) return false;
-		if (obj.getClass() != getClass()) return false;
-
-		RectangularTable<?> other = (RectangularTable<?>) obj;
-
-		return (numberColumns == other.getNumberColumns()) &&
-				numberRows == other.getNumberRows() &&
-				array.equals(other.array);
-	}
-
-	@Override
-	public int hashCode() {
-		int hashCode = 33;
-		for (int i = 0; i < array.size(); i++) {
-			hashCode += array.get(i).hashCode() + i;
-		}
-		return hashCode * numberColumns * numberRows * 31;
 	}
 
 	@Override

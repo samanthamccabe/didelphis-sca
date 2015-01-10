@@ -14,6 +14,8 @@
 
 package org.haedus.soundchange.command;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.io.FileHandler;
 
 /**
@@ -30,5 +32,29 @@ public abstract class LexiconIOCommand implements Command  {
 		filePath    = pathParam;
 		fileHandle  = handleParam;
 		fileHandler = handlerParam;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		LexiconIOCommand rhs = (LexiconIOCommand) obj;
+		return new EqualsBuilder()
+				.append(filePath, rhs.filePath)
+				.append(fileHandle, rhs.fileHandle)
+				.append(fileHandler, rhs.fileHandler)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(filePath)
+				.append(fileHandle)
+				.append(fileHandler)
+				.toHashCode();
 	}
 }

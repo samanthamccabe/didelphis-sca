@@ -15,6 +15,8 @@
 package org.haedus.soundchange.command;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,5 +51,26 @@ public class ScriptExecuteCommand implements Command {
 	@Override
 	public void execute() {
 		sca.process();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		ScriptExecuteCommand rhs = (ScriptExecuteCommand) obj;
+		return new EqualsBuilder()
+				.append(sca, rhs.sca)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder()
+				.append(sca)
+				.append(ScriptExecuteCommand.class)
+				.toHashCode();
 	}
 }
