@@ -56,7 +56,7 @@ public final class Segmenter {
 	private Segmenter() {
 	}
 
-	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, SegmentationMode segParam, NormalizerMode normParam) {
+	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, List<String> reservedStrings, SegmentationMode segParam, NormalizerMode normParam) {
 		Collection<String> keys = getKeys(model, variables);
 
 		String normalString = normalize(string, normParam);
@@ -149,7 +149,7 @@ public final class Segmenter {
 		return list;
 	}
 
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
+	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, List<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
 		Collection<String> keys = getKeys(model, variables);
 		String normalString = normalize(word, normalizerParam);
 		List<Symbol> list = getCompositeSymbols(normalString, keys, segmentationParam);

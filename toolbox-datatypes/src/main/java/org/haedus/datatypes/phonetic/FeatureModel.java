@@ -54,18 +54,15 @@ public class FeatureModel {
 	private final Map<String, List<Double>> diacritics;
 	private final RectangularTable<Double>  weightTable;
 
-	private final SegmentationMode segmentationMode;
-
 	/**
 	 * Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	 */
 	private FeatureModel() {
-		featureNames     = new HashMap<String, Integer>();
-		featureAliases   = new HashMap<String, Integer>();
-		featureMap       = new LinkedHashMap<String, List<Double>>();
-		diacritics       = new LinkedHashMap<String, List<Double>>();
-		weightTable      = new RectangularTable<Double>(0.0, 0, 0);
-		segmentationMode = SegmentationMode.DEFAULT;
+		featureNames   = new HashMap<String, Integer>();
+		featureAliases = new HashMap<String, Integer>();
+		featureMap     = new LinkedHashMap<String, List<Double>>();
+		diacritics     = new LinkedHashMap<String, List<Double>>();
+		weightTable    = new RectangularTable<Double>(0.0, 0, 0);
 	}
 
 	public FeatureModel(File file) {
@@ -75,15 +72,6 @@ public class FeatureModel {
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
-	}
-
-	// TODO: try to remove this
-	public List<Double> getFeaturesNaN() {
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
-		}
-		return list;
 	}
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
@@ -132,16 +120,16 @@ public class FeatureModel {
 	}
 
 	public Set<String> getSymbols() {
-		return featureMap.keySet();
+		return Collections.unmodifiableSet(featureMap.keySet());
 	}
 
 	public void add(Segment segment) {
 		featureMap.put(segment.getSymbol(), segment.getFeatures());
 	}
 
-	public void reserveSymbol(String symbol) {
-		featureMap.put(symbol, new ArrayList<Double>());
-	}
+//	public void reserveSymbol(String symbol) {
+//		featureMap.put(symbol, new ArrayList<Double>());
+//	}
 
 	@Override
 	public int hashCode() {
@@ -220,10 +208,6 @@ public class FeatureModel {
 
 	public Table<Double> getWeights() {
 		return weightTable;
-	}
-
-	public void put(String key, List<Double> values) {
-		featureMap.put(key, values);
 	}
 
 	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {

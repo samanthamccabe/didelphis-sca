@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -129,7 +128,7 @@ public class VariableStore {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-		list.add(Segmenter.getSequence(element, featureModel, this, segmentationMode, normalizerMode));
+		list.add(Segmenter.getSequence(element, featureModel, this, reservedStrings, segmentationMode, normalizerMode));
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -139,7 +138,7 @@ public class VariableStore {
 				for (int i = 0; i < sequence.size(); i++) {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
-						Sequence best = Segmenter.getSequence(element, featureModel, this, segmentationMode, normalizerMode);
+						Sequence best = Segmenter.getSequence(element, featureModel, this, reservedStrings, segmentationMode, normalizerMode);
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}

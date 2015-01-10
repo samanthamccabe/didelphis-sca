@@ -97,7 +97,7 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(word,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					SegmentationMode.DEFAULT,
+					reservedStrings, SegmentationMode.DEFAULT,
 					NormalizerMode.NFD);
 			expected.add(sequence);
 		}
@@ -117,7 +117,7 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(word,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					SegmentationMode.DEFAULT,
+					reservedStrings, SegmentationMode.DEFAULT,
 					NormalizerMode.NFC);
 			expected.add(sequence);
 		}
@@ -139,7 +139,7 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(word,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					SegmentationMode.DEFAULT,
+					reservedStrings, SegmentationMode.DEFAULT,
 					NormalizerMode.NFD);
 			expected.add(sequence);
 		}
@@ -620,7 +620,7 @@ public class SoundChangeApplierTest {
 			Sequence sequence = Segmenter.getSequence(s2,
 					sca.getFeatureModel(),
 					sca.getVariables(),
-					sca.getSegmentationMode(),
+					reservedStrings, sca.getSegmentationMode(),
 					sca.getNormalizerMode());
 
 			list.add(sequence);

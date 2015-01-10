@@ -46,6 +46,7 @@ public class SequenceFactory {
 	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
 	private final SegmentationMode segmentationMode;
 	private final NormalizerMode   normalizerMode;
+	private final List<String>     reservedStrings;
 
 	public static SequenceFactory getEmptyFactory() { return EMPTY_FACTORY;}
 
@@ -62,6 +63,7 @@ public class SequenceFactory {
 		variableStore    = storeParam;
 		segmentationMode = modeParam;
 		normalizerMode   = normParam;
+		reservedStrings  = new ArrayList<String>();
 
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
@@ -70,12 +72,16 @@ public class SequenceFactory {
 		boundarySegmentNAN = new Segment("#", list, featureModel);
 	}
 
+	public void reserve(String string) {
+		reservedStrings.add(string);
+	}
+
 	public Segment getBoundarySegment() {
 		return boundarySegmentNAN;
 	}
 
 	public Segment getSegment(String string) {
-		return Segmenter.getSegment(string, featureModel, variableStore, segmentationMode, normalizerMode);
+		return Segmenter.getSegment(string, featureModel, variableStore, reservedStrings, segmentationMode, normalizerMode);
 	}
 
 	public Sequence getNewSequence() {
@@ -83,7 +89,7 @@ public class SequenceFactory {
 	}
 
 	public Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, featureModel,variableStore,segmentationMode, normalizerMode);
+		return Segmenter.getSequence(word, featureModel, variableStore, reservedStrings, segmentationMode, normalizerMode);
 	}
 
 	public boolean hasVariable(String label) {
@@ -98,6 +104,7 @@ public class SequenceFactory {
 		Collection<String> keys = new ArrayList<String>();
 		keys.addAll(variableStore.getKeys());
 		keys.addAll(featureModel.getSymbols());
+		keys.addAll(reservedStrings);
 
 		return Segmenter.getSegmentedString(string, keys, segmentationMode, normalizerMode);
 	}
@@ -147,6 +154,7 @@ public class SequenceFactory {
 		Collection<String> keys = new HashSet<String>();
 		keys.addAll(featureModel.getSymbols());
 		keys.addAll(variableStore.getKeys());
+		keys.addAll(reservedStrings);
 
 		String bestMatch = "";
 		for (String key : keys) {

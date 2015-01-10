@@ -16,7 +16,6 @@ package org.haedus.soundchange;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
@@ -178,7 +177,7 @@ public class SoundChangeApplier {
 			List<Sequence> sequences = new ArrayList<Sequence>();
 			for (String item : line) {
 				String word = normalize(item);
-				Sequence sequence = Segmenter.getSequence(word, model, variables, segmentationMode, normalizerMode);
+				Sequence sequence = Segmenter.getSequence(word, model, variables, reservedStrings, segmentationMode, normalizerMode);
 				sequences.add(sequence);
 			}
 			lexicon.add(sequences);
