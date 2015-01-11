@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +30,7 @@ public class Alignment {
     private double score = Double.NaN;
 
 	public Alignment(Sequence l, Sequence r) {
-        if (l.getFeatureModel() == r.getFeatureModel()) {
+        if (l.getFeatureModel().equals(r.getFeatureModel())) {
 		    left  = l;
 		    right = r;
             model = l.getFeatureModel();
@@ -45,9 +43,13 @@ public class Alignment {
         }
 	}
 
+    public Alignment(Segment l, Segment r) {
+        this(new Sequence(l), new Sequence(r));
+    }
+
     public Alignment(FeatureModel modelParam) {
-        left  = Sequence.EMPTY_SEQUENCE;
-        right = Sequence.EMPTY_SEQUENCE;
+        left  = new Sequence(modelParam);
+        right = new Sequence(modelParam);
         model = modelParam;
     }
 
@@ -58,8 +60,8 @@ public class Alignment {
 	}
 
     public void add(Segment l, Segment r) {
-        if (left.getFeatureModel().equals(l.getFeatureModel()) &&
-            right.getFeatureModel().equals(r.getFeatureModel())) {
+        if (left.getFeatureModel().equals(model) &&
+            right.getFeatureModel().equals(model)) {
             left.add(l);
             right.add(r);
         } else {
@@ -80,14 +82,9 @@ public class Alignment {
         return left.size();
     }
 
-	@Deprecated
-    public double score(FeatureModel aModel) {
-        return aModel.computeScore(left, right);
-    }
-
     @Override
     public String toString() {
-        return left.toString() + "\t" + right.toString();
+        return left.toString() + "|" + right.toString();
     }
 
     public Alignment get(int i) {
@@ -106,8 +103,8 @@ public class Alignment {
 
 	@Override
     public boolean equals(Object obj) {
-        if (obj == null)                  return false;
-		if (obj.getClass() != getClass()) return false;
+        if (obj == null)                 return false;
+		if (!(obj instanceof Alignment)) return false;
 
 		Alignment alignment = (Alignment) obj;
 

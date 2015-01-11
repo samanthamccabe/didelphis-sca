@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,9 +24,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.haedus.datatypes.RectangularTable;
+import org.haedus.datatypes.tables.RectangularTable;
 import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Table;
+import org.haedus.datatypes.tables.Table;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,24 +46,23 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
+	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
+
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
 	private final RectangularTable<Double>  weightTable;
 
-	private SegmentationMode segmentationMode;
-
 	/**
-	 * Initializes an empty model
+	 * Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	 */
-	public FeatureModel() {
-		featureNames     = new HashMap<String, Integer>();
-		featureAliases   = new HashMap<String, Integer>();
-		featureMap       = new LinkedHashMap<String, List<Double>>();
-		diacritics       = new LinkedHashMap<String, List<Double>>();
-		weightTable      = new RectangularTable<Double>();
-		segmentationMode = SegmentationMode.DEFAULT;
+	private FeatureModel() {
+		featureNames   = new HashMap<String, Integer>();
+		featureAliases = new HashMap<String, Integer>();
+		featureMap     = new LinkedHashMap<String, List<Double>>();
+		diacritics     = new LinkedHashMap<String, List<Double>>();
+		weightTable    = new RectangularTable<Double>(0.0, 0, 0);
 	}
 
 	public FeatureModel(File file) {
@@ -77,20 +74,25 @@ public class FeatureModel {
 		}
 	}
 
-	public Sequence getSequence(Iterable<String> word) {
-		Sequence sequence = new Sequence(this);
-		for (String element : word) {
-			sequence.add(getSegment(element));
-		}
-		return sequence;
-	}
+	// This should be here because how the segment is constructed is a function of what kind of model this is
+	public Segment getSegment(String head, Iterable<String> modifiers) {
+		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 
-	public List<Double> getFeaturesNaN() {
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
+		String symbol = head;
+		for (String modifier : modifiers) {
+			symbol += modifier;
+			if (diacritics.containsKey(modifier)) {
+				List<Double> doubles = diacritics.get(modifier);
+				for (int i = 0; i < doubles.size(); i++) {
+					Double d = doubles.get(i);
+					// TODO: this will need to change if we support value modification (up or down)
+					if (!d.isNaN()) {
+						featureArray.set(i, d);
+					}
+				}
+			}
 		}
-		return list;
+		return new Segment(symbol, featureArray, this);
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {
@@ -118,16 +120,16 @@ public class FeatureModel {
 	}
 
 	public Set<String> getSymbols() {
-		return featureMap.keySet();
+		return Collections.unmodifiableSet(featureMap.keySet());
 	}
 
-	public void addSegment(String symbol, List<Double> features) {
-		featureMap.put(symbol, features);
+	public void add(Segment segment) {
+		featureMap.put(segment.getSymbol(), segment.getFeatures());
 	}
 
-	public void reserveSymbol(String symbol) {
-		addSegment(symbol, new ArrayList<Double>());
-	}
+//	public void reserveSymbol(String symbol) {
+//		featureMap.put(symbol, new ArrayList<Double>());
+//	}
 
 	@Override
 	public int hashCode() {
@@ -150,31 +152,29 @@ public class FeatureModel {
 	}
 
 	public double computeScore(Segment l, Segment r) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.getNumberOfFeatures(), r, r.getNumberOfFeatures());
-		}
 		double score = 0;
 		int n = l.getNumberOfFeatures();
 		for (int i = 0; i < n; i++) {
+//			double a = l.getFeatureValue(i);
+//			for (int j = 0; j < n; j++) {
+//				double b = r.getFeatureValue(j);
+//				if (weightTable.getNumberColumns() == getNumberOfFeatures()) {
+//					score += getDifference(a, b) * weightTable.get(i, j);
+//				} else {
+//					score += getDifference(a, b);
+//				}
+//			}
 			double a = l.getFeatureValue(i);
-			for (int j = 0; j < n; j++) {
-				double b = r.getFeatureValue(j);
-				if (weightTable.getNumberOfColumns() == getNumberOfFeatures()) {
-					score += Math.abs(a - b) * weightTable.get(i, j);
-				} else {
-					score += Math.abs(a - b);
-				}
-			}
+			double b = r.getFeatureValue(i);
+
+			score += getDifference(a, b);
 		}
 		return score;
 	}
 
 	public double computeScore(Sequence l, Sequence r) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("computing score between {} ({}) and {} ({})", l, l.size(), r, r.size());
-		}
 		int penalty = 5;
-		float score = 0;
+		double score = 0;
 		for (int i = 0; i < l.size(); i++) {
 			score += computeScore(l.get(i), r.get(i));
 
@@ -191,29 +191,23 @@ public class FeatureModel {
 		return featureNames.size();
 	}
 
-	public Segment getSegment(String string) {
-		return new Segment(string, getValue(string), this);
-	}
-
 	public Map<String, List<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
 	public List<Double> getValue(String key) {
-		List<Double> value = new ArrayList<Double>();
-
 		if (featureMap.containsKey(key)) {
-			value = featureMap.get(key);
+			return featureMap.get(key);
+		} else if (getNumberOfFeatures() == 0) {
+			return new ArrayList<Double>();
+		} else {
+			LOGGER.error("Unable to find " + key +"  in model.");
+			return null;
 		}
-		return value;
 	}
 
 	public Table<Double> getWeights() {
 		return weightTable;
-	}
-
-	public void put(String key, List<Double> values) {
-		featureMap.put(key, values);
 	}
 
 	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
@@ -269,7 +263,7 @@ public class FeatureModel {
 				Double r = right.get(i);
 				double lValue = l.isNaN() ? 0 : l;
 				double rValue = r.isNaN() ? 0 : r;
-				list.add(Math.abs(lValue - rValue));
+				list.add(getDifference(lValue, rValue));
 			}
 		} else {
 
@@ -291,13 +285,25 @@ public class FeatureModel {
 		return sum;
 	}
 
+	private Double getDifference(Double a, Double b) {
+		if (a.equals(b)) {
+			return 0.0;
+		} else if (a.isNaN()) {
+			return b;
+		} else if (b.isNaN()) {
+			return a;
+		} else {
+			return Math.abs(a - b);
+		}
+	}
+
 	private void readModelFromFile(List<String> lines) {
 
 		boolean hasDiacritics = false;
 
 		if (lines.get(0).startsWith("name")) {
 			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+				String[] row = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (row[0].equals("diacritic")) {
@@ -310,8 +316,8 @@ public class FeatureModel {
 		}
 
 		if (lines.get(0).startsWith("alias")) {
-			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+			String   line = lines.remove(0);
+			String[] row  = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (hasDiacritics) {

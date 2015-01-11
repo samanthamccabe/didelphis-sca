@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.exceptions.VariableDefinitionFormatException;
@@ -25,12 +24,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,36 +43,46 @@ public class VariableStore {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(VariableStore.class);
 
+	private static final int     INITIAL_CAPACITY  = 20;
+	private static final Pattern EQUALS_PATTERN    = Pattern.compile("\\s*=\\s*");
+	private static final Pattern DELIMITER_PATTERN = Pattern.compile("\\s+");
+
 	private final Map<String, List<Sequence>> variables;
 
 	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
 	private final FeatureModel     featureModel;
-	private       SegmentationMode segmentationMode;
+	private final SegmentationMode segmentationMode;
+	private final NormalizerMode   normalizerMode;
 
 	public VariableStore() {
-		segmentationMode = SegmentationMode.DEFAULT;
-		featureModel     = new FeatureModel();
-		variables        = new HashMap<String, List<Sequence>>();
+		this(FeatureModel.EMPTY_MODEL, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+
 	}
 
 	public VariableStore(FeatureModel modelParam) {
-		segmentationMode = SegmentationMode.DEFAULT;
+		this(modelParam, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+	}
+
+	public VariableStore(FeatureModel modelParam, SegmentationMode segParam, NormalizerMode normParam) {
+		segmentationMode = segParam;
+		normalizerMode   = normParam;
 		featureModel     = modelParam;
-		variables        = new HashMap<String, List<Sequence>>();
+		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
 	}
 
 	public VariableStore(VariableStore otherStore) {
-		variables = new HashMap<String, List<Sequence>>();
-		variables.putAll(otherStore.variables);
+		variables = new HashMap<String, List<Sequence>>(otherStore.variables);
 
 		featureModel     = otherStore.featureModel;
 		segmentationMode = otherStore.segmentationMode;
+		normalizerMode   = otherStore.normalizerMode;
 	}
 
 	public boolean isEmpty() {
 		return variables.isEmpty();
 	}
 
+	@Deprecated // User should prefer contains(String)
 	public boolean contains(Sequence symbol) {
 		return contains(symbol.toString());
 	}
@@ -89,20 +99,20 @@ public class VariableStore {
 			sb.append(entry.getKey());
 			sb.append(" =");
 			for (Sequence sequence : entry.getValue()) {
-				sb.append(" ");
+				sb.append(' ');
 				sb.append(sequence);
 			}
-			sb.append("\n");
+			sb.append('\n');
 		}
 		return sb.toString().trim();
 	}
 
 	public void add(String command) throws VariableDefinitionFormatException {
-		String[] parts = command.trim().split("\\s*=\\s*");
+		String[] parts = EQUALS_PATTERN.split(command.trim());
 
 		if (parts.length == 2) {
 			String key = parts[0];
-			String[] elements = parts[1].split("\\s+");
+			String[] elements = DELIMITER_PATTERN.split(parts[1]);
 
 			List<Sequence> expanded = new ArrayList<Sequence>();
 			for (String value : elements) {
@@ -114,11 +124,11 @@ public class VariableStore {
 		}
 	}
 
-	private List<Sequence> expandVariables(String element) {
+	private Collection<Sequence> expandVariables(String element) {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-		list.add(Segmenter.getSequence(element, featureModel, this, segmentationMode));
+		list.add(Segmenter.getSequence(element, featureModel, getKeys(), segmentationMode, normalizerMode));
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -128,7 +138,7 @@ public class VariableStore {
 				for (int i = 0; i < sequence.size(); i++) {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
-						Sequence best = Segmenter.getSequence(element, featureModel, this, segmentationMode);
+						Sequence best = Segmenter.getSequence(element, featureModel, getKeys(), segmentationMode, normalizerMode);
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
@@ -144,6 +154,7 @@ public class VariableStore {
 		return list;
 	}
 
+	@Deprecated
 	public List<Sequence> get(Sequence sequence) {
 		return get(sequence.toString());
 	}
@@ -160,7 +171,6 @@ public class VariableStore {
 		return variables.get(key);
 	}
 
-
 	private String getBestMatch(Sequence tail) {
 		String bestMatch = "";
 		for (String key : getKeys()) {
@@ -170,5 +180,4 @@ public class VariableStore {
 		}
 		return bestMatch;
 	}
-
 }

@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,27 +28,13 @@ import java.util.List;
  */
 public class Segment {
 
+	public static final Segment EMPTY_SEGMENT = new Segment("∅");
+
 	private final FeatureModel model;
 	private final String       symbol;
 	private final List<Double> features;
 
-	/**
-	 * Initialize an empty Segment
-	 */
-	@Deprecated
-	public Segment() {
-		symbol   = "";
-		model    = new FeatureModel();
-		features = new ArrayList<Double>();
-	}
-
-	@Deprecated
-	Segment(String string) {
-		symbol   = string;
-		model    = new FeatureModel();
-		features = new ArrayList<Double>();
-	}
-
+	// Copy-constructor
 	public Segment(Segment segment) {
 		symbol   = segment.getSymbol();
 		model    = segment.getFeatureModel();
@@ -70,18 +54,32 @@ public class Segment {
 		features = new ArrayList<Double>(featureArray);
 	}
 
+	// Test only
+	@Deprecated
+	Segment(String string) {
+		symbol   = string;
+		model    = FeatureModel.EMPTY_MODEL;
+		features = new ArrayList<Double>();
+	}
+
 	public FeatureModel getFeatureModel() {
 		return model;
 	}
 
+	@Override
 	public int hashCode() {
-		return 19 * symbol.hashCode() * features.hashCode() * model.hashCode();
+		int hash = 19;
+		hash *= 31 + symbol.hashCode();
+		hash *= 31 + features.hashCode();
+		hash *= 31 + model.hashCode();
+		return hash;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 
-		if (obj == null)                  return false;
-		if (getClass() != obj.getClass()) return false;
+		if (obj == null)                  { return false; }
+		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;
 		return symbol.equals(other.getSymbol()) &&
@@ -91,7 +89,7 @@ public class Segment {
 
 	@Override
 	public String toString() {
-		return symbol + " " + model.toString();
+		return symbol;
 	}
 
 	public String getSymbol() {
@@ -111,7 +109,7 @@ public class Segment {
 	}
 
 	public String toStringLong() {
-		StringBuilder sb = new StringBuilder(symbol + "\t");
+		StringBuilder sb = new StringBuilder(symbol + '\t');
 		for (Double feature : features) {
 			if (feature.equals(Double.NaN)) {
 				sb.append(" ***");
@@ -119,16 +117,16 @@ public class Segment {
 				if (feature < 0.0) {
 					sb.append(feature);
 				} else {
-					sb.append(" ");
+					sb.append(' ');
 					sb.append(feature);
 				}
 			}
-			sb.append(" ");
+			sb.append(' ');
 		}
 		return sb.toString();
 	}
 
 	public boolean isEmpty() {
-		return (symbol != null && symbol.isEmpty() && features.isEmpty());
+		return symbol != null && symbol.isEmpty() && features.isEmpty();
 	}
 }

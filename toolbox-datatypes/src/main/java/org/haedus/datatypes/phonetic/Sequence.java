@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2014 Haedus - Fabrica Codicis
+ * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +28,7 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment> {
 
-	public static final Sequence EMPTY_SEQUENCE = new Sequence();
+	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
@@ -41,14 +39,8 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public Sequence(Segment g) {
-		this();
-		int segmentSize = g.getNumberOfFeatures();
-		int featureSize = featureModel.getNumberOfFeatures();
-		if (segmentSize == featureSize) {
-			sequence.add(g);
-		} else {
-			throw new RuntimeException("Attempt to add getSegmentedString with incorrect number of features, " + segmentSize + "; this Sequence is backed by a model with " + featureSize + " features.");
-		}
+		this(g.getFeatureModel());
+		sequence.add(g);
 	}
 
 	// Used to produce empty copies with the same model
@@ -61,12 +53,12 @@ public class Sequence implements Iterable<Segment> {
 	Sequence(String word) {
 		this();
 		for (char c : word.toCharArray()) {
-			sequence.add(new Segment(new String(new char[]{ c }), featureModel));
+			sequence.add(new Segment(new String(new char[]{c}), featureModel));
 		}
 	}
 
 	private Sequence() {
-		this(new FeatureModel());
+		this(FeatureModel.EMPTY_MODEL);
 	}
 
 	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {
@@ -78,8 +70,8 @@ public class Sequence implements Iterable<Segment> {
 		sequence.add(s);
 	}
 
-	public void add(Sequence q) {
-		for (Segment s : q) {
+	public void add(Sequence otherSequence) {
+		for (Segment s : otherSequence) {
 			sequence.add(s);
 		}
 	}
@@ -166,15 +158,16 @@ public class Sequence implements Iterable<Segment> {
 		return index;
 	}
 
-	public int indexOf(Sequence sequence, int start) {
+	public int indexOf(Sequence target, int start) {
 
 		int index = -1;
 		if (start < size()) {
 			Sequence subsequence = getSubsequence(start);
-			index = subsequence.indexOf(sequence);
+			index = subsequence.indexOf(target);
 
-			if (index > -1)
+			if (index > -1) {
 				index += start;
+			}
 		}
 		return index;
 	}
@@ -222,23 +215,19 @@ public class Sequence implements Iterable<Segment> {
 	@Override
 	public int hashCode() {
 		int hash = 23;
-		for (Segment segment : sequence) {
-			hash *= segment.hashCode() + 1;
-		}
+		hash *= sequence.hashCode();
+		hash *= featureModel.hashCode();
 		return hash;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj.getClass() != getClass())
-			return false;
+		if (obj == null)                  { return false; }
+		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
 		boolean sequenceEquals = sequence.equals(object.sequence);
 		boolean featuresEquals = featureModel.equals(object.featureModel);
-		return sequenceEquals &&
-		       featuresEquals;
+		return sequenceEquals && featuresEquals;
 	}
 
 	@Override
@@ -246,9 +235,9 @@ public class Sequence implements Iterable<Segment> {
 		String s = "";
 
 		for (Segment a_sequence : sequence) {
-			s = s.concat(a_sequence.getSymbol());
+			s += a_sequence.getSymbol();
 		}
-		return s.trim();
+		return s;
 	}
 
 	public boolean isEmpty() {
@@ -272,7 +261,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public boolean contains(Sequence sequence) {
-		return (indexOf(sequence) >= 0);
+		return indexOf(sequence) >= 0;
 	}
 
 	public boolean startsWith(Segment segment) {
@@ -280,7 +269,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public boolean startsWith(Sequence sequence) {
-		return (indexOf(sequence) == 0);
+		return indexOf(sequence) == 0;
 	}
 
 	public FeatureModel getFeatureModel() {

@@ -1,188 +1,181 @@
+/*******************************************************************************
+ * Copyright (c) 2015. Samantha Fiona McCabe
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.NormalizerMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.Segmenter;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Author: goats
+ * Author: Samantha Fiona Morrigan McCabe
  * Created: 11/23/2014
  */
 public class SequenceFactory {
 
-	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
-
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceFactory.class);
 
-	private FeatureModel     featureModel;
-	private SegmentationMode segmentationMode;
-	private VariableStore    variableStore;
-	// VariableStore is only accessed for it's keys
+	private static final SequenceFactory EMPTY_FACTORY         = new SequenceFactory();
+	private static final Pattern         BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	public SequenceFactory() {
-		featureModel = new FeatureModel();
-		variableStore = new VariableStore();
-		segmentationMode = SegmentationMode.DEFAULT;
+	private final Segment boundarySegmentNAN;
+
+	private final FeatureModel     featureModel;
+	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
+	private final SegmentationMode segmentationMode;
+	private final NormalizerMode   normalizerMode;
+	private final Set<String>      reservedStrings;
+
+	public static SequenceFactory getEmptyFactory() {
+		return EMPTY_FACTORY;
+	}
+
+	private SequenceFactory() {
+		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		featureModel = modelParam;
-		variableStore = storeParam;
-		segmentationMode = SegmentationMode.DEFAULT;
+		this(modelParam, storeParam, new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+	}
+
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, SegmentationMode modeParam, NormalizerMode normParam) {
+		featureModel     = modelParam;
+		variableStore    = storeParam;
+		segmentationMode = modeParam;
+		normalizerMode   = normParam;
+		reservedStrings  = reservedParam;
+
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		boundarySegmentNAN = new Segment("#", list, featureModel);
+	}
+
+	public void reserve(String string) {
+		reservedStrings.add(string);
+	}
+
+	public Segment getBoundarySegment() {
+		return boundarySegmentNAN;
+	}
+
+	public Segment getSegment(String string) {
+		return Segmenter.getSegment(string, featureModel, reservedStrings, segmentationMode, normalizerMode);
+	}
+
+	public Sequence getNewSequence() {
+		return getSequence("");
 	}
 
 	public Sequence getSequence(String word) {
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(featureModel.getSymbols());
+		Collection<String> keys = new ArrayList<String>();
 		keys.addAll(variableStore.getKeys());
-
-		List<String> list;
-		if (segmentationMode == SegmentationMode.DEFAULT) {
-			list = segment(word, keys);
-		} else if (segmentationMode == SegmentationMode.NAIVE) {
-			list = segmentNaively(word, keys);
-		} else {
-			throw new UnsupportedOperationException("Unsupported segmentation mode " + segmentationMode);
-		}
-		return featureModel.getSequence(list);
+		keys.addAll(reservedStrings);
+		return Segmenter.getSequence(word, featureModel, keys, segmentationMode, normalizerMode);
 	}
 
+	public boolean hasVariable(String label) {
+		return variableStore.contains(label);
+	}
+
+	public List<Sequence> getVariableValues(String label) {
+		return variableStore.get(label);
+	}
+
+	public List<String> getSegmentedString(String string) {
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(featureModel.getSymbols());
+		keys.addAll(reservedStrings);
+
+		return Segmenter.getSegmentedString(string, keys, segmentationMode, normalizerMode);
+	}
 	public FeatureModel getFeatureModel() {
 		return featureModel;
-	}
-
-	public void setFeatureModel(FeatureModel featureModel) {
-		this.featureModel = featureModel;
 	}
 
 	public SegmentationMode getSegmentationMode() {
 		return segmentationMode;
 	}
 
-	public void setSegmentationMode(SegmentationMode segmentationMode) {
-		this.segmentationMode = segmentationMode;
-	}
-
 	public VariableStore getVariableStore() {
 		return variableStore;
 	}
 
-	public void setVariableStore(VariableStore variableStore) {
-		this.variableStore = variableStore;
+	private static boolean isCombiningClass(int type) {
+		return type == Character.MODIFIER_LETTER        || // LM
+			   type == Character.MODIFIER_SYMBOL        || // SK
+			   type == Character.COMBINING_SPACING_MARK || // MC
+			   type == Character.NON_SPACING_MARK;         // MN
 	}
 
-	/* Package-Private for testing */
-	List<String> segmentNaively(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
-		for (int i = 0; i < word.length(); i++) {
-
-			String key = getBestMatch(word.substring(i), keys);
-			if (key.isEmpty()) {
-				segments.add(word.substring(i, i + 1));
-			} else {
-				segments.add(key);
-				i = i + key.length() - 1;
-			}
-		}
-		return segments;
+	private static boolean isDoubleWidthBinder(char ch) {
+		return (int) ch <= 866 && 860 <= (int) ch;
 	}
 
-	/* Package-Private for testing */
-	List<String> segment(String word) {
-		return segment(word, new ArrayList<String>());
-	}
-
-	/* Package-Private for testing */
-	List<String> segment(String word, Iterable<String> keys) {
-		List<String> segments = new ArrayList<String>();
-
-		StringBuilder buffer = new StringBuilder();
-		int length = word.length();
-		for (int i = 0; i < length; i++) {
-			String substring = word.substring(i);
-			String key = getBestMatch(substring, keys);
-			if (i == 0) {
-				if (key.isEmpty()) {
-					buffer.append(word.charAt(0));
-				} else {
-					buffer.append(key);
-					i += key.length() - 1;
-				}
-			} else {
-				char c = word.charAt(i);
-				if (isAttachable(c)) {
-					buffer.append(c);
-					if (isDoubleWidthBinder(c) && i < length - 1) {
-						i++;
-						buffer.append(word.charAt(i));
-					}
-				} else {
-					if (key.isEmpty()) {
-						buffer = clearBuffer(segments, buffer, String.valueOf(c));
-					} else {
-						buffer = clearBuffer(segments, buffer, key);
-						i += key.length() - 1;
-					}
-				}
-			}
-		}
-		segments.add(buffer.toString());
-		return segments;
-	}
-
-	private boolean isCombiningClass(int type) {
-		return (type == Character.MODIFIER_LETTER) || // LM
-		       (type == Character.MODIFIER_SYMBOL) || // SK
-		       (type == Character.COMBINING_SPACING_MARK) || // MC
-		       (type == Character.NON_SPACING_MARK);         // MN
-	}
-
-	private boolean isDoubleWidthBinder(char ch) {
-		return ch <= 866 && 860 <= ch;
-	}
-
-	private boolean isSuperscriptAsciiDigit(int value) {
+	private static boolean isSuperscriptAsciiDigit(int value) {
 		// int literals are decimal char values
-		return (value == 178) ||
-		       (value == 179) ||
-		       (value == 185);
+		return value == 178 ||
+		       value == 179 ||
+		       value == 185;
 	}
 
-	private boolean isMathematicalSubOrSuper(int value) {
+	private static boolean isMathematicalSubOrSuper(int value) {
 		// int literals are decimal char values
-		return (value <= 8304) && (8348 <= value);
+		return value <= 8304 && 8348 <= value;
 	}
 
-	private boolean isCombingNOS(int value) {
+	private static boolean isCombingNOS(int value) {
 		// int literals are decimal char values
-		return (value >= 8304) &&
-		       (value <= 8348);
+		return value >= 8304 &&
+		       value <= 8348;
 	}
 
-	private String getBestMatch(String tail, Iterable<String> keys) {
+	public String getBestMatch(String tail) {
+
+		Collection<String> keys = new HashSet<String>();
+		keys.addAll(featureModel.getSymbols());
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(reservedStrings);
+
 		String bestMatch = "";
 		for (String key : keys) {
 			if (tail.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
 			}
 		}
-
 		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(tail);
 		if (backReferenceMatcher.lookingAt()) {
 			bestMatch = backReferenceMatcher.group();
 		}
-
 		return bestMatch;
 	}
 
-	private boolean isAttachable(Character c) {
+	private static boolean isAttachable(Character c) {
 		int type = Character.getType(c);
 		int value = c;
 		return isSuperscriptAsciiDigit(value) ||
@@ -191,7 +184,7 @@ public class SequenceFactory {
 		       isCombiningClass(type);
 	}
 
-	private StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
+	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
 		segments.add(buffer.toString());
 		buffer = new StringBuilder();
 		buffer.append(key);
