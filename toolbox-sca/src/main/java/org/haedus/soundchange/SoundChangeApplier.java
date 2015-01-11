@@ -18,7 +18,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -44,9 +43,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,6 +88,7 @@ public class SoundChangeApplier {
 	private final FeatureModel   model;
 	private final Queue<Command> commands;
 	private final VariableStore  variables;
+	private final Set<String>    reservedSymbols;
 
 	private final Map<String, List<List<Sequence>>> lexicons;
 
@@ -94,11 +96,12 @@ public class SoundChangeApplier {
 	private NormalizerMode   normalizerMode   = NormalizerMode.NFD;
 
 	public SoundChangeApplier() {
-		model       = FeatureModel.EMPTY_MODEL;
-		variables   = new VariableStore(model);
-		lexicons    = new HashMap<String, List<List<Sequence>>>();
-		commands    = new ArrayDeque<Command>();
+		model = FeatureModel.EMPTY_MODEL;
+		variables = new VariableStore(model);
+		lexicons = new HashMap<String, List<List<Sequence>>>();
+		commands = new ArrayDeque<Command>();
 		fileHandler = new DiskFileHandler();
+		reservedSymbols = new HashSet<String>();
 	}
 
 	public SoundChangeApplier(CharSequence script) {
@@ -117,11 +120,12 @@ public class SoundChangeApplier {
 
 	// Package-private: for tests only
 	SoundChangeApplier(String[] array, FileHandler fileHandlerParam) {
-		model     = FeatureModel.EMPTY_MODEL;
+		model = FeatureModel.EMPTY_MODEL;
 		variables = new VariableStore(model);
-		lexicons  = new HashMap<String, List<List<Sequence>>>();
-		commands  = new ArrayDeque<Command>();
+		lexicons = new HashMap<String, List<List<Sequence>>>();
+		commands = new ArrayDeque<Command>();
 		fileHandler = fileHandlerParam;
+		reservedSymbols = new HashSet<String>();
 
 		Collection<String> list = new ArrayList<String>();
 		Collections.addAll(list, array);
@@ -172,12 +176,15 @@ public class SoundChangeApplier {
 	}
 
 	public List<List<Sequence>> getSequences(Iterable<List<String>> list) {
+
+		SequenceFactory factory = new SequenceFactory(model, variables, reservedSymbols, segmentationMode, normalizerMode);
+
 		List<List<Sequence>> lexicon = new ArrayList<List<Sequence>>();
 		for (List<String> line : list) {
 			List<Sequence> sequences = new ArrayList<Sequence>();
 			for (String item : line) {
 				String word = normalize(item);
-				Sequence sequence = Segmenter.getSequence(word, model, variables, reservedStrings, segmentationMode, normalizerMode);
+				Sequence sequence = factory.getSequence(word);
 				sequences.add(sequence);
 			}
 			lexicon.add(sequences);
@@ -217,6 +224,10 @@ public class SoundChangeApplier {
 				.toHashCode();
 	}
 
+	public Collection<String> getReservedSymbols() {
+		return reservedSymbols;
+	}
+
 	// Testing only
 	List<Sequence> processLexicon(List<String> list) {
 		Collection<List<String>> lex = new ArrayList<List<String>>();
@@ -249,23 +260,18 @@ public class SoundChangeApplier {
 					closeLexicon(command);
 				} else if (command.contains("=")) {
 					variables.add(command);
-//					factory = new SequenceFactory(model, new VariableStore(variables), segmentationMode, normalizerMode);
 				} else if (command.contains(">")) {
 					// This is probably the correct scope; if other commands change the variables or segmentation mode,
 					// we could get unexpected behavior if this is initialized outside the loop
-					SequenceFactory factory = new SequenceFactory(model, new VariableStore(variables), segmentationMode, normalizerMode);
+					SequenceFactory factory = new SequenceFactory(model, new VariableStore(variables), reservedSymbols, segmentationMode, normalizerMode);
 					commands.add(new Rule(command, lexicons, factory));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
-//					factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
 				} else if (command.startsWith(SEGMENTATION)) {
 					setSegmentation(command);
-//					factory = new SequenceFactory(model, variables, segmentationMode, normalizerMode);
 				} else if (command.startsWith(RESERVE)) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
-					for (String symbol : WHITESPACE_PATTERN  .split(reserve)) {
-						model.reserveSymbol(symbol);
-					}
+					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
 				} else if (command.startsWith("BREAK")) {
 					// Stop parsing commands
 					break;

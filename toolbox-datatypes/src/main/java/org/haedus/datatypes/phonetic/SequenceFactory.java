@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +38,8 @@ public class SequenceFactory {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceFactory.class);
 
-	private static final SequenceFactory EMPTY_FACTORY = new SequenceFactory();
-	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+	private static final SequenceFactory EMPTY_FACTORY         = new SequenceFactory();
+	private static final Pattern         BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private final Segment boundarySegmentNAN;
 
@@ -46,24 +47,26 @@ public class SequenceFactory {
 	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
 	private final SegmentationMode segmentationMode;
 	private final NormalizerMode   normalizerMode;
-	private final List<String>     reservedStrings;
+	private final Set<String>      reservedStrings;
 
-	public static SequenceFactory getEmptyFactory() { return EMPTY_FACTORY;}
+	public static SequenceFactory getEmptyFactory() {
+		return EMPTY_FACTORY;
+	}
 
 	private SequenceFactory() {
-		this(FeatureModel.EMPTY_MODEL, new VariableStore(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		this(modelParam, storeParam, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		this(modelParam, storeParam, new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, SegmentationMode modeParam, NormalizerMode normParam) {
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, SegmentationMode modeParam, NormalizerMode normParam) {
 		featureModel     = modelParam;
 		variableStore    = storeParam;
 		segmentationMode = modeParam;
 		normalizerMode   = normParam;
-		reservedStrings  = new ArrayList<String>();
+		reservedStrings  = reservedParam;
 
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
@@ -81,7 +84,7 @@ public class SequenceFactory {
 	}
 
 	public Segment getSegment(String string) {
-		return Segmenter.getSegment(string, featureModel, variableStore, reservedStrings, segmentationMode, normalizerMode);
+		return Segmenter.getSegment(string, featureModel, reservedStrings, segmentationMode, normalizerMode);
 	}
 
 	public Sequence getNewSequence() {
@@ -89,7 +92,10 @@ public class SequenceFactory {
 	}
 
 	public Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, featureModel, variableStore, reservedStrings, segmentationMode, normalizerMode);
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(reservedStrings);
+		return Segmenter.getSequence(word, featureModel, keys, segmentationMode, normalizerMode);
 	}
 
 	public boolean hasVariable(String label) {

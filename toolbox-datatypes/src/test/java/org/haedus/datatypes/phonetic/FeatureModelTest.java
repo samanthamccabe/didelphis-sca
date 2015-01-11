@@ -65,8 +65,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSemivowels() {
-		Segment left  = Segmenter.getSegment("a", model, new VariableStore(), reservedStrings, SegmentationMode.DEFAULT, NormalizerMode.NFD);
-		Segment right = Segmenter.getSegment("n", model, new VariableStore(), reservedStrings, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment left  = Segmenter.getSegment("a", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment right = Segmenter.getSegment("n", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
 
 		LOGGER.info(left.toStringLong());
 		LOGGER.info(right.toStringLong());
@@ -83,8 +83,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSame() {
-		Segment left  = Segmenter.getSegment("t", model, new VariableStore(), reservedStrings, SegmentationMode.DEFAULT, NormalizerMode.NFD);
-		Segment right = Segmenter.getSegment("t", model, new VariableStore(), reservedStrings, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment left  = Segmenter.getSegment("t", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment right = Segmenter.getSegment("t", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
 
 		double v = model.computeScore(left, right);
 		assertTrue("Value was " + v + " not zero",v == 0.0);

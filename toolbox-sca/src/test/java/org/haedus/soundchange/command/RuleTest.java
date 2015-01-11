@@ -42,7 +42,10 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		Rule rule = new Rule("CN > $2$1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+
+
+		Rule rule = new Rule("CN > $2$1", factory);
 
 		testRule(rule, "pn", "np");
 		testRule(rule, "tn", "nt");
@@ -64,7 +67,10 @@ public class RuleTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		Rule rule = new Rule("CVN > $3V$1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+
+
+		Rule rule = new Rule("CVN > $3V$1", factory);
 
 		testRule(rule, "pan", "nap");
 		testRule(rule, "tin", "nit");
@@ -85,8 +91,9 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
 
-		Rule rule = new Rule("CN > $2$G1", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
+		Rule rule = new Rule("CN > $2$G1", factory);
 
 		testRule(rule, "pn", "nb");
 		testRule(rule, "tn", "nd");
@@ -244,10 +251,13 @@ public class RuleTest {
 		Sequence original = FACTORY.getSequence("mlan");
 		Sequence expected = FACTORY.getSequence("blan");
 
-		VariableStore vs = new VariableStore();
-		vs.add("V = a e i o u");
+		VariableStore store = new VariableStore();
+		store.add("V = a e i o u");
 
-		Rule rule = new Rule("ml > bl / #_V", vs, SegmentationMode.DEFAULT);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+
+
+		Rule rule = new Rule("ml > bl / #_V", factory);
 
 		assertEquals(expected, rule.apply(original));
 	}
@@ -267,24 +277,27 @@ public class RuleTest {
 		Sequence original = FACTORY.getSequence("trh₂we");
 		Sequence expected = FACTORY.getSequence("tə̄rwe");
 
-		VariableStore vs = new VariableStore();
-		vs.add("X  = h₁  h₂ h₃ h₄" );
-		vs.add("A  = r   l  m  n"  );
-		vs.add("W  = y   w"        );
-		vs.add("Q  = kʷʰ kʷ gʷ"    );
-		vs.add("K  = kʰ  k  g");
-		vs.add("KY = cʰ  c  ɟ");
-		vs.add("T  = pʰ  p  b");
-		vs.add("P  = tʰ  t  d");
+		VariableStore store = new VariableStore();
+		store.add("X  = h₁  h₂ h₃ h₄");
+		store.add("A  = r   l  m  n");
+		store.add("W  = y   w");
+		store.add("Q  = kʷʰ kʷ gʷ");
+		store.add("K  = kʰ  k  g");
+		store.add("KY = cʰ  c  ɟ");
+		store.add("T  = pʰ  p  b");
+		store.add("P  = tʰ  t  d");
 
-		vs.add("[PLOSIVE] = P T K KY Q"     );
-		vs.add("[OBSTRUENT] = [PLOSIVE] s"  );
-		vs.add("C = [OBSTRUENT] A W"        );
+		store.add("[PLOSIVE] = P T K KY Q");
+		store.add("[OBSTRUENT] = [PLOSIVE] s");
+		store.add("C = [OBSTRUENT] A W");
 
-		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", vs, SegmentationMode.DEFAULT);
-		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}"             , vs, SegmentationMode.DEFAULT);
-		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}"                      , vs, SegmentationMode.DEFAULT);
-		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}"                , vs, SegmentationMode.DEFAULT);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+
+
+		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
+		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}"             , factory);
+		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}"                      , factory);
+		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}"                , factory);
 
 		Sequence sequence = rule1.apply(original);
 
@@ -330,7 +343,9 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		Rule rule = new Rule("a > b / C_ NOT x_", FeatureModel.EMPTY_MODEL, store, SegmentationMode.DEFAULT);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+
+		Rule rule = new Rule("a > b / C_ NOT x_", factory);
 
 		testRule(rule, "axa",   "axa");
 		testRule(rule, "aya",   "ayb");

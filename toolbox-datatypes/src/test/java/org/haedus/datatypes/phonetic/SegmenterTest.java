@@ -72,6 +72,6 @@ public class SegmenterTest
 	}
 
 	private static Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, model, new VariableStore(), reservedStrings, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		return Segmenter.getSequence(word, model, new ArrayList<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
 	}
 }

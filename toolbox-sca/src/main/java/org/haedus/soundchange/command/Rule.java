@@ -66,15 +66,11 @@ public class Rule implements Command {
 	private final Map<String, List<List<Sequence>>> lexicons;
 
 	public Rule(String rule) {
-		this(rule, new VariableStore(), SegmentationMode.DEFAULT);
+		this(rule, SequenceFactory.getEmptyFactory());
 	}
 
-	public Rule(String rule, VariableStore variables, SegmentationMode mode) {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), FeatureModel.EMPTY_MODEL, variables, mode);
-	}
-
-	public Rule(String rule, FeatureModel model, VariableStore variables, SegmentationMode mode) {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), model, variables, mode);
+	public Rule(String rule,  SequenceFactory factoryParam) {
+		this(rule, new HashMap<String, List<List<Sequence>>>(), factoryParam);
 	}
 
 	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, SequenceFactory factoryParam) {
@@ -85,11 +81,6 @@ public class Rule implements Command {
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 		populateConditions();
-	}
-
-	@Deprecated
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, FeatureModel model, VariableStore variables, SegmentationMode mode) {
-		this(rule, lexiconsParam, new SequenceFactory(model, variables, mode, NormalizerMode.NFD));
 	}
 
 	@Override

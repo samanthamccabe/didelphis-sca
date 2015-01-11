@@ -42,22 +42,26 @@ import java.util.regex.Pattern;
  */
 public final class Segmenter {
 
-	public static final            Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
-	public static final            int     BINDER_START          = 860;
-	public static final            int     BINDER_END            = 866;
-	public static final            int     SUPERSCRIPT_ZERO      = 8304;
-	public static final            int     SUBSCRIPT_SMALL_T     = 8348;
-	public static final            int     SUPERSCRIPT_TWO       = 178;
-	public static final            int     SUPERSCRIPT_THREE     = 179;
-	public static final            int     SUPERSCRIPT_ONE       = 185;
-	private static final transient Logger  LOGGER                = LoggerFactory.getLogger(Segmenter.class);
+	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+	public static final int     BINDER_START          = 860;
+	public static final int     BINDER_END            = 866;
+	public static final int     SUPERSCRIPT_ZERO      = 8304;
+	public static final int     SUBSCRIPT_SMALL_T     = 8348;
+	public static final int     SUPERSCRIPT_TWO       = 178;
+	public static final int     SUPERSCRIPT_THREE     = 179;
+	public static final int     SUPERSCRIPT_ONE       = 185;
 
 	// Prevent the class from being instantiated
 	private Segmenter() {
 	}
 
-	public static Segment getSegment(String string, FeatureModel model, VariableStore variables, List<String> reservedStrings, SegmentationMode segParam, NormalizerMode normParam) {
-		Collection<String> keys = getKeys(model, variables);
+	public static Segment getSegment(String string, FeatureModel model, SegmentationMode segParam, NormalizerMode normParam) {
+		return getSegment(string, model, null, segParam, normParam);
+	}
+
+	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segParam, NormalizerMode normParam) {
+
+		Collection<String> keys = getKeys(model, reservedStrings);
 
 		String normalString = normalize(string, normParam);
 
@@ -91,7 +95,6 @@ public final class Segmenter {
 
 		List<Symbol> symbols = new ArrayList<Symbol>();
 		List<String> separatedString = separateBrackets(word);
-
 		if (segParam == SegmentationMode.DEFAULT) {
 			for (String s : separatedString) {
 				if (s.startsWith("{") || s.startsWith("(")) {
@@ -116,7 +119,6 @@ public final class Segmenter {
 
 	private static List<String> separateBrackets(String word) {
 		List<String> list = new ArrayList<String>();
-
 		StringBuilder buffer = new StringBuilder();
 		for (int i = 0; i < word.length();) {
 			char c = word.charAt(i);
@@ -149,8 +151,8 @@ public final class Segmenter {
 		return list;
 	}
 
-	public static Sequence getSequence(String word, FeatureModel model, VariableStore variables, List<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
-		Collection<String> keys = getKeys(model, variables);
+	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
+		Collection<String> keys = getKeys(model, reservedStrings);
 		String normalString = normalize(word, normalizerParam);
 		List<Symbol> list = getCompositeSymbols(normalString, keys, segmentationParam);
 		Sequence sequence = new Sequence(model);
@@ -164,10 +166,12 @@ public final class Segmenter {
 		return sequence;
 	}
 
-	private static Collection<String> getKeys(FeatureModel model, VariableStore variables) {
+	private static Collection<String> getKeys(FeatureModel model, Collection<String> reserved) {
 		Collection<String> keys = new ArrayList<String>();
 		keys.addAll(model.getSymbols());
-		keys.addAll(variables.getKeys());
+		if (reserved != null) {
+			keys.addAll(reserved);
+		}
 		return keys;
 	}
 
@@ -177,72 +181,42 @@ public final class Segmenter {
 		Symbol symbol = new Symbol();
 		int length = word.length();
 		for (int i = 0; i < length; ) {
-/*			if (word.charAt(i) == '{') {
-				if (!symbol.isEmpty()) {
-					segments.add(symbol);
-					symbol = new Symbol();
+
+			String substring = word.substring(i);       // Get the word from current position on
+			String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
+			if (symbol.isEmpty()) {
+				// Assume that the first symbol must be a base-character
+				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
+				if (key.isEmpty()) {
+					// TODO: error handling if word starts with diacritic?
+					symbol.appendHead(word.charAt(i));
+				} else {
+					symbol.appendHead(key);
+					i = key.length() - 1;
 				}
-				int index = getIndex(word, '{', '}', i) + 1;
-				String substring = word.substring(i, index);
-				symbol.appendHead(substring);
-
-				segments.add(symbol);
-				symbol = new Symbol();
-				i = index;
-			} else if (word.charAt(i) == '(') {
-				if (!symbol.isEmpty()) {
-					segments.add(symbol);
-					symbol = new Symbol();
-				}
-
-				int index = getIndex(word, '(', ')', i) + 1;
-				String substring = word.substring(i, index);
-				symbol.appendHead(substring);
-
-				segments.add(symbol);
-				symbol = new Symbol();
-				i = index;
-			} else */
-			{
-				String substring = word.substring(i);       // Get the word from current position on
-				String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
-//				if (i == 0) {
-				if (symbol.isEmpty()) {
-					// Assume that the first symbol must be a base-character
-					// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
-					if (key.isEmpty()) {
-						// TODO: error handling if word starts with diacritic?
+			} else {
+				char ch = word.charAt(i); // Grab current character
+				if (isAttachable(ch)) {   // is it a standard diacritic?
+					if (isDoubleWidthBinder(ch) && i < length - 1) {
+						i++;
+						// Jump ahead and grab the next character
 						symbol.appendHead(word.charAt(i));
 					} else {
-						symbol.appendHead(key);
-						i = key.length() - 1;
+						symbol.appendTail(ch);
 					}
 				} else {
-					char ch = word.charAt(i); // Grab current character
-					if (isAttachable(ch)) {   // is it a standard diacritic?
-						if (isDoubleWidthBinder(ch) && i < length - 1) {
-							i++;
-							// Jump ahead and grab the next character
-							symbol.appendHead(word.charAt(i));
-						} else {
-							symbol.appendTail(ch);
-						}
+					// Not a diacritic
+					if (!symbol.isEmpty()) { segments.add(symbol); }
+					symbol = new Symbol();
+					if (key.isEmpty()) {
+						symbol.appendHead(ch);
 					} else {
-						// Not a diacritic
-						if (!symbol.isEmpty()) { segments.add(symbol); }
-						symbol = new Symbol();
-						if (key.isEmpty()) {
-							symbol.appendHead(ch);
-						} else {
-							symbol.appendHead(key);
-							i += key.length() - 1;
-						}
-//						segments.add(symbol);
-//						symbol = new Symbol();
+						symbol.appendHead(key);
+						i += key.length() - 1;
 					}
 				}
-				i++;
 			}
+			i++;
 		}
 		if (!symbol.isEmpty()) { segments.add(symbol); }
 		return segments;
@@ -256,7 +230,6 @@ public final class Segmenter {
 		String string = word;
 		// This is a bad idea because some contexts require
 		// this method to return exactly the input provided
-//		String string = removeDoubleWidthBinders(word);
 		for (String key : keys) {
 			if (string.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
