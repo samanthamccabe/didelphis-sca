@@ -28,6 +28,8 @@ import java.util.List;
  */
 public class Segment {
 
+	public static final Segment EMPTY_SEGMENT = new Segment("∅");
+
 	private final FeatureModel model;
 	private final String       symbol;
 	private final List<Double> features;

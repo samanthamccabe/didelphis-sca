@@ -28,6 +28,8 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment> {
 
+	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
+
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
 
@@ -38,13 +40,7 @@ public class Sequence implements Iterable<Segment> {
 
 	public Sequence(Segment g) {
 		this(g.getFeatureModel());
-		int segmentSize = g.getNumberOfFeatures();
-		int featureSize = featureModel.getNumberOfFeatures();
-		if (segmentSize == featureSize) {
-			sequence.add(g);
-		} else {
-			throw new RuntimeException("Attempt to add getSegmentedString with incorrect number of features, " + segmentSize + "; this Sequence is backed by a model with " + featureSize + " features.");
-		}
+		sequence.add(g);
 	}
 
 	// Used to produce empty copies with the same model
@@ -57,7 +53,7 @@ public class Sequence implements Iterable<Segment> {
 	Sequence(String word) {
 		this();
 		for (char c : word.toCharArray()) {
-			sequence.add(new Segment(new String(new char[]{ c }), featureModel));
+			sequence.add(new Segment(new String(new char[]{c}), featureModel));
 		}
 	}
 

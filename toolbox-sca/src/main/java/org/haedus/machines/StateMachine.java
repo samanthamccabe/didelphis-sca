@@ -141,10 +141,9 @@ public class StateMachine extends AbstractNode {
         Sequence tail = testSequence.getSubsequence(index);
 
 		Collection<MatchState> states = new HashSet<MatchState>();
-
         for (Sequence symbol : currentNode.getKeys()) {
             for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
-	            if (symbol == null || symbol.isEmpty()) {
+	            if (symbol == Sequence.EMPTY_SEQUENCE) {
 		            states.add(new MatchState(index, nextNode));
 	            } else if (factory.hasVariable(symbol.toString())) {
 					for (Sequence s : factory.getVariableValues(symbol.toString())) {
@@ -155,37 +154,11 @@ public class StateMachine extends AbstractNode {
 				} else if (tail.startsWith(symbol)) {
                     states.add(new MatchState(index + symbol.size(), nextNode));
                 }
+				// Else: the pattern fails to match
             }
         }
 		return states;
     }
-
-    //
-//	private Node<Sequence> parse(Expression expressionParam, Node<Sequence> root, ParseDirection direction) {
-//		Node<Sequence> current = root;
-//
-//		if (expressionParam.isParallel()) {
-//			Node<Sequence> tail = NodeFactory.getNode(factory);
-//            if (expressionParam.isNegative()) {
-//                for (Expression ex : expressionParam.getSubExpressions(direction)) {
-//                    Node<Sequence> next = getNode(current, ex, direction);
-//                    next.add(tail);
-//                }
-//            } else {
-//
-//                for (Expression ex : expressionParam.getSubExpressions(direction)) {
-//                    Node<Sequence> next = getNode(current, ex, direction);
-//                    next.add(tail);
-//                }
-//                current = tail;
-//            }
-//		} else {
-//			for (Expression ex : expressionParam.getSubExpressions(direction)) {
-//				current = getNode(current, ex, direction);
-//			}
-//		}
-//		return current;
-//	}
 
 	private static final class MatchState {
 

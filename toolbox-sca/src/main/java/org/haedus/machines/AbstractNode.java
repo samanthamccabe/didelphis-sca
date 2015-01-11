@@ -14,8 +14,6 @@
 
 package org.haedus.machines;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -117,7 +115,7 @@ public abstract class AbstractNode implements Node<Sequence> {
 
 	@Override
 	public void add(Node<Sequence> node) {
-		add(null, node);
+		add(Sequence.EMPTY_SEQUENCE, node);
 	}
 
 	@Override
