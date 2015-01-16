@@ -17,7 +17,7 @@ package org.haedus.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.io.FileHandler;
-import org.haedus.soundchange.SoundChangeApplier;
+import org.haedus.soundchange.StandardScript;
 
 import java.util.List;
 
@@ -27,17 +27,17 @@ import java.util.List;
  */
 public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 
-	private final SoundChangeApplier soundChangeApplier;
+	private final StandardScript standardScript;
 
-	public LexiconOpenCommand( String pathParam, String handleParam, FileHandler handlerParam, SoundChangeApplier scaParam) {
+	public LexiconOpenCommand(String pathParam, String handleParam, FileHandler handlerParam, StandardScript scaParam) {
 		super(pathParam, handleParam, handlerParam);
-		soundChangeApplier = scaParam;
+		standardScript = scaParam;
 	}
 
 	@Override
 	public void execute() {
 		List<List<String>> lexicon = fileHandler.readTable(filePath);
-		soundChangeApplier.addLexicon(fileHandle, lexicon);
+		standardScript.addLexicon(fileHandle, lexicon);
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 		LexiconOpenCommand rhs = (LexiconOpenCommand) obj;
 		return new EqualsBuilder()
 				.appendSuper(super.equals(obj))
-				.append(this.soundChangeApplier, rhs.soundChangeApplier)
+				.append(this.standardScript, rhs.standardScript)
 				.isEquals();
 	}
 
@@ -58,7 +58,7 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 	public int hashCode() {
 		return new HashCodeBuilder()
 				.appendSuper(super.hashCode())
-				.append(soundChangeApplier)
+				.append(standardScript)
 				.toHashCode();
 	}
 }

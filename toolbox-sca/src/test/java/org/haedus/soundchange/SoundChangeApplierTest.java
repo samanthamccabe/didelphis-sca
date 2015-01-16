@@ -60,12 +60,12 @@ public class SoundChangeApplierTest {
 
 	@Test(expected = ParseException.class)
 	public void testNormalizerBadMode() {
-		new SoundChangeApplier("NORMALIZATION:XXX");
+		new StandardScript("NORMALIZATION:XXX");
 	}
 
 	@Test(expected = ParseException.class)
 	public void testSegmentationBadMode() {
-		new SoundChangeApplier("SEGMENTATION:XXX");
+		new StandardScript("SEGMENTATION:XXX");
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class SoundChangeApplierTest {
 				"BREAK",
 				"a > b"
 		};
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words = toList("x", "xxa", "a");
 		List<String> expected = toList("y", "yya", "a");
@@ -88,7 +88,7 @@ public class SoundChangeApplierTest {
 	public void testNormalizerNFD() {
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
-		SoundChangeApplier sca = new SoundChangeApplier("NORMALIZATION:NFD");
+		StandardScript sca = new StandardScript("NORMALIZATION:NFD");
 
 		Collection<Sequence> expected = new ArrayList<Sequence>();
 		Collection<Sequence> received = sca.processLexicon(lexicon);
@@ -108,7 +108,7 @@ public class SoundChangeApplierTest {
 	public void testNormalizerNFC() {
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
-		SoundChangeApplier sca = new SoundChangeApplier("NORMALIZATION:NFC");
+		StandardScript sca = new StandardScript("NORMALIZATION:NFC");
 
 		Collection<Sequence> expected = new ArrayList<Sequence>();
 		Collection<Sequence> received = sca.processLexicon(lexicon);
@@ -130,7 +130,7 @@ public class SoundChangeApplierTest {
 
 		List<String> lexicon = new ArrayList<String>();
 		Collections.addAll(lexicon, "á", "ā", "ï", "à", "ȍ", "ő");
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		Collection<Sequence> expected = new ArrayList<Sequence>();
 		Collection<Sequence> received = sca.processLexicon(lexicon);
@@ -153,7 +153,7 @@ public class SoundChangeApplierTest {
 				"d > t / _#"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("abad", "abada", "ad", "ado");
 		List<String> expected = toList("ebet", "ebede", "et", "edo");
@@ -174,7 +174,7 @@ public class SoundChangeApplierTest {
 				"tc dc tcʰ tʰcʰ > cc"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
 		List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
@@ -208,7 +208,7 @@ public class SoundChangeApplierTest {
 				"xrɟicuon", "xwetʰx",
 				"tʰcʰuʔ", "tʰʔileʕ");
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
 		testLists(sequences, received);
@@ -239,7 +239,7 @@ public class SoundChangeApplierTest {
 				"xrɟicuon", "xwetʰx",
 				"tʰcʰū",    "tʰilaʔ");
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 		List<Sequence> received = sca.processLexicon(words);
 		List<Sequence> sequences = toSequences(expected, sca);
 		testLists(sequences, received);
@@ -256,7 +256,7 @@ public class SoundChangeApplierTest {
 				"i u > a a / _C",
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words = toList("otetʰ");
 		List<String> expected = toList("atitʰ");
@@ -274,7 +274,7 @@ public class SoundChangeApplierTest {
 				"e o > i u / #_C",
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words = toList(
 				"epet",
@@ -313,7 +313,7 @@ public class SoundChangeApplierTest {
 				"CH > G / _R?VV?C*CH"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("pʰapʰa");
 		List<String> expected = toList("bapʰa");
@@ -326,7 +326,7 @@ public class SoundChangeApplierTest {
 	@Test
 	public void testExpansion01() throws Exception {
 
-		SoundChangeApplier sca = new SoundChangeApplier("IMPORT 'testExpansion01.txt'", CLASSPATH_HANDLER);
+		StandardScript sca = new StandardScript("IMPORT 'testExpansion01.txt'", CLASSPATH_HANDLER);
 		sca.processLexicon(new ArrayList<String>());
 
 		VariableStore vs = sca.getVariables();
@@ -335,7 +335,7 @@ public class SoundChangeApplierTest {
 	}
 
 	private void testExpansion(VariableStore vs, String key, String terminals) {
-		assertEquals(toSequences(terminals, new SoundChangeApplier()), vs.get(key));
+		assertEquals(toSequences(terminals, new StandardScript()), vs.get(key));
 	}
 
 	@Test
@@ -363,7 +363,7 @@ public class SoundChangeApplierTest {
 				"somoɟəyos",     "sēm",
 				"ôwes",          "blan");
 
-		SoundChangeApplier sca = new SoundChangeApplier("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
+		StandardScript sca = new StandardScript("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
 
 		LOGGER.info("{}",sca.hashCode());
 
@@ -384,7 +384,7 @@ public class SoundChangeApplierTest {
 				"B > 0 / #_c"
 		};
 
-		new SoundChangeApplier(commands);
+		new StandardScript(commands);
 	}
 
 	@Test
@@ -395,7 +395,7 @@ public class SoundChangeApplierTest {
 				"IN = ĕ\n" +
 				"IN > 0 / ATC_#";
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> list = new ArrayList<String>();
 
@@ -423,7 +423,7 @@ public class SoundChangeApplierTest {
 				"tc dc tcʰ tʰcʰ > cc"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("ruḱso", "tkeh", "oḱto", "artḱos");
 		List<String> expected = toList("rukso", "kseh", "oɕto", "arccos");
@@ -443,7 +443,7 @@ public class SoundChangeApplierTest {
 				"ǵ  > j"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("ruḱo", "ḱʰeh", "oḱto", "arǵos");
 		List<String> expected = toList("ruɟo", "ɟʰeh", "oɟto", "arjos");
@@ -459,7 +459,7 @@ public class SoundChangeApplierTest {
 				"SEGMENTATION: FALSE",
 				"RESERVE ph th kh"
 		};
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		Collection<String> received = sca.getReservedSymbols();
 		Collection<String> expected = new HashSet<String>();
@@ -477,7 +477,7 @@ public class SoundChangeApplierTest {
 				"ph th kh > f h x"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("kho");
 		List<String> expected = toList("xo");
@@ -495,7 +495,7 @@ public class SoundChangeApplierTest {
 				"ph th kh > f h x"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("rukho", "khek", "ophto", "arthos", "taphos");
 		List<String> expected = toList("ruxo",  "xek",  "ofto",  "arhos",  "tafos");
@@ -512,7 +512,7 @@ public class SoundChangeApplierTest {
 				"N = m n",
 				"Cn Cm > nC nC / _#"
 		};
-		SoundChangeApplier sca = new SoundChangeApplier(commands);
+		StandardScript sca = new StandardScript(commands);
 
 		List<String> words    = toList("atn");
 		List<String> expected = toList("ant");
@@ -533,7 +533,7 @@ public class SoundChangeApplierTest {
 				"ket"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier("OPEN \'testLexicon.lex\' as TEST", CLASSPATH_HANDLER);
+		StandardScript sca = new StandardScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH_HANDLER);
 		sca.process();
 
 		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
@@ -562,7 +562,7 @@ public class SoundChangeApplierTest {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("test.lex", lexicon);
 
-		SoundChangeApplier sca = new SoundChangeApplier("OPEN 'test.lex' as TEST", new MockFileHandler(map));
+		StandardScript sca = new StandardScript("OPEN 'test.lex' as TEST", new MockFileHandler(map));
 		sca.process();
 
 		List<List<Sequence>> received = sca.getLexicon("TEST");
@@ -593,7 +593,7 @@ public class SoundChangeApplierTest {
 				"CLOSE TEST as 'close.lex'"
 		};
 
-		SoundChangeApplier sca = new SoundChangeApplier(commands, new MockFileHandler(map));
+		StandardScript sca = new StandardScript(commands, new MockFileHandler(map));
 		sca.process();
 
 		assertFalse(sca.hasLexicon("TEST"));
@@ -604,7 +604,7 @@ public class SoundChangeApplierTest {
 	}
 
 	/* UTILITY METHODS */
-	private static List<Sequence> toSequences(Iterable<String> strings, SoundChangeApplier sca) {
+	private static List<Sequence> toSequences(Iterable<String> strings, StandardScript sca) {
 		List<Sequence> list = new ArrayList<Sequence>();
 
 		NormalizerMode mode = sca.getNormalizerMode();
@@ -628,7 +628,7 @@ public class SoundChangeApplierTest {
 		return list;
 	}
 
-	private static List<Sequence> toSequences(String string, SoundChangeApplier sca) {
+	private static List<Sequence> toSequences(String string, StandardScript sca) {
 		return toSequences(toList(string.split("\\s+")), sca);
 	}
 
