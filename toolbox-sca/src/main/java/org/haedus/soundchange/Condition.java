@@ -49,7 +49,6 @@ public class Condition {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-//				preCondition  = new StateMachine("pre", conditions[0], sequenceFactory, ParseDirection.BACKWARD);
 				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
 				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
@@ -64,14 +63,6 @@ public class Condition {
 		} else {
 			throw new RuleFormatException("Malformed Condition, no _ character");
 		}
-	}
-
-	public Node<Sequence> getPostCondition() {
-		return postCondition;
-	}
-
-	public Node<Sequence> getPreCondition() {
-		return preCondition;
 	}
 
 	@Override

@@ -14,6 +14,7 @@
 
 package org.haedus.soundchange.command;
 
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -22,6 +23,8 @@ import org.haedus.datatypes.phonetic.VariableStore;
 
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
+
+import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
 
@@ -274,8 +277,7 @@ public class RuleTest {
 	// "trh₂-we"
 	@Test
 	public void testDebug02() {
-		Sequence original = FACTORY.getSequence("trh₂we");
-		Sequence expected = FACTORY.getSequence("tə̄rwe");
+
 
 		VariableStore store = new VariableStore();
 		store.add("X  = h₁  h₂ h₃ h₄");
@@ -291,8 +293,10 @@ public class RuleTest {
 		store.add("[OBSTRUENT] = [PLOSIVE] s");
 		store.add("C = [OBSTRUENT] A W");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
 
+		Sequence original = factory.getSequence("trh₂we");
+		Sequence expected = factory.getSequence("tə̄rwe");
 
 		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
 		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}"             , factory);

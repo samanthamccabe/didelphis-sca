@@ -1,3 +1,5 @@
+OPEN "testRuleLarge01.lex" as LEXICON
+
 y w > i u
 C P T K V R > k p t k a r
 ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û

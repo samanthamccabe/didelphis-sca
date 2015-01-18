@@ -14,14 +14,13 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.NormalizerMode;
+import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.Segmenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Segmenter;
-
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,30 +48,55 @@ public class SequenceFactory {
 	private final NormalizerMode   normalizerMode;
 	private final Set<String>      reservedStrings;
 
-	public static SequenceFactory getEmptyFactory() {
-		return EMPTY_FACTORY;
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
+		this(modelParam, storeParam, new HashSet<String>(), FormatterMode.NONE);
 	}
 
 	private SequenceFactory() {
-		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), FormatterMode.NONE);
 	}
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		this(modelParam, storeParam, new HashSet<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+	public SequenceFactory(FormatterMode modeParam) {
+		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), modeParam);
+	}
+
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, FormatterMode modeParam) {
+		featureModel = modelParam;
+		variableStore = storeParam;
+		reservedStrings = reservedParam;
+
+		// Temporary: these field will eventually be replaced by a single FormatterMode
+		if (modeParam == FormatterMode.INTELLIGENT) {
+			segmentationMode = SegmentationMode.DEFAULT;
+			normalizerMode = NormalizerMode.NFD;
+		} else if (modeParam == FormatterMode.DECOMPOSITION) {
+			segmentationMode = SegmentationMode.NAIVE;
+			normalizerMode = NormalizerMode.NFD;
+		} else if (modeParam == FormatterMode.COMPOSITION) {
+			segmentationMode = SegmentationMode.NAIVE;
+			normalizerMode = NormalizerMode.NFC;
+		} else if (modeParam == FormatterMode.NONE) {
+			segmentationMode = SegmentationMode.NAIVE;
+			normalizerMode = NormalizerMode.NONE;
+		} else {
+			throw new UnsupportedOperationException("Invalid formatter mode provided: " + modeParam);
+		}
+
+		boundarySegmentNAN = new Segment("#", getDoubles(), featureModel);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, SegmentationMode modeParam, NormalizerMode normParam) {
-		featureModel     = modelParam;
-		variableStore    = storeParam;
+		featureModel = modelParam;
+		variableStore = storeParam;
 		segmentationMode = modeParam;
-		normalizerMode   = normParam;
-		reservedStrings  = reservedParam;
+		normalizerMode = normParam;
+		reservedStrings = reservedParam;
 
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
-		}
-		boundarySegmentNAN = new Segment("#", list, featureModel);
+		boundarySegmentNAN = new Segment("#", getDoubles(), featureModel);
+	}
+
+	public static SequenceFactory getEmptyFactory() {
+		return EMPTY_FACTORY;
 	}
 
 	public void reserve(String string) {
@@ -85,6 +109,38 @@ public class SequenceFactory {
 
 	public Segment getSegment(String string) {
 		return Segmenter.getSegment(string, featureModel, reservedStrings, segmentationMode, normalizerMode);
+	}
+
+	public Lexicon getLexiconFromSingleColumn(Iterable<String> list) {
+		Lexicon lexicon = new Lexicon();
+		for (String entry : list) {
+			Sequence sequence = getSequence(entry);
+			lexicon.add(sequence);
+		}
+		return lexicon;
+	}
+
+	public Lexicon getLexiconFromSingleColumn(String... list) {
+		Lexicon lexicon = new Lexicon();
+		for (String entry : list) {
+			Sequence sequence = getSequence(entry);
+			lexicon.add(sequence);
+		}
+		return lexicon;
+	}
+
+	public Lexicon getLexicon(Iterable<List<String>> lists) {
+		Lexicon lexicon = new Lexicon();
+
+		for (List<String> row : lists) {
+			List<Sequence> lexRow = new ArrayList<Sequence>();
+			for (String entry : row) {
+				Sequence sequence = getSequence(entry);
+				lexRow.add(sequence);
+			}
+			lexicon.add(lexRow);
+		}
+		return lexicon;
 	}
 
 	public Sequence getNewSequence() {
@@ -114,6 +170,7 @@ public class SequenceFactory {
 
 		return Segmenter.getSegmentedString(string, keys, segmentationMode, normalizerMode);
 	}
+
 	public FeatureModel getFeatureModel() {
 		return featureModel;
 	}
@@ -124,35 +181,6 @@ public class SequenceFactory {
 
 	public VariableStore getVariableStore() {
 		return variableStore;
-	}
-
-	private static boolean isCombiningClass(int type) {
-		return type == Character.MODIFIER_LETTER        || // LM
-			   type == Character.MODIFIER_SYMBOL        || // SK
-			   type == Character.COMBINING_SPACING_MARK || // MC
-			   type == Character.NON_SPACING_MARK;         // MN
-	}
-
-	private static boolean isDoubleWidthBinder(char ch) {
-		return (int) ch <= 866 && 860 <= (int) ch;
-	}
-
-	private static boolean isSuperscriptAsciiDigit(int value) {
-		// int literals are decimal char values
-		return value == 178 ||
-		       value == 179 ||
-		       value == 185;
-	}
-
-	private static boolean isMathematicalSubOrSuper(int value) {
-		// int literals are decimal char values
-		return value <= 8304 && 8348 <= value;
-	}
-
-	private static boolean isCombingNOS(int value) {
-		// int literals are decimal char values
-		return value >= 8304 &&
-		       value <= 8348;
 	}
 
 	public String getBestMatch(String tail) {
@@ -175,13 +203,50 @@ public class SequenceFactory {
 		return bestMatch;
 	}
 
+	private List<Double> getDoubles() {
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		return list;
+	}
+
+	private static boolean isCombiningClass(int type) {
+		return type == Character.MODIFIER_LETTER || // LM
+				type == Character.MODIFIER_SYMBOL || // SK
+				type == Character.COMBINING_SPACING_MARK || // MC
+				type == Character.NON_SPACING_MARK;         // MN
+	}
+
+	private static boolean isDoubleWidthBinder(char ch) {
+		return (int) ch <= 866 && 860 <= (int) ch;
+	}
+
+	private static boolean isSuperscriptAsciiDigit(int value) {
+		// int literals are decimal char values
+		return value == 178 ||
+				value == 179 ||
+				value == 185;
+	}
+
+	private static boolean isMathematicalSubOrSuper(int value) {
+		// int literals are decimal char values
+		return value <= 8304 && 8348 <= value;
+	}
+
+	private static boolean isCombingNOS(int value) {
+		// int literals are decimal char values
+		return value >= 8304 &&
+				value <= 8348;
+	}
+
 	private static boolean isAttachable(Character c) {
 		int type = Character.getType(c);
 		int value = c;
 		return isSuperscriptAsciiDigit(value) ||
-		       isMathematicalSubOrSuper(value) ||
-		       isCombingNOS(value) ||
-		       isCombiningClass(type);
+				isMathematicalSubOrSuper(value) ||
+				isCombingNOS(value) ||
+				isCombiningClass(type);
 	}
 
 	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {

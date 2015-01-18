@@ -16,12 +16,13 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.datatypes.phonetic.Lexicon;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.io.FileHandler;
+import org.haedus.datatypes.phonetic.LexiconMap;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
@@ -29,9 +30,9 @@ import java.util.Map;
  */
 public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 
-	private final Map<String, List<List<Sequence>>> lexicons;
+	private final LexiconMap lexicons;
 
-	public LexiconCloseCommand(Map<String, List<List<Sequence>>> lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
+	public LexiconCloseCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
 		super(pathParam, handleParam, handlerParam);
 		lexicons = lexiconParam;
 	}
@@ -39,7 +40,7 @@ public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 	@Override
 	public void execute() {
 
-		List<List<Sequence>> lexicon = lexicons.remove(fileHandle);
+		Lexicon lexicon = lexicons.remove(fileHandle);
 
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();

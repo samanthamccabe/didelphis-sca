@@ -14,14 +14,14 @@
 
 package org.haedus.soundchange;
 
+import org.haedus.datatypes.phonetic.Lexicon;
+import org.haedus.datatypes.phonetic.LexiconMap;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.soundchange.command.Command;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Pattern;
 
@@ -32,26 +32,29 @@ import java.util.regex.Pattern;
 public abstract class AbstractScript implements SoundChangeScript {
 
 	protected static final String COMMENT_STRING = "%";
-	protected static final String RESERVE        = "RESERVE";
+	protected static final String RESERVE_STRING = "RESERVE";
 
 	protected static final Pattern COMMENT_PATTERN    = Pattern.compile(COMMENT_STRING + ".*");
 	protected static final Pattern NEWLINE_PATTERN    = Pattern.compile("\\s*(\\r?\\n|\\r)\\s*");
-	protected static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE + ":? *");
+	protected static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE_STRING + ":? *");
 	protected static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-
-	protected final Queue<Command>                    commands;
-	protected final Map<String, List<List<Sequence>>> lexicons;
-
+	protected final Queue<Command> commands;
+	protected final LexiconMap     lexicons;
 
 	public AbstractScript() {
 		commands = new ArrayDeque<Command>();
-		lexicons = new HashMap<String, List<List<Sequence>>>();
+		lexicons = new LexiconMap();
 	}
 
 	@Override
-	public List<List<Sequence>> getLexicon(String handle) {
-		return Collections.unmodifiableList(lexicons.get(handle));
+	public boolean hasLexicon(String handle) {
+		return lexicons.hasHandle(handle);
+	}
+
+	@Override
+	public Lexicon getLexicon(String handle) {
+		return lexicons.get(handle);
 	}
 
 	@Override

@@ -16,6 +16,7 @@ package org.haedus.soundchange;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.datatypes.FormatterMode;
+import org.haedus.datatypes.phonetic.Lexicon;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
@@ -92,26 +93,8 @@ public class Main {
 			SoundChangeScript sca = new BasicScript(rules, lexicon, mode);
 			sca.process();
 
-			List<List<Sequence>> outputLexicon = sca.getLexicon(BasicScript.DEFAULT_LEXICON);
-
-			StringBuilder sb = new StringBuilder(lexicon.length());
-			Iterator<List<Sequence>> iterator = outputLexicon.iterator();
-			while (iterator.hasNext()) {
-				List<Sequence> line = iterator.next();
-				Iterator<Sequence> it = line.iterator();
-				while (it.hasNext()) {
-					Sequence sequence = it.next();
-					sb.append(sequence.toString());
-					if (it.hasNext()) {
-						sb.append("\\t");
-					}
-				}
-				if (iterator.hasNext()) {
-					sb.append("\\r\\n");
-				}
-			}
-
-			FileUtils.write(new File(outputPath), "UTF-8", sb.toString());
+			Lexicon outputLexicon = sca.getLexicon(BasicScript.DEFAULT_LEXICON);
+			FileUtils.write(new File(outputPath), "UTF-8", outputLexicon.toString());
 
 		} else {
 			throw new IllegalArgumentException("An improper number of arguments were provided!\n" +

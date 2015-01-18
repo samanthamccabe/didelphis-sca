@@ -15,19 +15,15 @@
 package org.haedus.soundchange;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.DiskFileHandler;
 import org.haedus.io.FileHandler;
 import org.haedus.io.NullFileHandler;
-import org.haedus.soundchange.command.Command;
 import org.haedus.soundchange.command.LexiconCloseCommand;
 import org.haedus.soundchange.command.LexiconOpenCommand;
 import org.haedus.soundchange.command.LexiconWriteCommand;
@@ -37,15 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.Normalizer;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,13 +78,6 @@ public class StandardScript extends AbstractScript {
 	private SegmentationMode segmentationMode = SegmentationMode.DEFAULT;
 	private NormalizerMode   normalizerMode   = NormalizerMode.NFD;
 
-	public StandardScript() {
-		model = FeatureModel.EMPTY_MODEL;
-		variables = new VariableStore(model);
-		fileHandler = new DiskFileHandler();
-		reservedSymbols = new HashSet<String>();
-	}
-
 	public StandardScript(CharSequence script) {
 		this(script, new DiskFileHandler());
 	}
@@ -119,41 +104,6 @@ public class StandardScript extends AbstractScript {
 		parse(list);
 	}
 
-	public void addLexicon(String handle, Iterable<List<String>> lexicon) {
-		List<List<Sequence>> sequences = getSequences(lexicon);
-		lexicons.put(handle, sequences);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
-		StandardScript rhs = (StandardScript) obj;
-		return new EqualsBuilder()
-				.append(fileHandler, rhs.fileHandler)
-				.append(model, rhs.model)
-				.append(commands, rhs.commands)
-				.append(variables, rhs.variables)
-				.append(lexicons, rhs.lexicons)
-				.append(segmentationMode, rhs.segmentationMode)
-				.append(normalizerMode, rhs.normalizerMode)
-				.isEquals();
-	}
-
-	@Override
-	public int hashCode() {
-		return new HashCodeBuilder()
-				.append(fileHandler)
-				.append(model)
-				.append(commands)
-				.append(variables)
-				.append(lexicons)
-				.toHashCode();
-	}
-
 	@VisibleForTesting
 	FeatureModel getFeatureModel() {
 		return model;
@@ -162,11 +112,6 @@ public class StandardScript extends AbstractScript {
 	@VisibleForTesting
 	VariableStore getVariables() {
 		return variables;
-	}
-
-	@VisibleForTesting
-	boolean hasLexicon(String handle) {
-		return lexicons.containsKey(handle);
 	}
 
 	@VisibleForTesting
@@ -184,37 +129,6 @@ public class StandardScript extends AbstractScript {
 		return reservedSymbols;
 	}
 
-	@VisibleForTesting
-	List<Sequence> processLexicon(List<String> list) {
-		Collection<List<String>> lex = new ArrayList<List<String>>();
-		lex.add(list);
-
-		List<List<Sequence>> lexicon = getSequences(lex);
-		lexicons.put("DEFAULT", lexicon);
-		// Should test later if this is better than for-each
-		for (Command command : commands) {
-			command.execute();
-		}
-		return lexicon.get(0);
-	}
-
-	private List<List<Sequence>> getSequences(Iterable<List<String>> list) {
-
-		SequenceFactory factory = new SequenceFactory(model, variables, reservedSymbols, segmentationMode, normalizerMode);
-
-		List<List<Sequence>> lexicon = new ArrayList<List<Sequence>>();
-		for (List<String> line : list) {
-			List<Sequence> sequences = new ArrayList<Sequence>();
-			for (String item : line) {
-				String word = normalize(item);
-				Sequence sequence = factory.getSequence(word);
-				sequences.add(sequence);
-			}
-			lexicon.add(sequences);
-		}
-		return lexicon;
-	}
-
 	private void parse(Iterable<String> strings) {
 
 		for (String string : strings) {
@@ -226,7 +140,14 @@ public class StandardScript extends AbstractScript {
 				} else if (command.startsWith(IMPORT)) {
 					importScript(command);
 				} else if (command.startsWith(OPEN)) {
-					openLexicon(command);
+					SequenceFactory factory = new SequenceFactory(
+							model,
+							new VariableStore(variables),         // Be sure to defensively copy
+							new HashSet<String>(reservedSymbols), // Be sure to defensively copy
+							segmentationMode,
+							normalizerMode
+					);
+					openLexicon(command, factory);
 				} else if (command.startsWith(WRITE)) {
 					writeLexicon(command);
 				} else if (command.startsWith(CLOSE)) {
@@ -236,13 +157,19 @@ public class StandardScript extends AbstractScript {
 				} else if (command.contains(">")) {
 					// This is probably the correct scope; if other commands change the variables or segmentation mode,
 					// we could get unexpected behavior if this is initialized outside the loop
-					SequenceFactory factory = new SequenceFactory(model, new VariableStore(variables), reservedSymbols, segmentationMode, normalizerMode);
+					SequenceFactory factory = new SequenceFactory(
+							model,
+							new VariableStore(variables),
+							new HashSet<String>(reservedSymbols),
+							segmentationMode,
+							normalizerMode
+					);
 					commands.add(new Rule(command, lexicons, factory));
 				} else if (command.startsWith(NORMALIZATION)) {
 					setNormalization(command);
 				} else if (command.startsWith(SEGMENTATION)) {
 					setSegmentation(command);
-				} else if (command.startsWith(RESERVE)) {
+				} else if (command.startsWith(RESERVE_STRING)) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
 				} else if (command.startsWith("BREAK")) {
@@ -260,14 +187,14 @@ public class StandardScript extends AbstractScript {
 	 *
 	 * @param command the whole command staring from OPEN, specifying the path and file-handle
 	 */
-	private void openLexicon(String command) {
+	private void openLexicon(String command, SequenceFactory factory) {
 		Pattern pattern = Pattern.compile(OPEN + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
 		Matcher matcher = pattern.matcher(command);
 
 		if (matcher.lookingAt()) {
 			String path = matcher.group(1);
 			String handle = matcher.group(3);
-			commands.add(new LexiconOpenCommand(path, handle, fileHandler, this));
+			commands.add(new LexiconOpenCommand(lexicons, path, handle, fileHandler, factory));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}

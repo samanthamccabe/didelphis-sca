@@ -54,7 +54,6 @@ public class ClassPathFileHandler implements FileHandler {
 		try {
 			InputStream inputStream = resource.getInputStream();
 			lines.addAll(IOUtils.readLines(inputStream, encoding));
-			LOGGER.debug("Read {} lines from {}", lines.size(), path);
 			inputStream.close();
 		} catch (IOException e) {
 			LOGGER.error("Error when reading from path \"{}\"!", path);
