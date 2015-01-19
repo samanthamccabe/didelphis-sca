@@ -103,8 +103,8 @@ public class Alignment {
 
 	@Override
     public boolean equals(Object obj) {
-        if (obj == null)                 return false;
-		if (!(obj instanceof Alignment)) return false;
+        if (obj == null)                 { return false; }
+		if (!(obj instanceof Alignment)) { return false; }
 
 		Alignment alignment = (Alignment) obj;
 

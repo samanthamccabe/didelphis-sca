@@ -15,7 +15,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -521,7 +520,7 @@ public class ConditionTest {
 	@Test
 	public void testWithVariables01(){
 
-		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
+		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
 		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
@@ -543,7 +542,7 @@ public class ConditionTest {
 	
 	@Test
 	public void testVariablesDebug01(){
-		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
+		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
 		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(),FormatterMode.INTELLIGENT);

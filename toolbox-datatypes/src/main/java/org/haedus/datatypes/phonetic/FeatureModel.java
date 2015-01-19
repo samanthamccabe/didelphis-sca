@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.datatypes.tables.RectangularTable;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.tables.Table;
 
 import java.io.File;
@@ -126,10 +125,6 @@ public class FeatureModel {
 	public void add(Segment segment) {
 		featureMap.put(segment.getSymbol(), segment.getFeatures());
 	}
-
-//	public void reserveSymbol(String symbol) {
-//		featureMap.put(symbol, new ArrayList<Double>());
-//	}
 
 	@Override
 	public int hashCode() {
@@ -241,6 +236,7 @@ public class FeatureModel {
 					bestCompiled = compiledFeatures;
 				} else if (difference == minimumDifference) {
 					// Modify this to use sets
+					// TODO: what is this?
 				}
 			}
 		}

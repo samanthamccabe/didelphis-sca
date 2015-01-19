@@ -16,12 +16,9 @@ package org.haedus.soundchange;
 
 import org.haedus.datatypes.phonetic.Lexicon;
 import org.haedus.datatypes.phonetic.LexiconMap;
-import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.soundchange.command.Command;
 
 import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.List;
 import java.util.Queue;
 import java.util.regex.Pattern;
 

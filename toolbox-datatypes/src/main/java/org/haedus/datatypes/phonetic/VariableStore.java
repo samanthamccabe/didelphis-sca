@@ -15,15 +15,12 @@
 package org.haedus.datatypes.phonetic;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.haedus.exceptions.VariableDefinitionFormatException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,31 +46,14 @@ public class VariableStore {
 	private static final Pattern EQUALS_PATTERN    = Pattern.compile("\\s*=\\s*");
 	private static final Pattern DELIMITER_PATTERN = Pattern.compile("\\s+");
 
-	private final Map<String, List<Sequence>> variables;
-
-	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
-	private final FeatureModel     featureModel;
-	private final FormatterMode    formatterMode;
+	private final Map<String, List<String>> variables;
 
 	public VariableStore() {
-		this(FeatureModel.EMPTY_MODEL, FormatterMode.NONE);
-	}
-
-	public VariableStore(FeatureModel modelParam) {
-		this(modelParam, FormatterMode.NONE);
-	}
-
-	public VariableStore(FeatureModel modelParam, FormatterMode modeParam) {
-		formatterMode = modeParam;
-		featureModel  = modelParam;
-		variables     = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
+		variables = new LinkedHashMap<String, List<String>>(INITIAL_CAPACITY);
 	}
 
 	public VariableStore(VariableStore otherStore) {
-		variables = new HashMap<String, List<Sequence>>(otherStore.variables);
-
-		featureModel  = otherStore.featureModel;
-		formatterMode = otherStore.formatterMode;
+		variables = new HashMap<String, List<String>>(otherStore.variables);
 	}
 
 	public boolean isEmpty() {
@@ -93,10 +73,10 @@ public class VariableStore {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		for (Map.Entry<String, List<Sequence>> entry : variables.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : variables.entrySet()) {
 			sb.append(entry.getKey());
 			sb.append(" =");
-			for (Sequence sequence : entry.getValue()) {
+			for (String sequence : entry.getValue()) {
 				sb.append(' ');
 				sb.append(sequence);
 			}
@@ -112,7 +92,7 @@ public class VariableStore {
 			String key = parts[0];
 			String[] elements = DELIMITER_PATTERN.split(parts[1]);
 
-			List<Sequence> expanded = new ArrayList<Sequence>();
+			List<String> expanded = new ArrayList<String>();
 			for (String value : elements) {
 				expanded.addAll(expandVariables(value));
 			}
@@ -122,39 +102,47 @@ public class VariableStore {
 		}
 	}
 
-	private Collection<Sequence> expandVariables(String element) {
-		List<Sequence> list = new ArrayList<Sequence>();
-		List<Sequence> swap = new ArrayList<Sequence>();
+	private Collection<String> expandVariables(String element) {
+		List<List<String>> list = new ArrayList<List<String>>();
+		List<List<String>> swap = new ArrayList<List<String>>();
 
-		list.add(Segmenter.getSequence(element, featureModel, getKeys(), formatterMode));
+		List<String> segmentedString = Segmenter.getSegmentedString(element, getKeys(), FormatterMode.NONE);
+		list.add(segmentedString);
 
-		// Find a thing that might be a variable
-		boolean wasModified = true;
-		while (wasModified) {
-			wasModified = false;
-			for (Sequence sequence : list) {
-				for (int i = 0; i < sequence.size(); i++) {
-					String symbol = getBestMatch(sequence.getSubsequence(i));
-					if (contains(symbol)) {
-						Sequence best = Segmenter.getSequence(element, featureModel, getKeys(),formatterMode);
-						for (Sequence terminal : get(best)) {
-							swap.add(sequence.replaceFirst(best, terminal));
+		boolean modified = true;
+		while (modified) {
+			modified = false;
+			for (List<String> strings : list) {
+				for (int i = 0; i < strings.size(); i++) {
+					String string = strings.get(i);
+
+					if (contains(string)) {
+						modified = true;
+						for (String s : get(string)) {
+							List<String> newList = new ArrayList<String>(strings);
+							newList.set(i, s);
+							swap.add(newList);
 						}
+						break;
 					}
 				}
 			}
 			if (!swap.isEmpty()) {
 				list = swap;
-				swap = new ArrayList<Sequence>();
-				wasModified = true;
+				swap = new ArrayList<List<String>>();
 			}
 		}
-		return list;
-	}
 
-	@Deprecated
-	public List<Sequence> get(Sequence sequence) {
-		return get(sequence.toString());
+		Collection<String> expansions = new ArrayList<String>();
+		for (List<String> strings : list) {
+			StringBuilder sb = new StringBuilder(strings.size());
+			for (String string : strings) {
+				sb.append(string);
+			}
+			expansions.add(sb.toString());
+		}
+
+		return expansions;
 	}
 
 	public Set<String> getKeys() {
@@ -165,14 +153,14 @@ public class VariableStore {
 		}
 	}
 
-	public List<Sequence> get(String key) {
+	public List<String> get(String key) {
 		return variables.get(key);
 	}
 
-	private String getBestMatch(Sequence tail) {
+	private String getBestMatch(String tail) {
 		String bestMatch = "";
 		for (String key : getKeys()) {
-			if (tail.toString().startsWith(key) && bestMatch.length() < key.length()) {
+			if (tail.startsWith(key) && bestMatch.length() < key.length()) {
 				bestMatch = key;
 			}
 		}

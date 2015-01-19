@@ -42,10 +42,6 @@ public class Lexicon implements Iterable<List<Sequence>> {
 		lexicon.add(row);
 	}
 
-	public List<List<Sequence>> asList() {
-		return Collections.unmodifiableList(lexicon);
-	}
-
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> iterator = lexicon.iterator();

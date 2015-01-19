@@ -15,10 +15,7 @@
 package org.haedus.soundchange;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.Segmenter;
 import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
@@ -27,13 +24,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.Normalizer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;

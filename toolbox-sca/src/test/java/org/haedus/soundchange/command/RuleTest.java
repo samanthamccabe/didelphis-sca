@@ -15,7 +15,6 @@
 package org.haedus.soundchange.command;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -277,7 +276,7 @@ public class RuleTest {
 	// "trh₂-we"
 	@Test
 	public void testDebug02() {
-		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
+		VariableStore store = new VariableStore();
 		store.add("X  = h₁  h₂ h₃ h₄");
 		store.add("A  = r   l  m  n");
 		store.add("W  = y   w");

@@ -104,7 +104,7 @@ public class StandardScript extends AbstractScript {
 	private void parse(Iterable<String> strings) {
 
 		FormatterMode formatterMode = FormatterMode.NONE;
-		VariableStore variables = new VariableStore(featureModel, formatterMode);
+		VariableStore variables = new VariableStore();
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("");

@@ -412,13 +412,6 @@ public final class Segmenter {
 		return symbols;
 	}
 
-	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
-		segments.add(buffer.toString());
-		buffer = new StringBuilder();
-		buffer.append(key);
-		return buffer;
-	}
-
 	private static final class Symbol {
 		@SuppressWarnings("StringBufferField")
 		private final StringBuilder head;
@@ -453,10 +446,6 @@ public final class Segmenter {
 
 		private void appendHead(String string) {
 			head.append(string);
-		}
-
-		private void appendTail(String string) {
-			tail.add(string);
 		}
 
 		private void appendHead(char ch) {

@@ -26,5 +26,5 @@ public enum FormatterMode {
 	DECOMPOSITION,	// Unicode Canonical Decomposition
 	COMPOSITION,	// Unicode Canonical Decomposition followed by Canonical Composition
 	INTELLIGENT,	// Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
-	NONE;			// No change to input strings; they are read just as they appear in the lexicon and rule
+	NONE			// No change to input strings; they are read just as they appear in the lexicon and rule
 }

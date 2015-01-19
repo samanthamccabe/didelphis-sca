@@ -129,7 +129,12 @@ public class SequenceFactory {
 	}
 
 	public List<Sequence> getVariableValues(String label) {
-		return variableStore.get(label);
+		List<String> strings = variableStore.get(label);
+		List<Sequence> sequences = new ArrayList<Sequence>();
+		for (String string : strings) {
+			sequences.add(getSequence(string));
+		}
+		return sequences;
 	}
 
 	public List<String> getSegmentedString(String string) {
@@ -185,7 +190,7 @@ public class SequenceFactory {
 	}
 
 	private static boolean isDoubleWidthBinder(char ch) {
-		return (int) ch <= 866 && 860 <= (int) ch;
+		return ch <= 866 && 860 <= ch;
 	}
 
 	private static boolean isSuperscriptAsciiDigit(int value) {

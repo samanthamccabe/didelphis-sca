@@ -15,8 +15,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Lexicon;
 import org.haedus.datatypes.phonetic.Sequence;
@@ -77,7 +75,7 @@ public class BasicScript extends AbstractScript {
 	}
 
 	private void parse(String[] strings) {
-		VariableStore variables = new VariableStore(featureModel, formatterMode);
+		VariableStore variables = new VariableStore();
 
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
