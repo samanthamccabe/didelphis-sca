@@ -60,7 +60,7 @@ public class Lexicon implements Iterable<List<Sequence>> {
 				}
 			}
 			if (iterator.hasNext()) {
-				sb.append("\\r\\n");
+				sb.append("\\n");
 			}
 		}
 		return sb.toString();

@@ -277,9 +277,7 @@ public class RuleTest {
 	// "trh₂-we"
 	@Test
 	public void testDebug02() {
-
-
-		VariableStore store = new VariableStore();
+		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
 		store.add("X  = h₁  h₂ h₃ h₄");
 		store.add("A  = r   l  m  n");
 		store.add("W  = y   w");

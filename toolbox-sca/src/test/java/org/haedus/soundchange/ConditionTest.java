@@ -521,7 +521,7 @@ public class ConditionTest {
 	@Test
 	public void testWithVariables01(){
 
-		VariableStore store = new VariableStore();
+		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
 		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
@@ -543,7 +543,7 @@ public class ConditionTest {
 	
 	@Test
 	public void testVariablesDebug01(){
-		VariableStore store = new VariableStore();
+		VariableStore store = new VariableStore(FeatureModel.EMPTY_MODEL, FormatterMode.INTELLIGENT);
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
 		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(),FormatterMode.INTELLIGENT);

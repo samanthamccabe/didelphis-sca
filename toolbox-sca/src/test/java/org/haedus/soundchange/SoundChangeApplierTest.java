@@ -58,39 +58,9 @@ public class SoundChangeApplierTest {
 		assertFalse(expected.equals(received));
 	}
 
-	/* UTILITY METHODS */
-	private static List<Sequence> toSequences(Iterable<String> strings, StandardScript sca) {
-		List<Sequence> list = new ArrayList<Sequence>();
-
-		NormalizerMode mode = sca.getNormalizerMode();
-		for (String s : strings) {
-			String s2;
-			if (mode == NormalizerMode.NONE) {
-				s2 = s;
-			} else {
-				Normalizer.Form form = Normalizer.Form.valueOf(mode.toString());
-				s2 = Normalizer.normalize(s, form);
-			}
-
-			Sequence sequence = Segmenter.getSequence(s2,
-					sca.getFeatureModel(),
-					sca.getVariables().getKeys(),
-					sca.getSegmentationMode(),
-					sca.getNormalizerMode());
-
-			list.add(sequence);
-		}
-		return list;
-	}
-
 	@Test(expected = ParseException.class)
 	public void testNormalizerBadMode() {
-		new StandardScript("NORMALIZATION:XXX");
-	}
-
-	@Test(expected = ParseException.class)
-	public void testSegmentationBadMode() {
-		new StandardScript("SEGMENTATION:XXX");
+		new StandardScript("NORMALIZER:XXX");
 	}
 
 	@Test
@@ -331,7 +301,7 @@ public class SoundChangeApplierTest {
 		assertEquals(expected, received);
 	}
 
-	@Test
+	@Test(timeout = 2000)
 	public void testLoop01() {
 		String[] commands = {
 				"P = pw p t k",

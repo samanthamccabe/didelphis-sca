@@ -40,28 +40,13 @@ public class BasicScript extends AbstractScript {
 
 	private final HashSet<String> reservedSymbols;
 
-	private final SegmentationMode segmentationMode;
-	private final NormalizerMode   normalizerMode;
+	private final FormatterMode formatterMode;
 	private final FeatureModel     featureModel;
 
 	public BasicScript(String[] rulesParam, String[] lexiconParam, FormatterMode modeParam) {
 		reservedSymbols = new HashSet<String>();
 		featureModel = FeatureModel.EMPTY_MODEL;
-		if (modeParam == FormatterMode.INTELLIGENT) {
-			segmentationMode = SegmentationMode.DEFAULT;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.DECOMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.COMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFC;
-		} else if (modeParam == FormatterMode.NONE) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NONE;
-		} else {
-			throw new UnsupportedOperationException("Invalid formatter mode provided: " + modeParam);
-		}
+		formatterMode = modeParam;
 
 		parse(rulesParam);
 		populateLexicon(lexiconParam);
@@ -70,21 +55,8 @@ public class BasicScript extends AbstractScript {
 	public BasicScript(CharSequence rulesParam, CharSequence lexiconParam, FormatterMode modeParam) {
 		reservedSymbols = new HashSet<String>();
 		featureModel = FeatureModel.EMPTY_MODEL;
-		if (modeParam == FormatterMode.INTELLIGENT) {
-			segmentationMode = SegmentationMode.DEFAULT;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.DECOMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.COMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFC;
-		} else if (modeParam == FormatterMode.NONE) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NONE;
-		} else {
-			throw new UnsupportedOperationException("Invalid formatter mode provided: " + modeParam);
-		}
+		formatterMode = modeParam;
+
 
 		parse(WHITESPACE_PATTERN.split(rulesParam));
 		populateLexicon(WHITESPACE_PATTERN.split(lexiconParam));
@@ -92,7 +64,7 @@ public class BasicScript extends AbstractScript {
 
 	private void populateLexicon(String[] lexiconParam) {
 
-		SequenceFactory factory = new SequenceFactory(featureModel, new VariableStore(), new HashSet<String>(reservedSymbols), segmentationMode, normalizerMode);
+		SequenceFactory factory = new SequenceFactory(featureModel, new VariableStore(), new HashSet<String>(reservedSymbols), formatterMode);
 		Lexicon lexicon = new Lexicon();
 		for (String line : lexiconParam) {
 			List<Sequence> row = new ArrayList<Sequence>();
@@ -105,7 +77,7 @@ public class BasicScript extends AbstractScript {
 	}
 
 	private void parse(String[] strings) {
-		VariableStore variables = new VariableStore(featureModel, segmentationMode, normalizerMode);
+		VariableStore variables = new VariableStore(featureModel, formatterMode);
 
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
@@ -118,8 +90,7 @@ public class BasicScript extends AbstractScript {
 							FeatureModel.EMPTY_MODEL,
 							new VariableStore(variables),
 							new HashSet<String>(reservedSymbols),
-							segmentationMode,
-							normalizerMode
+							formatterMode
 					);
 
 					commands.add(new Rule(command, lexicons, factory));

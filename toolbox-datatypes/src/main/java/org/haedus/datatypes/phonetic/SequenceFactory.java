@@ -15,8 +15,6 @@
 package org.haedus.datatypes.phonetic;
 
 import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +40,10 @@ public class SequenceFactory {
 
 	private final Segment boundarySegmentNAN;
 
-	private final FeatureModel     featureModel;
-	private final VariableStore    variableStore;    // VariableStore is only accessed for its keys
-	private final SegmentationMode segmentationMode;
-	private final NormalizerMode   normalizerMode;
-	private final Set<String>      reservedStrings;
+	private final FeatureModel  featureModel;
+	private final VariableStore variableStore; // VariableStore is only accessed for its keys
+	private final FormatterMode formatterMode;
+	private final Set<String>   reservedStrings;
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
 		this(modelParam, storeParam, new HashSet<String>(), FormatterMode.NONE);
@@ -64,34 +61,7 @@ public class SequenceFactory {
 		featureModel = modelParam;
 		variableStore = storeParam;
 		reservedStrings = reservedParam;
-
-		// Temporary: these field will eventually be replaced by a single FormatterMode
-		if (modeParam == FormatterMode.INTELLIGENT) {
-			segmentationMode = SegmentationMode.DEFAULT;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.DECOMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFD;
-		} else if (modeParam == FormatterMode.COMPOSITION) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NFC;
-		} else if (modeParam == FormatterMode.NONE) {
-			segmentationMode = SegmentationMode.NAIVE;
-			normalizerMode = NormalizerMode.NONE;
-		} else {
-			throw new UnsupportedOperationException("Invalid formatter mode provided: " + modeParam);
-		}
-
-		boundarySegmentNAN = new Segment("#", getDoubles(), featureModel);
-	}
-
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, SegmentationMode modeParam, NormalizerMode normParam) {
-		featureModel = modelParam;
-		variableStore = storeParam;
-		segmentationMode = modeParam;
-		normalizerMode = normParam;
-		reservedStrings = reservedParam;
-
+		formatterMode = modeParam;
 		boundarySegmentNAN = new Segment("#", getDoubles(), featureModel);
 	}
 
@@ -108,7 +78,7 @@ public class SequenceFactory {
 	}
 
 	public Segment getSegment(String string) {
-		return Segmenter.getSegment(string, featureModel, reservedStrings, segmentationMode, normalizerMode);
+		return Segmenter.getSegment(string, featureModel, reservedStrings, formatterMode);
 	}
 
 	public Lexicon getLexiconFromSingleColumn(Iterable<String> list) {
@@ -151,7 +121,7 @@ public class SequenceFactory {
 		Collection<String> keys = new ArrayList<String>();
 		keys.addAll(variableStore.getKeys());
 		keys.addAll(reservedStrings);
-		return Segmenter.getSequence(word, featureModel, keys, segmentationMode, normalizerMode);
+		return Segmenter.getSequence(word, featureModel, keys, formatterMode);
 	}
 
 	public boolean hasVariable(String label) {
@@ -168,15 +138,11 @@ public class SequenceFactory {
 		keys.addAll(featureModel.getSymbols());
 		keys.addAll(reservedStrings);
 
-		return Segmenter.getSegmentedString(string, keys, segmentationMode, normalizerMode);
+		return Segmenter.getSegmentedString(string, keys, formatterMode);
 	}
 
 	public FeatureModel getFeatureModel() {
 		return featureModel;
-	}
-
-	public SegmentationMode getSegmentationMode() {
-		return segmentationMode;
 	}
 
 	public VariableStore getVariableStore() {
@@ -212,8 +178,8 @@ public class SequenceFactory {
 	}
 
 	private static boolean isCombiningClass(int type) {
-		return type == Character.MODIFIER_LETTER || // LM
-				type == Character.MODIFIER_SYMBOL || // SK
+		return type == Character.MODIFIER_LETTER         || // LM
+				type == Character.MODIFIER_SYMBOL        || // SK
 				type == Character.COMBINING_SPACING_MARK || // MC
 				type == Character.NON_SPACING_MARK;         // MN
 	}

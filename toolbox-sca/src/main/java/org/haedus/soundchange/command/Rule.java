@@ -107,8 +107,8 @@ public class Rule implements Command {
 		for (Lexicon lexicon : lexicons.values()) {
 			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence word = row.get(i);
-					row.set(i, apply(word));
+					Sequence word = apply(row.get(i));
+					row.set(i, word);
 				}
 			}
 		}

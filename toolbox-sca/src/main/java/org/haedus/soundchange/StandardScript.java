@@ -15,8 +15,7 @@
 package org.haedus.soundchange;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
@@ -32,7 +31,6 @@ import org.haedus.soundchange.command.ScriptExecuteCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,32 +49,26 @@ public class StandardScript extends AbstractScript {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
-	private static final String NORMALIZATION = "NORMALIZATION";
-	private static final String SEGMENTATION  = "SEGMENTATION";
-	private static final String EXECUTE       = "EXECUTE";
-	private static final String IMPORT        = "IMPORT";
-	private static final String OPEN          = "OPEN";
-	private static final String WRITE         = "WRITE";
-	private static final String CLOSE         = "CLOSE";
-	private static final String FILEHANDLE    = "([A-Z0-9_]+)";
-	private static final String FILEPATH      = "[\"\']([^\"\']+)[\"\']";
+	private static final String NORMALIZER = "NORMALIZER";
+	private static final String EXECUTE    = "EXECUTE";
+	private static final String IMPORT     = "IMPORT";
+	private static final String OPEN       = "OPEN";
+	private static final String WRITE      = "WRITE";
+	private static final String CLOSE      = "CLOSE";
+	private static final String FILEHANDLE = "([A-Z0-9_]+)";
+	private static final String FILEPATH   = "[\"\']([^\"\']+)[\"\']";
 
-	private static final Pattern CLOSE_PATTERN         = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern WRITE_PATTERN         = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern SEGMENTATION_PATTERN  = Pattern.compile(SEGMENTATION + ": *");
-	private static final Pattern NORMALIZATION_PATTERN = Pattern.compile(NORMALIZATION + ": *");
-	private static final Pattern EXECUTE_PATTERN       = Pattern.compile(EXECUTE + "\\s+");
-	private static final Pattern IMPORT_PATTERN        = Pattern.compile(IMPORT + "\\s+");
-	private static final Pattern QUOTES_PATTERN        = Pattern.compile("\"|\'");
+	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER + ": *");
+	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE + "\\s+");
+	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT + "\\s+");
+	private static final Pattern QUOTES_PATTERN     = Pattern.compile("\"|\'");
 
-	private final FileHandler   fileHandler;
-	private final FeatureModel  model;
-	private final VariableStore variables;
-	private final Set<String>   reservedSymbols;
-
-
-	private SegmentationMode segmentationMode = SegmentationMode.DEFAULT;
-	private NormalizerMode   normalizerMode   = NormalizerMode.NFD;
+	private final FileHandler  fileHandler;
+	private final FeatureModel featureModel;
+	//	private final VariableStore variables;
+	private final Set<String>  reservedSymbols;
 
 	public StandardScript(CharSequence script) {
 		this(script, new DiskFileHandler());
@@ -94,8 +86,8 @@ public class StandardScript extends AbstractScript {
 
 	@VisibleForTesting
 	StandardScript(String[] array, FileHandler fileHandlerParam) {
-		model = FeatureModel.EMPTY_MODEL;
-		variables = new VariableStore(model);
+		featureModel = FeatureModel.EMPTY_MODEL;
+//		variables = new VariableStore(model);
 		fileHandler = fileHandlerParam;
 		reservedSymbols = new HashSet<String>();
 
@@ -105,47 +97,27 @@ public class StandardScript extends AbstractScript {
 	}
 
 	@VisibleForTesting
-	FeatureModel getFeatureModel() {
-		return model;
-	}
-
-	@VisibleForTesting
-	VariableStore getVariables() {
-		return variables;
-	}
-
-	@VisibleForTesting
-	NormalizerMode getNormalizerMode() {
-		return normalizerMode;
-	}
-
-	@VisibleForTesting
-	SegmentationMode getSegmentationMode() {
-		return segmentationMode;
-	}
-
-	@VisibleForTesting
 	Collection<String> getReservedSymbols() {
 		return reservedSymbols;
 	}
 
 	private void parse(Iterable<String> strings) {
 
+		FormatterMode formatterMode = FormatterMode.NONE;
+		VariableStore variables = new VariableStore(featureModel, formatterMode);
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
-				String trimmedCommand = COMMENT_PATTERN.matcher(string).replaceAll("");
-				String command = normalize(trimmedCommand);
+				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
 				if (command.startsWith(EXECUTE)) {
 					executeScript(command);
 				} else if (command.startsWith(IMPORT)) {
 					importScript(command);
 				} else if (command.startsWith(OPEN)) {
 					SequenceFactory factory = new SequenceFactory(
-							model,
+							featureModel,
 							new VariableStore(variables),         // Be sure to defensively copy
 							new HashSet<String>(reservedSymbols), // Be sure to defensively copy
-							segmentationMode,
-							normalizerMode
+							formatterMode
 					);
 					openLexicon(command, factory);
 				} else if (command.startsWith(WRITE)) {
@@ -158,17 +130,14 @@ public class StandardScript extends AbstractScript {
 					// This is probably the correct scope; if other commands change the variables or segmentation mode,
 					// we could get unexpected behavior if this is initialized outside the loop
 					SequenceFactory factory = new SequenceFactory(
-							model,
+							featureModel,
 							new VariableStore(variables),
 							new HashSet<String>(reservedSymbols),
-							segmentationMode,
-							normalizerMode
+							formatterMode
 					);
 					commands.add(new Rule(command, lexicons, factory));
-				} else if (command.startsWith(NORMALIZATION)) {
-					setNormalization(command);
-				} else if (command.startsWith(SEGMENTATION)) {
-					setSegmentation(command);
+				} else if (command.startsWith(NORMALIZER)) {
+					formatterMode = setNormalizer(command);
 				} else if (command.startsWith(RESERVE_STRING)) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
@@ -257,41 +226,12 @@ public class StandardScript extends AbstractScript {
 		commands.add(new ScriptExecuteCommand(path));
 	}
 
-	/**
-	 * Sets the normalization mode of the sound change applier
-	 *
-	 * @param command the whole command, beginning with NORMALIZATION
-	 */
-	private void setNormalization(CharSequence command) {
-		String mode = NORMALIZATION_PATTERN.matcher(command).replaceAll("");
+	private FormatterMode setNormalizer(CharSequence command) {
+		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("");
 		try {
-			normalizerMode = NormalizerMode.valueOf(mode);
+			return FormatterMode.valueOf(mode);
 		} catch (IllegalArgumentException e) {
 			throw new ParseException(e);
-		}
-	}
-
-	/**
-	 * Sets the segmentation mode of the sound change applier
-	 *
-	 * @param command the whole command, beginning with SEGMENTATION
-	 */
-	private void setSegmentation(CharSequence command) {
-		String mode = SEGMENTATION_PATTERN.matcher(command).replaceAll("");
-		if (mode.startsWith("FALSE")) {
-			segmentationMode = SegmentationMode.NAIVE;
-		} else if (mode.startsWith("TRUE")) {
-			segmentationMode = SegmentationMode.DEFAULT;
-		} else {
-			throw new ParseException("Unrecognized segmentation mode \"" + mode + '"');
-		}
-	}
-
-	private String normalize(String string) {
-		if (normalizerMode == NormalizerMode.NONE) {
-			return string;
-		} else {
-			return Normalizer.normalize(string, Normalizer.Form.valueOf(normalizerMode.toString()));
 		}
 	}
 }

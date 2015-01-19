@@ -22,9 +22,6 @@ package org.haedus.datatypes;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.VariableStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -55,10 +52,12 @@ public final class Segmenter {
 	private Segmenter() {
 	}
 
+	@Deprecated
 	public static Segment getSegment(String string, FeatureModel model, SegmentationMode segParam, NormalizerMode normParam) {
 		return getSegment(string, model, null, segParam, normParam);
 	}
 
+	@Deprecated
 	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segParam, NormalizerMode normParam) {
 
 		Collection<String> keys = getKeys(model, reservedStrings);
@@ -76,9 +75,25 @@ public final class Segmenter {
 		}
 	}
 
+	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
+		Collection<String> keys = getKeys(model, reservedStrings);
+
+		String normalString = normalize(string, formatterMode);
+
+		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
+		if (segmentedSymbol.size() >= 1) {
+			Symbol symbol = segmentedSymbol.get(0);
+			String head = symbol.getHead();
+			List<String> tail = symbol.getTail();
+			return model.getSegment(head, tail);
+		} else {
+			return null;
+		}
+	}
+
+	@Deprecated
 	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode segParam, NormalizerMode normParam) {
 		String normalString = normalize(word, normParam);
-
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, segParam);
 		List<String> list = new ArrayList<String>();
 		for (Symbol symbol : segmentedSymbol) {
@@ -89,6 +104,70 @@ public final class Segmenter {
 			list.add(head.toString());
 		}
 		return list;
+	}
+
+	public static List<String> getSegmentedString(String word, Collection<String> keys, FormatterMode formatterMode) {
+		String normalString = normalize(word, formatterMode);
+		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
+		List<String> list = new ArrayList<String>();
+		for (Symbol symbol : segmentedSymbol) {
+			StringBuilder head = new StringBuilder(symbol.getHead());
+			for (String s : symbol.getTail()) {
+				head.append(s);
+			}
+			list.add(head.toString());
+		}
+		return list;
+	}
+
+
+	@Deprecated
+	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
+		Collection<String> keys = getKeys(model, reservedStrings);
+		String normalString = normalize(word, normalizerParam);
+		List<Symbol> list = getCompositeSymbols(normalString, keys, segmentationParam);
+		Sequence sequence = new Sequence(model);
+		for (Symbol item : list) {
+			String head = item.getHead();
+			List<String> tail = item.getTail();
+
+			Segment segment = model.getSegment(head, tail);
+			sequence.add(segment);
+		}
+		return sequence;
+	}
+
+	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
+		Collection<String> keys = getKeys(model, reservedStrings);
+		String normalString = normalize(word, formatterMode);
+		List<Symbol> list = getCompositeSymbols(normalString, keys, formatterMode);
+		Sequence sequence = new Sequence(model);
+		for (Symbol item : list) {
+			String head = item.getHead();
+			List<String> tail = item.getTail();
+
+			Segment segment = model.getSegment(head, tail);
+			sequence.add(segment);
+		}
+		return sequence;
+	}
+
+	private static Collection<String> getKeys(FeatureModel model, Collection<String> reserved) {
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(model.getSymbols());
+		if (reserved != null) {
+			keys.addAll(reserved);
+		}
+		return keys;
+	}
+
+	@Deprecated
+	private static String normalize(String string, NormalizerMode normalizerMode) {
+		if (normalizerMode == NormalizerMode.NONE) {
+			return string;
+		} else {
+			return Normalizer.normalize(string, Normalizer.Form.valueOf(normalizerMode.toString()));
+		}
 	}
 
 	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, SegmentationMode segParam) {
@@ -120,7 +199,7 @@ public final class Segmenter {
 	private static List<String> separateBrackets(String word) {
 		List<String> list = new ArrayList<String>();
 		StringBuilder buffer = new StringBuilder();
-		for (int i = 0; i < word.length();) {
+		for (int i = 0; i < word.length(); ) {
 			char c = word.charAt(i);
 
 			if (c == '{') {
@@ -129,7 +208,7 @@ public final class Segmenter {
 					buffer = new StringBuilder();
 				}
 				int index = getIndex(word, '{', '}', i) + 1;
-				list.add(word.substring(i , index));
+				list.add(word.substring(i, index));
 				i = index;
 			} else if (c == '(') {
 				if (buffer.length() != 0) {
@@ -151,32 +230,8 @@ public final class Segmenter {
 		return list;
 	}
 
-	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
-		Collection<String> keys = getKeys(model, reservedStrings);
-		String normalString = normalize(word, normalizerParam);
-		List<Symbol> list = getCompositeSymbols(normalString, keys, segmentationParam);
-		Sequence sequence = new Sequence(model);
-		for (Symbol item : list) {
-			String head = item.getHead();
-			List<String> tail = item.getTail();
-
-			Segment segment = model.getSegment(head, tail);
-			sequence.add(segment);
-		}
-		return sequence;
-	}
-
-	private static Collection<String> getKeys(FeatureModel model, Collection<String> reserved) {
-		Collection<String> keys = new ArrayList<String>();
-		keys.addAll(model.getSymbols());
-		if (reserved != null) {
-			keys.addAll(reserved);
-		}
-		return keys;
-	}
-
-	private static List<Symbol> getThings(String word, Iterable<String> keys) {
-		List<Symbol> segments = new ArrayList<Symbol>();
+	private static Collection<Symbol> getThings(String word, Iterable<String> keys) {
+		Collection<Symbol> segments = new ArrayList<Symbol>();
 
 		Symbol symbol = new Symbol();
 		int length = word.length();
@@ -222,74 +277,8 @@ public final class Segmenter {
 		return segments;
 	}
 
-	// Finds longest item in keys which the provided string starts with
-	// Also can be used to grab index symbols
-	private static String getBestMatch(String word, Iterable<String> keys) {
-		String bestMatch = "";
-
-		String string = word;
-		// This is a bad idea because some contexts require
-		// this method to return exactly the input provided
-		for (String key : keys) {
-			if (string.startsWith(key) && bestMatch.length() < key.length()) {
-				bestMatch = key;
-			}
-		}
-
-		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(string);
-		if (backReferenceMatcher.lookingAt()) {
-			bestMatch = backReferenceMatcher.group();
-		}
-		return bestMatch;
-	}
-
-	private static boolean isAttachable(char ch) {
-		return isSuperscriptAsciiDigit(ch) ||
-				isMathematicalSubOrSuper(ch) ||
-				isCombingNOS(ch) ||
-				isCombiningClass(ch) ||
-				isDoubleWidthBinder(ch);
-	}
-
-	private static boolean isCombingNOS(char value) {
-		// int literals are decimal char values
-		return value >= SUPERSCRIPT_ZERO &&
-				value <= SUBSCRIPT_SMALL_T;
-	}
-
-	private static boolean isCombiningClass(char ch) {
-		int type = Character.getType(ch);
-		return type == Character.MODIFIER_LETTER || // LM
-				type == Character.MODIFIER_SYMBOL || // SK
-				type == Character.COMBINING_SPACING_MARK || // MC
-				type == Character.NON_SPACING_MARK;         // MN
-	}
-
-	private static boolean isDoubleWidthBinder(char ch) {
-		return ch <= BINDER_END && BINDER_START <= ch;
-	}
-
-	private static boolean isSuperscriptAsciiDigit(char value) {
-		// int literals are decimal char values
-		return value == SUPERSCRIPT_TWO ||
-				value == SUPERSCRIPT_THREE ||
-				value == SUPERSCRIPT_ONE;
-	}
-
-	private static boolean isMathematicalSubOrSuper(char value) {
-		// int literals are decimal char values
-		return value <= SUPERSCRIPT_ZERO && SUBSCRIPT_SMALL_T <= value;
-	}
-
-	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
-		segments.add(buffer.toString());
-		buffer = new StringBuilder();
-		buffer.append(key);
-		return buffer;
-	}
-
-	private static List<Symbol> segmentNaively(String word, Iterable<String> keys) {
-		List<Symbol> segments = new ArrayList<Symbol>();
+	private static Collection<Symbol> segmentNaively(String word, Iterable<String> keys) {
+		Collection<Symbol> segments = new ArrayList<Symbol>();
 		for (int i = 0; i < word.length(); i++) {
 
 			String key = getBestMatch(word.substring(i), keys);
@@ -327,12 +316,107 @@ public final class Segmenter {
 		return endIndex;
 	}
 
-	private static String normalize(String string, NormalizerMode normalizerMode) {
-		if (normalizerMode == NormalizerMode.NONE) {
-			return string;
-		} else {
-			return Normalizer.normalize(string, Normalizer.Form.valueOf(normalizerMode.toString()));
+	// Finds longest item in keys which the provided string starts with
+	// Also can be used to grab index symbols
+	private static String getBestMatch(String word, Iterable<String> keys) {
+		String bestMatch = "";
+		for (String key : keys) {
+			if (word.startsWith(key) && bestMatch.length() < key.length()) {
+				bestMatch = key;
+			}
 		}
+
+		Matcher backReferenceMatcher = BACKREFERENCE_PATTERN.matcher(word);
+		if (backReferenceMatcher.lookingAt()) {
+			bestMatch = backReferenceMatcher.group();
+		}
+		return bestMatch;
+	}
+
+	private static boolean isAttachable(char ch) {
+		return isSuperscriptAsciiDigit(ch) ||
+				isMathematicalSubOrSuper(ch) ||
+				isCombingNOS(ch) ||
+				isCombiningClass(ch) ||
+				isDoubleWidthBinder(ch);
+	}
+
+	private static boolean isDoubleWidthBinder(char ch) {
+		return ch <= BINDER_END && BINDER_START <= ch;
+	}
+
+	private static boolean isSuperscriptAsciiDigit(char value) {
+		// int literals are decimal char values
+		return value == SUPERSCRIPT_TWO ||
+				value == SUPERSCRIPT_THREE ||
+				value == SUPERSCRIPT_ONE;
+	}
+
+	private static boolean isMathematicalSubOrSuper(char value) {
+		// int literals are decimal char values
+		return value <= SUPERSCRIPT_ZERO && SUBSCRIPT_SMALL_T <= value;
+	}
+
+	private static boolean isCombingNOS(char value) {
+		// int literals are decimal char values
+		return value >= SUPERSCRIPT_ZERO &&
+				value <= SUBSCRIPT_SMALL_T;
+	}
+
+	private static boolean isCombiningClass(char ch) {
+		int type = Character.getType(ch);
+		return type == Character.MODIFIER_LETTER || // LM
+				type == Character.MODIFIER_SYMBOL || // SK
+				type == Character.COMBINING_SPACING_MARK || // MC
+				type == Character.NON_SPACING_MARK;         // MN
+	}
+
+	private static String normalize(String word, FormatterMode mode) {
+
+		if (mode == FormatterMode.INTELLIGENT || mode == FormatterMode.DECOMPOSITION) {
+			return Normalizer.normalize(word, Normalizer.Form.NFD);
+		} else if (mode == FormatterMode.COMPOSITION) {
+			return Normalizer.normalize(word, Normalizer.Form.NFC);
+		} else if (mode == FormatterMode.NONE) {
+			return word;
+		} else {
+			throw new IllegalArgumentException("Unknown or unsupported FormatMode " + mode);
+		}
+	}
+
+	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, FormatterMode segParam) {
+
+		List<Symbol> symbols = new ArrayList<Symbol>();
+		List<String> separatedString = separateBrackets(word);
+		if (segParam == FormatterMode.INTELLIGENT) {
+			for (String s : separatedString) {
+				if (s.startsWith("{") || s.startsWith("(")) {
+					symbols.add(new Symbol(s));
+				} else {
+					symbols.addAll(getThings(s, keys));
+				}
+			}
+		} else if (segParam == FormatterMode.DECOMPOSITION ||
+				segParam == FormatterMode.COMPOSITION ||
+				segParam == FormatterMode.NONE) {
+			for (String s : separatedString) {
+				if (s.startsWith("{") || s.startsWith("(")) {
+					symbols.add(new Symbol(s));
+				} else {
+					symbols.addAll(segmentNaively(s, keys));
+				}
+			}
+		} else {
+			throw new UnsupportedOperationException("Unsupported segmentation mode " + segParam);
+		}
+		return symbols;
+	}
+
+	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
+		segments.add(buffer.toString());
+		buffer = new StringBuilder();
+		buffer.append(key);
+		return buffer;
 	}
 
 	private static final class Symbol {

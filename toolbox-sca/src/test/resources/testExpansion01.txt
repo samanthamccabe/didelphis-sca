@@ -1,3 +1,5 @@
+NORMALIZATION: INTELLIGENT
+
 [E] = e ē
 [A] = a ā
 [O] = o ō

@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.NormalizerMode;
 import org.haedus.datatypes.SegmentationMode;
 import org.haedus.datatypes.Segmenter;
@@ -22,6 +23,7 @@ import org.haedus.exceptions.VariableDefinitionFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,31 +53,27 @@ public class VariableStore {
 
 	// FeatureModel and SegmentationMode is ONLY called in order to use the Segmenter
 	private final FeatureModel     featureModel;
-	private final SegmentationMode segmentationMode;
-	private final NormalizerMode   normalizerMode;
+	private final FormatterMode    formatterMode;
 
 	public VariableStore() {
-		this(FeatureModel.EMPTY_MODEL, SegmentationMode.DEFAULT, NormalizerMode.NFD);
-
+		this(FeatureModel.EMPTY_MODEL, FormatterMode.NONE);
 	}
 
 	public VariableStore(FeatureModel modelParam) {
-		this(modelParam, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		this(modelParam, FormatterMode.NONE);
 	}
 
-	public VariableStore(FeatureModel modelParam, SegmentationMode segParam, NormalizerMode normParam) {
-		segmentationMode = segParam;
-		normalizerMode   = normParam;
-		featureModel     = modelParam;
-		variables        = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
+	public VariableStore(FeatureModel modelParam, FormatterMode modeParam) {
+		formatterMode = modeParam;
+		featureModel  = modelParam;
+		variables     = new LinkedHashMap<String, List<Sequence>>(INITIAL_CAPACITY);
 	}
 
 	public VariableStore(VariableStore otherStore) {
 		variables = new HashMap<String, List<Sequence>>(otherStore.variables);
 
-		featureModel     = otherStore.featureModel;
-		segmentationMode = otherStore.segmentationMode;
-		normalizerMode   = otherStore.normalizerMode;
+		featureModel  = otherStore.featureModel;
+		formatterMode = otherStore.formatterMode;
 	}
 
 	public boolean isEmpty() {
@@ -128,7 +126,7 @@ public class VariableStore {
 		List<Sequence> list = new ArrayList<Sequence>();
 		List<Sequence> swap = new ArrayList<Sequence>();
 
-		list.add(Segmenter.getSequence(element, featureModel, getKeys(), segmentationMode, normalizerMode));
+		list.add(Segmenter.getSequence(element, featureModel, getKeys(), formatterMode));
 
 		// Find a thing that might be a variable
 		boolean wasModified = true;
@@ -138,7 +136,7 @@ public class VariableStore {
 				for (int i = 0; i < sequence.size(); i++) {
 					String symbol = getBestMatch(sequence.getSubsequence(i));
 					if (contains(symbol)) {
-						Sequence best = Segmenter.getSequence(element, featureModel, getKeys(), segmentationMode, normalizerMode);
+						Sequence best = Segmenter.getSequence(element, featureModel, getKeys(),formatterMode);
 						for (Sequence terminal : get(best)) {
 							swap.add(sequence.replaceFirst(best, terminal));
 						}
