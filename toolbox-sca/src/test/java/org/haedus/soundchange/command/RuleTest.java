@@ -19,7 +19,6 @@ import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 import org.haedus.datatypes.phonetic.VariableStore;
-
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
@@ -36,7 +35,8 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
-	private static final SequenceFactory FACTORY = SequenceFactory.getEmptyFactory();
+	public static final  SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
+	private static final SequenceFactory FACTORY     = SequenceFactory.getEmptyFactory();
 
 	@Test
 	public void testMetathesis01() {
@@ -45,7 +45,6 @@ public class RuleTest {
 		store.add("N = m n");
 
 		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
-
 
 		Rule rule = new Rule("CN > $2$1", factory);
 
@@ -112,152 +111,150 @@ public class RuleTest {
 
 	@Test
 	public void testDeletion01() {
-		Rule rule = new Rule("∅ - > 0");
-		testRule(rule, "∅-s-irentu-pʰen", "sirentupʰen");
+		Rule rule = new Rule("∅ - > 0", FACTORY);
+		testRule(rule, FACTORY, "∅-s-irentu-pʰen", "sirentupʰen");
 	}
 
 	@Test
 	public void testDeletion02() {
-		Rule rule = new Rule("a > 0");
-		testRule(rule, "aaaabbba", "bbb");
+		Rule rule = new Rule("a > 0", FACTORY);
+		testRule(rule, FACTORY, "aaaabbba", "bbb");
 	}
 
 	@Test
 	public void testDeletion03() {
-		Rule rule = new Rule("a b > 0");
-		testRule(rule, "aaaaccbbccbba", "cccc");
+		Rule rule = new Rule("a b > 0", FACTORY);
+		testRule(rule, FACTORY, "aaaaccbbccbba", "cccc");
 	}
 
 	@Test
 	public void testRule01() {
-		Rule rule = new Rule("a > b");
+		Rule rule = new Rule("a > b", FACTORY);
 
-		testRule(rule, "aaaaaaccca", "bbbbbbcccb");
+		testRule(rule, FACTORY, "aaaaaaccca", "bbbbbbcccb");
 	}
 
 	@Test
 	public void testRule02() {
-		Rule rule = new Rule("a e > æ ɛ");
+		Rule rule = new Rule("a e > æ ɛ", FACTORY);
 
-		testRule(rule, "ate", "ætɛ");
-		testRule(rule, "atereyamane", "ætɛrɛyæmænɛ");
+		testRule(rule, FACTORY, "ate", "ætɛ");
+		testRule(rule, FACTORY, "atereyamane", "ætɛrɛyæmænɛ");
 	}
 
 	@Test
 	public void testRule03() {
-		Rule rule = new Rule("a b c d e f g > A B C D E F G");
+		Rule rule = new Rule("a b c d e f g > A B C D E F G", FACTORY);
 
-		testRule(rule, "abcdefghijk", "ABCDEFGhijk");
+		testRule(rule, FACTORY, "abcdefghijk", "ABCDEFGhijk");
 	}
 
 	@Test
 	public void testConditional01() {
-		Rule rule = new Rule("a > o / g_");
+		Rule rule = new Rule("a > o / g_", FACTORY);
 
-		testRule(rule, "ga", "go");
-		testRule(rule, "adamagara", "adamagora");
+		testRule(rule, FACTORY, "ga", "go");
+		testRule(rule, FACTORY, "adamagara", "adamagora");
 	}
 
 	@Test
 	public void testConditional02() {
-		Rule rule = new Rule("a > e / _c");
-		testRule(rule, "abacaba", "abecaba");
-		testRule(rule, "ababaca", "ababeca");
-		testRule(rule, "acababa", "ecababa");
-		testRule(rule, "acabaca", "ecabeca");
+		Rule rule = new Rule("a > e / _c", FACTORY);
+		testRule(rule, FACTORY, "abacaba", "abecaba");
+		testRule(rule, FACTORY, "ababaca", "ababeca");
+		testRule(rule, FACTORY, "acababa", "ecababa");
+		testRule(rule, FACTORY, "acabaca", "ecabeca");
 	}
 
 	@Test
 	public void testConditional03() {
-		Rule rule = new Rule("a > e / _c+#");
-		testRule(rule, "abac", "abec");
-		testRule(rule, "abacc", "abecc");
-		testRule(rule, "abaccc", "abeccc");
-		testRule(rule, "abacccc", "abecccc");
-		testRule(rule, "abaccccc", "abeccccc");
+		Rule rule = new Rule("a > e / _c+#", INTELLIGENT);
+		testRule(rule, INTELLIGENT, "abac", "abec");
+		testRule(rule, INTELLIGENT, "abacc", "abecc");
+		testRule(rule, INTELLIGENT, "abaccc", "abeccc");
+		testRule(rule, INTELLIGENT, "abacccc", "abecccc");
+		testRule(rule, INTELLIGENT, "abaccccc", "abeccccc");
 	}
 
 	@Test
 	public void testUnconditional04() {
-		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē");
-		testRule(rule, "keʔe", "kē");
-		testRule(rule, "kaʔa", "kā");
-		testRule(rule, "keʔa", "kā");
-		testRule(rule, "kaʔe", "kē");
+		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
+		testRule(rule, INTELLIGENT, "keʔe", "kē");
+		testRule(rule, INTELLIGENT, "kaʔa", "kā");
+		testRule(rule, INTELLIGENT, "keʔa", "kā");
+		testRule(rule, INTELLIGENT, "kaʔe", "kē");
 	}
 
 	@Test
 	public void testConditional05() {
-		Rule rule = new Rule("rˌh lˌh > ər əl / _a");
-		testRule(rule, "krˌha", "kəra");
-		testRule(rule, "klˌha", "kəla");
-		testRule(rule, "klˌhe", "klˌhe");
+		Rule rule = new Rule("rˌh lˌh > ər əl / _a", INTELLIGENT);
+		testRule(rule, INTELLIGENT, "krˌha", "kəra");
+		testRule(rule, INTELLIGENT, "klˌha", "kəla");
+		testRule(rule, INTELLIGENT, "klˌhe", "klˌhe");
 	}
 
 	@Test
 	public void testConditional06() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
 
-		testRule(rule, "pʰāḱʰus", "bāḱʰus");
-		testRule(rule, "pʰentʰros", "bentʰros");
-		testRule(rule, "pʰlaḱʰmēn", "blaḱʰmēn");
-		testRule(rule, "pʰoutʰéyet", "boutʰéyet");
-
-		testRule(rule, "pʰɛḱʰus", "pʰɛḱʰus");
+		testRule(rule, INTELLIGENT, "pʰāḱʰus", "bāḱʰus");
+		testRule(rule, INTELLIGENT, "pʰentʰros", "bentʰros");
+		testRule(rule, INTELLIGENT, "pʰlaḱʰmēn", "blaḱʰmēn");
+		testRule(rule, INTELLIGENT, "pʰoutʰéyet", "boutʰéyet");
+		testRule(rule, INTELLIGENT, "pʰɛḱʰus", "pʰɛḱʰus");
 	}
 
 	@Test
 	public void testConditional07() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}");
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
 
-		testRule(rule, "pʰaḱʰus", "baḱʰus");
-		testRule(rule, "pʰāḱʰus", "pʰāḱʰus");
+		testRule(rule, INTELLIGENT, "pʰaḱʰus", "baḱʰus");
+		testRule(rule, INTELLIGENT, "pʰāḱʰus", "pʰāḱʰus");
 	}
 
 	@Test
 	public void testConditional08() {
-		Rule rule = new Rule("d > t / _#");
+		Rule rule = new Rule("d > t / _#", FACTORY);
 
-		testRule(rule, "abad", "abat");
-		testRule(rule, "abada", "abada");
+		testRule(rule, FACTORY, "abad", "abat");
+		testRule(rule, FACTORY, "abada", "abada");
 	}
 
 	@Test
-	public void testLoop01() {
-		Rule rule = new Rule("q > qn");
+	public void testInsertion01() {
+		Rule rule = new Rule("q > qn", FACTORY);
 
-		testRule(rule, "aqa", "aqna");
+		testRule(rule, FACTORY, "aqa", "aqna");
 	}
 
 	@Test
 	public void testUnconditional() {
-		Sequence word     = FACTORY.getSequence("h₁óh₁es-");
-		Sequence expected = FACTORY.getSequence("ʔóʔes-");
+		Sequence word = INTELLIGENT.getSequence("h₁óh₁es-");
+		Sequence expected = INTELLIGENT.getSequence("ʔóʔes-");
 
-		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ");
+		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(word));
 	}
 
 	@Test
 	public void testUnconditional02() {
-		Sequence expected = FACTORY.getSequence("telə");
-
-		Rule rule = new Rule("eʔé > ê");
+		Sequence expected = INTELLIGENT.getSequence("telə");
+		Rule rule = new Rule("eʔé > ê", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(expected));
 	}
 
 	@Test
 	public void testDebug01() {
-		Sequence original = FACTORY.getSequence("mlan");
-		Sequence expected = FACTORY.getSequence("blan");
 
 		VariableStore store = new VariableStore();
 		store.add("V = a e i o u");
 
 		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
 
+		Sequence original = factory.getSequence("mlan");
+		Sequence expected = factory.getSequence("blan");
 
 		Rule rule = new Rule("ml > bl / #_V", factory);
 
@@ -266,14 +263,13 @@ public class RuleTest {
 
 	@Test
 	public void testUnconditional03() {
-		Rule rule = new Rule("ox > l");
+		Rule rule = new Rule("ox > l", FACTORY);
 
-		testRule(rule, "oxoxoxox", "llll");
-		testRule(rule, "moxmoxmoxmoxmox", "mlmlmlmlml");
-		testRule(rule, "mmoxmmoxmmoxmmoxmmox", "mmlmmlmmlmmlmml");
+		testRule(rule, FACTORY, "oxoxoxox", "llll");
+		testRule(rule, FACTORY, "moxmoxmoxmoxmox", "mlmlmlmlml");
+		testRule(rule, FACTORY, "mmoxmmoxmmoxmmoxmmox", "mmlmmlmmlmmlmml");
 	}
 
-	// "trh₂-we"
 	@Test
 	public void testDebug02() {
 		VariableStore store = new VariableStore();
@@ -296,9 +292,9 @@ public class RuleTest {
 		Sequence expected = factory.getSequence("tə̄rwe");
 
 		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
-		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}"             , factory);
-		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}"                      , factory);
-		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}"                , factory);
+		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", factory);
+		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", factory);
+		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", factory);
 
 		Sequence sequence = rule1.apply(original);
 
@@ -314,7 +310,7 @@ public class RuleTest {
 		Sequence original = FACTORY.getSequence("pʰabopa");
 		Sequence expected = FACTORY.getSequence("papoba");
 
-		Rule rule = new Rule("pʰ p b > p b p");
+		Rule rule = new Rule("pʰ p b > p b p", FACTORY);
 
 		Sequence received = rule.apply(original);
 		assertEquals(expected, received);
@@ -322,21 +318,21 @@ public class RuleTest {
 
 	@Test
 	public void testCompound01() {
-		Rule rule = new Rule("a > b / x_ OR _y");
+		Rule rule = new Rule("a > b / x_ OR _y", FACTORY);
 
-		testRule(rule, "axa", "axb");
-		testRule(rule, "aya", "bya");
-		testRule(rule, "ayxa", "byxb");
-		testRule(rule, "axya", "axya");
+		testRule(rule, FACTORY, "axa", "axb");
+		testRule(rule, FACTORY, "aya", "bya");
+		testRule(rule, FACTORY, "ayxa", "byxb");
+		testRule(rule, FACTORY, "axya", "axya");
 	}
 
 	@Test
 	public void testCompound02() {
-		Rule rule = new Rule("a > b / x_ NOT _y");
+		Rule rule = new Rule("a > b / x_ NOT _y", FACTORY);
 
-		testRule(rule, "axa",   "axb");
-		testRule(rule, "axay",  "axay");
-		testRule(rule, "xayxa", "xayxb");
+		testRule(rule, FACTORY, "axa", "axb");
+		testRule(rule, FACTORY, "axay", "axay");
+		testRule(rule, FACTORY, "xayxa", "xayxb");
 	}
 
 	@Test
@@ -348,9 +344,9 @@ public class RuleTest {
 
 		Rule rule = new Rule("a > b / C_ NOT x_", factory);
 
-		testRule(rule, "axa",   "axa");
-		testRule(rule, "aya",   "ayb");
-		testRule(rule, "aza",   "azb");
+		testRule(rule, factory, "axa", "axa");
+		testRule(rule, factory, "aya", "ayb");
+		testRule(rule, factory, "aza", "azb");
 	}
 
 	/*======================================================================+
@@ -358,32 +354,36 @@ public class RuleTest {
 	 +======================================================================*/
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException01() {
-		new Rule(" > ");
+		new Rule(" > ", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException02() {
-		new Rule("a > b /");
+		new Rule("a > b /", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException03() {
-		new Rule("a > / b");
+		new Rule("a > / b", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException04() {
-		new Rule(" > a / b");
+		new Rule(" > a / b", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException05() {
-		new Rule(" > / b");
+		new Rule(" > / b", FACTORY);
 	}
 
 	private static void testRule(Rule rule, String seq, String exp) {
-		Sequence sequence = FACTORY.getSequence(seq);
-		Sequence expected = FACTORY.getSequence(exp);
+		testRule(rule, FACTORY, seq, exp);
+	}
+
+	private static void testRule(Rule rule, SequenceFactory factory, String seq, String exp) {
+		Sequence sequence = factory.getSequence(seq);
+		Sequence expected = factory.getSequence(exp);
 		Sequence received = rule.apply(sequence);
 
 		assertEquals(expected, received);

@@ -61,10 +61,6 @@ public class Rule implements Command {
 	private final Map<Sequence, Sequence> transform;
 	private final LexiconMap lexicons;
 
-	public Rule(String rule) {
-		this(rule, SequenceFactory.getEmptyFactory());
-	}
-
 	public Rule(String rule,  SequenceFactory factoryParam) {
 		this(rule, new LexiconMap(), factoryParam);
 	}

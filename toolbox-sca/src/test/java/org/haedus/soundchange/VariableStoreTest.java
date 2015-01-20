@@ -33,8 +33,21 @@ public class VariableStoreTest {
 		vs.add("HC = hC");
 
 		String expected =
-				"C  = p t k\n" +
+				"C = p t k\n" +
 						"HC = hp ht hk";
+
+		assertEquals(expected, vs.toString());
+	}
+
+	@Test
+	public void testVariableComplex02() {
+		VariableStore vs = new VariableStore();
+		vs.add("C  = p t ");
+		vs.add("C2 = CC");
+
+		String expected =
+				"C = p t\n" +
+				"C2 = pp pt tp tt";
 
 		assertEquals(expected, vs.toString());
 	}
