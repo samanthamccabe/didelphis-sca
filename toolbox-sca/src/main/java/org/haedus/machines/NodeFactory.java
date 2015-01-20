@@ -18,8 +18,6 @@ import org.haedus.datatypes.ParseDirection;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
 
-import java.util.List;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Samantha Fiona Morrigan McCabe

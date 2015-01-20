@@ -14,7 +14,7 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.SegmentationMode;
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.phonetic.FeatureModel;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
@@ -25,6 +25,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -497,14 +499,15 @@ public class ConditionTest {
 
 	@Test
 	public void testComplex01() {
-		Condition condition = new Condition("_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}");
+		SequenceFactory factoryParam = new SequenceFactory(FormatterMode.INTELLIGENT);
+		Condition condition = new Condition("_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", factoryParam);
 
-		testTrue(condition, "pʰāḱʰus");
-		testTrue(condition, "pʰentʰros");
-		testTrue(condition, "pʰlaḱʰmēn");
-		testTrue(condition, "pʰoutʰéyet");
+		testTrue(factoryParam, condition, "pʰāḱʰus", 0);
+		testTrue(factoryParam, condition, "pʰentʰros", 0);
+		testTrue(factoryParam, condition, "pʰlaḱʰmēn", 0);
+		testTrue(factoryParam, condition, "pʰoutʰéyet", 0);
 
-		testFalse(condition, "pʰuǵos");
+		testFalse(factoryParam, condition, "pʰuǵos",0);
 	}
 
 	@Test
@@ -520,21 +523,21 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 
-		testTrue(condition,  "abaptk",  2);
-		testTrue(condition,  "abapppp", 2);
-		testTrue(condition,  "ababdg",  2);
-		testTrue(condition,  "abatʰkʰ", 2);
+		testTrue(sequenceFactory, condition,  "abaptk",  2);
+		testTrue(sequenceFactory, condition,  "abapppp", 2);
+		testTrue(sequenceFactory, condition,  "ababdg",  2);
+		testTrue(sequenceFactory, condition,  "abatʰkʰ", 2);
 
-		testTrue(condition,  "abaptk",  3);
-		testTrue(condition,  "abapppp", 3);
-		testTrue(condition,  "ababdg",  3);
-		testTrue(condition,  "abapʰtʰkʰ", 3);
+		testTrue(sequenceFactory, condition,  "abaptk",  3);
+		testTrue(sequenceFactory, condition,  "abapppp", 3);
+		testTrue(sequenceFactory, condition,  "ababdg",  3);
+		testTrue(sequenceFactory, condition,  "abapʰtʰkʰ", 3);
 
-		testFalse(condition,  "abatʰkʰ", 1);
-		testFalse(condition,  "abatʰkʰ", 0);
+		testFalse(sequenceFactory, condition,  "abatʰkʰ", 1);
+		testFalse(sequenceFactory, condition,  "abatʰkʰ", 0);
 	}
 	
 	@Test
@@ -542,10 +545,10 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(),FormatterMode.INTELLIGENT);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 		
-		testTrue(condition,  "abatʰkʰ", 2);
+		testTrue(sequenceFactory, condition,  "abatʰkʰ", 2);
 	}
 
 	@Ignore
@@ -593,14 +596,22 @@ public class ConditionTest {
 		testFalse(condition, "xc",  0);
 	}
 
-	private static void testTrue(Condition condition, String testString, int index) {
-		Sequence word = FACTORY.getSequence(testString);
+	private static void testTrue(SequenceFactory factory, Condition condition, String testString, int index) {
+		Sequence word = factory.getSequence(testString);
 		assertTrue(testString, condition.isMatch(word, index));
 	}
 
-	private static void testFalse(Condition condition, String testString, int index) {
-		Sequence word = FACTORY.getSequence(testString);
+	private static void testTrue(Condition condition, String testString, int index) {
+		testTrue(FACTORY, condition, testString, index);
+	}
+
+	private static void testFalse(SequenceFactory factory, Condition condition, String testString, int index) {
+		Sequence word = factory.getSequence(testString);
 		assertFalse(testString, condition.isMatch(word, index));
+	}
+
+	private static void testFalse(Condition condition, String testString, int index) {
+		testFalse(FACTORY, condition, testString, index);
 	}
 
 	private static void testFalse(Condition condition, String testString) {

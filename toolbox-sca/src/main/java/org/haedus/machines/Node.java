@@ -15,7 +15,6 @@
 package org.haedus.machines;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Created by Samantha F M McCabe on 12/21/14.

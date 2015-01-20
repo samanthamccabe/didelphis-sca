@@ -17,14 +17,12 @@ package org.haedus.soundchange.command;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
+import org.haedus.datatypes.phonetic.Lexicon;
 import org.haedus.datatypes.phonetic.Segment;
 import org.haedus.datatypes.phonetic.Sequence;
 import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.datatypes.phonetic.VariableStore;
 import org.haedus.soundchange.Condition;
+import org.haedus.datatypes.phonetic.LexiconMap;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
 import org.slf4j.Logger;
@@ -60,20 +58,14 @@ public class Rule implements Command {
 	private final List<Condition> exceptions;
 
 	private final SequenceFactory factory;
-
 	private final Map<Sequence, Sequence> transform;
-
-	private final Map<String, List<List<Sequence>>> lexicons;
-
-	public Rule(String rule) {
-		this(rule, SequenceFactory.getEmptyFactory());
-	}
+	private final LexiconMap lexicons;
 
 	public Rule(String rule,  SequenceFactory factoryParam) {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), factoryParam);
+		this(rule, new LexiconMap(), factoryParam);
 	}
 
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, SequenceFactory factoryParam) {
+	public Rule(String rule, LexiconMap lexiconsParam, SequenceFactory factoryParam) {
 		ruleText   = rule;
 		lexicons   = lexiconsParam;
 		factory    = factoryParam;
@@ -108,11 +100,11 @@ public class Rule implements Command {
 
 	@Override
 	public void execute() {
-		for (List<List<Sequence>> lexicon : lexicons.values()) {
+		for (Lexicon lexicon : lexicons.values()) {
 			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence word = row.get(i);
-					row.set(i, apply(word));
+					Sequence word = apply(row.get(i));
+					row.set(i, word);
 				}
 			}
 		}
