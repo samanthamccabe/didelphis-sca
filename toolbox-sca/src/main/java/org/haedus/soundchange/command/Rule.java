@@ -61,10 +61,6 @@ public class Rule implements Command {
 	private final Map<Sequence, Sequence> transform;
 	private final LexiconMap lexicons;
 
-	public Rule(String rule,  SequenceFactory factoryParam) {
-		this(rule, new LexiconMap(), factoryParam);
-	}
-
 	public Rule(String rule, LexiconMap lexiconsParam, SequenceFactory factoryParam) {
 		ruleText   = rule;
 		lexicons   = lexiconsParam;
@@ -73,6 +69,12 @@ public class Rule implements Command {
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 		populateConditions();
+	}
+
+	@Deprecated
+	@VisibleForTesting
+	Rule(String rule,  SequenceFactory factoryParam) {
+		this(rule, new LexiconMap(), factoryParam);
 	}
 
 	@Override

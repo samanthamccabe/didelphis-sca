@@ -14,7 +14,10 @@
 
 package org.haedus.datatypes.phonetic;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +29,9 @@ import java.util.List;
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-public class Sequence implements Iterable<Segment> {
+public class Sequence implements Iterable<Segment>, ModelBearer {
+
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
@@ -49,7 +54,7 @@ public class Sequence implements Iterable<Segment> {
 		featureModel = modelParam;
 	}
 
-	// Used to test basic access only
+	@VisibleForTesting
 	Sequence(String word) {
 		this();
 		for (char c : word.toCharArray()) {
@@ -67,21 +72,20 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public void add(Segment s) {
+		validateModelOrFail(s);
 		sequence.add(s);
 	}
 
 	public void add(Sequence otherSequence) {
+		validateModelOrFail(otherSequence);
 		for (Segment s : otherSequence) {
 			sequence.add(s);
 		}
 	}
 
 	public void insert(Sequence q, int index) {
+		validateModelOrFail(q);
 		sequence.addAll(index, q.getSegments());
-	}
-
-	public void add(Segment[] segments) {
-		Collections.addAll(sequence, segments);
 	}
 
 	public Segment get(int i) {
@@ -116,13 +120,12 @@ public class Sequence implements Iterable<Segment> {
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-
 		int index = (k <= size()) ? k : size();
-
 		return new Sequence(sequence.subList(i, index), featureModel);
 	}
 
 	public int indexOf(Segment s) {
+		validateModelOrWarn(s);
 		return sequence.indexOf(s);
 	}
 
@@ -139,18 +142,19 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	/**
-	 * @param subsequence
+	 * @param sequence
 	 * @return
 	 */
-	public int indexOf(Sequence subsequence) {
-		int size = subsequence.size();
+	public int indexOf(Sequence sequence) {
+		validateModelOrWarn(sequence);
+		int size = sequence.size();
 		int index = -1;
 
-		if (size <= size() && !subsequence.isEmpty()) {
-			index = indexOf(subsequence.getFirst());
+		if (size <= size() && !sequence.isEmpty()) {
+			index = indexOf(sequence.getFirst());
 			if ((index >= 0) && (index + size <= size())) {
 				Sequence u = getSubsequence(index, index + size);
-				if (!subsequence.equals(u)) {
+				if (!sequence.equals(u)) {
 					index = -1;
 				}
 			}
@@ -159,6 +163,7 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public int indexOf(Sequence target, int start) {
+		validateModelOrWarn(target);
 
 		int index = -1;
 		if (start < size()) {
@@ -172,28 +177,9 @@ public class Sequence implements Iterable<Segment> {
 		return index;
 	}
 
-	public int[] indicesOf(Sequence q) {
-		int[] indices = new int[0];
-
-		int index = indexOf(q);
-
-		while (index >= 0) {
-			indices = ArrayUtils.add(indices, index);
-			index = indexOf(q, index + 1);
-		}
-		return indices;
-	}
-
-	public Sequence replaceFirst(Sequence source, Sequence target) {
-		Sequence result = new Sequence(this);
-		int index = result.indexOf(source);
-		result.remove(index, index + source.size());
-		result.insert(target, index);
-
-		return result;
-	}
-
 	public Sequence replaceAll(Sequence source, Sequence target) {
+		validateModelOrFail(source);
+		validateModelOrFail(target);
 		Sequence result = new Sequence(this);
 
 		int index = result.indexOf(source);
@@ -222,7 +208,7 @@ public class Sequence implements Iterable<Segment> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)                  { return false; }
+		if (obj == null) { return false; }
 		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
 		boolean sequenceEquals = sequence.equals(object.sequence);
@@ -257,22 +243,66 @@ public class Sequence implements Iterable<Segment> {
 	}
 
 	public void addFirst(Segment g) {
+		validateModelOrFail(g);
 		sequence.add(0, g);
 	}
 
 	public boolean contains(Sequence sequence) {
+		validateModelOrWarn(sequence);
 		return indexOf(sequence) >= 0;
 	}
 
 	public boolean startsWith(Segment segment) {
+		validateModelOrWarn(segment);
 		return !isEmpty() && sequence.get(0).equals(segment);
 	}
 
 	public boolean startsWith(Sequence sequence) {
+		validateModelOrWarn(sequence);
 		return indexOf(sequence) == 0;
 	}
 
+	@Override
 	public FeatureModel getFeatureModel() {
 		return featureModel;
+	}
+
+	@VisibleForTesting
+	void add(Segment[] segments) {
+		Collections.addAll(sequence, segments);
+	}
+
+	@VisibleForTesting
+	int[] indicesOf(Sequence q) {
+		int[] indices = new int[0];
+
+		int index = indexOf(q);
+
+		while (index >= 0) {
+			indices = ArrayUtils.add(indices, index);
+			index = indexOf(q, index + 1);
+		}
+		return indices;
+	}
+
+	private void validateModelOrWarn(ModelBearer that) {
+		if (!featureModel.equals(that)) {
+			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
+				that.getClass().toString(),
+				this,
+				that,
+				this.getFeatureModel().getFeatureNames(),
+				that.getFeatureModel().getFeatureNames());
+		}
+	}
+
+	private void validateModelOrFail(ModelBearer that) {
+		if (!featureModel.equals(that)) {
+			throw new RuntimeException(
+				"Attempting to add " + that.getClass().toString() + " with an incompatible model!\n" +
+					"\t" + this + "\t" + this.getFeatureModel().getFeatureNames() + "\n" +
+					"\t" + that + "\t" + that.getFeatureModel().getFeatureNames()
+			);
+		}
 	}
 }

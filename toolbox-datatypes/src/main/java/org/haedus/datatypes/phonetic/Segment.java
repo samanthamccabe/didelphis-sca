@@ -19,6 +19,8 @@
 
 package org.haedus.datatypes.phonetic;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +28,7 @@ import java.util.List;
 /**
  * Samantha Fiona Morrigan McCabe
  */
-public class Segment {
+public class Segment implements ModelBearer {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
@@ -55,13 +57,14 @@ public class Segment {
 	}
 
 	// Test only
-	@Deprecated
+	@VisibleForTesting
 	Segment(String string) {
 		symbol   = string;
 		model    = FeatureModel.EMPTY_MODEL;
 		features = new ArrayList<Double>();
 	}
 
+	@Override
 	public FeatureModel getFeatureModel() {
 		return model;
 	}
@@ -102,10 +105,6 @@ public class Segment {
 
 	public double getFeatureValue(int i) {
 		return features.get(i);
-	}
-
-	public int getNumberOfFeatures() {
-		return features.size();
 	}
 
 	public String toStringLong() {

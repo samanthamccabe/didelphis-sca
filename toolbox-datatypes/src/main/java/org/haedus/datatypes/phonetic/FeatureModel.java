@@ -146,34 +146,48 @@ public class FeatureModel {
 		return featureEquals && weightsEquals;
 	}
 
-	public double computeScore(Segment l, Segment r) {
-		double score = 0;
-		int n = l.getNumberOfFeatures();
-		for (int i = 0; i < n; i++) {
-//			double a = l.getFeatureValue(i);
-//			for (int j = 0; j < n; j++) {
-//				double b = r.getFeatureValue(j);
-//				if (weightTable.getNumberColumns() == getNumberOfFeatures()) {
-//					score += getDifference(a, b) * weightTable.get(i, j);
-//				} else {
-//					score += getDifference(a, b);
-//				}
-//			}
-			double a = l.getFeatureValue(i);
-			double b = r.getFeatureValue(i);
+	public double computeScoreUsingWeights(Segment l, Segment r) {
 
-			score += getDifference(a, b);
+		modelConsistencyCheck(l, r);
+
+
+		double score = 0;
+		int n = getNumberOfFeatures();
+		for (int i = 0; i < n; i++) {
+			double a = l.getFeatureValue(i);
+			for (int j = 0; j < n; j++) {
+				double b = r.getFeatureValue(j);
+				if (weightTable.getNumberColumns() == getNumberOfFeatures()) {
+					score += getDifference(a, b) * weightTable.get(i, j);
+				} else {
+					score += getDifference(a, b);
+				}
+				score += getDifference(a, b);
+			}
 		}
 		return score;
 	}
 
-	public double computeScore(Sequence l, Sequence r) {
-		int penalty = 5;
-		double score = 0;
-		for (int i = 0; i < l.size(); i++) {
-			score += computeScore(l.get(i), r.get(i));
+	private void modelConsistencyCheck(Segment l, Segment r) {
+		FeatureModel mL = l.getFeatureModel();
+		FeatureModel mR = r.getFeatureModel();
 
-			// TODO: gap penalty
+		if (!mL.equals(this) && !mR.equals(this)) {
+			throw new RuntimeException(
+				"Attempting to compare segments using an incompatible model!\n" +
+					"\t" + l + "\t" + mL.getFeatureNames() + "\n" +
+					"\t" + r + "\t" + mR.getFeatureNames() + "\n" +
+					"\tUsing model: " + getFeatureNames()
+			);
+		}
+	}
+
+	public double computeScore(Segment l, Segment r) {
+		double score = 0;
+		for (int i = 0; i < getNumberOfFeatures(); i++) {
+			double a = l.getFeatureValue(i);
+			double b = r.getFeatureValue(i);
+			score += getDifference(a, b);
 		}
 		return score;
 	}
@@ -203,6 +217,10 @@ public class FeatureModel {
 
 	public Table<Double> getWeights() {
 		return weightTable;
+	}
+
+	public Set<String> getFeatureNames() {
+		return featureNames.keySet();
 	}
 
 	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {

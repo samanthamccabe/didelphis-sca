@@ -45,16 +45,20 @@ public class SequenceFactory {
 	private final FormatterMode formatterMode;
 	private final Set<String>   reservedStrings;
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		this(modelParam, storeParam, new HashSet<String>(), FormatterMode.NONE);
-	}
-
 	private SequenceFactory() {
 		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), FormatterMode.NONE);
 	}
 
 	public SequenceFactory(FormatterMode modeParam) {
 		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), modeParam);
+	}
+
+	public SequenceFactory(FeatureModel modelParam, FormatterMode modeParam) {
+		this(modelParam, new VariableStore(), new HashSet<String>(), modeParam);
+	}
+
+	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
+		this(modelParam, storeParam, new HashSet<String>(), FormatterMode.NONE);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, FormatterMode modeParam) {

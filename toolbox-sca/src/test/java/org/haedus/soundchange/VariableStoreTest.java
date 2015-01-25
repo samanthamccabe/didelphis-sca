@@ -34,8 +34,7 @@ public class VariableStoreTest {
 
 		String expected =
 				"C = p t k\n" +
-						"HC = hp ht hk";
-
+				"HC = hp ht hk";
 		assertEquals(expected, vs.toString());
 	}
 
@@ -48,7 +47,6 @@ public class VariableStoreTest {
 		String expected =
 				"C = p t\n" +
 				"C2 = pp pt tp tt";
-
 		assertEquals(expected, vs.toString());
 	}
 
@@ -62,7 +60,6 @@ public class VariableStoreTest {
 		String expected =
 				"R = r l\n" +
 				"C = p t k r l";
-
 		assertEquals(expected, vs.toString());
 	}
 
@@ -80,7 +77,6 @@ public class VariableStoreTest {
 				"R = r l\n" +
 				"L = r l w y\n" +
 				"C = p t k r l w y n m";
-
 		assertEquals(expected, vs.toString());
 	}
 
@@ -98,7 +94,6 @@ public class VariableStoreTest {
 				"H = x ɣ\n" +
 				"CH = pʰ tʰ kʰ\n" +
 				"[CONS] = pʰ tʰ kʰ p t k x ɣ";
-
 		assertEquals(expected, vs.toString());
 	}
 }
