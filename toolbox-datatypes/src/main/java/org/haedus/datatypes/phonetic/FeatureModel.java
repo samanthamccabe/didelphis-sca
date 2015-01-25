@@ -37,6 +37,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
@@ -45,7 +47,10 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
+	public static final  FeatureModel EMPTY_MODEL = new FeatureModel();
+
+	private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n\\r?|\\r");
+	private static final Pattern COMMENT_PATTERN = Pattern.compile("\\s*%.*");
 
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
@@ -57,11 +62,11 @@ public class FeatureModel {
 	 * Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	 */
 	private FeatureModel() {
-		featureNames   = new HashMap<String, Integer>();
+		featureNames = new HashMap<String, Integer>();
 		featureAliases = new HashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
-		weightTable    = new RectangularTable<Double>(0.0, 0, 0);
+		featureMap = new LinkedHashMap<String, List<Double>>();
+		diacritics = new LinkedHashMap<String, List<Double>>();
+		weightTable = new RectangularTable<Double>(0.0, 0, 0);
 	}
 
 	public FeatureModel(File file) {
@@ -77,9 +82,9 @@ public class FeatureModel {
 	public Segment getSegment(String head, Iterable<String> modifiers) {
 		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 
-		String symbol = head;
+		StringBuilder sb = new StringBuilder();
 		for (String modifier : modifiers) {
-			symbol += modifier;
+			sb.append(modifier);
 			if (diacritics.containsKey(modifier)) {
 				List<Double> doubles = diacritics.get(modifier);
 				for (int i = 0; i < doubles.size(); i++) {
@@ -91,7 +96,7 @@ public class FeatureModel {
 				}
 			}
 		}
-		return new Segment(symbol, featureArray, this);
+		return new Segment(sb.toString(), featureArray, this);
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {
@@ -129,8 +134,8 @@ public class FeatureModel {
 	@Override
 	public int hashCode() {
 		int code = 91;
-		code *= (featureMap  != null) ? featureMap.hashCode()  : 1;
-		code *= (weightTable != null) ? weightTable.hashCode() : 1;
+		code *= featureMap  != null ? featureMap.hashCode()  : 1;
+		code *= weightTable != null ? weightTable.hashCode() : 1;
 		return code;
 	}
 
@@ -150,8 +155,7 @@ public class FeatureModel {
 
 		modelConsistencyCheck(l, r);
 
-
-		double score = 0;
+		double score = 0.0;
 		int n = getNumberOfFeatures();
 		for (int i = 0; i < n; i++) {
 			double a = l.getFeatureValue(i);
@@ -168,15 +172,15 @@ public class FeatureModel {
 		return score;
 	}
 
-	private void modelConsistencyCheck(Segment l, Segment r) {
+	private void modelConsistencyCheck(ModelBearer l, ModelBearer r) {
 		FeatureModel mL = l.getFeatureModel();
 		FeatureModel mR = r.getFeatureModel();
 
 		if (!mL.equals(this) && !mR.equals(this)) {
 			throw new RuntimeException(
 				"Attempting to compare segments using an incompatible model!\n" +
-					"\t" + l + "\t" + mL.getFeatureNames() + "\n" +
-					"\t" + r + "\t" + mR.getFeatureNames() + "\n" +
+					'\t' + l + '\t' + mL.getFeatureNames() + '\n' +
+					'\t' + r + '\t' + mR.getFeatureNames() + '\n' +
 					"\tUsing model: " + getFeatureNames()
 			);
 		}
@@ -252,13 +256,11 @@ public class FeatureModel {
 					minimumDifference = difference;
 					bestDiacritic = entry.getKey();
 					bestCompiled = compiledFeatures;
-				} else if (difference == minimumDifference) {
-					// Modify this to use sets
-					// TODO: what is this?
 				}
 			}
 		}
-		if (minimumDifference > 0 && minimumDifference != lastMinimum) {
+		// TODO: how does changing this condition affect behavior?
+		if (minimumDifference > 0.0 && minimumDifference != lastMinimum) {
 			return bestDiacritic + getBestDiacritic(featureArray, bestCompiled, minimumDifference);
 		} else {
 			return bestDiacritic;
@@ -299,7 +301,7 @@ public class FeatureModel {
 		return sum;
 	}
 
-	private Double getDifference(Double a, Double b) {
+	private static Double getDifference(Double a, Double b) {
 		if (a.equals(b)) {
 			return 0.0;
 		} else if (a.isNaN()) {
@@ -311,13 +313,63 @@ public class FeatureModel {
 		}
 	}
 
+	private void readModelFromFileNewFormat(CharSequence file) {
+		Zone currentZone = Zone.NONE;
+
+		Pattern pattern = Pattern.compile("([\\w\\(\\)]+)\\s+(.*)");
+		for (String string : NEWLINE_PATTERN.split(file)) {
+			// Remove comments
+			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
+			if (line.startsWith(Zone.FEATURES.value())) {
+				currentZone = Zone.FEATURES;
+			} else if (line.startsWith(Zone.SYMBOLS.value())) {
+				currentZone = Zone.SYMBOLS;
+			} else if (line.startsWith(Zone.MODIFIERS.value())) {
+				currentZone = Zone.MODIFIERS;
+			} else if (line.startsWith(Zone.WEIGHTS.value())){
+				currentZone = Zone.WEIGHTS;
+			} else {
+				// Process in current zone
+				Matcher matcher = pattern.matcher(line);
+				if (matcher.matches()) {
+					String head = matcher.group(1);
+					String tail = matcher.group(2);
+					switch (currentZone) {
+						case FEATURES:
+							// Head is feature
+							// Tail is alias, value type
+							break;
+						case SYMBOLS:
+							// Head is symbol
+							// Tail is feature array
+							break;
+						case MODIFIERS:
+							// Head is modifier
+							// tail is
+							break;
+						case WEIGHTS:
+							// This has a completely different structure
+							// ????
+							break;
+						case NONE:
+							// Fallthrough
+						default:
+							// command outside of zone
+							LOGGER.debug("Well-formed command outside of legal zone: {} {}", head, tail);
+					}
+				} else if (!line.isEmpty()) {
+					LOGGER.warn("Unrecognized statement {}", line);
+				}
+			}
+		}
+	}
+
 	private void readModelFromFile(List<String> lines) {
 
 		boolean hasDiacritics = false;
-
 		if (lines.get(0).startsWith("name")) {
 			String line = lines.remove(0);
-				String[] row = line.split("\t", -1);
+			String[] row = line.split("\t", -1);
 
 			row = ArrayUtils.remove(row, 0);
 			if (row[0].equals("diacritic")) {
@@ -385,9 +437,6 @@ public class FeatureModel {
 		}
 	}
 
-	/**
-	 * @param lines
-	 */
 	private Table<Double> readWeights(List<String> lines) {
 		int numberOfWeights = lines.get(0).split("\t").length;
 		Table<Double> table = new RectangularTable<Double>(0.0, numberOfWeights, numberOfWeights);
@@ -400,5 +449,23 @@ public class FeatureModel {
 			}
 		}
 		return table;
+	}
+
+	private enum Zone {
+		FEATURES("FEATURES"),
+		SYMBOLS("SYMBOLS"),
+		MODIFIERS("MODIFIERS"),
+		WEIGHTS("WEIGHTs"),
+		NONE("NONE");
+
+		private final String value;
+
+		Zone(String v) {
+			value = v;
+		}
+
+		String value() {
+			return value;
+		}
 	}
 }

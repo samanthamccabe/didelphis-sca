@@ -1,24 +1,24 @@
 % Feature Model
 
 FEATURES
-sonorance(son)		numeric(0,3)
-continuant(con)		binary
-vot					unary
-release(rel)		numeric(1,2)
-nasal(nas)			unary
-lateral(lat)		unary
-labial(lab)			numeric(1,2)
-round(rnd)			binary
-lingual(lin)		numeric(-1,2)
-laminal(lam)		binary			% + laminal, - apical
-height(hgt)			numeric(-1,1)
-front(frn)			binary
-back(bck)			binary
-atr					binary
-radical(rad)		unary
-airstream(air)		binary			% change to egressive?
-glottalstate(glt)	numeric(-3,3)	% or -2 to 2
-length(len)			numeric(0,1)
+Sonorance       son Numeric(0,3)
+Continuant      con Binary
+VOT			    vot Unary
+Release         rel Numeric(1,2)
+Nasal   	    nas Unary
+Lateral         lat Unary
+Labial          lab Numeric(1,2)
+Round           rnd Binary
+Lingual         lin Numeric(-1,2)
+Laminal         lam Binary			% + laminal, - apical
+Height		    hgt Numeric(-1,1)
+Front   	    frn Binary
+Back    	    bck Binary
+ATR		        atr Binary
+Radical		    rad Unary
+Airstream       air Binary			% change to egressive?
+GlottalState    glt Numeric(-3,3)	% or -2 to 2
+Length  	    len Numeric(0,1)
 
 SYMBOLS
 %	son	con	vot	rel	nas	lat	lab	rnd	lin	lam	hgt	frn	bck	atr	rad	air	glt	len

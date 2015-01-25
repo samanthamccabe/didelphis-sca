@@ -91,7 +91,7 @@ public class FeatureModelTest {
 	}
 
 	@Test
-	public void testConstructor01() throws Exception {
+	public void testConstructor01() {
 //		Segment received = model.getSegment("g");
 		Segment expected = new Segment("g", G_FEATURES, model);
 
@@ -99,33 +99,33 @@ public class FeatureModelTest {
 	}
 
 	@Test
-	public void testGetStringFromFeatures01() throws Exception {
+	public void testGetStringFromFeatures01()  {
 		String bestSymbol = model.getBestSymbol(G_FEATURES);
 		LOGGER.info(bestSymbol);
 		assertEquals("g", bestSymbol);
 	}
 
 	@Test
-	public void testGetStringFromFeatures02() throws Exception {
+	public void testGetStringFromFeatures02()  {
 		String bestSymbol = model.getBestSymbol(GH_FEATURES);
 		assertEquals("gʱ", bestSymbol);
 	}
 
 	@Ignore
 	@Test
-	public void testGetStringFromFeatures03() throws Exception {
+	public void testGetStringFromFeatures03()  {
 		String bestSymbol = model.getBestSymbol(GJ_FEATURES);
 		assertEquals("gʲ", bestSymbol);
 	}
 
 	@Test
-	public void testGetStringFromFeatures04() throws Exception {
+	public void testGetStringFromFeatures04()  {
 		String bestSymbol = model.getBestSymbol(KWH_FEATURES);
 		assertEquals("kʷʰ", bestSymbol);
 	}
 
 	@Test
-	public void testGetStringFromFeatures05() throws Exception {
+	public void testGetStringFromFeatures05()  {
 		String bestSymbol = model.getBestSymbol(KKWH_FEATURES);
 		assertEquals("kːʷʰ", bestSymbol);
 	}
