@@ -59,8 +59,14 @@ public class FeatureModelTest {
 		Collections.addAll(KWH_FEATURES,  0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, -3.0, 0.0);
 		Collections.addAll(KKWH_FEATURES, 0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, -3.0, 1.0);
 
-		Resource resource = new ClassPathResource("featuremodel");
+		Resource resource = new ClassPathResource("features.model");
+//		Resource resource = new ClassPathResource("featuremodel");
 		model = new FeatureModel(resource.getFile());
+	}
+
+	@Test
+	public void testLoad() {
+		// Ensure the model loads correctly.
 	}
 
 	@Test

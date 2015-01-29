@@ -3,22 +3,22 @@
 FEATURES
 Sonorance       son Numeric(0,3)
 Continuant      con Binary
-VOT			    vot Unary
+VOT             vot Unary
 Release         rel Numeric(1,2)
-Nasal   	    nas Unary
+Nasal           nas Unary
 Lateral         lat Unary
 Labial          lab Numeric(1,2)
 Round           rnd Binary
 Lingual         lin Numeric(-1,2)
-Laminal         lam Binary			% + laminal, - apical
-Height		    hgt Numeric(-1,1)
-Front   	    frn Binary
-Back    	    bck Binary
-ATR		        atr Binary
-Radical		    rad Unary
-Airstream       air Binary			% change to egressive?
-GlottalState    glt Numeric(-3,3)	% or -2 to 2
-Length  	    len Numeric(0,1)
+Laminal         lam Binary          % + laminal, - apical
+Height          hgt Numeric(-1,1)
+Front           frn Binary
+Back            bck Binary
+ATR             atr Binary
+Radical         rad Unary
+Airstream       air Binary          % change to egressive?
+GlottalState    glt Numeric(-3,3)   % or -2 to 2
+Length          len Numeric(0,1)
 
 SYMBOLS
 %	son	con	vot	rel	nas	lat	lab	rnd	lin	lam	hgt	frn	bck	atr	rad	air	glt	len
@@ -142,7 +142,7 @@ w	2	+					1	+				-	+				0	0
 h	2	+															-3	0
 ɦ	2	+															0	0
 
-DIACRITICS
+MODIFIERS
 ̩																		
 ̯																		
 ̥																	-3	
