@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.NormalizerMode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -45,7 +46,7 @@ public class FeatureModelTest {
 	private static final List<Double> GJ_FEATURES   = new ArrayList<Double>();
 	private static final List<Double> KWH_FEATURES  = new ArrayList<Double>();
 	private static final List<Double> KKWH_FEATURES = new ArrayList<Double>();
-	private static final double       NAN         = Double.NaN;
+	private static final double       NAN           = Double.NaN;
 
 	private static FeatureModel model;
 
@@ -60,7 +61,6 @@ public class FeatureModelTest {
 		Collections.addAll(KKWH_FEATURES, 0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, -3.0, 1.0);
 
 		Resource resource = new ClassPathResource("features.model");
-//		Resource resource = new ClassPathResource("featuremodel");
 		model = new FeatureModel(resource.getFile());
 	}
 
@@ -71,8 +71,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSemivowels() {
-		Segment left  = Segmenter.getSegment("a", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
-		Segment right = Segmenter.getSegment("n", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment left  = Segmenter.getSegment("a", model, FormatterMode.INTELLIGENT);
+		Segment right = Segmenter.getSegment("n", model, FormatterMode.INTELLIGENT);
 
 		LOGGER.info(left.toStringLong());
 		LOGGER.info(right.toStringLong());
@@ -89,8 +89,8 @@ public class FeatureModelTest {
 
 	@Test
 	public void testScoreSame() {
-		Segment left  = Segmenter.getSegment("t", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
-		Segment right = Segmenter.getSegment("t", model, SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		Segment left  = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
+		Segment right = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
 
 		double v = model.computeScore(left, right);
 		assertTrue("Value was " + v + " not zero",v == 0.0);
@@ -98,10 +98,10 @@ public class FeatureModelTest {
 
 	@Test
 	public void testConstructor01() {
-//		Segment received = model.getSegment("g");
+		Segment received = Segmenter.getSegment("g", model, FormatterMode.INTELLIGENT);
 		Segment expected = new Segment("g", G_FEATURES, model);
 
-//		assertEquals(expected, received);
+		assertEquals(expected, received);
 	}
 
 	@Test
@@ -117,7 +117,6 @@ public class FeatureModelTest {
 		assertEquals("gʱ", bestSymbol);
 	}
 
-	@Ignore
 	@Test
 	public void testGetStringFromFeatures03()  {
 		String bestSymbol = model.getBestSymbol(GJ_FEATURES);

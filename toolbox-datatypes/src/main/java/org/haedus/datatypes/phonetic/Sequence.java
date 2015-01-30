@@ -120,7 +120,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-		int index = (k <= size()) ? k : size();
+		int index = k <= size() ? k : size();
 		return new Sequence(sequence.subList(i, index), featureModel);
 	}
 
@@ -141,20 +141,16 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return q;
 	}
 
-	/**
-	 * @param sequence
-	 * @return
-	 */
-	public int indexOf(Sequence sequence) {
-		validateModelOrWarn(sequence);
-		int size = sequence.size();
+	public int indexOf(Sequence aSequence) {
+		validateModelOrWarn(aSequence);
+		int size = aSequence.size();
 		int index = -1;
 
-		if (size <= size() && !sequence.isEmpty()) {
-			index = indexOf(sequence.getFirst());
-			if ((index >= 0) && (index + size <= size())) {
+		if (size <= size() && !aSequence.isEmpty()) {
+			index = indexOf(aSequence.getFirst());
+			if (index >= 0 && index + size <= size()) {
 				Sequence u = getSubsequence(index, index + size);
-				if (!sequence.equals(u)) {
+				if (!aSequence.equals(u)) {
 					index = -1;
 				}
 			}
@@ -286,22 +282,18 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	private void validateModelOrWarn(ModelBearer that) {
-		if (!featureModel.equals(that)) {
+		if (!featureModel.equals(that.getFeatureModel())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
-				that.getClass().toString(),
-				this,
-				that,
-				this.getFeatureModel().getFeatureNames(),
-				that.getFeatureModel().getFeatureNames());
+				that.getClass(),this, that,featureModel.getFeatureNames(),that.getFeatureModel().getFeatureNames());
 		}
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		if (!featureModel.equals(that)) {
+		if (!featureModel.equals(that.getFeatureModel())) {
 			throw new RuntimeException(
-				"Attempting to add " + that.getClass().toString() + " with an incompatible model!\n" +
-					"\t" + this + "\t" + this.getFeatureModel().getFeatureNames() + "\n" +
-					"\t" + that + "\t" + that.getFeatureModel().getFeatureNames()
+				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +
+					'\t' + this + '\t' + featureModel.getFeatureNames() + '\n' +
+					'\t' + that + '\t' + that.getFeatureModel().getFeatureNames()
 			);
 		}
 	}

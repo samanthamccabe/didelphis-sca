@@ -26,6 +26,7 @@ import org.haedus.datatypes.phonetic.Sequence;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,27 +53,8 @@ public final class Segmenter {
 	private Segmenter() {
 	}
 
-	@Deprecated
-	public static Segment getSegment(String string, FeatureModel model, SegmentationMode segParam, NormalizerMode normParam) {
-		return getSegment(string, model, null, segParam, normParam);
-	}
-
-	@Deprecated
-	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segParam, NormalizerMode normParam) {
-
-		Collection<String> keys = getKeys(model, reservedStrings);
-
-		String normalString = normalize(string, normParam);
-
-		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, segParam);
-		if (segmentedSymbol.size() >= 1) {
-			Symbol symbol = segmentedSymbol.get(0);
-			String head = symbol.getHead();
-			List<String> tail = symbol.getTail();
-			return model.getSegment(head, tail);
-		} else {
-			return null;
-		}
+	public static Segment getSegment(String string, FeatureModel model, FormatterMode formatterMode) {
+		return getSegment(string, model, new HashSet<String>(), formatterMode);
 	}
 
 	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
@@ -91,21 +73,6 @@ public final class Segmenter {
 		}
 	}
 
-	@Deprecated
-	public static List<String> getSegmentedString(String word, Iterable<String> keys, SegmentationMode segParam, NormalizerMode normParam) {
-		String normalString = normalize(word, normParam);
-		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, segParam);
-		List<String> list = new ArrayList<String>();
-		for (Symbol symbol : segmentedSymbol) {
-			StringBuilder head = new StringBuilder(symbol.getHead());
-			for (String s : symbol.getTail()) {
-				head.append(s);
-			}
-			list.add(head.toString());
-		}
-		return list;
-	}
-
 	public static List<String> getSegmentedString(String word, Collection<String> keys, FormatterMode formatterMode) {
 		String normalString = normalize(word, formatterMode);
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
@@ -118,23 +85,6 @@ public final class Segmenter {
 			list.add(head.toString());
 		}
 		return list;
-	}
-
-
-	@Deprecated
-	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, SegmentationMode segmentationParam, NormalizerMode normalizerParam) {
-		Collection<String> keys = getKeys(model, reservedStrings);
-		String normalString = normalize(word, normalizerParam);
-		List<Symbol> list = getCompositeSymbols(normalString, keys, segmentationParam);
-		Sequence sequence = new Sequence(model);
-		for (Symbol item : list) {
-			String head = item.getHead();
-			List<String> tail = item.getTail();
-
-			Segment segment = model.getSegment(head, tail);
-			sequence.add(segment);
-		}
-		return sequence;
 	}
 
 	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
@@ -159,41 +109,6 @@ public final class Segmenter {
 			keys.addAll(reserved);
 		}
 		return keys;
-	}
-
-	@Deprecated
-	private static String normalize(String string, NormalizerMode normalizerMode) {
-		if (normalizerMode == NormalizerMode.NONE) {
-			return string;
-		} else {
-			return Normalizer.normalize(string, Normalizer.Form.valueOf(normalizerMode.toString()));
-		}
-	}
-
-	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, SegmentationMode segParam) {
-
-		List<Symbol> symbols = new ArrayList<Symbol>();
-		List<String> separatedString = separateBrackets(word);
-		if (segParam == SegmentationMode.DEFAULT) {
-			for (String s : separatedString) {
-				if (s.startsWith("{") || s.startsWith("(")) {
-					symbols.add(new Symbol(s));
-				} else {
-					symbols.addAll(getThings(s, keys));
-				}
-			}
-		} else if (segParam == SegmentationMode.NAIVE) {
-			for (String s : separatedString) {
-				if (s.startsWith("{") || s.startsWith("(")) {
-					symbols.add(new Symbol(s));
-				} else {
-					symbols.addAll(segmentNaively(s, keys));
-				}
-			}
-		} else {
-			throw new UnsupportedOperationException("Unsupported segmentation mode " + segParam);
-		}
-		return symbols;
 	}
 
 	private static List<String> separateBrackets(String word) {

@@ -20,7 +20,6 @@
 package org.haedus.datatypes.phonetic;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -54,32 +54,28 @@ public class FeatureModel {
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
-
+	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
-	private final RectangularTable<Double> weightTable;
-	public static final Pattern ZONE_PATTERN = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
+	private final RectangularTable<Double>  weightTable;
 
 
-	/**
-	 * Initializes an empty model; access to this should only be through the EMPTY_MODEL field
-	 */
+	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
-		featureNames = new HashMap<String, Integer>();
+		featureNames   = new HashMap<String, Integer>();
 		featureAliases = new HashMap<String, Integer>();
-		featureMap = new LinkedHashMap<String, List<Double>>();
-		diacritics = new LinkedHashMap<String, List<Double>>();
-		weightTable = new RectangularTable<Double>(0.0, 0, 0);
+		featureMap     = new LinkedHashMap<String, List<Double>>();
+		diacritics     = new LinkedHashMap<String, List<Double>>();
+		weightTable    = new RectangularTable<Double>(0.0, 0, 0);
 	}
 
 	public FeatureModel(File file) {
 		this();
 		try {
 			readModelFromFileNewFormat(FileUtils.readFileToString(file, "UTF-8"));
-//			readModelFromFile(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
@@ -88,8 +84,7 @@ public class FeatureModel {
 	// This should be here because how the segment is constructed is a function of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
 		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
-
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(head);
 		for (String modifier : modifiers) {
 			sb.append(modifier);
 			if (diacritics.containsKey(modifier)) {
@@ -276,14 +271,14 @@ public class FeatureModel {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 
-	private List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
+	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
 		List<Double> list = new ArrayList<Double>();
 		if (left.size() == right.size()) {
 			for (int i = 0; i < left.size(); i++) {
 				Double l = left.get(i);
 				Double r = right.get(i);
-				double lValue = l.isNaN() ? 0 : l;
-				double rValue = r.isNaN() ? 0 : r;
+				double lValue = l.isNaN() ? 0.0 : l;
+				double rValue = r.isNaN() ? 0.0 : r;
 				list.add(getDifference(lValue, rValue));
 			}
 		} else {
@@ -293,7 +288,7 @@ public class FeatureModel {
 		return list;
 	}
 
-	private double getDifferenceValue(List<Double> left, List<Double> right) {
+	private static double getDifferenceValue(List<Double> left, List<Double> right) {
 		double sum = 0.0;
 		List<Double> differenceArray = getDifferenceArray(left, right);
 		if (differenceArray.isEmpty()) {
@@ -324,10 +319,10 @@ public class FeatureModel {
 		Pattern pattern = Pattern.compile("([\\w\\(\\)]+)\\s+(.*)");
 		String[] data = NEWLINE_PATTERN.split(file);
 
-		List<String> featureZone  = new ArrayList<String>();
-		List<String> symbolZone   = new ArrayList<String>();
-		List<String> modifierZone = new ArrayList<String>();
-		List<String> wightZone    = new ArrayList<String>();
+		Collection<String> featureZone  = new ArrayList<String>();
+		Collection<String> symbolZone   = new ArrayList<String>();
+		Collection<String> modifierZone = new ArrayList<String>();
+		Collection<String> weightZone   = new ArrayList<String>();
 
 		/* Probably what we need to do here is use the zones to capture every line up to the next zone
 		 * or EOF. Put these in lists, one for each zone. Then parse each zone separately. This will
@@ -335,76 +330,37 @@ public class FeatureModel {
 		 */
 		for (String string : data) {
 			// Remove comments
-			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
+			String  line    = COMMENT_PATTERN.matcher(string).replaceAll("");
 			Matcher matcher = ZONE_PATTERN.matcher(line);
 			if (matcher.find()) {
 				String zoneName = matcher.group(0);
 				currentZone = Zone.valueOf(zoneName);
-				LOGGER.info(currentZone.toString());
 			} else if (!line.isEmpty()) {
-				switch (currentZone) {
-					case FEATURES:
-						featureZone.add(line.toLowerCase());
-						break;
-					case SYMBOLS:
-						symbolZone.add(line);
-						break;
-					case MODIFIERS:
-						modifierZone.add(line);
-						break;
-					case WEIGHTS:
-						wightZone.add(line);
-						break;
-					case NONE:
-						// Fallthrough
-					default:
-						// ??
+				if (currentZone == Zone.FEATURES) {
+					featureZone.add(line.toLowerCase());
+				} else if (currentZone == Zone.SYMBOLS) {
+					symbolZone.add(line);
+				} else if (currentZone == Zone.MODIFIERS) {
+					modifierZone.add(line);
+				} else if (currentZone == Zone.WEIGHTS) {
+					weightZone.add(line);
 				}
 			}
 		}
-
-
-
-
 		// Now parse each of the lists
-		int i = 0;
-		for (String entry : featureZone) {
-			Matcher matcher = FEATURES_PATTERN.matcher(entry);
+		populateFeatures(featureZone);
+		populateSymbols(symbolZone);
+		populateModifiers(modifierZone);
+		populateWeights(weightZone);
+	}
 
-
-			if (matcher.matches()) {
-
-				String name  = matcher.group(1);
-				String alias = matcher.group(2);
-				String type  = matcher.group(3);
-
-				featureNames.put(name, i);
-				featureAliases.put(alias, i);
-
-			} else {
-				LOGGER.error("Unrecognized command in FEATURE block: {}", entry);
-				throw new ParseException("Unrecognized command in FEATURE block: "+entry);
-			}
-			i++;
+	private void populateWeights(Iterable<String> weightZone) {
+		for (String entry : weightZone) {
+			// TODO
 		}
+	}
 
-		for (String entry : symbolZone) {
-			Matcher matcher = SYMBOL_PATTERN.matcher(entry);
-
-			if (matcher.matches()) {
-				String symbol = matcher.group(1);
-				String[] values = matcher.group(2).split("\\t", -1);
-
-				List<Double> features = new ArrayList<Double>();
-				for (String value : values) {
-					features.add(getDouble(value));
-				}
-				featureMap.put(symbol, features);
-			} else {
-				LOGGER.error("Unrecognized symbol definition {}", entry);
-			}
-		}
-
+	private void populateModifiers(Iterable<String> modifierZone) {
 		for (String entry : modifierZone) {
 			Matcher matcher = SYMBOL_PATTERN.matcher(entry);
 
@@ -421,77 +377,50 @@ public class FeatureModel {
 				LOGGER.error("Unrecognized diacritic definition {}", entry);
 			}
 		}
-
-		for (String entry : wightZone) {
-
-		}
 	}
 
-	private void readModelFromFile(List<String> lines) {
+	private void populateSymbols(Iterable<String> symbolZone) {
+		for (String entry : symbolZone) {
+			Matcher matcher = SYMBOL_PATTERN.matcher(entry);
 
-		boolean hasDiacritics = false;
-		if (lines.get(0).startsWith("name")) {
-			String line = lines.remove(0);
-			String[] row = line.split("\t", -1);
+			if (matcher.matches()) {
+				String symbol = matcher.group(1);
+				String[] values = matcher.group(2).split("\\t", -1);
 
-			row = ArrayUtils.remove(row, 0);
-			if (row[0].equals("diacritic")) {
-				hasDiacritics = true;
-				row = ArrayUtils.remove(row, 0);
-			}
-			for (int i = 0; i < row.length; i++) {
-				featureNames.put(row[i], i);
-			}
-		}
-
-		if (lines.get(0).startsWith("alias")) {
-			String   line = lines.remove(0);
-			String[] row  = line.split("\t", -1);
-
-			row = ArrayUtils.remove(row, 0);
-			if (hasDiacritics) {
-				// Remove the placeholder for "diacritics"
-				row = ArrayUtils.remove(row, 0);
-			}
-			for (int i = 0; i < row.length; i++) {
-				featureAliases.put(row[i], i);
-			}
-		}
-
-		for (String line : lines) {
-
-			String[] row = line.split("\t", -1);
-			String keys = row[0].trim();
-			row = ArrayUtils.remove(row, 0);
-
-			// Read feature specification
-			List<Double> features = new ArrayList<Double>();
-			for (String cell : row) {
-
-				double featureValue = getDouble(cell);
-				features.add(featureValue);
-			}
-			// Create mapping
-			if (hasDiacritics) {
-				Double diacriticFlag = features.remove(0);
-				if (diacriticFlag <= 0.0) {
-					for (String key : keys.split(" ")) {
-						featureMap.put(key, features);
-					}
-				} else {
-					for (String key : keys.split(" ")) {
-						diacritics.put(key, features);
-					}
+				List<Double> features = new ArrayList<Double>();
+				for (String value : values) {
+					features.add(getDouble(value));
 				}
+				featureMap.put(symbol, features);
 			} else {
-				for (String key : keys.split(" ")) {
-					featureMap.put(key, features);
-				}
+				LOGGER.error("Unrecognized symbol definition {}", entry);
 			}
 		}
 	}
 
-	private double getDouble(String cell) {
+	private void populateFeatures(Collection<String> featureZone) {
+		int i = 0;
+		for (String entry : featureZone) {
+			Matcher matcher = FEATURES_PATTERN.matcher(entry);
+
+			if (matcher.matches()) {
+
+				String name  = matcher.group(1);
+				String alias = matcher.group(2);
+				String type  = matcher.group(3);
+
+				featureNames.put(name, i);
+				featureAliases.put(alias, i);
+
+			} else {
+				LOGGER.error("Unrecognized command in FEATURE block: {}", entry);
+				throw new ParseException("Unrecognized command in FEATURE block: "+entry);
+			}
+			i++;
+		}
+	}
+
+	private static double getDouble(String cell) {
 		double featureValue;
 		if (cell.isEmpty()) {
 			featureValue = Double.NaN;
@@ -504,26 +433,6 @@ public class FeatureModel {
 		}
 		return featureValue;
 	}
-
-	private Table<Double> readWeights(List<String> lines) {
-		int numberOfWeights = lines.get(0).split("\t").length;
-		Table<Double> table = new RectangularTable<Double>(0.0, numberOfWeights, numberOfWeights);
-
-		for (int i = 0; i < lines.size(); i++) {
-			String[] row = lines.get(i).split("\t");
-			for (int j = 0; j < row.length; j++) {
-				Double value = Double.valueOf(row[j]);
-				table.set(value, i, j);
-			}
-		}
-		return table;
-	}
-
-
-	private interface FeatureType {
-		boolean validate(String value);
-	}
-
 
 	private enum Zone {
 		FEATURES  ("FEATURES"),

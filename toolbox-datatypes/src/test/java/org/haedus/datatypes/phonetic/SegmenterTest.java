@@ -14,6 +14,7 @@
 
 package org.haedus.datatypes.phonetic;
 
+import org.haedus.datatypes.FormatterMode;
 import org.haedus.datatypes.NormalizerMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class SegmenterTest
 
 	@BeforeClass
 	public static void init() throws IOException {
-		Resource resource = new ClassPathResource("featuremodel");
+		Resource resource = new ClassPathResource("features.model");
 		model = new FeatureModel(resource.getFile());
 	}
 
@@ -44,7 +45,7 @@ public class SegmenterTest
 	public void testString() {
 		String word = "t͜sʰ";
 
-		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), FormatterMode.INTELLIGENT);
 		assertFalse("Nothing was returned by the Segmenter!",segmentedString.isEmpty());
 	}
 
@@ -72,6 +73,6 @@ public class SegmenterTest
 	}
 
 	private static Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, model, new ArrayList<String>(), SegmentationMode.DEFAULT, NormalizerMode.NFD);
+		return Segmenter.getSequence(word, model, new ArrayList<String>(), FormatterMode.INTELLIGENT);
 	}
 }
