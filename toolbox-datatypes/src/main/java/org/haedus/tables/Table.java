@@ -12,19 +12,20 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes;
+package org.haedus.tables;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
- * Created: 11/23/2014
+ * Created: 11/30/2014
  */
-public enum SegmentationMode {
-	DEFAULT("Default"),
-	NAIVE("NAIVE");
+public interface Table<T> {
+	T get(int i, int j);
 
-	private final String value;
+	void set(T t, int i, int j);
 
-	SegmentationMode(String value) {
-		this.value = value;
-	}
+	int getNumberRows();
+
+	int getNumberColumns();
+
+	String getPrettyTable();
 }

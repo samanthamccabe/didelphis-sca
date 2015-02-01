@@ -14,9 +14,9 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

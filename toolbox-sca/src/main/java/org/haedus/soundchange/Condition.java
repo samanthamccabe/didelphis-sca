@@ -16,10 +16,10 @@ package org.haedus.soundchange;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.machines.Node;
-import org.haedus.datatypes.ParseDirection;
+import org.haedus.enums.ParseDirection;
 import org.haedus.machines.NodeFactory;
 import org.haedus.machines.StateMachine;
 import org.haedus.soundchange.exceptions.RuleFormatException;

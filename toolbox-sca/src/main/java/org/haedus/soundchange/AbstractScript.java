@@ -14,8 +14,8 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.LexiconMap;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.command.Command;
 
 import java.util.ArrayDeque;
@@ -39,7 +39,7 @@ public abstract class AbstractScript implements SoundChangeScript {
 	protected final Queue<Command> commands;
 	protected final LexiconMap     lexicons;
 
-	public AbstractScript() {
+	protected AbstractScript() {
 		commands = new ArrayDeque<Command>();
 		lexicons = new LexiconMap();
 	}

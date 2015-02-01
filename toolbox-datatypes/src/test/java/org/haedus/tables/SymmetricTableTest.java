@@ -12,19 +12,32 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.tables;
+package org.haedus.tables;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
- * Created: 12/14/2014
+ * Created: 12/11/2014
  */
-public class SquareTable<T> extends RectangularTable<T> {
+public class SymmetricTableTest {
 
-	protected SquareTable(int r, int c) {
-		super(r, c);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(SymmetricTableTest.class);
+
+	private static Table<String> indexedList;
+
+	@BeforeClass
+	public static void init() {
+		indexedList = new SymmetricTable<String>("", 6);
 	}
 
-	public SquareTable(T defaultValue, int n) {
-		super(defaultValue, n, n);
+	@Test
+	public void testGet01() {
+		String prettyTable = indexedList.getPrettyTable();
+
+		LOGGER.info("\n{}", prettyTable);
 	}
 }

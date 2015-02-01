@@ -12,8 +12,19 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes;
+package org.haedus.enums;
 
-public class TableTest
-{
+/**
+ * Author: Samantha Fiona Morrigan McCabe
+ * Created: 11/23/2014
+ */
+public enum SegmentationMode {
+	DEFAULT("Default"),
+	NAIVE("NAIVE");
+
+	private final String value;
+
+	SegmentationMode(String value) {
+		this.value = value;
+	}
 }

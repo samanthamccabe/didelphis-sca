@@ -14,7 +14,7 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.phonetic.VariableStore;
 
 import org.junit.Test;
 

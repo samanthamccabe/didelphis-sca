@@ -12,10 +12,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.Segmenter;
+import org.haedus.enums.FormatterMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

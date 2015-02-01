@@ -12,17 +12,19 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.enums;
 
 /**
+ * This type is to succeed the earlier SegmentationMode and Normalizer mode enums by merging their functionality.
+ * We originally supported types that were entirely unnecessary and presented the user with an excess of options,
+ * most of where were of no value (compatibility modes,  or segmentation with composition e.g.)
+ *
  * Samantha Fiona Morrigan McCabe
- * Created: 1/21/2015
+ * Created: 1/14/2015
  */
-public interface ModelBearer {
-
-	/**
-	 * Returns the model used by this ModelBearer
-	 * @return the FeatureModel; must never be null
-	 */
-	public FeatureModel getFeatureModel();
+public enum FormatterMode {
+	DECOMPOSITION,	// Unicode Canonical Decomposition
+	COMPOSITION,	// Unicode Canonical Decomposition followed by Canonical Composition
+	INTELLIGENT,	// Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
+	NONE			// No change to input strings; they are read just as they appear in the lexicon and rule
 }

@@ -12,7 +12,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.tables;
+package org.haedus.tables;
 
 /**
  * @param <T>

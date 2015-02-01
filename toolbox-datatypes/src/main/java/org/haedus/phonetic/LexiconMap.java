@@ -12,19 +12,45 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.datatypes;
+package org.haedus.phonetic;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * This type is to succeed the earlier SegmentationMode and Normalizer mode enums by merging their functionality.
- * We originally supported types that were entirely unnecessary and presented the user with an excess of options,
- * most of where were of no value (compatibility modes,  or segmentation with composition e.g.)
- *
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 1/16/2015
  */
-public enum FormatterMode {
-	DECOMPOSITION,	// Unicode Canonical Decomposition
-	COMPOSITION,	// Unicode Canonical Decomposition followed by Canonical Composition
-	INTELLIGENT,	// Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
-	NONE			// No change to input strings; they are read just as they appear in the lexicon and rule
+public class LexiconMap {
+
+	private final Map<String, Lexicon> map;
+
+	public LexiconMap() {
+		map = new HashMap<String, Lexicon>();
+	}
+
+	public void addLexicon(String handle, Lexicon words) {
+		map.put(handle, words);
+	}
+
+	public Lexicon get(String handle) {
+		return map.get(handle);
+	}
+
+	public boolean hasHandle(String handle) {
+		return map.containsKey(handle);
+	}
+
+	public Collection<String> getHandles() {
+		return map.keySet();
+	}
+
+	public Collection<Lexicon> values() {
+		return map.values();
+	}
+
+	public Lexicon remove(String handle) {
+		return  map.remove(handle);
+	}
 }

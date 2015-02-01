@@ -14,8 +14,8 @@
 
 package org.haedus.machines;
 
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
 
 import java.util.Collection;
 

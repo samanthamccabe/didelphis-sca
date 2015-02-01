@@ -12,11 +12,10 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 

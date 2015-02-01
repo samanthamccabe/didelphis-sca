@@ -12,7 +12,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ArrayUtils;
@@ -214,12 +214,12 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	@Override
 	public String toString() {
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 
 		for (Segment a_sequence : sequence) {
-			s += a_sequence.getSymbol();
+			sb.append(a_sequence.getSymbol());
 		}
-		return s;
+		return sb.toString();
 	}
 
 	public boolean isEmpty() {
@@ -264,18 +264,13 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	@VisibleForTesting
-	void add(Segment[] segments) {
-		Collections.addAll(sequence, segments);
-	}
-
-	@VisibleForTesting
-	int[] indicesOf(Sequence q) {
-		int[] indices = new int[0];
+	List<Integer> indicesOf(Sequence q) {
+		List<Integer> indices = new ArrayList<Integer>();
 
 		int index = indexOf(q);
 
 		while (index >= 0) {
-			indices = ArrayUtils.add(indices, index);
+			indices.add(index);
 			index = indexOf(q, index + 1);
 		}
 		return indices;

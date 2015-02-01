@@ -17,7 +17,7 @@
  * and open the template in the editor.
  */
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -56,9 +56,13 @@ public class Segment implements ModelBearer {
 		features = new ArrayList<Double>(featureArray);
 	}
 
-	// Test only
-	@VisibleForTesting
-	Segment(String string) {
+	// Never used
+	private Segment() {
+		this("");
+	}
+
+	// Used to create the empty segment
+	private Segment(String string) {
 		symbol   = string;
 		model    = FeatureModel.EMPTY_MODEL;
 		features = new ArrayList<Double>();

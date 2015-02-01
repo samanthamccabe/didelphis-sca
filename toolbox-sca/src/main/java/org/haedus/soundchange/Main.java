@@ -15,8 +15,8 @@
 package org.haedus.soundchange;
 
 import org.apache.commons.io.FileUtils;
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.phonetic.Lexicon;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.Lexicon;
 import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +95,8 @@ public class Main {
 					"If running in 'standard' mode, only provide the path of a rule file.");
 		}
 
-		double elapsedTime = System.nanoTime() - startTime;
-		double time = (elapsedTime / Math.pow(10,9));
+		double elapsedTime = (double) System.nanoTime() - startTime;
+		double time = elapsedTime / StrictMath.pow(10.0,9.0);
 		LOGGER.info("Finished in {} seconds", time);
 	}
 }

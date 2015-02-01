@@ -16,7 +16,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
 /**
  *

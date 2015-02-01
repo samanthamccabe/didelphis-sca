@@ -12,16 +12,19 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes;
+package org.haedus.tables;
 
 /**
- * Created by samantha on 12/24/14.
+ * Author: Samantha Fiona Morrigan McCabe
+ * Created: 12/14/2014
  */
-public enum ParseDirection {
-	FORWARD  ("Forward"),
-	BACKWARD ("Backward");
+public class SquareTable<T> extends RectangularTable<T> {
 
-	private final String value;
+	protected SquareTable(int r, int c) {
+		super(r, c);
+	}
 
-	ParseDirection(String param) { value = param; }
+	public SquareTable(T defaultValue, int n) {
+		super(defaultValue, n, n);
+	}
 }

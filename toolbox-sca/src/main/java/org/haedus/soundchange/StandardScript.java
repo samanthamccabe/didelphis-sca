@@ -15,10 +15,10 @@
 package org.haedus.soundchange;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.DiskFileHandler;
 import org.haedus.io.FileHandler;

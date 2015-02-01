@@ -12,45 +12,17 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+package org.haedus.phonetic;
 
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/16/2015
+ * Created: 1/21/2015
  */
-public class LexiconMap {
+public interface ModelBearer {
 
-	private final Map<String, Lexicon> map;
-
-	public LexiconMap() {
-		map = new HashMap<String, Lexicon>();
-	}
-
-	public void addLexicon(String handle, Lexicon words) {
-		map.put(handle, words);
-	}
-
-	public Lexicon get(String handle) {
-		return map.get(handle);
-	}
-
-	public boolean hasHandle(String handle) {
-		return map.containsKey(handle);
-	}
-
-	public Collection<String> getHandles() {
-		return map.keySet();
-	}
-
-	public Collection<Lexicon> values() {
-		return map.values();
-	}
-
-	public Lexicon remove(String handle) {
-		return  map.remove(handle);
-	}
+	/**
+	 * Returns the model used by this ModelBearer
+	 * @return the FeatureModel; must never be null
+	 */
+	public FeatureModel getFeatureModel();
 }

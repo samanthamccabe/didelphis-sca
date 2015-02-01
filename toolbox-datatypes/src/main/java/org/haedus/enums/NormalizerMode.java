@@ -12,9 +12,29 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.enums;
 
-public class SequenceFactoryTest
-{
+/**
+ * Class NormalizationMode
+ * Samantha Fiona Morrigan McCabe
+ *
+ * @since 07/30/2014
+ */
+public enum NormalizerMode {
+	NFD("NFD"),
+	NFC("NFC"),
+	NFKD("NFKD"),
+	NFKC("NFKC"),
+	NONE("NONE");
 
+	private final String value;
+
+	NormalizerMode(String v) {
+		value = v;
+	}
+
+	@Override
+	public String toString() {
+		return value;
+	}
 }

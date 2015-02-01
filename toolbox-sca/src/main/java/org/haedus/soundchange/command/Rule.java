@@ -17,12 +17,12 @@ package org.haedus.soundchange.command;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.Segment;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.soundchange.Condition;
-import org.haedus.datatypes.phonetic.LexiconMap;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
 import org.slf4j.Logger;

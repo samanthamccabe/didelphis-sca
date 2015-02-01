@@ -16,9 +16,9 @@ package org.haedus.machines;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.ParseDirection;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.enums.ParseDirection;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;

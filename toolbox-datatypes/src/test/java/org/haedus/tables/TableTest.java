@@ -12,20 +12,8 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.tables;
+package org.haedus.tables;
 
-/**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 11/30/2014
- */
-public interface Table<T> {
-	T get(int i, int j);
-
-	void set(T t, int i, int j);
-
-	int getNumberRows();
-
-	int getNumberColumns();
-
-	String getPrettyTable();
+public class TableTest
+{
 }

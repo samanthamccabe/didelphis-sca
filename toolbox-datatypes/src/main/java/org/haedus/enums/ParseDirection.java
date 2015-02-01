@@ -12,35 +12,16 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.haedus.datatypes.tables.SymmetricTable;
-import org.haedus.datatypes.tables.Table;
+package org.haedus.enums;
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 12/11/2014
+ * Created by samantha on 12/24/14.
  */
-public class SymmetricTableTest {
+public enum ParseDirection {
+	FORWARD  ("Forward"),
+	BACKWARD ("Backward");
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(SymmetricTableTest.class);
+	private final String value;
 
-	private static Table<String> indexedList;
-
-	@BeforeClass
-	public static void init() {
-		indexedList = new SymmetricTable<String>("", 6);
-	}
-
-	@Test
-	public void testGet01() {
-		String prettyTable = indexedList.getPrettyTable();
-
-		LOGGER.info("\n{}", prettyTable);
-	}
+	ParseDirection(String param) { value = param; }
 }

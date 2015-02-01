@@ -17,15 +17,15 @@
  * and open the template in the editor.
  */
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.haedus.datatypes.tables.RectangularTable;
-import org.haedus.datatypes.tables.Table;
+import org.haedus.tables.RectangularTable;
+import org.haedus.tables.Table;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class FeatureModel {
 	}
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
-	public Segment getSegment(String head, Iterable<String> modifiers) {
+	Segment getSegment(String head, Iterable<String> modifiers) {
 		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 		StringBuilder sb = new StringBuilder(head);
 		for (String modifier : modifiers) {
@@ -144,7 +144,8 @@ public class FeatureModel {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null)                  return false;
-		if (obj.getClass() != getClass()) return false;
+		if (this == obj)                  return true;
+		if (getClass() != obj.getClass()) return false;
 
 		FeatureModel other = (FeatureModel) obj;
 
@@ -161,12 +162,7 @@ public class FeatureModel {
 			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
 				double b = r.getFeatureValue(j);
-				if (weightTable.getNumberColumns() == getNumberOfFeatures()) {
-					score += getDifference(a, b) * weightTable.get(i, j);
-				} else {
-					score += getDifference(a, b);
-				}
-				score += getDifference(a, b);
+				score += getDifference(a, b) * weightTable.get(i, j);
 			}
 		}
 		return score;
@@ -398,7 +394,7 @@ public class FeatureModel {
 		}
 	}
 
-	private void populateFeatures(Collection<String> featureZone) {
+	private void populateFeatures(Iterable<String> featureZone) {
 		int i = 0;
 		for (String entry : featureZone) {
 			Matcher matcher = FEATURES_PATTERN.matcher(entry);

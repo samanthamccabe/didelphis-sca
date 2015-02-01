@@ -12,20 +12,15 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
+import org.haedus.enums.FormatterMode;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Segmenter;
 
 import java.io.IOException;
 import java.util.ArrayList;

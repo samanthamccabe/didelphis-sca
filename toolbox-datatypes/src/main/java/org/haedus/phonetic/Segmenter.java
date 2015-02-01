@@ -17,11 +17,9 @@
  * and open the template in the editor.
  */
 
-package org.haedus.datatypes;
+package org.haedus.phonetic;
 
-import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Segment;
-import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.enums.FormatterMode;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -281,9 +279,9 @@ public final class Segmenter {
 	private static boolean isCombiningClass(char ch) {
 		int type = Character.getType(ch);
 		return type == Character.MODIFIER_LETTER || // LM
-				type == Character.MODIFIER_SYMBOL || // SK
-				type == Character.COMBINING_SPACING_MARK || // MC
-				type == Character.NON_SPACING_MARK;         // MN
+			type == Character.MODIFIER_SYMBOL || // SK
+			type == Character.COMBINING_SPACING_MARK || // MC
+			type == Character.NON_SPACING_MARK;         // MN
 	}
 
 	private static String normalize(String word, FormatterMode mode) {

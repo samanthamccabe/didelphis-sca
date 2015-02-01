@@ -12,17 +12,13 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.phonetic;
+package org.haedus.phonetic;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.NormalizerMode;
+import org.haedus.enums.FormatterMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.Segmenter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +34,6 @@ public class SegmenterTest
 	@BeforeClass
 	public static void init() throws IOException {
 		Resource resource = new ClassPathResource("features.model");
-		model = new FeatureModel(resource.getFile());
 	}
 
 	@Test

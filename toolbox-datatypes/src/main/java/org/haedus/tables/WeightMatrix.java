@@ -12,7 +12,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.datatypes.tables;
+package org.haedus.tables;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

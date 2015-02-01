@@ -14,11 +14,11 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
 import org.junit.Ignore;

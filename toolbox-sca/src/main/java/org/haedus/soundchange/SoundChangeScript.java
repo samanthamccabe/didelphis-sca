@@ -14,7 +14,7 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.phonetic.Lexicon;
+import org.haedus.phonetic.Lexicon;
 
 /**
  * Samantha Fiona Morrigan McCabe
