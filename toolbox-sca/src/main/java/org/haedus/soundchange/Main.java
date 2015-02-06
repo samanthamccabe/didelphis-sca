@@ -95,7 +95,7 @@ public class Main {
 					"If running in 'standard' mode, only provide the path of a rule file.");
 		}
 
-		double elapsedTime = (double) System.nanoTime() - startTime;
+		double elapsedTime = System.nanoTime() - startTime;
 		double time = elapsedTime / StrictMath.pow(10.0,9.0);
 		LOGGER.info("Finished in {} seconds", time);
 	}

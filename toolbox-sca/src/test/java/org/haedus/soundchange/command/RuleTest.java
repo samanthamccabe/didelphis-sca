@@ -23,6 +23,7 @@ import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,7 +36,8 @@ import static org.junit.Assert.assertEquals;
  */
 public class RuleTest {
 
-	public static final  SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
+	private static final Set<String>     EMPTY_SET   = new HashSet<String>();
+	private static final SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
 	private static final SequenceFactory FACTORY     = SequenceFactory.getEmptyFactory();
 
 	@Test
@@ -44,7 +46,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$1", factory);
 
@@ -68,7 +70,7 @@ public class RuleTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 
 		Rule rule = new Rule("CVN > $3V$1", factory);
@@ -92,7 +94,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$G1", factory);
 
@@ -251,7 +253,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("V = a e i o u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Sequence original = factory.getSequence("mlan");
 		Sequence expected = factory.getSequence("blan");
@@ -340,7 +342,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store);
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("a > b / C_ NOT x_", factory);
 

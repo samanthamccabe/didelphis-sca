@@ -14,15 +14,37 @@
 
 package org.haedus.phonetic;
 
+import org.haedus.enums.FormatterMode;
+import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.junit.Assert.assertTrue;
+
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/21/2015
+ * Created: 2/5/2015
  */
-public interface ModelBearer {
+public class TestSequenceFactory {
 
-	/**
-	 * Returns the model used by this ModelBearer
-	 * @return the FeatureModel; must never be null
-	 */
-	FeatureModel getFeatureModel();
+	private final FeatureModel model;
+
+	public TestSequenceFactory() throws IOException {
+		Resource resource = new ClassPathResource("features.model");
+		File file = resource.getFile();
+		model = new FeatureModel(file);
+	}
+
+	@Test
+	public void testGetSequence01() {
+		String word = "avaːm";
+
+		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+
+		Sequence sequence = factory.getSequence(word);
+		assertTrue(!sequence.isEmpty());
+	}
 }

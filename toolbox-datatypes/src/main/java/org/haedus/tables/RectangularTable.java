@@ -100,7 +100,7 @@ public class RectangularTable<T> implements Table<T> {
 	 * @return the absolute index of the internal array based on the provided coordinates.
 	 */
 	private int getIndex(int i, int j) {
-	    return (i + (j * numberRows));
+	    return i + j * numberRows;
 	}
 
 	@Override

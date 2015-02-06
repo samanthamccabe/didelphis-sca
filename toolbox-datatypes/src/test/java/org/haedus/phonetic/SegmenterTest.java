@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,16 @@ public class SegmenterTest
 	@BeforeClass
 	public static void init() throws IOException {
 		Resource resource = new ClassPathResource("features.model");
+		File file = resource.getFile();
+		model = new FeatureModel(file);
+	}
+
+	@Test
+	public void testString01() {
+		String word = "avaːm";
+
+		Sequence sequence = getSequence(word);
+		assertTrue(!sequence.isEmpty());
 	}
 
 	@Test

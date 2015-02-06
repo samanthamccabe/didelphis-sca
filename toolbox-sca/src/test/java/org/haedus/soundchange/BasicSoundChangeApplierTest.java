@@ -34,13 +34,14 @@ public class BasicSoundChangeApplierTest {
 
 	public static final SequenceFactory FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
 	public static final SequenceFactory FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
+	public static final String[]        ZERO_ARRAY          = {};
 
 	@Test
 	public void testBreak() {
 		String[] commands = {
-				"x > y",
-				"BREAK",
-				"a > b"
+			"x > y",
+			"BREAK",
+			"a > b"
 		};
 
 		String[] lexicon = {"x", "xxa", "a"};
@@ -57,9 +58,9 @@ public class BasicSoundChangeApplierTest {
 	public void testNormalizerDecomposition() {
 
 		String[] lexicon = {
-				"á", "ö", "ē", "ȕ"
+			"á", "ö", "ē", "ȕ"
 		};
-		SoundChangeScript sca = new BasicScript(new String[]{}, lexicon, FormatterMode.DECOMPOSITION);
+		SoundChangeScript sca = new BasicScript(ZERO_ARRAY, lexicon, FormatterMode.DECOMPOSITION);
 		sca.process();
 		Lexicon received = sca.getLexicon(BasicScript.DEFAULT_LEXICON);
 		Lexicon expected = new SequenceFactory(FormatterMode.DECOMPOSITION).getLexiconFromSingleColumn(lexicon);
@@ -71,7 +72,7 @@ public class BasicSoundChangeApplierTest {
 	public void testNormalizerNFC() {
 		String[] lexicon = {"á", "ā", "ï", "à", "ȍ", "ő"};
 
-		SoundChangeScript sca = new BasicScript(new String[]{}, lexicon, FormatterMode.COMPOSITION);
+		SoundChangeScript sca = new BasicScript(ZERO_ARRAY, lexicon, FormatterMode.COMPOSITION);
 		sca.process();
 		Lexicon received = sca.getLexicon(BasicScript.DEFAULT_LEXICON);
 		Lexicon expected = FACTORY_NONE.getLexiconFromSingleColumn(lexicon);
@@ -82,8 +83,8 @@ public class BasicSoundChangeApplierTest {
 	public void TestNormalizerNFCvsNFD() {
 
 		String[] lexicon = {"á", "ā", "ï", "à", "ȍ", "ő"};
-		SoundChangeScript scaComp = new BasicScript(new String[]{}, lexicon, FormatterMode.COMPOSITION);
-		SoundChangeScript scaDeco = new BasicScript(new String[]{}, lexicon, FormatterMode.DECOMPOSITION);
+		SoundChangeScript scaComp = new BasicScript(ZERO_ARRAY, lexicon, FormatterMode.COMPOSITION);
+		SoundChangeScript scaDeco = new BasicScript(ZERO_ARRAY, lexicon, FormatterMode.DECOMPOSITION);
 		scaComp.process();
 		scaDeco.process();
 		Lexicon lexComp = scaComp.getLexicon(BasicScript.DEFAULT_LEXICON);

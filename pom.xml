@@ -89,8 +89,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.haedus.common</groupId>
-            <artifactId>haedus-utils</artifactId>
+            <groupId>org.haedus</groupId>
+            <artifactId>haedus-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

@@ -92,7 +92,7 @@ public class MockFileHandler implements FileHandler {
 
 		StringBuilder sb = new StringBuilder();
 		for (String line : data) {
-			sb.append(line).append("\n");
+			sb.append(line).append('\n');
 		}
 		mockFileSystem.put(path, sb.toString());
 	}

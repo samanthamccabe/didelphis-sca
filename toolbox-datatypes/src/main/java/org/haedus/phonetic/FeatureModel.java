@@ -21,6 +21,7 @@ package org.haedus.phonetic;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.exceptions.ParseException;
+import org.haedus.tables.SymmetricTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,7 @@ public class FeatureModel {
 		featureAliases = new HashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, List<Double>>();
 		diacritics     = new LinkedHashMap<String, List<Double>>();
-		weightTable    = new RectangularTable<Double>(0.0, 0, 0);
+		weightTable    = new SymmetricTable<Double>(0.0, 0);
 	}
 
 	public FeatureModel(File file) {
@@ -142,12 +143,12 @@ public class FeatureModel {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)                  return false;
-		if (this == obj)                  return true;
-		if (getClass() != obj.getClass()) return false;
+	public boolean equals(Object o) {
+		if (this == o) { return true;  }
+		if (o == null) { return false; }
+		if (getClass() != o.getClass()) { return false; }
 
-		FeatureModel other = (FeatureModel) obj;
+		FeatureModel other = (FeatureModel) o;
 
 		boolean featureEquals = featureMap.equals(other.getFeatureMap());
 		boolean weightsEquals = weightTable.equals(other.getWeights());

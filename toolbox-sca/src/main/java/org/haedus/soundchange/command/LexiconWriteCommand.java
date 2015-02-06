@@ -48,24 +48,23 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 			while (i2.hasNext()) {
 				Sequence sequence = i2.next();
 				sb.append(sequence);
-				if (i2.hasNext()) sb.append("\t");
+				if (i2.hasNext()) { sb.append('\t'); }
 
 			}
-			if (i1.hasNext()) sb.append("\n");
+			if (i1.hasNext()) { sb.append('\n'); }
 		}
 		fileHandler.writeString(filePath, sb.toString().trim());
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
-		LexiconWriteCommand rhs = (LexiconWriteCommand) obj;
+	public boolean equals(Object o) {
+		if (this == o) { return true;  }
+		if (o == null) { return false; }
+		if (getClass() != o.getClass()) { return false; }
+
+		LexiconWriteCommand rhs = (LexiconWriteCommand) o;
 		return new EqualsBuilder()
-				.appendSuper(super.equals(obj))
+				.appendSuper(super.equals(o))
 				.append(lexicons, rhs.lexicons)
 				.isEquals();
 	}

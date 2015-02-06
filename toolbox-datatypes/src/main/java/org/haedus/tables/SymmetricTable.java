@@ -45,11 +45,11 @@ public class SymmetricTable<T> extends SquareTable<T> {
 			for (int j = 0; j <= i;j ++) {
 				sb.append(get(i,j));
 				if (j < i) {
-					sb.append("\t");
+					sb.append('\t');
 				}
 			}
 			if (i < getNumberRows() -1) {
-				sb.append("\n");
+				sb.append('\n');
 			}
 		}
 		return sb.toString();

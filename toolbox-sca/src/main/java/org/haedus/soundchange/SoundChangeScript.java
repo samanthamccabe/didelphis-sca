@@ -22,9 +22,9 @@ import org.haedus.phonetic.Lexicon;
  */
 public interface SoundChangeScript {
 
-	public void process();
+	void process();
 
-	public boolean hasLexicon(String handle);
+	boolean hasLexicon(String handle);
 
-	public Lexicon getLexicon(String handle);
+	Lexicon getLexicon(String handle);
 }

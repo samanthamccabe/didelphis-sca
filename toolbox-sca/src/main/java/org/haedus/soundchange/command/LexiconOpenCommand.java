@@ -27,7 +27,7 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class LexiconOpenCommand extends LexiconIOCommand implements Command {
+public class LexiconOpenCommand extends LexiconIOCommand {
 
 	private final LexiconMap      lexicons;
 	private final SequenceFactory factory;

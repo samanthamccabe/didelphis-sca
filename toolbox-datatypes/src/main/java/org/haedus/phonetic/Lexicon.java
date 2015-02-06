@@ -49,7 +49,7 @@ public class Lexicon implements Iterable<List<Sequence>> {
 			Iterator<Sequence> it = line.iterator();
 			while (it.hasNext()) {
 				Sequence sequence = it.next();
-				sb.append(sequence.toString());
+				sb.append(sequence);
 				if (it.hasNext()) {
 					sb.append("\\t");
 				}
@@ -63,9 +63,9 @@ public class Lexicon implements Iterable<List<Sequence>> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null) return false;
-		if (getClass() != o.getClass()) return false;
+		if (this == o) { return true;  }
+		if (o == null) { return false; }
+		if (getClass() != o.getClass()) { return false; }
 
 		Lexicon lexicon1 = (Lexicon) o;
 		return lexicon.equals(lexicon1.lexicon);

@@ -98,7 +98,7 @@ public class StandardScript extends AbstractScript {
 
 	@VisibleForTesting
 	Collection<String> getReservedSymbols() {
-		return reservedSymbols;
+		return Collections.unmodifiableSet(reservedSymbols);
 	}
 
 	private void parse(Iterable<String> strings) {

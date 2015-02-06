@@ -26,6 +26,8 @@ import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Pattern;
+
 /**
  * User: Samantha Fiona Morrigan McCabe
  * Date: 4/28/13
@@ -35,9 +37,13 @@ public class Condition {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
-	private final String          conditionText;
-	private final Node<Sequence>  preCondition;
-	private final Node<Sequence>  postCondition;
+	private static final Pattern WHITESPACE_PATTERN  = Pattern.compile("\\s+");
+	private static final Pattern OPEN_BRACE_PATTERN  = Pattern.compile("([\\[\\{\\(]) ");
+	private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile(" ([\\]\\}\\)])");
+
+	private final String         conditionText;
+	private final Node<Sequence> preCondition;
+	private final Node<Sequence> postCondition;
 
 	// package-private: testing only
 	Condition(String condition) {
@@ -45,7 +51,7 @@ public class Condition {
 	}
 
 	public Condition(String condition, SequenceFactory factoryParam) {
-		conditionText    = cleanup(condition);
+		conditionText = cleanup(condition);
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
@@ -71,9 +77,7 @@ public class Condition {
 	}
 
 	private static String cleanup(String s) {
-		return s.replaceAll("\\s+", " ")
-		        .replaceAll("([\\[\\{\\(]) ", "$1")
-		        .replaceAll(" ([\\]\\}\\)])", "$1");
+		return CLOSE_BRACE_PATTERN.matcher(OPEN_BRACE_PATTERN.matcher(WHITESPACE_PATTERN.matcher(s).replaceAll(" ")).replaceAll("$1")).replaceAll("$1");
 	}
 
 	public boolean isMatch(Sequence word, int index) {

@@ -180,7 +180,7 @@ public class StateMachine extends AbstractNode {
 
 		@Override
 		public String toString() {
-			return "<<" + index + ", " + node.toString() + ">>";
+			return "<<" + index + ", " + node + ">>";
 		}
 
 		@Override

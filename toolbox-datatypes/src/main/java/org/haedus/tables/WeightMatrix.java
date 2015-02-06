@@ -49,16 +49,16 @@ public class WeightMatrix extends SymmetricTable<Double> {
 				Double value = get(i, j);
 				String format = FORMAT.format(value);
 				if (!format.startsWith("-")) {
-					sb.append(" ").append(format);
+					sb.append(' ').append(format);
 				} else {
 					sb.append(format);
 				}
 				if (j < i) {
-					sb.append("\t");
+					sb.append('\t');
 				}
 			}
 			if (i < getNumberRows() -1) {
-				sb.append("\n");
+				sb.append('\n');
 			}
 		}
 		return sb.toString();

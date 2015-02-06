@@ -27,9 +27,9 @@ import org.haedus.phonetic.SequenceFactory;
  */
 public class NodeFactory {
 
-	private static int parallelCounter = 0;
-	private static int machineCounter  = 0;
-	private static int nodeCounter     = 0;
+	private static int parallelCounter;
+	private static int machineCounter;
+	private static int nodeCounter;
 
 	private NodeFactory() {
 	}

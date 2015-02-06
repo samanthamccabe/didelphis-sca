@@ -56,10 +56,6 @@ public class SequenceFactory {
 		this(modelParam, new VariableStore(), new HashSet<String>(), modeParam);
 	}
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam) {
-		this(modelParam, storeParam, new HashSet<String>(), FormatterMode.NONE);
-	}
-
 	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, FormatterMode modeParam) {
 		featureModel = modelParam;
 		variableStore = storeParam;
