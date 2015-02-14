@@ -225,4 +225,14 @@ public class SequenceFactory {
 		buffer.append(key);
 		return buffer;
 	}
+
+	@Override
+	public String toString() {
+		return "SequenceFactory{" +
+			", featureModel=" + featureModel +
+			", variableStore=" + variableStore +
+			", formatterMode=" + formatterMode +
+			", reservedStrings=" + reservedStrings +
+			'}';
+	}
 }

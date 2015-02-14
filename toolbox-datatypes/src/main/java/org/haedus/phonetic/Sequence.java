@@ -29,10 +29,8 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment>, ModelBearer {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
-
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
-
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 	private final List<Segment> sequence;
 	private final FeatureModel  featureModel;
 
@@ -251,9 +249,9 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return !isEmpty() && sequence.get(0).equals(segment);
 	}
 
-	public boolean startsWith(Sequence sequence) {
-		validateModelOrWarn(sequence);
-		return indexOf(sequence) == 0;
+	public boolean startsWith(Sequence aSequence) {
+		validateModelOrWarn(aSequence);
+		return indexOf(aSequence) == 0;
 	}
 
 	@Override
@@ -277,7 +275,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	private void validateModelOrWarn(ModelBearer that) {
 		if (!featureModel.equals(that.getFeatureModel())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
-				that.getClass(),this, that,featureModel.getFeatureNames(),that.getFeatureModel().getFeatureNames());
+				that.getClass(), this, that, featureModel.getFeatureNames(), that.getFeatureModel().getFeatureNames());
 		}
 	}
 

@@ -160,8 +160,8 @@ public class Rule implements Command {
 					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
-					int referenceIndex = 1;
 					int testIndex = index;
+					int referenceIndex = 1;
 					boolean match = true;
 					for (int i = 0; i < source.size() && match; i++) {
 						Sequence subSequence = output.getSubsequence(testIndex);

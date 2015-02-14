@@ -36,24 +36,24 @@ import static org.junit.Assert.assertTrue;
 public class FeatureModelTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelTest.class);
 
+	private static final Double NAN = Double.NaN;
+
 	private static final List<Double> G_FEATURES    = new ArrayList<Double>();
 	private static final List<Double> GH_FEATURES   = new ArrayList<Double>();
 	private static final List<Double> GJ_FEATURES   = new ArrayList<Double>();
 	private static final List<Double> KWH_FEATURES  = new ArrayList<Double>();
 	private static final List<Double> KKWH_FEATURES = new ArrayList<Double>();
-	private static final double       NAN           = Double.NaN;
-
 	private static FeatureModel model;
 
 	@BeforeClass
 	public static void init() throws IOException {
-		//                                  0     1    2    3    4    5    6    7    8    9   10    11   12   13   14   15    16   17
-		//                                son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt   frn  bck  atr  rad  air   glt  len
-		Collections.addAll(G_FEATURES,    0.0, -1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GH_FEATURES,   0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GJ_FEATURES,   0.0, -1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0,  1.0, 1.0, NAN, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(KWH_FEATURES,  0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, -3.0, 0.0);
-		Collections.addAll(KKWH_FEATURES, 0.0, -1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN, NAN, -3.0, 1.0);
+		//                                  0     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17
+		//                                son  con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
+		Collections.addAll(G_FEATURES,    0.0,-1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,-1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		Collections.addAll(GH_FEATURES,   0.0,-1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,-1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		Collections.addAll(GJ_FEATURES,   0.0,-1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		Collections.addAll(KWH_FEATURES,  0.0,-1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,-1.0, 1.0, 0.0, 0.0, 0.0,-3.0, 0.0);
+		Collections.addAll(KKWH_FEATURES, 0.0,-1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,-1.0, 1.0, 0.0, 0.0, 0.0,-3.0, 1.0);
 
 		Resource resource = new ClassPathResource("features.model");
 		model = new FeatureModel(resource.getFile());
@@ -62,6 +62,31 @@ public class FeatureModelTest {
 	@Test
 	public void testLoad() {
 		// Ensure the model loads correctly.
+		assertTrue(model.getNumberOfFeatures() > 0);
+	}
+
+	@Test
+	public void testFeatureParse01() {
+		List<Double> ex = new ArrayList<Double>();
+		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
+		// 					p  ___   ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
+		Collections.addAll(ex, 0.0, -1.0, NAN, 1.0, NAN, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN,-3.0, 0.0);
+
+		Segment expected = new Segment("p", ex, model);
+		Segment received = model.getSegmentFromFeatures("[son:0,-con,rel:1,lab:1,glt:-3,len:0]");
+		assertEquals(expected.getFeatures(), received.getFeatures());
+	}
+
+	@Test
+	public void testFeatureParse02() {
+		List<Double> ex = new ArrayList<Double>();
+		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
+		// 					p  ___   ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
+		Collections.addAll(ex, 0.0, -1.0, NAN, 1.0, NAN, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN,-3.0, 0.0);
+
+		Segment expected = new Segment("p", ex, model);
+		Segment received = model.getSegmentFromFeatures("[sonorance:0,-continuant,release:1,labial:1,glottalstate:-3,length:0]");
+		assertEquals(expected.getFeatures(), received.getFeatures());
 	}
 
 	@Test

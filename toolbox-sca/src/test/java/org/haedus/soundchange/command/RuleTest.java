@@ -41,6 +41,20 @@ public class RuleTest {
 	private static final SequenceFactory FACTORY     = SequenceFactory.getEmptyFactory();
 
 	@Test
+	public void testBrackets01() throws Exception {
+
+		VariableStore store = new VariableStore();
+		store.add("VS = a e i o u ə á é í ó ú");
+		store.add("VL = ā ē ī ō ū ə̄  â ê î ô û");
+		store.add("V   = VS VL");
+		store.add("X = x ʔ");
+
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+
+		Rule rule = new Rule("X  > 0   / [Obstruent]_V", factory);
+	}
+
+	@Test
 	public void testMetathesis01() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");

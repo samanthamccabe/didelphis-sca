@@ -57,6 +57,9 @@ public class FeatureModel {
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 
+	private static final Pattern VALUE_PATTERN  = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern BINARY_PATTERN = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
+
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
@@ -66,11 +69,11 @@ public class FeatureModel {
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
-		featureNames   = new HashMap<String, Integer>();
+		featureNames = new HashMap<String, Integer>();
 		featureAliases = new HashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
-		weightTable    = new SymmetricTable<Double>(0.0, 0);
+		featureMap = new LinkedHashMap<String, List<Double>>();
+		diacritics = new LinkedHashMap<String, List<Double>>();
+		weightTable = new SymmetricTable<Double>(0.0, 0);
 	}
 
 	public FeatureModel(File file) {
@@ -79,6 +82,59 @@ public class FeatureModel {
 			readModelFromFileNewFormat(FileUtils.readFileToString(file, "UTF-8"));
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
+		}
+	}
+
+	Segment getSegmentFromFeatures(String features) {
+		List<Double> featureArray = new ArrayList<Double>();
+
+		for (int i = 0; i < featureNames.size(); i++) {
+			featureArray.add(Double.NaN);
+		}
+
+		String[] array = features.replaceAll("\\[|\\]", "").split("[,;] ?");
+
+		Map<String, Double> map = new HashMap<String, Double>();
+		for (String element : array) {
+			Matcher valueMatcher = VALUE_PATTERN.matcher(element);
+			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
+
+			if (valueMatcher.matches()) {
+				String featureName = valueMatcher.group(1);
+				String featureValue = valueMatcher.group(2);
+				validate(featureName, features);
+				map.put(featureName, Double.valueOf(featureValue));
+			} else if (binaryMatcher.matches()) {
+				String featureName = binaryMatcher.group(2);
+				String featureValue = binaryMatcher.group(1);
+				validate(featureName, features);
+				map.put(featureName, featureValue.equals("+") ? 1.0 : -1.0);
+			} else {
+				// invalid format?
+				throw new ParseException("Unrecognized feature \""+element+"\" in definition " + features);
+			}
+		}
+
+		int index;
+		for (String key : map.keySet()) {
+			if (featureAliases.containsKey(key)) {
+				index = featureAliases.get(key);
+			} else if (featureNames.containsKey(key)) {
+				index = featureNames.get(key);
+			} else {
+				throw new ParseException("Invalid feature label \"" + key + "\" provided in \"" + features + '"');
+				// Don't think this should actually happen, because validate() should throw an exception first
+				// But, maybe if somehow the state changes between there and here, this will prevent an error
+			}
+			featureArray.set(index, map.get(key));
+		}
+
+		return new Segment(features, featureArray, this);
+	}
+
+	private void validate(String label, String features) {
+		if (!featureAliases.containsKey(label) && !featureNames.containsKey(label)) {
+			throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
 		}
 	}
 
@@ -130,10 +186,6 @@ public class FeatureModel {
 		return Collections.unmodifiableSet(featureMap.keySet());
 	}
 
-	public void add(Segment segment) {
-		featureMap.put(segment.getSymbol(), segment.getFeatures());
-	}
-
 	@Override
 	public int hashCode() {
 		int code = 91;
@@ -163,7 +215,7 @@ public class FeatureModel {
 			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
 				double b = r.getFeatureValue(j);
-				score += getDifference(a, b) * weightTable.get(i, j);
+				score += Math.abs(a - b) * weightTable.get(i, j);
 			}
 		}
 		return score;
@@ -175,7 +227,7 @@ public class FeatureModel {
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
 			double a = l.getFeatureValue(i);
 			double b = r.getFeatureValue(i);
-			score += getDifference(a, b);
+			score += Math.abs(a - b);
 		}
 		return score;
 	}
@@ -274,9 +326,7 @@ public class FeatureModel {
 			for (int i = 0; i < left.size(); i++) {
 				Double l = left.get(i);
 				Double r = right.get(i);
-				double lValue = l.isNaN() ? 0.0 : l;
-				double rValue = r.isNaN() ? 0.0 : r;
-				list.add(getDifference(lValue, rValue));
+				list.add(Math.abs(l - r));
 			}
 		} else {
 
@@ -367,7 +417,7 @@ public class FeatureModel {
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
-					features.add(getDouble(value));
+					features.add(getDouble(value, Double.NaN));
 				}
 				diacritics.put(symbol, features);
 			} else {
@@ -386,7 +436,7 @@ public class FeatureModel {
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
-					features.add(getDouble(value));
+					features.add(getDouble(value, 0.0));
 				}
 				featureMap.put(symbol, features);
 			} else {
@@ -417,10 +467,10 @@ public class FeatureModel {
 		}
 	}
 
-	private static double getDouble(String cell) {
+	private static double getDouble(String cell, double defaultValue) {
 		double featureValue;
 		if (cell.isEmpty()) {
-			featureValue = Double.NaN;
+			featureValue = defaultValue;
 		} else if (cell.equals("+")) {
 			featureValue = 1.0;
 		} else if (cell.equals("-")) {

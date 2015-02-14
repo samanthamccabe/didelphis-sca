@@ -20,6 +20,8 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -38,14 +40,17 @@ import java.util.regex.Pattern;
  */
 public final class Segmenter {
 
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
+
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
-	public static final int     BINDER_START          = 860;
-	public static final int     BINDER_END            = 866;
-	public static final int     SUPERSCRIPT_ZERO      = 8304;
-	public static final int     SUBSCRIPT_SMALL_T     = 8348;
-	public static final int     SUPERSCRIPT_TWO       = 178;
-	public static final int     SUPERSCRIPT_THREE     = 179;
-	public static final int     SUPERSCRIPT_ONE       = 185;
+
+	public static final int BINDER_START      = 860;
+	public static final int BINDER_END        = 866;
+	public static final int SUPERSCRIPT_ZERO  = 8304;
+	public static final int SUBSCRIPT_SMALL_T = 8348;
+	public static final int SUPERSCRIPT_TWO   = 178;
+	public static final int SUPERSCRIPT_THREE = 179;
+	public static final int SUPERSCRIPT_ONE   = 185;
 
 	// Prevent the class from being instantiated
 	private Segmenter() {
@@ -112,16 +117,17 @@ public final class Segmenter {
 	private static List<String> separateBrackets(String word) {
 		List<String> list = new ArrayList<String>();
 		StringBuilder buffer = new StringBuilder();
+
 		for (int i = 0; i < word.length(); ) {
 			char c = word.charAt(i);
-
 			if (c == '{') {
 				if (buffer.length() != 0) {
 					list.add(buffer.toString());
 					buffer = new StringBuilder();
 				}
 				int index = getIndex(word, '{', '}', i) + 1;
-				list.add(word.substring(i, index));
+				String substring = word.substring(i, index);
+				list.add(substring);
 				i = index;
 			} else if (c == '(') {
 				if (buffer.length() != 0) {
@@ -129,13 +135,22 @@ public final class Segmenter {
 					buffer = new StringBuilder();
 				}
 				int index = getIndex(word, '(', ')', i) + 1;
-				list.add(word.substring(i, index));
+				String substring = word.substring(i, index);
+				list.add(substring);
+				i = index;
+			} else if (c == '[') {
+				if (buffer.length() != 0) {
+					list.add(buffer.toString());
+					buffer = new StringBuilder();
+				}
+				int index = getIndex(word, '[', ']', i) + 1;
+				String substring = word.substring(i, index);
+				list.add(substring);
 				i = index;
 			} else {
 				buffer.append(c);
 				i++;
 			}
-
 		}
 		if (buffer.length() != 0) {
 			list.add(buffer.toString());
@@ -303,7 +318,7 @@ public final class Segmenter {
 		List<String> separatedString = separateBrackets(word);
 		if (segParam == FormatterMode.INTELLIGENT) {
 			for (String s : separatedString) {
-				if (s.startsWith("{") || s.startsWith("(")) {
+				if (s.startsWith("{") || s.startsWith("(") || s.startsWith("[")) {
 					symbols.add(new Symbol(s));
 				} else {
 					symbols.addAll(getThings(s, keys));
