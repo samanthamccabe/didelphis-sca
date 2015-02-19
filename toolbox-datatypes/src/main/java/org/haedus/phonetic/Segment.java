@@ -30,42 +30,44 @@ public class Segment implements ModelBearer {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
-	private final FeatureModel featureModel;
+	private final FeatureModel model;
 	private final String       symbol;
 	private final List<Double> features;
 
 	// Copy-constructor
 	public Segment(Segment segment) {
-		symbol = segment.symbol;
-		featureModel = segment.featureModel;
+		symbol   = segment.symbol;
+		model    = segment.model;
 		features = segment.features;
 	}
 
 	@Deprecated
 	public Segment(String s, FeatureModel modelParam) {
-		symbol = s;
-		featureModel = modelParam;
-		features = featureModel.getValue(s);
+		symbol   = s;
+		model    = modelParam;
+		features = model.getValue(s);
 	}
 
 	public Segment(String s, List<Double> featureArray, FeatureModel modelParam) {
-		symbol = s;
-		featureModel = modelParam;
+		symbol   = s;
+		model    = modelParam;
 		features = new ArrayList<Double>(featureArray);
-	}
-
-	// Never used
-	private Segment() {
-		this("");
 	}
 
 	// Used to create the empty segment
 	private Segment(String string) {
-		symbol = string;
-		featureModel = FeatureModel.EMPTY_MODEL;
+		symbol   = string;
+		model    = FeatureModel.EMPTY_MODEL;
 		features = new ArrayList<Double>();
 	}
 
+	/**
+	 * Determines if a segment is consistent with this segment.
+	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
+	 *
+	 * @param other another segment to compare to this one
+	 * @return true if all specified (non NaN) features in either segment are equal
+	 */
 	public boolean matches(Segment other) {
 		validateModelOrFail(other);
 		int size = features.size();
@@ -82,8 +84,8 @@ public class Segment implements ModelBearer {
 	}
 
 	@Override
-	public FeatureModel getFeatureModel() {
-		return featureModel;
+	public FeatureModel getModel() {
+		return model;
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class Segment implements ModelBearer {
 		int hash = 19;
 		hash *= 31 + symbol.hashCode();
 		hash *= 31 + features.hashCode();
-		hash *= 31 + featureModel.hashCode();
+		hash *= 31 + model.hashCode();
 		return hash;
 	}
 
@@ -104,7 +106,7 @@ public class Segment implements ModelBearer {
 		Segment other = (Segment) obj;
 		return symbol.equals(other.getSymbol()) &&
 			features.equals(other.features)
-			&& featureModel.equals(other.getFeatureModel());
+			&& model.equals(other.getModel());
 	}
 
 	@Override
@@ -143,11 +145,11 @@ public class Segment implements ModelBearer {
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		FeatureModel otherModel = that.getFeatureModel();
-		if (!featureModel.equals(otherModel)) {
+		FeatureModel otherModel = that.getModel();
+		if (!model.equals(otherModel)) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible featureModel!\n" +
-					'\t' + this + '\t' + featureModel.getFeatureNames() + '\n' +
+					'\t' + this + '\t' + model.getFeatureNames() + '\n' +
 					'\t' + that + '\t' + otherModel.getFeatureNames()
 			);
 		}

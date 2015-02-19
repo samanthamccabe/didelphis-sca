@@ -24,5 +24,5 @@ public interface ModelBearer {
 	 * Returns the model used by this ModelBearer
 	 * @return the FeatureModel; must never be null
 	 */
-	FeatureModel getFeatureModel();
+	FeatureModel getModel();
 }

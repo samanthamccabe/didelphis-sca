@@ -43,7 +43,7 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 		modelConsistencyCheck(l, r);
 		left = l;
 		right = r;
-		featureModel = l.getFeatureModel();
+		featureModel = l.getModel();
 	}
 
 	public Alignment(Segment l, Segment r) {
@@ -53,7 +53,7 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 	public Alignment(Alignment alignment) {
 		left = new Sequence(alignment.getLeft());
 		right = new Sequence(alignment.getRight());
-		featureModel = alignment.getFeatureModel();
+		featureModel = alignment.getModel();
 	}
 
 	public void add(Segment l, Segment r) {
@@ -111,7 +111,7 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
     }
 
     @Override
-	public FeatureModel getFeatureModel() {
+	public FeatureModel getModel() {
 		return featureModel;
 	}
 
@@ -128,7 +128,7 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		FeatureModel thatFeatureModel = that.getFeatureModel();
+		FeatureModel thatFeatureModel = that.getModel();
 		if (!featureModel.equals(thatFeatureModel)) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +
@@ -139,8 +139,8 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 	}
 
 	private static void modelConsistencyCheck(ModelBearer l, ModelBearer r) {
-		FeatureModel mL = l.getFeatureModel();
-		FeatureModel mR = r.getFeatureModel();
+		FeatureModel mL = l.getModel();
+		FeatureModel mR = r.getModel();
 		if (!mL.equals(mR)) {
 			throw new RuntimeException(
 				"Attempting to create Alignment using incompatible models!\n" +

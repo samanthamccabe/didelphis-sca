@@ -264,8 +264,8 @@ public class FeatureModel {
 	}
 
 	private void modelConsistencyCheck(ModelBearer l, ModelBearer r) {
-		FeatureModel mL = l.getFeatureModel();
-		FeatureModel mR = r.getFeatureModel();
+		FeatureModel mL = l.getModel();
+		FeatureModel mR = r.getModel();
 		if (!mL.equals(this) && !mR.equals(this)) {
 			throw new RuntimeException(
 				"Attempting to compare segments using an incompatible model!\n" +

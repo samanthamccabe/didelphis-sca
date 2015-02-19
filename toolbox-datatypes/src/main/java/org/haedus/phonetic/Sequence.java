@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
@@ -36,11 +37,11 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	public Sequence(Sequence q) {
 		sequence = new ArrayList<Segment>(q.getSegments());
-		featureModel = q.getFeatureModel();
+		featureModel = q.getModel();
 	}
 
 	public Sequence(Segment g) {
-		this(g.getFeatureModel());
+		this(g.getModel());
 		sequence.add(g);
 	}
 
@@ -101,7 +102,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int size() {
-		return sequence.size();
+		return sequence.size	();
 	}
 
 	public Sequence getSubsequence(int i) {
@@ -137,6 +138,29 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return q;
 	}
 
+	/**
+	 * Determines if a sequence is consistent with this sequence.
+	 * Two sequences are consistent if each other if all corresponding segments are consistent; i.e. if
+	 * if, for ever segment in each sequence, all corresponding features are equal OR if one is NaN
+	 * @param aSequence a sequence to check against this one
+	 * @return true if, for each segment in both sequences, all specified (non NaN) features in either segment are equal
+	 */
+	public boolean matches(Sequence aSequence) {
+		validateModelOrFail(aSequence);
+		boolean matches = false;
+		int size = size();
+		if (size == aSequence.size()) {
+			matches = true;
+			for (int i = 0; i < size && matches; i++) {
+				Segment a = get(i);
+				Segment b = aSequence.get(i);
+				matches = a.matches(b);
+			}
+			return matches;
+		}
+		return matches;
+	}
+
 	public int indexOf(Sequence aSequence) {
 		validateModelOrWarn(aSequence);
 		int size = aSequence.size();
@@ -146,7 +170,8 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 			index = indexOf(aSequence.getFirst());
 			if (index >= 0 && index + size <= size()) {
 				Sequence u = getSubsequence(index, index + size);
-				if (!aSequence.equals(u)) {
+				// originally was equals, but use matches instead
+				if (!aSequence.matches(u)) {
 					index = -1;
 				}
 			}
@@ -244,9 +269,9 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return indexOf(sequence) >= 0;
 	}
 
-	public boolean startsWith(Segment segment) {
-		validateModelOrWarn(segment);
-		return !isEmpty() && sequence.get(0).equals(segment);
+	public boolean startsWith(Segment aSegment) {
+		validateModelOrWarn(aSegment);
+		return !isEmpty() && sequence.get(0).equals(aSegment);
 	}
 
 	public boolean startsWith(Sequence aSequence) {
@@ -255,7 +280,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	@Override
-	public FeatureModel getFeatureModel() {
+	public FeatureModel getModel() {
 		return featureModel;
 	}
 
@@ -273,18 +298,18 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	private void validateModelOrWarn(ModelBearer that) {
-		if (!featureModel.equals(that.getFeatureModel())) {
+		if (!featureModel.equals(that.getModel())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
-				that.getClass(), this, that, featureModel.getFeatureNames(), that.getFeatureModel().getFeatureNames());
+				that.getClass(), this, that, featureModel.getFeatureNames(), that.getModel().getFeatureNames());
 		}
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		if (!featureModel.equals(that.getFeatureModel())) {
+		if (!featureModel.equals(that.getModel())) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +
 					'\t' + this + '\t' + featureModel.getFeatureNames() + '\n' +
-					'\t' + that + '\t' + that.getFeatureModel().getFeatureNames()
+					'\t' + that + '\t' + that.getModel().getFeatureNames()
 			);
 		}
 	}
