@@ -111,7 +111,6 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	/**
 	 * Returns a new sub-sequence spanning the provided indices
-	 *
 	 * @param i the starting index, inclusive - must be greater than zero
 	 * @param k the ending index, exclusive - must be less than the sequence length
 	 * @return
@@ -140,6 +139,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	/**
 	 * Determines if a sequence is consistent with this sequence.
+	 * Sequences must be of the same length
 	 * Two sequences are consistent if each other if all corresponding segments are consistent; i.e. if
 	 * if, for ever segment in each sequence, all corresponding features are equal OR if one is NaN
 	 * @param aSequence a sequence to check against this one
@@ -148,6 +148,9 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	public boolean matches(Sequence aSequence) {
 		validateModelOrFail(aSequence);
 		boolean matches = false;
+		if (featureModel == FeatureModel.EMPTY_MODEL) {
+			matches = equals(aSequence);
+		} else {
 		int size = size();
 		if (size == aSequence.size()) {
 			matches = true;
@@ -156,7 +159,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 				Segment b = aSequence.get(i);
 				matches = a.matches(b);
 			}
-			return matches;
+		}
 		}
 		return matches;
 	}
@@ -181,12 +184,10 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	public int indexOf(Sequence target, int start) {
 		validateModelOrWarn(target);
-
 		int index = -1;
 		if (start < size()) {
 			Sequence subsequence = getSubsequence(start);
 			index = subsequence.indexOf(target);
-
 			if (index > -1) {
 				index += start;
 			}

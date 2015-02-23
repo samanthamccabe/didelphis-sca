@@ -329,7 +329,6 @@ public class FeatureModel {
 				list.add(Math.abs(l - r));
 			}
 		} else {
-
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
 		}
 		return list;

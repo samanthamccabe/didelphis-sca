@@ -22,6 +22,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -56,5 +57,14 @@ public class SegmentTest {
 		assertFalse(received.matches(segmentP));
 		assertFalse(received.matches(segmentT));
 		assertFalse(received.matches(segmentK));
+	}
+
+	@Test
+	public void testMatch02() {
+		Segment a = factory.getSegment("a");
+		Segment n = factory.getSegment("n");
+
+		assertFalse("a matches n", a.matches(n));
+		assertFalse("n matches a", n.matches(a));
 	}
 }

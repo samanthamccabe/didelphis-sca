@@ -71,7 +71,6 @@ public class FeatureModelTest {
 		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
 		// 					p  ___   ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
 		Collections.addAll(ex, 0.0, -1.0, NAN, 1.0, NAN, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN,-3.0, 0.0);
-
 		Segment expected = new Segment("p", ex, model);
 		Segment received = model.getSegmentFromFeatures("[son:0,-con,rel:1,lab:1,glt:-3,len:0]");
 		assertEquals(expected.getFeatures(), received.getFeatures());

@@ -16,8 +16,12 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -25,6 +29,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SequenceTest {
+
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceTest.class);
 
 	private static final SequenceFactory FACTORY = new SequenceFactory(FormatterMode.INTELLIGENT);
 
@@ -48,6 +54,18 @@ public class SequenceTest {
 
 	private static void assertNotEqual(Object a, Object b) {
 		assertFalse(a.equals(b));
+	}
+
+	@Test
+	public void testMatches01() {
+		Sequence sequence = FACTORY.getSequence("an");
+		assertTrue(sequence.matches(FACTORY.getSequence("an")));
+	}
+
+	@Test
+	public void testMatches02() {
+		Sequence sequence = FACTORY.getSequence("a");
+		assertFalse(sequence.matches(FACTORY.getSequence("n")));
 	}
 
 	@Test
