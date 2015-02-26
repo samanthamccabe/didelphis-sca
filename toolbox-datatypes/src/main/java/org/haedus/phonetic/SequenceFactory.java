@@ -37,7 +37,7 @@ public class SequenceFactory {
 	private static final SequenceFactory EMPTY_FACTORY         = new SequenceFactory();
 	private static final Pattern         BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	private final Segment boundarySegmentNAN;
+	private final Segment unspecifiedSegment;
 
 	private final FeatureModel  featureModel;
 	private final VariableStore variableStore; // VariableStore is only accessed for its keys
@@ -61,7 +61,7 @@ public class SequenceFactory {
 		variableStore = storeParam;
 		reservedStrings = reservedParam;
 		formatterMode = modeParam;
-		boundarySegmentNAN = new Segment("#", getDoubles(), featureModel);
+		unspecifiedSegment = new Segment("#", getDoubles(), featureModel);
 	}
 
 	public static SequenceFactory getEmptyFactory() {
@@ -72,8 +72,8 @@ public class SequenceFactory {
 		reservedStrings.add(string);
 	}
 
-	public Segment getBoundarySegment() {
-		return boundarySegmentNAN;
+	public Segment getUnspecifiedSegment() {
+		return unspecifiedSegment;
 	}
 
 	public Segment getSegment(String string) {

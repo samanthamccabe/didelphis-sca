@@ -77,7 +77,7 @@ public class StateMachine extends AbstractNode {
 			indices.add(startIndex);
 		} else {
 			Sequence sequence = new Sequence(target);
-			sequence.add(factory.getBoundarySegment());
+			sequence.add(factory.getUnspecifiedSegment());
 			// At the beginning of the process, we are in the start-state
 			// so we find out what arcs leave the node.
 			List<MatchState> states = new ArrayList<MatchState>();

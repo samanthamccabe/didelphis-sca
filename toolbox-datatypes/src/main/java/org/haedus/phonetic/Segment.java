@@ -61,6 +61,8 @@ public class Segment implements ModelBearer {
 		features = new ArrayList<Double>();
 	}
 
+
+
 	/**
 	 * Determines if a segment is consistent with this segment.
 	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
@@ -76,7 +78,7 @@ public class Segment implements ModelBearer {
 			Double a = features.get(i);
 			Double b = otherFeatures.get(i);
 			// One-way comparison
-			if (!a.equals(b) && !b.equals(Double.NaN)) {
+			if (!a.equals(b) && !b.equals(Double.NaN) && !a.equals(Double.NaN)) {
 				return false;
 			}
 		}

@@ -21,6 +21,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -42,8 +43,24 @@ public class SegmentTest {
 		factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
 	}
 
+
+	@Test
+	public void testUnderspecifiedSegment01() {
+		Segment received = factory.getSegment("[-continuant, release:1]");
+
+		List<Double> array = model.getUnderspecifiedArray();
+		array.set(1, -1.0);
+		array.set(3,  1.0);
+
+		Segment expected = new Segment("[-continuant, release:1]", array, model);
+
+		assertEquals(expected, received);
+	}
+
 	@Test
 	public void testMatch01() {
+		Segment segmentA = factory.getSegment("a");
+
 		Segment segmentP = factory.getSegment("p");
 		Segment segmentT = factory.getSegment("t");
 		Segment segmentK = factory.getSegment("k");
@@ -54,9 +71,12 @@ public class SegmentTest {
 		assertTrue(segmentT.matches(received));
 		assertTrue(segmentK.matches(received));
 
-		assertFalse(received.matches(segmentP));
-		assertFalse(received.matches(segmentT));
-		assertFalse(received.matches(segmentK));
+		assertTrue(received.matches(segmentP));
+		assertTrue(received.matches(segmentT));
+		assertTrue(received.matches(segmentK));
+
+		assertFalse(segmentA.matches(received));
+		assertFalse(received.matches(segmentA));
 	}
 
 	@Test

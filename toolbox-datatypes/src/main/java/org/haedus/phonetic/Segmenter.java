@@ -20,6 +20,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,15 +63,22 @@ public final class Segmenter {
 
 	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
 		Collection<String> keys = getKeys(model, reservedStrings);
-
 		String normalString = normalize(string, formatterMode);
-
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
 		if (segmentedSymbol.size() >= 1) {
 			Symbol symbol = segmentedSymbol.get(0);
 			String head = symbol.getHead();
 			List<String> tail = symbol.getTail();
-			return model.getSegment(head, tail);
+
+			if (head.startsWith("[")) {
+				if (tail.isEmpty()) {
+					return model.getSegmentFromFeatures(head);
+				} else {
+					throw new ParseException("Attempting to attach diacritics " + tail + " to a feature definition: " + head);
+				}
+			} else {
+				return model.getSegment(head, tail);
+			}
 		} else {
 			return null;
 		}
@@ -99,7 +107,13 @@ public final class Segmenter {
 			String head = item.getHead();
 			List<String> tail = item.getTail();
 
-			Segment segment = model.getSegment(head, tail);
+			// TODO: replace lookup to check variables or feature definitions
+			Segment segment;
+			if (head.startsWith("[") && !keys.contains(head) && model != FeatureModel.EMPTY_MODEL) {
+				segment = model.getSegmentFromFeatures(head);
+			} else {
+				segment = model.getSegment(head, tail);
+			}
 			sequence.add(segment);
 		}
 		return sequence;

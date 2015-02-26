@@ -18,7 +18,10 @@ import org.haedus.enums.FormatterMode;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,13 +62,48 @@ public class SequenceTest {
 	@Test
 	public void testMatches01() {
 		Sequence sequence = FACTORY.getSequence("an");
-		assertTrue(sequence.matches(FACTORY.getSequence("an")));
+
+		assertMatches(sequence, FACTORY.getSequence("an"));
+
+		assertNotMatches(sequence, FACTORY.getSequence("aa"));
 	}
 
 	@Test
 	public void testMatches02() {
 		Sequence sequence = FACTORY.getSequence("a");
-		assertFalse(sequence.matches(FACTORY.getSequence("n")));
+
+		assertMatches(sequence, FACTORY.getSequence("a"));
+
+		assertNotMatches(sequence, FACTORY.getSequence("an"));
+
+		assertNotMatches(sequence, FACTORY.getSequence("n"));
+		assertNotMatches(sequence, FACTORY.getSequence("b"));
+		assertNotMatches(sequence, FACTORY.getSequence("e"));
+		assertNotMatches(sequence, FACTORY.getSequence("c"));
+	}
+
+	@Test
+	public void testMatches03() throws IOException {
+
+		Resource resource = new ClassPathResource("features.model");
+		FeatureModel model = new FeatureModel(resource.getFile());
+		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+
+		Sequence sequence = factory.getSequence("a[-continuant, release:1]");
+
+		assertMatches(sequence, factory.getSequence("ap"));
+		assertMatches(sequence, factory.getSequence("at"));
+		assertMatches(sequence, factory.getSequence("ak"));
+
+		assertNotMatches(sequence, factory.getSequence("aa"));
+	}
+
+	private static void assertMatches(Sequence left, Sequence right) {
+		assertTrue(left + " does not match " + right, left.matches(right));
+	}
+
+	private static void assertNotMatches(Sequence left, Sequence right) {
+		assertFalse(left + " should not match " + right, left.matches(right));
 	}
 
 	@Test

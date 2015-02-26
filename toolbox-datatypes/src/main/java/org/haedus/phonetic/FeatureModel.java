@@ -21,12 +21,11 @@ package org.haedus.phonetic;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.exceptions.ParseException;
+import org.haedus.tables.RectangularTable;
 import org.haedus.tables.SymmetricTable;
+import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.haedus.tables.RectangularTable;
-import org.haedus.tables.Table;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,10 +46,8 @@ import java.util.regex.Pattern;
  */
 public class FeatureModel {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
-
 	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
-
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 	private static final Pattern NEWLINE_PATTERN  = Pattern.compile("(\\r?\\n|\\n)");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
@@ -85,7 +82,60 @@ public class FeatureModel {
 		}
 	}
 
-	Segment getSegmentFromFeatures(String features) {
+	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
+		List<Double> list = new ArrayList<Double>();
+		if (left.size() == right.size()) {
+			for (int i = 0; i < left.size(); i++) {
+				Double l = left.get(i);
+				Double r = right.get(i);
+				list.add(Math.abs(l - r));
+			}
+		} else {
+			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
+		}
+		return list;
+	}
+
+	private static double getDifferenceValue(List<Double> left, List<Double> right) {
+		double sum = 0.0;
+		List<Double> differenceArray = getDifferenceArray(left, right);
+		if (differenceArray.isEmpty()) {
+			sum = Double.NaN;
+		} else {
+			for (Double value : differenceArray) {
+				sum += value;
+			}
+		}
+		return sum;
+	}
+
+	private static Double getDifference(Double a, Double b) {
+		if (a.equals(b)) {
+			return 0.0;
+		} else if (a.isNaN()) {
+			return b;
+		} else if (b.isNaN()) {
+			return a;
+		} else {
+			return Math.abs(a - b);
+		}
+	}
+
+	private static double getDouble(String cell, double defaultValue) {
+		double featureValue;
+		if (cell.isEmpty()) {
+			featureValue = defaultValue;
+		} else if (cell.equals("+")) {
+			featureValue = 1.0;
+		} else if (cell.equals("-")) {
+			featureValue = -1.0;
+		} else {
+			featureValue = Double.valueOf(cell);
+		}
+		return featureValue;
+	}
+
+	public Segment getSegmentFromFeatures(String features) {
 		List<Double> featureArray = new ArrayList<Double>();
 
 		for (int i = 0; i < featureNames.size(); i++) {
@@ -111,7 +161,7 @@ public class FeatureModel {
 				map.put(featureName, featureValue.equals("+") ? 1.0 : -1.0);
 			} else {
 				// invalid format?
-				throw new ParseException("Unrecognized feature \""+element+"\" in definition " + features);
+				throw new ParseException("Unrecognized feature \"" + element + "\" in definition " + features);
 			}
 		}
 
@@ -130,32 +180,6 @@ public class FeatureModel {
 		}
 
 		return new Segment(features, featureArray, this);
-	}
-
-	private void validate(String label, String features) {
-		if (!featureAliases.containsKey(label) && !featureNames.containsKey(label)) {
-			throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
-		}
-	}
-
-	// This should be here because how the segment is constructed is a function of what kind of model this is
-	Segment getSegment(String head, Iterable<String> modifiers) {
-		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
-		StringBuilder sb = new StringBuilder(head);
-		for (String modifier : modifiers) {
-			sb.append(modifier);
-			if (diacritics.containsKey(modifier)) {
-				List<Double> doubles = diacritics.get(modifier);
-				for (int i = 0; i < doubles.size(); i++) {
-					Double d = doubles.get(i);
-					// TODO: this will need to change if we support value modification (up or down)
-					if (!d.isNaN()) {
-						featureArray.set(i, d);
-					}
-				}
-			}
-		}
-		return new Segment(sb.toString(), featureArray, this);
 	}
 
 	public String getBestSymbol(List<Double> featureArray) {
@@ -189,14 +213,14 @@ public class FeatureModel {
 	@Override
 	public int hashCode() {
 		int code = 91;
-		code *= featureMap  != null ? featureMap.hashCode()  : 1;
+		code *= featureMap != null ? featureMap.hashCode() : 1;
 		code *= weightTable != null ? weightTable.hashCode() : 1;
 		return code;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true;  }
+		if (this == o) { return true; }
 		if (o == null) { return false; }
 		if (getClass() != o.getClass()) { return false; }
 
@@ -250,7 +274,7 @@ public class FeatureModel {
 		} else if (getNumberOfFeatures() == 0) {
 			return new ArrayList<Double>();
 		} else {
-			LOGGER.error("Unable to find " + key +"  in model.");
+			LOGGER.error("Unable to find " + key + "  in model.");
 			return null;
 		}
 	}
@@ -261,6 +285,40 @@ public class FeatureModel {
 
 	public Set<String> getFeatureNames() {
 		return featureNames.keySet();
+	}
+
+	List<Double> getUnderspecifiedArray() {
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		return list;
+	}
+
+	// This should be here because how the segment is constructed is a function of what kind of model this is
+	Segment getSegment(String head, Iterable<String> modifiers) {
+		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
+		StringBuilder sb = new StringBuilder(head);
+		for (String modifier : modifiers) {
+			sb.append(modifier);
+			if (diacritics.containsKey(modifier)) {
+				List<Double> doubles = diacritics.get(modifier);
+				for (int i = 0; i < doubles.size(); i++) {
+					Double d = doubles.get(i);
+					// TODO: this will need to change if we support value modification (up or down)
+					if (!d.isNaN()) {
+						featureArray.set(i, d);
+					}
+				}
+			}
+		}
+		return new Segment(sb.toString(), featureArray, this);
+	}
+
+	private void validate(String label, String features) {
+		if (!featureAliases.containsKey(label) && !featureNames.containsKey(label)) {
+			throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
+		}
 	}
 
 	private void modelConsistencyCheck(ModelBearer l, ModelBearer r) {
@@ -320,55 +378,16 @@ public class FeatureModel {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 
-	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
-		List<Double> list = new ArrayList<Double>();
-		if (left.size() == right.size()) {
-			for (int i = 0; i < left.size(); i++) {
-				Double l = left.get(i);
-				Double r = right.get(i);
-				list.add(Math.abs(l - r));
-			}
-		} else {
-			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
-		}
-		return list;
-	}
-
-	private static double getDifferenceValue(List<Double> left, List<Double> right) {
-		double sum = 0.0;
-		List<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.isEmpty()) {
-			sum = Double.NaN;
-		} else {
-			for (Double value : differenceArray) {
-				sum += value;
-			}
-		}
-		return sum;
-	}
-
-	private static Double getDifference(Double a, Double b) {
-		if (a.equals(b)) {
-			return 0.0;
-		} else if (a.isNaN()) {
-			return b;
-		} else if (b.isNaN()) {
-			return a;
-		} else {
-			return Math.abs(a - b);
-		}
-	}
-
 	private void readModelFromFileNewFormat(CharSequence file) {
 		Zone currentZone = Zone.NONE;
 
 		Pattern pattern = Pattern.compile("([\\w\\(\\)]+)\\s+(.*)");
 		String[] data = NEWLINE_PATTERN.split(file);
 
-		Collection<String> featureZone  = new ArrayList<String>();
-		Collection<String> symbolZone   = new ArrayList<String>();
+		Collection<String> featureZone = new ArrayList<String>();
+		Collection<String> symbolZone = new ArrayList<String>();
 		Collection<String> modifierZone = new ArrayList<String>();
-		Collection<String> weightZone   = new ArrayList<String>();
+		Collection<String> weightZone = new ArrayList<String>();
 
 		/* Probably what we need to do here is use the zones to capture every line up to the next zone
 		 * or EOF. Put these in lists, one for each zone. Then parse each zone separately. This will
@@ -376,7 +395,7 @@ public class FeatureModel {
 		 */
 		for (String string : data) {
 			// Remove comments
-			String  line    = COMMENT_PATTERN.matcher(string).replaceAll("");
+			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
 			Matcher matcher = ZONE_PATTERN.matcher(line);
 			if (matcher.find()) {
 				String zoneName = matcher.group(0);
@@ -451,41 +470,27 @@ public class FeatureModel {
 
 			if (matcher.matches()) {
 
-				String name  = matcher.group(1);
+				String name = matcher.group(1);
 				String alias = matcher.group(2);
-				String type  = matcher.group(3);
+				String type = matcher.group(3);
 
 				featureNames.put(name, i);
 				featureAliases.put(alias, i);
 
 			} else {
 				LOGGER.error("Unrecognized command in FEATURE block: {}", entry);
-				throw new ParseException("Unrecognized command in FEATURE block: "+entry);
+				throw new ParseException("Unrecognized command in FEATURE block: " + entry);
 			}
 			i++;
 		}
 	}
 
-	private static double getDouble(String cell, double defaultValue) {
-		double featureValue;
-		if (cell.isEmpty()) {
-			featureValue = defaultValue;
-		} else if (cell.equals("+")) {
-			featureValue = 1.0;
-		} else if (cell.equals("-")) {
-			featureValue = -1.0;
-		} else {
-			featureValue = Double.valueOf(cell);
-		}
-		return featureValue;
-	}
-
 	private enum Zone {
-		FEATURES  ("FEATURES"),
-		SYMBOLS   ("SYMBOLS"),
-		MODIFIERS ("MODIFIERS"),
-		WEIGHTS   ("WEIGHTs"),
-		NONE      ("NONE");
+		FEATURES("FEATURES"),
+		SYMBOLS("SYMBOLS"),
+		MODIFIERS("MODIFIERS"),
+		WEIGHTS("WEIGHTs"),
+		NONE("NONE");
 
 		private final String value;
 
