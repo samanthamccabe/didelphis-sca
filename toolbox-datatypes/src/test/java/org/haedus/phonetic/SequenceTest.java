@@ -98,6 +98,34 @@ public class SequenceTest {
 		assertNotMatches(sequence, factory.getSequence("aa"));
 	}
 
+	@Test
+	public void testMatches04() throws IOException {
+
+		Resource resource = new ClassPathResource("features.model");
+		FeatureModel model = new FeatureModel(resource.getFile());
+		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+
+		Sequence sequence = factory.getSequence("a[-continuant, release:2, glt:-3]");
+
+		assertMatches(sequence, factory.getSequence("apf"));
+		assertMatches(sequence, factory.getSequence("ats"));
+		assertMatches(sequence, factory.getSequence("akx"));
+
+		assertNotMatches(sequence, factory.getSequence("abv"));
+		assertNotMatches(sequence, factory.getSequence("adz"));
+		assertNotMatches(sequence, factory.getSequence("agɣ"));
+
+		assertNotMatches(sequence, factory.getSequence("ap"));
+		assertNotMatches(sequence, factory.getSequence("at"));
+		assertNotMatches(sequence, factory.getSequence("ak"));
+
+		assertNotMatches(sequence, factory.getSequence("ab"));
+		assertNotMatches(sequence, factory.getSequence("ad"));
+		assertNotMatches(sequence, factory.getSequence("ag"));
+
+		assertNotMatches(sequence, factory.getSequence("aa"));
+	}
+
 	private static void assertMatches(Sequence left, Sequence right) {
 		assertTrue(left + " does not match " + right, left.matches(right));
 	}

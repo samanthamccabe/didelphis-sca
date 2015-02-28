@@ -46,16 +46,19 @@ import java.util.regex.Pattern;
  */
 public class FeatureModel {
 
-	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
+
+	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
+	public static final Double       UNDEFINED_VALUE = Double.NaN;
+	public static final Double       MASKING_VALUE   = Double.NEGATIVE_INFINITY;
+
 	private static final Pattern NEWLINE_PATTERN  = Pattern.compile("(\\r?\\n|\\n)");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
-
-	private static final Pattern VALUE_PATTERN  = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern BINARY_PATTERN = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern VALUE_PATTERN    = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern BINARY_PATTERN   = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
 
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
@@ -82,64 +85,11 @@ public class FeatureModel {
 		}
 	}
 
-	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
-		List<Double> list = new ArrayList<Double>();
-		if (left.size() == right.size()) {
-			for (int i = 0; i < left.size(); i++) {
-				Double l = left.get(i);
-				Double r = right.get(i);
-				list.add(Math.abs(l - r));
-			}
-		} else {
-			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
-		}
-		return list;
-	}
-
-	private static double getDifferenceValue(List<Double> left, List<Double> right) {
-		double sum = 0.0;
-		List<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.isEmpty()) {
-			sum = Double.NaN;
-		} else {
-			for (Double value : differenceArray) {
-				sum += value;
-			}
-		}
-		return sum;
-	}
-
-	private static Double getDifference(Double a, Double b) {
-		if (a.equals(b)) {
-			return 0.0;
-		} else if (a.isNaN()) {
-			return b;
-		} else if (b.isNaN()) {
-			return a;
-		} else {
-			return Math.abs(a - b);
-		}
-	}
-
-	private static double getDouble(String cell, double defaultValue) {
-		double featureValue;
-		if (cell.isEmpty()) {
-			featureValue = defaultValue;
-		} else if (cell.equals("+")) {
-			featureValue = 1.0;
-		} else if (cell.equals("-")) {
-			featureValue = -1.0;
-		} else {
-			featureValue = Double.valueOf(cell);
-		}
-		return featureValue;
-	}
-
 	public Segment getSegmentFromFeatures(String features) {
 		List<Double> featureArray = new ArrayList<Double>();
 
 		for (int i = 0; i < featureNames.size(); i++) {
-			featureArray.add(Double.NaN);
+			featureArray.add(MASKING_VALUE);
 		}
 
 		String[] array = features.replaceAll("\\[|\\]", "").split("[,;] ?");
@@ -166,17 +116,17 @@ public class FeatureModel {
 		}
 
 		int index;
-		for (String key : map.keySet()) {
-			if (featureAliases.containsKey(key)) {
-				index = featureAliases.get(key);
-			} else if (featureNames.containsKey(key)) {
-				index = featureNames.get(key);
+		for (Map.Entry<String, Double> entry : map.entrySet()) {
+			if (featureAliases.containsKey(entry.getKey())) {
+				index = featureAliases.get(entry.getKey());
+			} else if (featureNames.containsKey(entry.getKey())) {
+				index = featureNames.get(entry.getKey());
 			} else {
-				throw new ParseException("Invalid feature label \"" + key + "\" provided in \"" + features + '"');
+				throw new ParseException("Invalid feature label \"" + entry.getKey() + "\" provided in \"" + features + '"');
 				// Don't think this should actually happen, because validate() should throw an exception first
 				// But, maybe if somehow the state changes between there and here, this will prevent an error
 			}
-			featureArray.set(index, map.get(key));
+			featureArray.set(index, entry.getValue());
 		}
 
 		return new Segment(features, featureArray, this);
@@ -347,7 +297,7 @@ public class FeatureModel {
 					Double left = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
-					if (left.isNaN()) {
+					if (left.isInfinite()) {
 						compiledFeatures.add(right);
 					} else {
 						compiledFeatures.add(left);
@@ -367,7 +317,7 @@ public class FeatureModel {
 			}
 		}
 		// TODO: how does changing this condition affect behavior?
-		if (minimumDifference > 0.0 && minimumDifference != lastMinimum) {
+		if (minimumDifference > 0.0 && minimumDifference < lastMinimum) {
 			return bestDiacritic + getBestDiacritic(featureArray, bestCompiled, minimumDifference);
 		} else {
 			return bestDiacritic;
@@ -435,7 +385,7 @@ public class FeatureModel {
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
-					features.add(getDouble(value, Double.NaN));
+					features.add(getDouble(value, MASKING_VALUE));
 				}
 				diacritics.put(symbol, features);
 			} else {
@@ -454,7 +404,7 @@ public class FeatureModel {
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
-					features.add(getDouble(value, 0.0));
+					features.add(getDouble(value, UNDEFINED_VALUE));
 				}
 				featureMap.put(symbol, features);
 			} else {
@@ -483,6 +433,59 @@ public class FeatureModel {
 			}
 			i++;
 		}
+	}
+
+	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
+		List<Double> list = new ArrayList<Double>();
+		if (left.size() == right.size()) {
+			for (int i = 0; i < left.size(); i++) {
+				Double l = left.get(i);
+				Double r = right.get(i);
+				list.add(Math.abs(getDifference(l, r)));
+			}
+		} else {
+			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
+		}
+		return list;
+	}
+
+	private static double getDifferenceValue(List<Double> left, List<Double> right) {
+		double sum = 0.0;
+		List<Double> differenceArray = getDifferenceArray(left, right);
+		if (differenceArray.isEmpty()) {
+			sum = Double.NaN;
+		} else {
+			for (Double value : differenceArray) {
+				sum += value;
+			}
+		}
+		return sum;
+	}
+
+	private static Double getDifference(Double a, Double b) {
+		if (a.equals(b)) {
+			return 0.0;
+		} else if (a.isNaN()) {
+			return b;
+		} else if (b.isNaN()) {
+			return a;
+		} else {
+			return Math.abs(a - b);
+		}
+	}
+
+	private static double getDouble(String cell, double defaultValue) {
+		double featureValue;
+		if (cell.isEmpty()) {
+			featureValue = defaultValue;
+		} else if (cell.equals("+")) {
+			featureValue = 1.0;
+		} else if (cell.equals("-")) {
+			featureValue = -1.0;
+		} else {
+			featureValue = Double.valueOf(cell);
+		}
+		return featureValue;
 	}
 
 	private enum Zone {

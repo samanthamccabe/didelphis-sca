@@ -78,7 +78,9 @@ public class Segment implements ModelBearer {
 			Double a = features.get(i);
 			Double b = otherFeatures.get(i);
 			// One-way comparison
-			if (!a.equals(b) && !b.equals(Double.NaN) && !a.equals(Double.NaN)) {
+			if (!a.equals(b) &&
+				!b.equals(FeatureModel.MASKING_VALUE) &&
+				!a.equals(FeatureModel.MASKING_VALUE)) {
 				return false;
 			}
 		}
