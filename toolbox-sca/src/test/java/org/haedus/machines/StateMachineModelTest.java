@@ -43,7 +43,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine01() {
-		Node<Sequence> stateMachine = getMachine("[]");
+		Node<Sequence> stateMachine = getMachine("[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]");
 
 		test(stateMachine, "a");
 		test(stateMachine, "aa");

@@ -122,7 +122,13 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	public int indexOf(Segment s) {
 		validateModelOrWarn(s);
-		return sequence.indexOf(s);
+		int index = -1;
+
+		for (int i = 0; i < sequence.size() && index == -1; i++) {
+			Segment segment = sequence.get(i);
+			index = segment.matches(s) ? i : -1;
+		}
+		return index;
 	}
 
 	public Segment remove(int index) {

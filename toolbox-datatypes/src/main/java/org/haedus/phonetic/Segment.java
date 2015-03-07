@@ -70,21 +70,27 @@ public class Segment implements ModelBearer {
 	 * @param other another segment to compare to this one
 	 * @return true if all specified (non NaN) features in either segment are equal
 	 */
-	public boolean matches(Segment other) {
+	public boolean
+	matches(Segment other) {
 		validateModelOrFail(other);
 		int size = features.size();
-		List<Double> otherFeatures = other.getFeatures();
-		for (int i = 0; i < size; i++) {
-			Double a = features.get(i);
-			Double b = otherFeatures.get(i);
-			// One-way comparison
-			if (!a.equals(b) &&
-				!b.equals(FeatureModel.MASKING_VALUE) &&
-				!a.equals(FeatureModel.MASKING_VALUE)) {
-				return false;
+		if (size > 0) {
+			List<Double> otherFeatures = other.getFeatures();
+			for (int i = 0; i < size; i++) {
+				Double a = features.get(i);
+				Double b = otherFeatures.get(i);
+				// One-way comparison
+				if (!a.equals(b) &&
+					!b.equals(FeatureModel.MASKING_VALUE) &&
+					!a.equals(FeatureModel.MASKING_VALUE)) {
+					return false;
+				}
 			}
+			return true;
+		} else {
+			return equals(other);
 		}
-		return true;
+
 	}
 
 	@Override

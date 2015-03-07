@@ -58,6 +58,25 @@ public class SegmentTest {
 	}
 
 	@Test
+	public void testUnderspecifiedSegment02() {
+		String string = "[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]";
+		Segment received = factory.getSegment(string);
+
+		List<Double> array = model.getUnderspecifiedArray();
+		array.set(0,   3.0);
+		array.set(1,   1.0);
+		array.set(10, -1.0);
+		array.set(11,  1.0);
+		array.set(12, -1.0);
+		array.set(13, -1.0);
+		array.set(16,  0.0);
+
+		Segment expected = new Segment(string, array, model);
+
+		assertEquals(expected, received);
+	}
+
+	@Test
 	public void testMatch01() {
 		Segment segmentA = factory.getSegment("a");
 
@@ -86,5 +105,27 @@ public class SegmentTest {
 
 		assertFalse("a matches n", a.matches(n));
 		assertFalse("n matches a", n.matches(a));
+	}
+
+	@Test
+	public void testMatch03() {
+		Segment segment = factory.getSegment("[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]");
+
+		Segment a = factory.getSegment("a");
+		Segment n = factory.getSegment("n");
+
+		assertTrue(a.matches(segment));
+		assertTrue(segment.matches(a));
+	}
+
+	@Test
+	public void testMatch04() {
+		Segment segment = factory.getSegment("x");
+
+		Segment e = factory.getSegment("e");
+		Segment n = factory.getSegment("n");
+
+		assertFalse(e.matches(segment));
+		assertFalse(segment.matches(e));
 	}
 }

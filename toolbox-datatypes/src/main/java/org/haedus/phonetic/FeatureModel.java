@@ -240,7 +240,7 @@ public class FeatureModel {
 	List<Double> getUnderspecifiedArray() {
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
+			list.add(MASKING_VALUE);
 		}
 		return list;
 	}
