@@ -28,6 +28,7 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.util.Collection;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -43,10 +44,46 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine01() {
-		Node<Sequence> stateMachine = getMachine("[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]");
+		Node<Sequence> stateMachine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
 
 		test(stateMachine, "a");
 		test(stateMachine, "aa");
+
+		fail(stateMachine, "b");
+		fail(stateMachine, "c");
+	}
+
+	@Test
+	public void testBasicStateMachine03() {
+		Node<Sequence> stateMachine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+
+		Node<Sequence> stateMachine1 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		Node<Sequence> stateMachine2 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+
+//		fail(stateMachine, "a");
+//		test(stateMachine, "aa");
+//		test(stateMachine, "aaa");
+//		test(stateMachine, "aa̤");
+//		test(stateMachine, "aa̤a");
+
+//		test(stateMachine1, "aa̤a");
+//		test(stateMachine2, "aa̤");
+
+		Sequence sequence1 = FACTORY.getSequence("aa̤a");
+		Sequence sequence2 = FACTORY.getSequence("aa̤");
+
+		Collection<Integer> matchIndices1a = stateMachine1.getMatchIndices(0, sequence1);
+		Collection<Integer> matchIndices2a = stateMachine2.getMatchIndices(0, sequence2);
+		Collection<Integer> matchIndices1b = stateMachine1.getMatchIndices(0, sequence1);
+		Collection<Integer> matchIndices2b = stateMachine2.getMatchIndices(0, sequence2);
+
+		assertEquals(stateMachine1, stateMachine);
+		assertEquals(stateMachine2, stateMachine);
+
+//		Collection<Integer> matchIndices = testMachine(stateMachine, target);
+		assertFalse("Machine failed to accept input", matchIndices1a.isEmpty());
+//		Collection<Integer> matchIndices = testMachine(stateMachine, target);
+		assertFalse("Machine failed to accept input", matchIndices2a.isEmpty());
 
 		fail(stateMachine, "b");
 		fail(stateMachine, "c");

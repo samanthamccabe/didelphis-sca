@@ -14,7 +14,11 @@
 
 package org.haedus.machines;
 
+import org.haedus.phonetic.Sequence;
+
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Samantha F M McCabe on 12/21/14.
@@ -55,6 +59,8 @@ public interface Node<T> {
      * @param node the node to add; must not be null
      */
     void add(Node<T> node);
+
+    Set<Map.Entry<Sequence, Set<Node<Sequence>>>> getEntrySet();
 
     /**
      * Adds an outgoing connection to another node

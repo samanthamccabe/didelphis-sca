@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -141,8 +143,14 @@ public class StateMachine extends AbstractNode {
         Sequence tail = testSequence.getSubsequence(index);
 
 		Collection<MatchState> states = new HashSet<MatchState>();
-        for (Sequence symbol : currentNode.getKeys()) {
-            for (Node<Sequence> nextNode : currentNode.getNodes(symbol)) {
+//        for (Sequence symbol : currentNode.getKeys()) {
+			for (Map.Entry<Sequence, Set<Node<Sequence>>> entry : currentNode.getEntrySet()) {
+
+				Sequence symbol = entry.getKey();
+				Set<Node<Sequence>> nodes = entry.getValue();
+//				Collection<Node<Sequence>> nodes = currentNode.getNodes(symbol);
+			LOGGER.debug("{} nodes: {}", symbol, nodes);
+			for (Node<Sequence> nextNode : nodes) {
 	            if (symbol == Sequence.EMPTY_SEQUENCE) {
 		            states.add(new MatchState(index, nextNode));
 	            } else if (factory.hasVariable(symbol.toString())) {

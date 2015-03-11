@@ -88,9 +88,14 @@ public abstract class AbstractNode implements Node<Sequence> {
 	@Override
 	public int hashCode() {
 		int result = nodeId.hashCode();
-		result = 31 * result + (accepting ? 1 : 0);
-		result = 31 * result + arcs.keySet().hashCode();
+		result = 31 * (result + (accepting ? 1 : 0));
+		result = 31 * (result + arcs.keySet().hashCode());
 		return result;
+	}
+
+	@Override
+	public Set<Map.Entry<Sequence, Set<Node<Sequence>>>> getEntrySet() {
+		return arcs.entrySet();
 	}
 
 	@Override
@@ -125,6 +130,7 @@ public abstract class AbstractNode implements Node<Sequence> {
 
 	@Override
 	public Collection<Node<Sequence>> getNodes(Sequence arcValue) {
+		// TODO: there have been some cases where this unepectedly returns null
 		return arcs.get(arcValue);
 	}
 
