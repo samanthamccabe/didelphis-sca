@@ -176,10 +176,10 @@ public abstract class AbstractNode implements Node<Sequence> {
 			node = NodeFactory.getNode(factory, false);
 			Node<Sequence> previous = node;
 			for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
-				Expression thing = it.next();
+				Expression expression = it.next();
 				Node<Sequence> current;
-				String exp = thing.getExpression();
-				String meta = thing.getMetacharacter();
+				String exp = expression.getExpression();
+				String meta = expression.getMetacharacter();
 
 				if (exp.startsWith("{")) {
 					String substring = exp.substring(1, exp.length() - 1).trim();

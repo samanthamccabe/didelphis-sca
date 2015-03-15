@@ -14,7 +14,6 @@
 
 package org.haedus.soundchange;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
@@ -74,17 +73,17 @@ public class StandardScript extends AbstractScript {
 		this(script, new DiskFileHandler());
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	StandardScript(CharSequence script, FileHandler fileHandlerParam) {
 		this(NEWLINE_PATTERN.split(script), fileHandlerParam); // Splits newlines and removes padding whitespace
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	StandardScript(String[] array) {
 		this(array, new NullFileHandler());
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	StandardScript(String[] array, FileHandler fileHandlerParam) {
 		featureModel = FeatureModel.EMPTY_MODEL;
 //		variables = new VariableStore(model);
@@ -96,7 +95,7 @@ public class StandardScript extends AbstractScript {
 		parse(list);
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	Collection<String> getReservedSymbols() {
 		return Collections.unmodifiableSet(reservedSymbols);
 	}

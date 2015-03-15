@@ -20,9 +20,12 @@ import org.haedus.phonetic.SequenceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.print.attribute.HashDocAttributeSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,27 +42,119 @@ public class Machine {
 
 	private final SequenceFactory factory;
 
-	private final String                        startStateId;
-	private final Map<String, Map<Set, String>> acceptingStates;
-	private final Map<String, Machine>          stateMachines;
+	private final String      machineId;
+	private final String      startStateId;
+	private final Set<String> acceptingStates;
+	private final TwoKeyMap   graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
+	private final Map<String, Machine> machinesMap;
 
 	private Machine() {
+		machineId = "EMPTY-MACHINE";
 		factory = SequenceFactory.getEmptyFactory();
 		startStateId = null;
 		acceptingStates = null;
-		stateMachines = null;
+		graph = null;
+		machinesMap = null;
 	}
 
 	// For use with NodeFactory only
 	Machine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction) {
 		factory = factoryParam;
-
-		startStateId = null;
-		acceptingStates = new HashMap<String, Map<Set, String>>();
-		stateMachines = new HashMap<String, Machine>();
+		machineId = id;
 
 		List<String> strings = factory.getSegmentedString(expressionParam);
 		List<Expression> expressions = parse(strings);
+
+		machinesMap = new HashMap<String, Machine>();
+		acceptingStates = new HashSet<String>();
+		graph = new TwoKeyMap();
+
+		startStateId = process(expressions, direction);
+	}
+
+	private String process(List<Expression> expressions, ParseDirection direction) {
+		int nodeId = 0;
+		String startId;
+		if (expressions == null || expressions.isEmpty()) {
+			startId = null;
+		} else {
+			if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
+
+			startId = "N-" + nodeId;
+
+			nodeId++;
+			String previousNode = startId;
+			String currentNode = "N-" + nodeId;
+
+			for (Expression expression : expressions) {
+				String exp = expression.getExpression();
+				String meta = expression.getMetacharacter();
+
+				if (exp.startsWith("{")) {
+					String substring = exp.substring(1, exp.length() - 1).trim();
+//					previousNode;
+				} else if (exp.startsWith("(")) {
+					String substring = exp.substring(1, exp.length() - 1);
+//					previousNode;
+				} else {
+					previousNode = constructTerminalNode(previousNode, currentNode, exp, meta);
+				}
+			}
+		}
+		return startId;
+	}
+
+//	private String constructRecursiveNode(String previousNode, String machineNode, String meta, boolean b) {
+//		Node<Sequence> nextNode = NodeFactory.getNode(factory, b);
+//		// currentNode contains the machine
+//		if /****/ (meta.equals("?")) {
+//			previousNode.add(machineNode);
+//			machineNode.add(nextNode);
+//			previousNode.add(nextNode);
+//		} else if (meta.equals("*")) {
+//			previousNode.add(machineNode);
+//			machineNode.add(previousNode);
+//			previousNode.add(nextNode);
+//		} else if (meta.equals("+")) {
+//			previousNode.add(machineNode);
+//			machineNode.add(nextNode);
+//			nextNode.add(previousNode);
+//		} else {
+//			previousNode.add(machineNode);
+//			machineNode.add(nextNode);
+//		}
+//		previousNode = nextNode;
+//		return previousNode;
+//	}
+
+	private String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
+		String referenceNode;
+
+		Sequence sequence = factory.getSequence(exp);
+		if (meta.equals("?")) {
+//			previousNode.add(sequence, currentNode);
+//			previousNode.add(currentNode);
+			graph.put(previousNode, sequence, currentNode);
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, currentNode);
+			referenceNode = currentNode;
+		} else if (meta.equals("*")) {
+//			currentNode.add(sequence, previousNode);
+//			previousNode.add(currentNode);
+			graph.put(previousNode, sequence, previousNode);
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, currentNode);
+			referenceNode = previousNode;
+		} else if (meta.equals("+")) {
+//			previousNode.add(sequence, currentNode);
+//			currentNode.add(previousNode);
+			graph.put(previousNode, sequence, currentNode);
+			graph.put(currentNode, Sequence.EMPTY_SEQUENCE, previousNode);
+			referenceNode = currentNode;
+		} else {
+//			previousNode.add(sequence, currentNode);
+			graph.put(previousNode, sequence, currentNode);
+			referenceNode = currentNode;
+		}
+		return referenceNode;
 	}
 
 	private static Expression updateBuffer(Collection<Expression> list, Expression buffer) {
@@ -93,8 +188,153 @@ public class Machine {
 		}
 		return list;
 	}
-	
+
+	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
+		Collection<Integer> indices = new HashSet<Integer>();
+
+		if (startStateId == null) {
+			indices.add(startIndex);
+		} else {
+			Sequence sequence = new Sequence(target);
+			sequence.add(factory.getUnspecifiedSegment());
+			// At the beginning of the process, we are in the start-state
+			// so we find out what arcs leave the node.
+			List<MatchState> states = new ArrayList<MatchState>();
+			List<MatchState> swap = new ArrayList<MatchState>();
+			// Add an initial state at the beginning of the sequence
+			states.add(new MatchState(startIndex, startStateId));
+			// if the condition is empty, it will always match
+			while (!states.isEmpty()) {
+				for (MatchState state : states) {
+
+					String currentNode = state.getNode();
+					int index = state.getIndex();
+					// Check internal state machines
+					Collection<Integer> matchIndices;
+//					if (currentNode.containsStateMachine()) {
+					if (machinesMap.containsKey(currentNode)) {
+//						matchIndices = currentNode.getMatchIndices(index, target);
+						matchIndices = new HashSet<Integer>();
+					} else {
+						matchIndices = new HashSet<Integer>();
+						matchIndices.add(index);
+					}
+
+//					if (currentNode.isAccepting() || currentNode.isTerminal()) {
+					if (acceptingStates.contains(currentNode)) {
+						indices.addAll(matchIndices);
+					}
+
+					for (Integer matchIndex : matchIndices) {
+						Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
+						swap.addAll(matchStates);
+					}
+				}
+				states = swap;
+				swap = new ArrayList<MatchState>();
+			}
+		}
+		return indices;
+	}
+
+	private Collection<MatchState> updateSwapStates(Sequence testSequence, String currentNode, int index) {
+		Sequence tail = testSequence.getSubsequence(index);
+
+		Collection<MatchState> states = new HashSet<MatchState>();
+//		for (Sequence symbol : currentNode.getKeys()) {
+//			for (String nextNode : currentNode.getNodes(symbol)) {
+		for (Map.Entry<Sequence, String> entry : graph.getEntries(currentNode)) {
+
+			Sequence symbol = entry.getKey();
+			String nextNode = entry.getValue();
+
+			if (symbol == Sequence.EMPTY_SEQUENCE) {
+				states.add(new MatchState(index, nextNode));
+			} else if (factory.hasVariable(symbol.toString())) {
+				for (Sequence s : factory.getVariableValues(symbol.toString())) {
+					if (tail.startsWith(s)) {
+						states.add(new MatchState(index + s.size(), nextNode));
+					}
+				}
+			} else if (tail.startsWith(symbol)) {
+				states.add(new MatchState(index + symbol.size(), nextNode));
+			}
+			// Else: the pattern fails to match
+//			}
+		}
+		return states;
+	}
+
 	public boolean matches(int startIndex, Sequence target) {
 		return false;
+	}
+
+	private static class TwoKeyMap {
+		private final Map<String, Map<Sequence, String>> map;
+
+		private TwoKeyMap() {
+			map = new HashMap<String, Map<Sequence, String>>();
+		}
+
+		private String get(String k1, Sequence k2) {
+			return map.get(k1).get(k2);
+		}
+
+		private Set<Map.Entry<Sequence, String>> getEntries(String k1) {
+			return map.get(k1).entrySet();
+		}
+
+		private void put(String k1, Sequence k2, String value) {
+			Map<Sequence, String> innerMap;
+			if (map.containsKey(k1)) {
+				innerMap = map.get(k1);
+			} else {
+				innerMap = new HashMap<Sequence, String>();
+			}
+			innerMap.put(k2, value);
+		}
+
+		private boolean contains (String k1, Sequence k2) {
+			return map.containsKey(k1) && map.get(k1).containsKey(k2);
+		}
+	}
+
+	private static final class MatchState {
+
+		private final int    index; // Where in the sequence the cursor is
+		private final String node;  // What node the cursor is currently on
+
+		private MatchState(Integer i, String n) {
+			index = i;
+			node  = n;
+		}
+
+		public int getIndex() {
+			return index;
+		}
+
+		public String getNode() {
+			return node;
+		}
+
+		@Override
+		public String toString() {
+			return '[' + index + ',' + node + ']';
+		}
+
+		@Override
+		public int hashCode() {
+			return (13 + index) * (32 + node.hashCode());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null)                  { return false; }
+			if (obj.getClass() != getClass()) { return false; }
+
+			MatchState other = (MatchState) obj;
+			return index == other.index &&
+				node.equals(other.node);
+		}
 	}
 }

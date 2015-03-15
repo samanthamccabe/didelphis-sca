@@ -14,7 +14,6 @@
 
 package org.haedus.phonetic;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +50,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		featureModel = modelParam;
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	Sequence(String word) {
 		this();
 		for (char c : word.toCharArray()) {
@@ -291,7 +290,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return featureModel;
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	List<Integer> indicesOf(Sequence q) {
 		List<Integer> indices = new ArrayList<Integer>();
 
