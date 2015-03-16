@@ -82,13 +82,16 @@ public class Machine {
 
 			startId = "N-" + nodeId;
 
-			nodeId++;
+
 			String previousNode = startId;
-			String currentNode = "N-" + nodeId;
+
 
 			for (Expression expression : expressions) {
 				String exp = expression.getExpression();
 				String meta = expression.getMetacharacter();
+
+				nodeId++;
+				String currentNode = "N-" + nodeId;
 
 				if (exp.startsWith("{")) {
 					String substring = exp.substring(1, exp.length() - 1).trim();
@@ -221,13 +224,13 @@ public class Machine {
 					}
 
 //					if (currentNode.isAccepting() || currentNode.isTerminal()) {
-					if (acceptingStates.contains(currentNode)) {
+					if (acceptingStates.contains(currentNode) || !graph.contains(currentNode)) {
 						indices.addAll(matchIndices);
-					}
-
+					} else {
 					for (Integer matchIndex : matchIndices) {
 						Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
 						swap.addAll(matchStates);
+					}
 					}
 				}
 				states = swap;
@@ -241,26 +244,29 @@ public class Machine {
 		Sequence tail = testSequence.getSubsequence(index);
 
 		Collection<MatchState> states = new HashSet<MatchState>();
-//		for (Sequence symbol : currentNode.getKeys()) {
-//			for (String nextNode : currentNode.getNodes(symbol)) {
-		for (Map.Entry<Sequence, String> entry : graph.getEntries(currentNode)) {
+//		graph.get(currentNode)
 
-			Sequence symbol = entry.getKey();
-			String nextNode = entry.getValue();
+		Map<Sequence, Set<String>> sequenceSetMap = graph.get(currentNode);
 
-			if (symbol == Sequence.EMPTY_SEQUENCE) {
-				states.add(new MatchState(index, nextNode));
-			} else if (factory.hasVariable(symbol.toString())) {
-				for (Sequence s : factory.getVariableValues(symbol.toString())) {
-					if (tail.startsWith(s)) {
-						states.add(new MatchState(index + s.size(), nextNode));
+		for (Map.Entry<Sequence, Set<String>> sequenceSetEntry : sequenceSetMap.entrySet()) {
+//		for (Sequence symbol : graph.get(currentNode)) {
+			Set<String> value = sequenceSetEntry.getValue();
+			for (String nextNode : value) {
+
+				Sequence key = sequenceSetEntry.getKey();
+				if (key == Sequence.EMPTY_SEQUENCE) {
+					states.add(new MatchState(index, nextNode));
+				} else if (factory.hasVariable(key.toString())) {
+					for (Sequence s : factory.getVariableValues(key.toString())) {
+						if (tail.startsWith(s)) {
+							states.add(new MatchState(index + s.size(), nextNode));
+						}
 					}
+				} else if (tail.startsWith(key)) {
+					states.add(new MatchState(index + key.size(), nextNode));
 				}
-			} else if (tail.startsWith(symbol)) {
-				states.add(new MatchState(index + symbol.size(), nextNode));
+				// Else: the pattern fails to match
 			}
-			// Else: the pattern fails to match
-//			}
 		}
 		return states;
 	}
@@ -270,28 +276,50 @@ public class Machine {
 	}
 
 	private static class TwoKeyMap {
-		private final Map<String, Map<Sequence, String>> map;
+		private final Map<String, Map<Sequence, Set<String>>> map;
 
 		private TwoKeyMap() {
-			map = new HashMap<String, Map<Sequence, String>>();
+			map = new HashMap<String, Map<Sequence, Set<String>>>();
 		}
 
-		private String get(String k1, Sequence k2) {
+		private Map<Sequence,Set<String>> get(String k1) {
+			return map.get(k1);
+		}
+
+		private Set<String> get(String k1, Sequence k2) {
 			return map.get(k1).get(k2);
 		}
 
-		private Set<Map.Entry<Sequence, String>> getEntries(String k1) {
+		private boolean contains(String k1) {
+			return map.containsKey(k1);
+		}
+
+		private Set<Map.Entry<Sequence, Set<String>>> getEntries(String k1) {
 			return map.get(k1).entrySet();
 		}
 
+
+		private Set<Sequence> getKeys(String k1) {
+			return map.get(k1).keySet();
+		}
+
 		private void put(String k1, Sequence k2, String value) {
-			Map<Sequence, String> innerMap;
+			Map<Sequence, Set<String>> innerMap;
 			if (map.containsKey(k1)) {
 				innerMap = map.get(k1);
 			} else {
-				innerMap = new HashMap<Sequence, String>();
+				innerMap = new HashMap<Sequence, Set<String>>();
 			}
-			innerMap.put(k2, value);
+
+			Set<String> set;
+			if (innerMap.containsKey(k2)) {
+				set = innerMap.get(k2);
+			} else {
+				set = new HashSet<String>();
+			}
+			set.add(value);
+			innerMap.put(k2, set);
+			map.put(k1, innerMap);
 		}
 
 		private boolean contains (String k1, Sequence k2) {
@@ -319,7 +347,7 @@ public class Machine {
 
 		@Override
 		public String toString() {
-			return '[' + index + ',' + node + ']';
+			return "[" + index + ',' + node + ']';
 		}
 
 		@Override
