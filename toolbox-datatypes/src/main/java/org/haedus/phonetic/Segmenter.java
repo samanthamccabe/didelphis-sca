@@ -21,6 +21,7 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
+import org.haedus.machines.Expression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,41 @@ public final class Segmenter {
 
 	// Prevent the class from being instantiated
 	private Segmenter() {
+	}
+
+	public static List<Expression> getExpressions(String string, Collection<String> keys, FormatterMode formatterMode) {
+
+		List<String> strings = getSegmentedString(string, keys, formatterMode);
+
+		List<Expression> list = new ArrayList<Expression>();
+		if (!strings.isEmpty()) {
+
+			Expression buffer = new Expression();
+			for (String symbol : strings) {
+				if (symbol.equals("*") || symbol.equals("?") || symbol.equals("+")) {
+					buffer.setMetacharacter(symbol);
+					buffer = updateBuffer(list, buffer);
+				} else if (symbol.equals("!")) {
+					// first in an expression
+					buffer = updateBuffer(list, buffer);
+					buffer.setNegative(true);
+				} else {
+					if (!buffer.getExpression().isEmpty()) {
+						buffer = updateBuffer(list, buffer);
+					}
+					buffer.setExpression(symbol);
+				}
+			}
+			if (!buffer.getExpression().isEmpty()) {
+				list.add(buffer);
+			}
+		}
+		return list;
+	}
+
+	private static Expression updateBuffer(Collection<Expression> list, Expression buffer) {
+		list.add(buffer);
+		return new Expression();
 	}
 
 	public static Segment getSegment(String string, FeatureModel model, FormatterMode formatterMode) {

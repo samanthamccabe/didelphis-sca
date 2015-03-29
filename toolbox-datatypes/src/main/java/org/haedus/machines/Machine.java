@@ -1,31 +1,38 @@
-/******************************************************************************
+/**
+ * ***************************************************************************
  * Copyright (c) 2015. Samantha Fiona McCabe                                  *
- *                                                                            *
+ * *
  * Licensed under the Apache License, Version 2.0 (the "License");            *
  * you may not use this file except in compliance with the License.           *
  * You may obtain a copy of the License at                                    *
- *     http://www.apache.org/licenses/LICENSE-2.0                             *
+ * http://www.apache.org/licenses/LICENSE-2.0                             *
  * Unless required by applicable law or agreed to in writing, software        *
  * distributed under the License is distributed on an "AS IS" BASIS,          *
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   *
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
- ******************************************************************************/
+ * ****************************************************************************
+ */
 
 package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.utils.graph.DisplayEdge;
+import org.haedus.utils.graph.DisplayGroup;
+import org.haedus.utils.graph.DisplayNode;
+import org.haedus.utils.graph.GraphBuilder;
+import org.haedus.utils.graph.NodeShape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.print.attribute.HashDocAttributeSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,10 +49,11 @@ public class Machine {
 
 	private final SequenceFactory factory;
 
-	private final String      machineId;
-	private final String      startStateId;
-	private final Set<String> acceptingStates;
-	private final TwoKeyMap   graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
+	private final String               machineId;
+	private final String               startStateId;
+	private final Set<String>          acceptingStates;
+	private final TwoKeyMap            graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
+	private final Set<String>          nodes;
 	private final Map<String, Machine> machinesMap;
 
 	private Machine() {
@@ -55,105 +63,111 @@ public class Machine {
 		acceptingStates = null;
 		graph = null;
 		machinesMap = null;
+		nodes = null;
 	}
 
 	// For use with NodeFactory only
 	Machine(String id, String expressionParam, SequenceFactory factoryParam, ParseDirection direction) {
 		factory = factoryParam;
 		machineId = id;
-
-		List<String> strings = factory.getSegmentedString(expressionParam);
-		List<Expression> expressions = parse(strings);
+		startStateId = machineId + ":S";
 
 		machinesMap = new HashMap<String, Machine>();
 		acceptingStates = new HashSet<String>();
+		nodes = new HashSet<String>();
 		graph = new TwoKeyMap();
 
-		startStateId = process(expressions, direction);
+
+		List<Expression> expressions = factory.getExpressions(expressionParam);
+
+		// TODO:
+		if (expressions.size() == 1) {
+
+		} else {
+
+		}
+
 	}
 
-	private String process(List<Expression> expressions, ParseDirection direction) {
+	private void process(String starId, Expression expression, ParseDirection direction) {
+
+	}
+
+	private void process(String startId, List<Expression> expressions, ParseDirection direction) {
+		nodes.add(startId);
+
+		if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
+
 		int nodeId = 0;
-		String startId;
-		if (expressions == null || expressions.isEmpty()) {
-			startId = null;
-		} else {
-			if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
+		String previousNode = startId;
 
-			startId = "N-" + nodeId;
+		for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
+			Expression expression = it.next();
 
+			nodeId++;
 
-			String previousNode = startId;
+			String expr = expression.getExpression();
+			String meta = expression.getMetacharacter();
 
+			String currentNode = machineId + ':' + nodeId;
+			if (!it.hasNext()) {
+				acceptingStates.add(currentNode);
+			}
+			nodes.add(currentNode);
 
-			for (Expression expression : expressions) {
-				String exp = expression.getExpression();
-				String meta = expression.getMetacharacter();
+			if (expr.startsWith("(") || expr.startsWith("{")) {
 
-				nodeId++;
-				String currentNode = "N-" + nodeId;
+				Machine machine = new Machine(currentNode, expr, factory, direction);
+				machinesMap.put(currentNode, machine);
 
-				if (exp.startsWith("{")) {
-					String substring = exp.substring(1, exp.length() - 1).trim();
-//					previousNode;
-				} else if (exp.startsWith("(")) {
-					String substring = exp.substring(1, exp.length() - 1);
-//					previousNode;
-				} else {
-					previousNode = constructTerminalNode(previousNode, currentNode, exp, meta);
-				}
+				String nextNode = machineId + ':' + (nodeId + 1);
+				nodes.add(nextNode);
+
+				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
+			} else {
+				previousNode = constructTerminalNode(previousNode, currentNode, expr, meta);
 			}
 		}
-		return startId;
 	}
 
-//	private String constructRecursiveNode(String previousNode, String machineNode, String meta, boolean b) {
-//		Node<Sequence> nextNode = NodeFactory.getNode(factory, b);
-//		// currentNode contains the machine
-//		if /****/ (meta.equals("?")) {
-//			previousNode.add(machineNode);
-//			machineNode.add(nextNode);
-//			previousNode.add(nextNode);
-//		} else if (meta.equals("*")) {
-//			previousNode.add(machineNode);
-//			machineNode.add(previousNode);
-//			previousNode.add(nextNode);
-//		} else if (meta.equals("+")) {
-//			previousNode.add(machineNode);
-//			machineNode.add(nextNode);
-//			nextNode.add(previousNode);
-//		} else {
-//			previousNode.add(machineNode);
-//			machineNode.add(nextNode);
-//		}
-//		previousNode = nextNode;
-//		return previousNode;
-//	}
+	private String constructRecursiveNode(String nextNode, String previousNode, String machineNode, String meta) {
+
+		if /****/ (meta.equals("?")) {
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, machineNode);
+			graph.put(machineNode, Sequence.EMPTY_SEQUENCE, nextNode);
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, nextNode);
+		} else if (meta.equals("*")) {
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, machineNode);
+			graph.put(machineNode, Sequence.EMPTY_SEQUENCE, previousNode);
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, nextNode);
+		} else if (meta.equals("+")) {
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, machineNode);
+			graph.put(machineNode, Sequence.EMPTY_SEQUENCE, nextNode);
+			graph.put(nextNode, Sequence.EMPTY_SEQUENCE, previousNode);
+		} else {
+			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, machineNode);
+			graph.put(machineNode, Sequence.EMPTY_SEQUENCE, nextNode);
+		}
+		return nextNode;
+	}
 
 	private String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
 		String referenceNode;
 
 		Sequence sequence = factory.getSequence(exp);
 		if (meta.equals("?")) {
-//			previousNode.add(sequence, currentNode);
-//			previousNode.add(currentNode);
 			graph.put(previousNode, sequence, currentNode);
 			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, currentNode);
 			referenceNode = currentNode;
 		} else if (meta.equals("*")) {
-//			currentNode.add(sequence, previousNode);
-//			previousNode.add(currentNode);
 			graph.put(previousNode, sequence, previousNode);
 			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, currentNode);
-			referenceNode = previousNode;
+			referenceNode = currentNode;
 		} else if (meta.equals("+")) {
-//			previousNode.add(sequence, currentNode);
-//			currentNode.add(previousNode);
 			graph.put(previousNode, sequence, currentNode);
 			graph.put(currentNode, Sequence.EMPTY_SEQUENCE, previousNode);
 			referenceNode = currentNode;
 		} else {
-//			previousNode.add(sequence, currentNode);
 			graph.put(previousNode, sequence, currentNode);
 			referenceNode = currentNode;
 		}
@@ -163,33 +177,6 @@ public class Machine {
 	private static Expression updateBuffer(Collection<Expression> list, Expression buffer) {
 		list.add(buffer);
 		return new Expression();
-	}
-
-	private static List<Expression> parse(Collection<String> strings) {
-		List<Expression> list = new ArrayList<Expression>();
-		if (!strings.isEmpty()) {
-
-			Expression buffer = new Expression();
-			for (String symbol : strings) {
-				if (symbol.equals("*") || symbol.equals("?") || symbol.equals("+")) {
-					buffer.setMetacharacter(symbol);
-					buffer = updateBuffer(list, buffer);
-				} else if (symbol.equals("!")) {
-					// first in an expression
-					buffer = updateBuffer(list, buffer);
-					buffer.setNegative(true);
-				} else {
-					if (!buffer.getExpression().isEmpty()) {
-						buffer = updateBuffer(list, buffer);
-					}
-					buffer.setExpression(symbol);
-				}
-			}
-			if (!buffer.getExpression().isEmpty()) {
-				list.add(buffer);
-			}
-		}
-		return list;
 	}
 
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
@@ -214,23 +201,20 @@ public class Machine {
 					int index = state.getIndex();
 					// Check internal state machines
 					Collection<Integer> matchIndices;
-//					if (currentNode.containsStateMachine()) {
 					if (machinesMap.containsKey(currentNode)) {
-//						matchIndices = currentNode.getMatchIndices(index, target);
-						matchIndices = new HashSet<Integer>();
+						matchIndices = machinesMap.get(currentNode).getMatchIndices(index, target);
 					} else {
 						matchIndices = new HashSet<Integer>();
 						matchIndices.add(index);
 					}
 
-//					if (currentNode.isAccepting() || currentNode.isTerminal()) {
 					if (acceptingStates.contains(currentNode) || !graph.contains(currentNode)) {
 						indices.addAll(matchIndices);
 					} else {
-					for (Integer matchIndex : matchIndices) {
-						Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
-						swap.addAll(matchStates);
-					}
+						for (Integer matchIndex : matchIndices) {
+							Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
+							swap.addAll(matchStates);
+						}
 					}
 				}
 				states = swap;
@@ -244,12 +228,10 @@ public class Machine {
 		Sequence tail = testSequence.getSubsequence(index);
 
 		Collection<MatchState> states = new HashSet<MatchState>();
-//		graph.get(currentNode)
 
 		Map<Sequence, Set<String>> sequenceSetMap = graph.get(currentNode);
 
 		for (Map.Entry<Sequence, Set<String>> sequenceSetEntry : sequenceSetMap.entrySet()) {
-//		for (Sequence symbol : graph.get(currentNode)) {
 			Set<String> value = sequenceSetEntry.getValue();
 			for (String nextNode : value) {
 
@@ -271,6 +253,73 @@ public class Machine {
 		return states;
 	}
 
+	public DisplayGroup getGroup() {
+		DisplayGroup group = new DisplayGroup(machineId, machineId);
+
+		Set<DisplayNode> displayNodes = getDisplayNodes();
+		Set<DisplayEdge> displayEdges = getDisplayEdges();
+
+		group.addAllNodes(displayNodes);
+		group.addAllEdges(displayEdges);
+
+		return group;
+	}
+
+	public String getGraph() {
+		GraphBuilder builder = new GraphBuilder();
+
+		Set<DisplayNode> displayNodes = getDisplayNodes();
+		Set<DisplayEdge> displayEdges = getDisplayEdges();
+
+		builder.addAllNodes(displayNodes);
+		builder.addAllEdges(displayEdges);
+
+		return builder.generateGraphML();
+	}
+
+	private Set<DisplayNode> getDisplayNodes() {
+		Set<DisplayNode> displayNodes = new HashSet<DisplayNode>();
+		for (String nodeId : nodes) {
+
+			if (machinesMap.containsKey(nodeId)) {
+				displayNodes.add(machinesMap.get(nodeId).getGroup());
+			} else {
+
+				DisplayNode node = new DisplayNode(nodeId, nodeId);
+
+				if (acceptingStates.contains(nodeId)) {
+					node.setFillColor1("#40C0C0");
+					node.setShape(NodeShape.DIAMOND);
+				} else if (startStateId.equals(nodeId)) {
+					node.setFillColor1("#F04040");
+					node.setShape(NodeShape.ELLIPSE);
+				}
+				displayNodes.add(node);
+			}
+		}
+		return displayNodes;
+	}
+
+	private Set<DisplayEdge> getDisplayEdges() {
+		int arcId = 1;
+		Set<DisplayEdge> displayEdges = new HashSet<DisplayEdge>();
+		for (String nodeId : graph.getKeys()) {
+			Map<Sequence, Set<String>> map = graph.get(nodeId);
+
+			for (Map.Entry<Sequence, Set<String>> entry : map.entrySet()) {
+				Sequence key = entry.getKey();
+				Set<String> value = entry.getValue();
+
+				for (String targetId : value) {
+					DisplayEdge edge = new DisplayEdge(machineId + ":arc-" + arcId, key.toString(), nodeId, targetId);
+					displayEdges.add(edge);
+					arcId++;
+				}
+			}
+		}
+		return displayEdges;
+	}
+
 	public boolean matches(int startIndex, Sequence target) {
 		return false;
 	}
@@ -282,7 +331,11 @@ public class Machine {
 			map = new HashMap<String, Map<Sequence, Set<String>>>();
 		}
 
-		private Map<Sequence,Set<String>> get(String k1) {
+		private Set<String> getKeys() {
+			return map.keySet();
+		}
+
+		private Map<Sequence, Set<String>> get(String k1) {
 			return map.get(k1);
 		}
 
@@ -322,7 +375,7 @@ public class Machine {
 			map.put(k1, innerMap);
 		}
 
-		private boolean contains (String k1, Sequence k2) {
+		private boolean contains(String k1, Sequence k2) {
 			return map.containsKey(k1) && map.get(k1).containsKey(k2);
 		}
 	}
@@ -334,7 +387,7 @@ public class Machine {
 
 		private MatchState(Integer i, String n) {
 			index = i;
-			node  = n;
+			node = n;
 		}
 
 		public int getIndex() {
@@ -357,12 +410,60 @@ public class Machine {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj == null)                  { return false; }
+			if (obj == null) { return false; }
 			if (obj.getClass() != getClass()) { return false; }
 
 			MatchState other = (MatchState) obj;
 			return index == other.index &&
 				node.equals(other.node);
 		}
+	}
+
+	private static int getIndex(CharSequence string, char left, char right, int startIndex) {
+		int count = 1;
+		int endIndex = -1;
+
+		boolean matched = false;
+		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
+			char ch = string.charAt(i);
+			if (ch == right && count == 1) {
+				matched = true;
+				endIndex = i;
+			} else if (ch == right) {
+				count++;
+			} else if (ch == left) {
+				count--;
+			}
+		}
+		return endIndex;
+	}
+
+	private static Collection<String> parseSubExpressions(String expressionParam) {
+		Collection<String> subExpressions = new ArrayList<String>();
+
+		StringBuilder buffer = new StringBuilder();
+		for (int i = 0; i < expressionParam.length(); i++) {
+			char c = expressionParam.charAt(i);
+			/*  */
+			if (c == '{') {
+				int index = getIndex(expressionParam, '{', '}', i);
+				buffer.append(expressionParam.substring(i, index));
+				i = index - 1;
+			} else if (c == '(') {
+				int index = getIndex(expressionParam, '(', ')', i);
+				buffer.append(expressionParam.substring(i, index));
+				i = index - 1;
+			} else if (c != ' ') {
+				buffer.append(c);
+			} else if (buffer.length() > 0) { // No isEmpty() call available
+				subExpressions.add(buffer.toString());
+				buffer = new StringBuilder();
+			}
+		}
+
+		if (buffer.length() > 0) {
+			subExpressions.add(buffer.toString());
+		}
+		return subExpressions;
 	}
 }

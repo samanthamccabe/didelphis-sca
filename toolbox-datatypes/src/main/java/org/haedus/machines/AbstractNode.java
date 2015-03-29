@@ -177,10 +177,11 @@ public abstract class AbstractNode implements Node<Sequence> {
 			Node<Sequence> previous = node;
 			for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
 				Expression expression = it.next();
-				Node<Sequence> current;
+
 				String exp = expression.getExpression();
 				String meta = expression.getMetacharacter();
 
+				Node<Sequence> current;
 				if (exp.startsWith("{")) {
 					String substring = exp.substring(1, exp.length() - 1).trim();
 					current = NodeFactory.getParallelStateMachine(substring, factory, direction, false); // Never accepting?

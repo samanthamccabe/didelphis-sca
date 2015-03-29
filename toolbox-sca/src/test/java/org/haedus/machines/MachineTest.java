@@ -14,14 +14,16 @@
 
 package org.haedus.machines;
 
+import org.apache.commons.io.FileUtils;
 import org.haedus.enums.ParseDirection;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
@@ -61,8 +63,11 @@ public class MachineTest {
 	}
 
 	@Test
-	public void testBasicStateMachine03() {
+	public void testBasicStateMachine03() throws IOException {
 		Machine stateMachine = getStateMachine("aaa?");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "aa");
 		test(stateMachine, "aaa");
@@ -73,8 +78,34 @@ public class MachineTest {
 	}
 
 	@Test
-	public void testStateMachineStar() {
+	public void testBasicStateMachine04() throws IOException {
+		Machine stateMachine = getStateMachine("ab*cd?ab");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
+
+		test(stateMachine, "acab");
+		test(stateMachine, "abcab");
+		test(stateMachine, "abbcab");
+		test(stateMachine, "abbbcab");
+
+		test(stateMachine, "acdab");
+		test(stateMachine, "abcdab");
+		test(stateMachine, "abbcdab");
+		test(stateMachine, "abbbcdab");
+
+		fail(stateMachine, "acddab");
+		fail(stateMachine, "abcddab");
+		fail(stateMachine, "abbcddab");
+		fail(stateMachine, "abbbcddab");
+	}
+
+	@Test
+	public void testStateMachineStar() throws IOException {
 		Machine stateMachine = getStateMachine("aa*");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "a");
 		test(stateMachine, "aa");
@@ -85,7 +116,7 @@ public class MachineTest {
 	}
 
 	@Test
-	public void testStateMachinePlus() {
+	public void testStateMachinePlus() throws IOException {
 		Machine stateMachine = getStateMachine("a+");
 
 		test(stateMachine, "a");
@@ -98,7 +129,6 @@ public class MachineTest {
 		test(stateMachine, "ab");
 	}
 
-	@Ignore
 	@Test
 	public void testGroups() {
 		Machine stateMachine = getStateMachine("(ab)(cd)(ef)");
@@ -109,7 +139,6 @@ public class MachineTest {
 		fail(stateMachine, "bcdef");
 	}
 
-	@Ignore
 	@Test
 	public void testGroupStar01() {
 		Machine stateMachine = getStateMachine("(ab)*(cd)(ef)");
@@ -125,10 +154,12 @@ public class MachineTest {
 		fail(stateMachine, "abbcdef");
 	}
 
-	@Ignore
 	@Test
-	public void testGroupStar02() {
+	public void testGroupStar02() throws IOException {
 		Machine stateMachine = getStateMachine("d(eo*)*b");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "db");
 		test(stateMachine, "deb");
@@ -144,29 +175,37 @@ public class MachineTest {
 		fail(stateMachine, "abbcdef");
 	}
 
-	@Ignore
 	@Test
-	public void testGroupOptional01() {
+	public void testGroupOptional01() throws IOException {
 		Machine stateMachine = getStateMachine("(ab)?(cd)(ef)");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "abcdef");
 		test(stateMachine, "cdef");
 	}
 
-	@Ignore
+	
 	@Test
-	public void testSets01() {
+	public void testSets01() throws IOException {
 		Machine stateMachine = getStateMachine("{ x ɣ }");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "x");
 		test(stateMachine, "ɣ");
 		fail(stateMachine, " ");
 	}
 
-	@Ignore
+	
 	@Test
-	public void testSets02() {
+	public void testSets02() throws IOException {
 		Machine stateMachine = getStateMachine("{ab {cd xy} ef}tr");
+
+		String graphML = stateMachine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(stateMachine, "abtr");
 		test(stateMachine, "cdtr");
@@ -175,7 +214,6 @@ public class MachineTest {
 		fail(stateMachine, " ");
 	}
 
-	@Ignore
 	@Test
 	public void testSetsExtraSpace01() {
 		Machine machine = getStateMachine("{cʰ  c  ɟ}");
@@ -185,10 +223,12 @@ public class MachineTest {
 		test(machine, "ɟ");
 	}
 
-	@Ignore
 	@Test
-	public void testGroupPlus01() {
+	public void testGroupPlus01() throws IOException {
 		Machine machine = getStateMachine("(ab)+");
+
+		String graphML = machine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(machine, "ab");
 		test(machine, "abab");
@@ -196,24 +236,28 @@ public class MachineTest {
 
 	}
 
-	@Ignore
 	@Test
-	public void testComplexGroups01() {
+	public void testComplexGroups01() throws IOException {
 		Machine machine = getStateMachine("(a+l(ham+b)*ra)+");
+
+		String graphML = machine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(machine, "alhambra");
 	}
 
-	@Ignore
+	
 	@Test
-	public void testComplexGroups02() {
+	public void testComplexGroups02() throws IOException {
 		Machine machine = getStateMachine("{ab* (cd?)+ ((ae)*f)+}tr");
+
+		String graphML = machine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(machine, "abtr");
 		test(machine, "cdtr");
 	}
 
-	@Ignore
 	@Test
 	public void testComplex02() {
 		Machine machine = getStateMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
@@ -221,7 +265,6 @@ public class MachineTest {
 		test(machine, "āḱʰus");
 	}
 
-	@Ignore
 	@Test
 	public void testComplex03() {
 		Machine machine = getStateMachine("a?{pʰ tʰ kʰ ḱʰ}us");
@@ -233,7 +276,6 @@ public class MachineTest {
 		test(machine, "aḱʰus");
 	}
 
-	@Ignore
 	@Test
 	public void testComplex04() {
 		Machine machine = getStateMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
@@ -244,10 +286,12 @@ public class MachineTest {
 		test(machine, "aḱʰus");
 	}
 
-	@Ignore
 	@Test
-	public void testComplex01() {
+	public void testComplex01() throws IOException {
 		Machine machine = getStateMachine("a?(b?c?)d?b");
+
+		String graphML = machine.getGraph();
+		FileUtils.write(new File("test.graphml"), graphML);
 
 		test(machine, "b");
 		test(machine, "db");
@@ -259,7 +303,7 @@ public class MachineTest {
 	}
 
 	private static Machine getStateMachine(String expression) {
-		return NodeFactory.getMachine(expression, FACTORY, ParseDirection.FORWARD, true);
+		return new Machine("M0",expression, FACTORY, ParseDirection.FORWARD);
 	}
 
 	private static void test(Machine stateMachine, String target) {
