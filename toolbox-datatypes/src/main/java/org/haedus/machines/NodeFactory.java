@@ -34,9 +34,9 @@ public class NodeFactory {
 	private NodeFactory() {
 	}
 
-	public static Machine getMachine(String expression, SequenceFactory factoryParam, ParseDirection direction) {
+	public static StandardMachine getMachine(String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		machineCounter++;
-		return new Machine("M-" + machineCounter, expression, factoryParam, direction);
+		return new StandardMachine("M-" + machineCounter, expression, factoryParam, direction);
 	}
 
 	public static Node<Sequence> getParallelStateMachine(String expression, SequenceFactory factoryParam, ParseDirection direction, boolean accepting) {
