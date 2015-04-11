@@ -270,7 +270,7 @@ public class StandardMachineTest {
 	}
 
 	private static StandardMachine getStateMachine(String expression) {
-		StandardMachine stateMachine = new StandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
+		StandardMachine stateMachine = StandardMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
 		String graphML = stateMachine.getGraph();
 		try {
 			FileUtils.write(new File("test.graphml"), graphML);
