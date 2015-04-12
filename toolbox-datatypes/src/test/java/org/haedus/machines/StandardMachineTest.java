@@ -181,7 +181,6 @@ public class StandardMachineTest {
 		fail(stateMachine, " ");
 	}
 
-	
 	@Test
 	public void testSets02() throws IOException {
 		StandardMachine stateMachine = getStateMachine("{ab {cd xy} ef}tr");
@@ -217,15 +216,6 @@ public class StandardMachineTest {
 		StandardMachine machine = getStateMachine("(a+l(ham+b)*ra)+");
 
 		test(machine, "alhambra");
-	}
-
-	
-	@Test
-	public void testComplexGroups02() throws IOException {
-		StandardMachine machine = getStateMachine("{ab* (cd?)+ ((ae)*f)+}tr");
-
-		test(machine, "abtr");
-		test(machine, "cdtr");
 	}
 
 	@Test
@@ -268,6 +258,45 @@ public class StandardMachineTest {
 		test(machine, "abcb");
 		test(machine, "abcdb");
 	}
+
+	@Test
+	public void testComplex05() {
+		StandardMachine machine = getStateMachine("{ab* (cd?)+ ((ae)*f)+}tr");
+
+		test(machine, "abtr");
+		test(machine, "cdtr");
+		test(machine, "ftr");
+		test(machine, "aeftr");
+		test(machine, "aeaeftr");
+
+		test(machine, "cctr");
+		test(machine, "ccctr");
+ 		test(machine, "fftr");
+		test(machine, "aefaeftr");
+		test(machine, "aefffffaeftr");
+
+		fail(machine, "abcd");
+		fail(machine, "tr");
+	}
+
+//	@Test
+//	public void testDot01() throws IOException {
+//		StandardMachine machine = getStateMachine("..");
+//
+//		test(machine, "ab");
+//		test(machine, "db");
+//		test(machine, "bcdb");
+//		test(machine, "acdb");
+//		test(machine, "abdb");
+//		test(machine, "abcb");
+//		test(machine, "abcdb");
+//
+//		fail(machine, "a");
+//		fail(machine, "b");
+//		fail(machine, "c");
+//		fail(machine, "d");
+//		fail(machine, "e");
+//	}
 
 	private static StandardMachine getStateMachine(String expression) {
 		StandardMachine stateMachine = StandardMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);

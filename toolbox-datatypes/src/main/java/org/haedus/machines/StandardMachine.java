@@ -23,6 +23,7 @@ import org.haedus.utils.graph.GraphBuilder;
 import org.haedus.utils.graph.edge.DisplayEdge;
 import org.haedus.utils.graph.node.DisplayGroup;
 import org.haedus.utils.graph.node.DisplayNode;
+import org.haedus.utils.graph.node.NodeShape;
 import org.haedus.utils.graph.node.NodeStyleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class StandardMachine implements Machine {
 
 	public static final StandardMachine EMPTY_MACHINE = new StandardMachine();
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardMachine.class);
 
 	private final SequenceFactory factory;
 
@@ -75,17 +76,18 @@ public class StandardMachine implements Machine {
 	public static StandardMachine createStandardMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StandardMachine standardMachine = new StandardMachine(id, factoryParam);
 		List<Expression> expressions = factoryParam.getExpressions(expression);
-		standardMachine.process(1, expressions, direction);
-
+		standardMachine.parseExpression("", expressions, direction);
 		return standardMachine;
 	}
 
 	public static StandardMachine createParallelMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StandardMachine standardMachine = new StandardMachine(id, factoryParam);
-		int i = 1;
+		int i = 65; // A
 		for (String subExpression : parseSubExpressions(expression)) {
 			List<Expression> expressions = factoryParam.getExpressions(subExpression);
-			standardMachine.process(i, expressions, direction);
+			char c = (char) i;
+			String prefix = String.valueOf(c);
+			standardMachine.parseExpression(prefix, expressions, direction);
 			i++;
 		}
 		return standardMachine;
@@ -94,6 +96,11 @@ public class StandardMachine implements Machine {
 	@Override
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 		Collection<Integer> indices = new HashSet<Integer>();
+
+		if (graph.isEmpty()) {
+			indices.add(0);
+			return indices;
+		}
 
 		Sequence sequence = new Sequence(target);
 		sequence.add(factory.getUnspecifiedSegment());
@@ -118,9 +125,11 @@ public class StandardMachine implements Machine {
 					matchIndices.add(index);
 				}
 
-				if (acceptingStates.contains(currentNode) || !graph.contains(currentNode)) {
+				if (acceptingStates.contains(currentNode)/* || !graph.contains(currentNode)*/) {
 					indices.addAll(matchIndices);
-				} else {
+				}
+//				else {
+				if (graph.contains(currentNode)) {
 					for (Integer matchIndex : matchIndices) {
 						Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
 						swap.addAll(matchStates);
@@ -144,18 +153,16 @@ public class StandardMachine implements Machine {
 		builder.addAllGroups(displayGroups);
 		builder.addAllEdges(displayEdges);
 
-
 		return builder.generateGraphML();
 	}
 
-	public DisplayGroup getGroup() {
+	private DisplayGroup getGroup() {
 		DisplayGroup group = new DisplayGroup(machineId, machineId);
 
 		Set<DisplayNode>  displayNodes = getDisplayNodes();
 		Set<DisplayEdge>  displayEdges = getDisplayEdges();
 		Set<DisplayGroup> displayGroups = getDisplayGroups();
 
-		// TODO: update this
 		group.addAllNodes(displayNodes);
 		group.addAllGroups(displayGroups);
 		group.addAllEdges(displayEdges);
@@ -257,16 +264,12 @@ public class StandardMachine implements Machine {
 
 	private Collection<MatchState> updateSwapStates(Sequence testSequence, String currentNode, int index) {
 		Sequence tail = testSequence.getSubsequence(index);
-
 		Collection<MatchState> states = new HashSet<MatchState>();
-
-		Map<Sequence, Set<String>> sequenceSetMap = graph.get(currentNode);
-
-		for (Map.Entry<Sequence, Set<String>> sequenceSetEntry : sequenceSetMap.entrySet()) {
-			Set<String> value = sequenceSetEntry.getValue();
+		Map<Sequence, Set<String>> map = graph.get(currentNode);
+		for (Map.Entry<Sequence, Set<String>> entry : map.entrySet()) {
+			Sequence key = entry.getKey();
+			Set<String> value = entry.getValue();
 			for (String nextNode : value) {
-
-				Sequence key = sequenceSetEntry.getKey();
 				if (key == Sequence.EMPTY_SEQUENCE) {
 					states.add(new MatchState(index, nextNode));
 				} else if (factory.hasVariable(key.toString())) {
@@ -275,7 +278,8 @@ public class StandardMachine implements Machine {
 							states.add(new MatchState(index + s.size(), nextNode));
 						}
 					}
-				} else if (tail.startsWith(key)) {
+				} else if (tail.startsWith(key) || key == Sequence.DOT_SEQUENCE) {
+					// Should work for both cases which have the same behavior
 					states.add(new MatchState(index + key.size(), nextNode));
 				}
 				// Else: the pattern fails to match
@@ -284,7 +288,7 @@ public class StandardMachine implements Machine {
 		return states;
 	}
 
-	private void process(int branchNumber, List<Expression> expressions, ParseDirection direction) {
+	private void parseExpression(String branchPrefix, List<Expression> expressions, ParseDirection direction) {
 		nodes.add(startStateId);
 
 		if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
@@ -300,10 +304,8 @@ public class StandardMachine implements Machine {
 			String expr = expression.getExpression();
 			String meta = expression.getMetacharacter();
 
-			String currentNode = machineId + ':' + branchNumber + '-' + nodeId;
-			if (!it.hasNext()) {
-				acceptingStates.add(currentNode);
-			}
+			String currentNode = machineId + ':' + branchPrefix + nodeId;
+
 			nodes.add(currentNode);
 
 			if (expr.startsWith("(")) {
@@ -325,6 +327,9 @@ public class StandardMachine implements Machine {
 			} else {
 				previousNode = constructTerminalNode(previousNode, currentNode, expr, meta);
 			}
+			if (!it.hasNext()) {
+				acceptingStates.add(previousNode);
+			}
 		}
 	}
 
@@ -335,16 +340,17 @@ public class StandardMachine implements Machine {
 				DisplayNode node = new DisplayNode(nodeId, nodeId);
 
 				NodeStyleBuilder acceptingBuilder = new NodeStyleBuilder();
+				acceptingBuilder.setFillColor1("#40C0C0");
+				acceptingBuilder.setShape(NodeShape.DIAMOND);
+
 				NodeStyleBuilder startBuilder = new NodeStyleBuilder();
+				startBuilder.setFillColor1("#F04040");
+				startBuilder.setShape(NodeShape.ELLIPSE);
 
 				if (acceptingStates.contains(nodeId)) {
-//					node.setFillColor1("#40C0C0");
-//					node.setShape(NodeShape.DIAMOND);
+					node.withNodeStyle(acceptingBuilder);
 				} else if (startStateId.equals(nodeId)) {
-//					node.setFillColor1("#F04040");
-//					node.setShape(NodeShape.ELLIPSE);
-				} else {
-
+					node.withNodeStyle(startBuilder);
 				}
 				displayNodes.add(node);
 			}
@@ -425,6 +431,10 @@ public class StandardMachine implements Machine {
 
 		private TwoKeyMap() {
 			map = new HashMap<String, Map<Sequence, Set<String>>>();
+		}
+
+		private boolean isEmpty() {
+			return map.isEmpty();
 		}
 
 		private Set<String> getKeys() {
