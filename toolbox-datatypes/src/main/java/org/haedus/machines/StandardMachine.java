@@ -128,7 +128,7 @@ public class StandardMachine implements Machine {
 				if (acceptingStates.contains(currentNode)/* || !graph.contains(currentNode)*/) {
 					indices.addAll(matchIndices);
 				}
-//				else {
+
 				if (graph.contains(currentNode)) {
 					for (Integer matchIndex : matchIndices) {
 						Collection<MatchState> matchStates = updateSwapStates(sequence, currentNode, matchIndex);
@@ -156,18 +156,12 @@ public class StandardMachine implements Machine {
 		return builder.generateGraphML();
 	}
 
-	private DisplayGroup getGroup() {
-		DisplayGroup group = new DisplayGroup(machineId, machineId);
-
-		Set<DisplayNode>  displayNodes = getDisplayNodes();
-		Set<DisplayEdge>  displayEdges = getDisplayEdges();
-		Set<DisplayGroup> displayGroups = getDisplayGroups();
-
-		group.addAllNodes(displayNodes);
-		group.addAllGroups(displayGroups);
-		group.addAllEdges(displayEdges);
-
-		return group;
+	@Override
+	public String toString() {
+		return "StandardMachine{" +
+			"nodes: " + nodes.size() + ", " +
+			"machines: " + machinesMap.size() +
+			'}';
 	}
 
 	protected String constructRecursiveNode(String nextNode, String previousNode, String machineNode, String meta) {
@@ -260,6 +254,20 @@ public class StandardMachine implements Machine {
 			}
 		}
 		return endIndex;
+	}
+
+	private DisplayGroup getGroup() {
+		DisplayGroup group = new DisplayGroup(machineId, machineId);
+
+		Set<DisplayNode>  displayNodes = getDisplayNodes();
+		Set<DisplayEdge>  displayEdges = getDisplayEdges();
+		Set<DisplayGroup> displayGroups = getDisplayGroups();
+
+		group.addAllNodes(displayNodes);
+		group.addAllGroups(displayGroups);
+		group.addAllEdges(displayEdges);
+
+		return group;
 	}
 
 	private Collection<MatchState> updateSwapStates(Sequence testSequence, String currentNode, int index) {
