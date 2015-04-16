@@ -302,7 +302,7 @@ public class StandardMachineTest {
 		StandardMachine stateMachine = StandardMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
 		String graphML = stateMachine.getGraph();
 		try {
-			FileUtils.write(new File("test.graphml"), graphML);
+			FileUtils.write(new File("test.graphml"), graphML, "UTF-8");
 		} catch (IOException e) {
 			LOGGER.error("failed to write graph", e);
 		}
