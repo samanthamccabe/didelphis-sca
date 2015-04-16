@@ -14,17 +14,14 @@
 
 package org.haedus.soundchange.command;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.NormalizerMode;
-import org.haedus.datatypes.SegmentationMode;
-import org.haedus.datatypes.phonetic.FeatureModel;
-import org.haedus.datatypes.phonetic.Segment;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.datatypes.phonetic.VariableStore;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.soundchange.Condition;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 
 import org.slf4j.Logger;
@@ -60,20 +57,10 @@ public class Rule implements Command {
 	private final List<Condition> exceptions;
 
 	private final SequenceFactory factory;
-
 	private final Map<Sequence, Sequence> transform;
+	private final LexiconMap lexicons;
 
-	private final Map<String, List<List<Sequence>>> lexicons;
-
-	public Rule(String rule) {
-		this(rule, SequenceFactory.getEmptyFactory());
-	}
-
-	public Rule(String rule,  SequenceFactory factoryParam) {
-		this(rule, new HashMap<String, List<List<Sequence>>>(), factoryParam);
-	}
-
-	public Rule(String rule, Map<String, List<List<Sequence>>> lexiconsParam, SequenceFactory factoryParam) {
+	public Rule(String rule, LexiconMap lexiconsParam, SequenceFactory factoryParam) {
 		ruleText   = rule;
 		lexicons   = lexiconsParam;
 		factory    = factoryParam;
@@ -81,6 +68,12 @@ public class Rule implements Command {
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 		populateConditions();
+	}
+
+	@Deprecated
+	// Visible for testing
+	Rule(String rule,  SequenceFactory factoryParam) {
+		this(rule, new LexiconMap(), factoryParam);
 	}
 
 	@Override
@@ -108,11 +101,11 @@ public class Rule implements Command {
 
 	@Override
 	public void execute() {
-		for (List<List<Sequence>> lexicon : lexicons.values()) {
+		for (Lexicon lexicon : lexicons.values()) {
 			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence word = row.get(i);
-					row.set(i, apply(word));
+					Sequence word = apply(row.get(i));
+					row.set(i, word);
 				}
 			}
 		}
@@ -148,7 +141,7 @@ public class Rule implements Command {
 				.toHashCode();
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
 		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found
@@ -166,8 +159,8 @@ public class Rule implements Command {
 					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
 
 					// Step through the source pattern
-					int referenceIndex = 1;
 					int testIndex = index;
+					int referenceIndex = 1;
 					boolean match = true;
 					for (int i = 0; i < source.size() && match; i++) {
 						Sequence subSequence = output.getSubsequence(testIndex);

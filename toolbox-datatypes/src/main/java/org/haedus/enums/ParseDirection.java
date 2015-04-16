@@ -12,38 +12,16 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.io;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
+package org.haedus.enums;
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/13/2014
+ * Created by samantha on 12/24/14.
  */
-public class NullFileHandler implements FileHandler {
+public enum ParseDirection {
+	FORWARD  ("Forward"),
+	BACKWARD ("Backward");
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(NullFileHandler.class);
+	private final String value;
 
-	@Override
-	public List<String> readLines(String path) {
-		return null;
-	}
-
-	@Override
-	public List<List<String>> readTable(String path) {
-		return null;
-	}
-
-	@Override
-	public void writeString(String path, String data) {
-		LOGGER.warn("Received data for path {} : {}", path, data);
-	}
-
-	@Override
-	public void writeLines(String path, List<String> data) {
-		LOGGER.warn("Received data for path {} : {}", path, data);
-	}
+	ParseDirection(String param) { value = param; }
 }

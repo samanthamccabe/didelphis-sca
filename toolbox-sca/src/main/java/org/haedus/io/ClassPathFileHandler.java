@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,7 +53,6 @@ public class ClassPathFileHandler implements FileHandler {
 		try {
 			InputStream inputStream = resource.getInputStream();
 			lines.addAll(IOUtils.readLines(inputStream, encoding));
-			LOGGER.debug("Read {} lines from {}", lines.size(), path);
 			inputStream.close();
 		} catch (IOException e) {
 			LOGGER.error("Error when reading from path \"{}\"!", path);

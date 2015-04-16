@@ -21,11 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.haedus.exceptions.ParseException;
-import org.haedus.soundchange.SoundChangeApplier;
+import org.haedus.soundchange.StandardScript;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
@@ -35,9 +34,9 @@ public class ScriptExecuteCommand implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ScriptExecuteCommand.class);
 
-	private final SoundChangeApplier sca;
+	private final StandardScript sca;
 
-	public ScriptExecuteCommand(String pathParam){
+	public ScriptExecuteCommand(String pathParam) {
 		File file = new File(pathParam);
 		String data;
 		try {
@@ -45,7 +44,7 @@ public class ScriptExecuteCommand implements Command {
 		} catch (IOException e) {
 			throw new ParseException(e);
 		}
-		sca = new SoundChangeApplier(data);
+		sca = new StandardScript(data);
 	}
 
 	@Override

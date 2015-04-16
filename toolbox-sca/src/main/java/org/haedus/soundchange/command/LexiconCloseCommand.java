@@ -16,22 +16,23 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.phonetic.Sequence;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.Sequence;
 import org.haedus.io.FileHandler;
+import org.haedus.phonetic.LexiconMap;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class LexiconCloseCommand extends LexiconIOCommand implements Command {
+public class LexiconCloseCommand extends LexiconIOCommand {
 
-	private final Map<String, List<List<Sequence>>> lexicons;
+	private final LexiconMap lexicons;
 
-	public LexiconCloseCommand(Map<String, List<List<Sequence>>> lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
+	public LexiconCloseCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
 		super(pathParam, handleParam, handlerParam);
 		lexicons = lexiconParam;
 	}
@@ -39,7 +40,7 @@ public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 	@Override
 	public void execute() {
 
-		List<List<Sequence>> lexicon = lexicons.remove(fileHandle);
+		Lexicon lexicon = lexicons.remove(fileHandle);
 
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();
@@ -48,24 +49,23 @@ public class LexiconCloseCommand extends LexiconIOCommand implements Command {
 			while (i2.hasNext()) {
 				Sequence sequence = i2.next();
 				sb.append(sequence);
-				if (i2.hasNext()) sb.append("\t");
+				if (i2.hasNext()) { sb.append('\t'); }
 
 			}
-			if (i1.hasNext()) sb.append("\n");
+			if (i1.hasNext()) { sb.append('\n'); }
 		}
 		fileHandler.writeString(filePath, sb.toString().trim());
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
-		LexiconCloseCommand rhs = (LexiconCloseCommand) obj;
+	public boolean equals(Object o) {
+		if (this == o) { return true;  }
+		if (o == null) { return false; }
+		if (getClass() != o.getClass()) { return false; }
+
+		LexiconCloseCommand rhs = (LexiconCloseCommand) o;
 		return new EqualsBuilder()
-				.appendSuper(super.equals(obj))
+				.appendSuper(super.equals(o))
 				.append(lexicons, rhs.lexicons)
 				.isEquals();
 	}

@@ -14,8 +14,7 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.phonetic.VariableStore;
-import org.haedus.exceptions.VariableDefinitionFormatException;
+import org.haedus.phonetic.VariableStore;
 
 import org.junit.Test;
 
@@ -28,7 +27,31 @@ import static org.junit.Assert.assertEquals;
 public class VariableStoreTest {
 
 	@Test
-	public void testVariableExpansion01() throws VariableDefinitionFormatException {
+	public void testVariableComplex01() {
+		VariableStore vs = new VariableStore();
+		vs.add("C  = p t k");
+		vs.add("HC = hC");
+
+		String expected =
+				"C = p t k\n" +
+				"HC = hp ht hk";
+		assertEquals(expected, vs.toString());
+	}
+
+	@Test
+	public void testVariableComplex02() {
+		VariableStore vs = new VariableStore();
+		vs.add("C  = p t ");
+		vs.add("C2 = CC");
+
+		String expected =
+				"C = p t\n" +
+				"C2 = pp pt tp tt";
+		assertEquals(expected, vs.toString());
+	}
+
+	@Test
+	public void testVariableExpansion01() {
 		VariableStore vs = new VariableStore();
 
 		vs.add("R = r l");
@@ -37,12 +60,11 @@ public class VariableStoreTest {
 		String expected =
 				"R = r l\n" +
 				"C = p t k r l";
-
 		assertEquals(expected, vs.toString());
 	}
 
 	@Test
-	public void testVariableExpansion02() throws VariableDefinitionFormatException {
+	public void testVariableExpansion02()  {
 		VariableStore vs = new VariableStore();
 
 		vs.add("N = n m");
@@ -55,12 +77,11 @@ public class VariableStoreTest {
 				"R = r l\n" +
 				"L = r l w y\n" +
 				"C = p t k r l w y n m";
-
 		assertEquals(expected, vs.toString());
 	}
 
 	@Test
-	public void testVariableExpansion03() throws VariableDefinitionFormatException {
+	public void testVariableExpansion03() {
 		VariableStore vs = new VariableStore();
 
 		vs.add("C = p t k");
@@ -73,7 +94,6 @@ public class VariableStoreTest {
 				"H = x ɣ\n" +
 				"CH = pʰ tʰ kʰ\n" +
 				"[CONS] = pʰ tʰ kʰ p t k x ɣ";
-
 		assertEquals(expected, vs.toString());
 	}
 }

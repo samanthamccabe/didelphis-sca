@@ -1,3 +1,7 @@
+
+NORMALIZER: INTELLIGENT
+OPEN "testRuleLarge01.lex" as LEXICON
+
 y w > i u
 C P T K V R > k p t k a r
 ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û
@@ -85,7 +89,7 @@ r̩ l̩ > ər əl
 @VS > @VL / _X{[I] [U] y w}V
 @VS > @VL / _XV
 X  > 0   / @VL_{C # u}
-X  > 0   / [Obstruent]_V
+X  > 0   / [OBSTRUENT]_V
 X  > 0   / VA_V
 xa xə > 0 / @VL_
 xu xo > u / @VL_
@@ -126,7 +130,7 @@ tk tʰkʰ ct ɟt ck  > ks ks ɕt ɕt ɕk
 tc dc tcʰ tʰcʰ > cc
 s > 0 / _sss?
 s > 0 / _s+C
-oʔ@AE @AEʔo > ō ō
+oʔ@AE @AEʔo > ō
 ʔ > 0  / {[E] [A] [O]}_{[I] [U]}
 eʔe aʔa eʔa aʔe > ē ā ā ē
 éʔe áʔa éʔa áʔe > ê â â ê

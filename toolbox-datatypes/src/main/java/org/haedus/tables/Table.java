@@ -12,38 +12,20 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.io;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
+package org.haedus.tables;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/13/2014
+ * Created: 11/30/2014
  */
-public class NullFileHandler implements FileHandler {
+public interface Table<T> {
+	T get(int i, int j);
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(NullFileHandler.class);
+	void set(T t, int i, int j);
 
-	@Override
-	public List<String> readLines(String path) {
-		return null;
-	}
+	int getNumberRows();
 
-	@Override
-	public List<List<String>> readTable(String path) {
-		return null;
-	}
+	int getNumberColumns();
 
-	@Override
-	public void writeString(String path, String data) {
-		LOGGER.warn("Received data for path {} : {}", path, data);
-	}
-
-	@Override
-	public void writeLines(String path, List<String> data) {
-		LOGGER.warn("Received data for path {} : {}", path, data);
-	}
+	String getPrettyTable();
 }

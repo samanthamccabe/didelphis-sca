@@ -16,8 +16,10 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.io.FileHandler;
-import org.haedus.soundchange.SoundChangeApplier;
+import org.haedus.phonetic.LexiconMap;
 
 import java.util.List;
 
@@ -25,19 +27,22 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class LexiconOpenCommand extends LexiconIOCommand implements Command {
+public class LexiconOpenCommand extends LexiconIOCommand {
 
-	private final SoundChangeApplier soundChangeApplier;
+	private final LexiconMap      lexicons;
+	private final SequenceFactory factory;
 
-	public LexiconOpenCommand( String pathParam, String handleParam, FileHandler handlerParam, SoundChangeApplier scaParam) {
+	public LexiconOpenCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam, SequenceFactory factoryParam) {
 		super(pathParam, handleParam, handlerParam);
-		soundChangeApplier = scaParam;
+		lexicons = lexiconParam;
+		factory = factoryParam;
 	}
 
 	@Override
 	public void execute() {
-		List<List<String>> lexicon = fileHandler.readTable(filePath);
-		soundChangeApplier.addLexicon(fileHandle, lexicon);
+		List<List<String>> rows = fileHandler.readTable(filePath);
+		Lexicon lexicon = factory.getLexicon(rows);
+		lexicons.addLexicon(fileHandle, lexicon);
 	}
 
 	@Override
@@ -50,7 +55,6 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 		LexiconOpenCommand rhs = (LexiconOpenCommand) obj;
 		return new EqualsBuilder()
 				.appendSuper(super.equals(obj))
-				.append(this.soundChangeApplier, rhs.soundChangeApplier)
 				.isEquals();
 	}
 
@@ -58,7 +62,6 @@ public class LexiconOpenCommand extends LexiconIOCommand implements Command {
 	public int hashCode() {
 		return new HashCodeBuilder()
 				.appendSuper(super.hashCode())
-				.append(soundChangeApplier)
 				.toHashCode();
 	}
 }
