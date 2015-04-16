@@ -42,55 +42,55 @@ import java.util.Set;
  * Samantha Fiona Morrigan McCabe
  * Created: 3/7/2015
  */
-public class StandardMachine implements Machine {
+public class StateMachine implements Machine {
 
-	public static final StandardMachine EMPTY_MACHINE = new StandardMachine();
+	public static final StateMachine EMPTY_MACHINE = new StateMachine();
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardMachine.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
 
 	private final SequenceFactory factory;
 
-	private final String               machineId;
-	private final String               startStateId;
-	private final Set<String>          acceptingStates;
-	private final Set<String>          nodes;
-	private final Map<String, StandardMachine> machinesMap;
+	private final String                    machineId;
+	private final String                    startStateId;
+	private final Set<String>               acceptingStates;
+	private final Set<String>               nodes;
+	private final Map<String, StateMachine> machinesMap;
 
 	private final TwoKeyMap graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
 
-	private StandardMachine() {
+	private StateMachine() {
 		this("E", SequenceFactory.getEmptyFactory());
 	}
 
-	private StandardMachine(String id, SequenceFactory factoryParam) {
+	private StateMachine(String id, SequenceFactory factoryParam) {
 		factory = factoryParam;
 		machineId = id;
 		startStateId = machineId + ":S";
 
-		machinesMap = new HashMap<String, StandardMachine>();
+		machinesMap = new HashMap<String, StateMachine>();
 		acceptingStates = new HashSet<String>();
 		nodes = new HashSet<String>();
 		graph = new TwoKeyMap();
 	}
 
-	public static StandardMachine createStandardMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		StandardMachine standardMachine = new StandardMachine(id, factoryParam);
+	public static StateMachine createStandardMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+		StateMachine stateMachine = new StateMachine(id, factoryParam);
 		List<Expression> expressions = factoryParam.getExpressions(expression);
-		standardMachine.parseExpression("", expressions, direction);
-		return standardMachine;
+		stateMachine.parseExpression("", expressions, direction);
+		return stateMachine;
 	}
 
-	public static StandardMachine createParallelMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		StandardMachine standardMachine = new StandardMachine(id, factoryParam);
+	public static StateMachine createParallelMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+		StateMachine stateMachine = new StateMachine(id, factoryParam);
 		int i = 65; // A
 		for (String subExpression : parseSubExpressions(expression)) {
 			List<Expression> expressions = factoryParam.getExpressions(subExpression);
 			char c = (char) i;
 			String prefix = String.valueOf(c);
-			standardMachine.parseExpression(prefix, expressions, direction);
+			stateMachine.parseExpression(prefix, expressions, direction);
 			i++;
 		}
-		return standardMachine;
+		return stateMachine;
 	}
 
 	@Override
@@ -318,7 +318,7 @@ public class StandardMachine implements Machine {
 
 			if (expr.startsWith("(")) {
 				String substring = expr.substring(1, expr.length() - 1);
-				StandardMachine machine = createStandardMachine(currentNode, substring, factory, direction);
+				StateMachine machine = createStandardMachine(currentNode, substring, factory, direction);
 				machinesMap.put(currentNode, machine);
 
 				String nextNode = currentNode + 'X';
@@ -326,7 +326,7 @@ public class StandardMachine implements Machine {
 				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
 			} else if (expr.startsWith("{")) {
 				String substring = expr.substring(1, expr.length() - 1);
-				StandardMachine machine = createParallelMachine(currentNode, substring, factory, direction);
+				StateMachine machine = createParallelMachine(currentNode, substring, factory, direction);
 				machinesMap.put(currentNode, machine);
 
 				String nextNode = currentNode + 'X';
@@ -368,7 +368,7 @@ public class StandardMachine implements Machine {
 
 	private Set<DisplayGroup> getDisplayGroups() {
 		Set<DisplayGroup> groups = new HashSet<DisplayGroup>();
-		for (Map.Entry<String, StandardMachine> entry : machinesMap.entrySet()) {
+		for (Map.Entry<String, StateMachine> entry : machinesMap.entrySet()) {
 			DisplayGroup group = entry.getValue().getGroup();
 			groups.add(group);
 		}

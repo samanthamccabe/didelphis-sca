@@ -14,6 +14,7 @@
 
 package org.haedus.machines;
 
+import org.apache.commons.io.FileUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.enums.ParseDirection;
 import org.haedus.phonetic.FeatureModel;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -44,7 +46,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine01() {
-		Node<Sequence> stateMachine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
+		StateMachine stateMachine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
 
 		test(stateMachine, "a");
 		test(stateMachine, "aa");
@@ -55,10 +57,10 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine03() {
-		Node<Sequence> stateMachine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		StateMachine stateMachine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 
-		Node<Sequence> stateMachine1 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
-		Node<Sequence> stateMachine2 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		StateMachine stateMachine1 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		StateMachine stateMachine2 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 
 //		fail(stateMachine, "a");
 //		test(stateMachine, "aa");
@@ -91,7 +93,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine02() {
-		Node<Sequence> stateMachine = getMachine("aaa");
+		StateMachine stateMachine = getMachine("aaa");
 
 		test(stateMachine, "aaa");
 
@@ -103,7 +105,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testStateMachineStar() {
-		Node<Sequence> stateMachine = getMachine("aa*");
+		StateMachine stateMachine = getMachine("aa*");
 
 		test(stateMachine, "a");
 		test(stateMachine, "aa");
@@ -113,22 +115,29 @@ public class StateMachineModelTest {
 		test(stateMachine, "aaaaaa");
 	}
 
-	private static void test(Node<Sequence> stateMachine, String target) {
+	private static void test(StateMachine stateMachine, String target) {
 		Collection<Integer> matchIndices = testMachine(stateMachine, target);
 		assertFalse("Machine failed to accept input", matchIndices.isEmpty());
 	}
 
-	private static void fail(Node<Sequence> stateMachine, String target) {
+	private static void fail(StateMachine stateMachine, String target) {
 		Collection<Integer> matchIndices = testMachine(stateMachine, target);
 		assertTrue("Machine accepted input it should not have", matchIndices.isEmpty());
 	}
 
 
-	private static Node<Sequence> getMachine(String expression) {
-		return NodeFactory.getStateMachine(expression, FACTORY, ParseDirection.FORWARD, true);
+	private static StateMachine getMachine(String expression) {
+		StateMachine stateMachine = StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
+		String graphML = stateMachine.getGraph();
+		try {
+			FileUtils.write(new File("test.graphml"), graphML, "UTF-8");
+		} catch (IOException e) {
+			LOGGER.error("failed to write graph", e);
+		}
+		return stateMachine;
 	}
 
-	private static Collection<Integer> testMachine(Node<Sequence> stateMachine, String target) {
+	private static Collection<Integer> testMachine(StateMachine stateMachine, String target) {
 		Sequence sequence = FACTORY.getSequence(target);
 		Collection<Integer> matchIndices = stateMachine.getMatchIndices(0, sequence);
 		LOGGER.debug("{} ran against \"{}\" and produced output {}",stateMachine, sequence, matchIndices);

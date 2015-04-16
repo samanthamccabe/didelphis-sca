@@ -17,7 +17,7 @@ package org.haedus.soundchange;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.machines.Machine;
-import org.haedus.machines.StandardMachine;
+import org.haedus.machines.StateMachine;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.enums.ParseDirection;
@@ -55,14 +55,14 @@ public class Condition {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = StandardMachine.createStandardMachine("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
-				postCondition = StandardMachine.EMPTY_MACHINE;
+				preCondition  = StateMachine.createStandardMachine("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
-				preCondition  = StandardMachine.createStandardMachine("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
-				postCondition = StandardMachine.createStandardMachine("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
+				preCondition  = StateMachine.createStandardMachine("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StateMachine.createStandardMachine("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
-				preCondition  = StandardMachine.EMPTY_MACHINE;
-				postCondition = StandardMachine.EMPTY_MACHINE;
+				preCondition  = StateMachine.EMPTY_MACHINE;
+				postCondition = StateMachine.EMPTY_MACHINE;
 			} else {
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
