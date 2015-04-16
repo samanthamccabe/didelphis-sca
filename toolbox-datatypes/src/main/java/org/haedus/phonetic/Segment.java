@@ -28,6 +28,7 @@ import java.util.List;
  */
 public class Segment implements ModelBearer {
 
+	public static final Segment DOT_SEGMENT = new Segment(".");
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
 	private final FeatureModel model;
@@ -61,8 +62,6 @@ public class Segment implements ModelBearer {
 		features = new ArrayList<Double>();
 	}
 
-
-
 	/**
 	 * Determines if a segment is consistent with this segment.
 	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
@@ -70,8 +69,7 @@ public class Segment implements ModelBearer {
 	 * @param other another segment to compare to this one
 	 * @return true if all specified (non NaN) features in either segment are equal
 	 */
-	public boolean
-	matches(Segment other) {
+	public boolean matches(Segment other) {
 		validateModelOrFail(other);
 		int size = features.size();
 		if (size > 0) {
@@ -90,7 +88,6 @@ public class Segment implements ModelBearer {
 		} else {
 			return equals(other);
 		}
-
 	}
 
 	@Override

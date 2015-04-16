@@ -14,7 +14,6 @@
 
 package org.haedus.soundchange.command;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.phonetic.Lexicon;
@@ -72,7 +71,7 @@ public class Rule implements Command {
 	}
 
 	@Deprecated
-	@VisibleForTesting
+	// Visible for testing
 	Rule(String rule,  SequenceFactory factoryParam) {
 		this(rule, new LexiconMap(), factoryParam);
 	}
@@ -142,7 +141,7 @@ public class Rule implements Command {
 				.toHashCode();
 	}
 
-	@VisibleForTesting
+	// Visible for testing
 	Sequence apply(Sequence input) {
 		Sequence output = new Sequence(input);
 		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found

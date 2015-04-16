@@ -16,12 +16,12 @@ package org.haedus.soundchange;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.machines.Machine;
+import org.haedus.machines.StandardMachine;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
-import org.haedus.machines.Node;
 import org.haedus.enums.ParseDirection;
-import org.haedus.machines.NodeFactory;
-import org.haedus.machines.StateMachine;
+
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +42,8 @@ public class Condition {
 	private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile(" ([\\]\\}\\)])");
 
 	private final String         conditionText;
-	private final Node<Sequence> preCondition;
-	private final Node<Sequence> postCondition;
+	private final Machine  preCondition;
+	private final Machine postCondition;
 
 	// package-private: testing only
 	Condition(String condition) {
@@ -55,14 +55,14 @@ public class Condition {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
-				postCondition = StateMachine.EMPTY_MACHINE;
+				preCondition  = StandardMachine.createStandardMachine("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StandardMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
-				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
-				postCondition = NodeFactory.getStateMachine(conditions[1], factoryParam, ParseDirection.FORWARD,  true);
+				preCondition  = StandardMachine.createStandardMachine("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StandardMachine.createStandardMachine("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
-				preCondition  = StateMachine.EMPTY_MACHINE;
-				postCondition = StateMachine.EMPTY_MACHINE;
+				preCondition  = StandardMachine.EMPTY_MACHINE;
+				postCondition = StandardMachine.EMPTY_MACHINE;
 			} else {
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
@@ -74,6 +74,10 @@ public class Condition {
 	@Override
 	public String toString() {
 		return conditionText;
+	}
+
+	public Machine getPostCondition() {
+		return postCondition;
 	}
 
 	private static String cleanup(String s) {
@@ -100,14 +104,10 @@ public class Condition {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 
-			preconditionMatch  = preCondition.matches(0, head.getReverseSequence());
-			postconditionMatch = postCondition.matches(0, tail);
+			preconditionMatch  = !preCondition.getMatchIndices(0, head.getReverseSequence()).isEmpty();
+			postconditionMatch = !postCondition.getMatchIndices(0, tail).isEmpty();
 		}
 		return preconditionMatch && postconditionMatch;
-	}
-
-	public boolean isEmpty() {
-		return preCondition.isTerminal() && postCondition.isTerminal();
 	}
 
 	@Override

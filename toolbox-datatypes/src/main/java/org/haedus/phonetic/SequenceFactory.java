@@ -1,20 +1,24 @@
-/*******************************************************************************
+/**
+ * ****************************************************************************
  * Copyright (c) 2015. Samantha Fiona McCabe
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- ******************************************************************************/
+ * ****************************************************************************
+ */
 
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.machines.Expression;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,13 +140,12 @@ public class SequenceFactory {
 		return sequences;
 	}
 
-	public List<String> getSegmentedString(String string) {
-		Collection<String> keys = new ArrayList<String>();
-		keys.addAll(variableStore.getKeys());
-		keys.addAll(featureModel.getSymbols());
-		keys.addAll(reservedStrings);
+	public List<Expression> getExpressions(String string) {
+		return Segmenter.getExpressions(string, getKeys(), formatterMode);
+	}
 
-		return Segmenter.getSegmentedString(string, keys, formatterMode);
+	public List<String> getSegmentedString(String string) {
+		return Segmenter.getSegmentedString(string, getKeys(), formatterMode);
 	}
 
 	public FeatureModel getFeatureModel() {
@@ -155,10 +158,7 @@ public class SequenceFactory {
 
 	public String getBestMatch(String tail) {
 
-		Collection<String> keys = new HashSet<String>();
-		keys.addAll(featureModel.getSymbols());
-		keys.addAll(variableStore.getKeys());
-		keys.addAll(reservedStrings);
+		Collection<String> keys = getKeys();
 
 		String bestMatch = "";
 		for (String key : keys) {
@@ -173,19 +173,21 @@ public class SequenceFactory {
 		return bestMatch;
 	}
 
-	private List<Double> getDoubles() {
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
-		}
-		return list;
+	@Override
+	public String toString() {
+		return "SequenceFactory{" +
+			", featureModel=" + featureModel +
+			", variableStore=" + variableStore +
+			", formatterMode=" + formatterMode +
+			", reservedStrings=" + reservedStrings +
+			'}';
 	}
 
 	private static boolean isCombiningClass(int type) {
-		return type == Character.MODIFIER_LETTER         || // LM
-				type == Character.MODIFIER_SYMBOL        || // SK
-				type == Character.COMBINING_SPACING_MARK || // MC
-				type == Character.NON_SPACING_MARK;         // MN
+		return type == Character.MODIFIER_LETTER || // LM
+			type == Character.MODIFIER_SYMBOL || // SK
+			type == Character.COMBINING_SPACING_MARK || // MC
+			type == Character.NON_SPACING_MARK;         // MN
 	}
 
 	private static boolean isDoubleWidthBinder(char ch) {
@@ -195,8 +197,8 @@ public class SequenceFactory {
 	private static boolean isSuperscriptAsciiDigit(int value) {
 		// int literals are decimal char values
 		return value == 178 ||
-				value == 179 ||
-				value == 185;
+			value == 179 ||
+			value == 185;
 	}
 
 	private static boolean isMathematicalSubOrSuper(int value) {
@@ -207,16 +209,16 @@ public class SequenceFactory {
 	private static boolean isCombingNOS(int value) {
 		// int literals are decimal char values
 		return value >= 8304 &&
-				value <= 8348;
+			value <= 8348;
 	}
 
 	private static boolean isAttachable(Character c) {
 		int type = Character.getType(c);
 		int value = c;
 		return isSuperscriptAsciiDigit(value) ||
-				isMathematicalSubOrSuper(value) ||
-				isCombingNOS(value) ||
-				isCombiningClass(type);
+			isMathematicalSubOrSuper(value) ||
+			isCombingNOS(value) ||
+			isCombiningClass(type);
 	}
 
 	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
@@ -226,13 +228,20 @@ public class SequenceFactory {
 		return buffer;
 	}
 
-	@Override
-	public String toString() {
-		return "SequenceFactory{" +
-			", featureModel=" + featureModel +
-			", variableStore=" + variableStore +
-			", formatterMode=" + formatterMode +
-			", reservedStrings=" + reservedStrings +
-			'}';
+	@NotNull
+	private Collection<String> getKeys() {
+		Collection<String> keys = new ArrayList<String>();
+		keys.addAll(variableStore.getKeys());
+		keys.addAll(featureModel.getSymbols());
+		keys.addAll(reservedStrings);
+		return keys;
+	}
+
+	private List<Double> getDoubles() {
+		List<Double> list = new ArrayList<Double>();
+		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
+			list.add(Double.NaN);
+		}
+		return list;
 	}
 }
