@@ -38,8 +38,9 @@ public class SequenceFactory {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceFactory.class);
 
-	private static final SequenceFactory EMPTY_FACTORY         = new SequenceFactory();
-	private static final Pattern         BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+	private static final SequenceFactory EMPTY_FACTORY  = new SequenceFactory();
+
+	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private final Segment unspecifiedSegment;
 
@@ -172,6 +173,32 @@ public class SequenceFactory {
 		}
 		return bestMatch;
 	}
+
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SequenceFactory that = (SequenceFactory) o;
+
+		return featureModel.equals(that.featureModel) &&
+						formatterMode == that.formatterMode &&
+						reservedStrings.equals(that.reservedStrings) &&
+						unspecifiedSegment.equals(that.unspecifiedSegment) &&
+						variableStore.equals(that.variableStore);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = unspecifiedSegment.hashCode();
+		result = 31 * result + featureModel.hashCode();
+		result = 31 * result + variableStore.hashCode();
+		result = 31 * result + formatterMode.hashCode();
+		result = 31 * result + reservedStrings.hashCode();
+		return result;
+	}
+
 
 	@Override
 	public String toString() {

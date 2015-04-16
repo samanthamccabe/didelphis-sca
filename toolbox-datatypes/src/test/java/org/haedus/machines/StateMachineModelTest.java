@@ -57,8 +57,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testBasicStateMachine03() {
-		StateMachine stateMachine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
-
+		StateMachine stateMachine  = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 		StateMachine stateMachine1 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 		StateMachine stateMachine2 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 
@@ -71,6 +70,17 @@ public class StateMachineModelTest {
 //		test(stateMachine1, "aa̤a");
 //		test(stateMachine2, "aa̤");
 
+//		boolean a = stateMachine.equals(stateMachine1);
+//		boolean b = stateMachine.equals(stateMachine2);
+
+		int i = stateMachine.hashCode();
+		int j = stateMachine1.hashCode();
+		int k = stateMachine2.hashCode();
+
+		int factoryHash = stateMachine.getFactory().hashCode();
+		int factoryHash1 = stateMachine1.getFactory().hashCode();
+		int factoryHash2 = stateMachine2.getFactory().hashCode();
+
 		Sequence sequence1 = FACTORY.getSequence("aa̤a");
 		Sequence sequence2 = FACTORY.getSequence("aa̤");
 
@@ -78,6 +88,18 @@ public class StateMachineModelTest {
 		Collection<Integer> matchIndices2a = stateMachine2.getMatchIndices(0, sequence2);
 		Collection<Integer> matchIndices1b = stateMachine1.getMatchIndices(0, sequence1);
 		Collection<Integer> matchIndices2b = stateMachine2.getMatchIndices(0, sequence2);
+
+		boolean a2 = stateMachine.equals(stateMachine1);
+		boolean b2 = stateMachine.equals(stateMachine2);
+		boolean c2 = stateMachine1.equals(stateMachine2);
+
+		int i2 = stateMachine.hashCode();
+		int j2 = stateMachine1.hashCode();
+		int k2 = stateMachine2.hashCode();
+
+		int factoryHashA = stateMachine.getFactory().hashCode();
+		int factoryHashA1 = stateMachine1.getFactory().hashCode();
+		int factoryHashA2 = stateMachine2.getFactory().hashCode();
 
 		assertEquals(stateMachine1, stateMachine);
 		assertEquals(stateMachine2, stateMachine);
