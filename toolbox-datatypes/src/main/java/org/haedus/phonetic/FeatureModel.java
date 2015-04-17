@@ -169,16 +169,19 @@ public class FeatureModel {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null) { return false; }
-		if (getClass() != o.getClass()) { return false; }
+	public boolean equals(Object obj) {
+		if (this == obj) { return true; }
+		if (obj == null) { return false; }
+		if (getClass() != obj.getClass()) { return false; }
 
-		FeatureModel other = (FeatureModel) o;
+		FeatureModel other = (FeatureModel) obj;
 
+		boolean diacriticsEquals = diacritics.equals(other.diacritics);
 		boolean featureEquals = featureMap.equals(other.getFeatureMap());
 		boolean weightsEquals = weightTable.equals(other.getWeights());
-		return featureEquals && weightsEquals;
+		boolean namesEquals = featureNames.equals(other.featureNames);
+		boolean aliasesEquals = featureAliases.equals(other.featureAliases);
+		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals && weightsEquals;
 	}
 
 	public double computeScoreUsingWeights(Segment l, Segment r) {
@@ -220,7 +223,7 @@ public class FeatureModel {
 
 	public List<Double> getValue(String key) {
 		if (featureMap.containsKey(key)) {
-			return featureMap.get(key);
+			return new ArrayList<Double>(featureMap.get(key));
 		} else if (getNumberOfFeatures() == 0) {
 			return new ArrayList<Double>();
 		} else {
@@ -256,7 +259,7 @@ public class FeatureModel {
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// TODO: this will need to change if we support value modification (up or down)
-					if (!d.isNaN()) {
+					if (!d.equals(MASKING_VALUE)) {
 						featureArray.set(i, d);
 					}
 				}
@@ -297,7 +300,7 @@ public class FeatureModel {
 					Double left = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
-					if (left.isInfinite()) {
+					if (left.equals(MASKING_VALUE)) {
 						compiledFeatures.add(right);
 					} else {
 						compiledFeatures.add(left);
@@ -331,7 +334,6 @@ public class FeatureModel {
 	private void readModelFromFileNewFormat(CharSequence file) {
 		Zone currentZone = Zone.NONE;
 
-		Pattern pattern = Pattern.compile("([\\w\\(\\)]+)\\s+(.*)");
 		String[] data = NEWLINE_PATTERN.split(file);
 
 		Collection<String> featureZone = new ArrayList<String>();

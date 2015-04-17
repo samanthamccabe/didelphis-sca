@@ -93,6 +93,8 @@ public class StateMachine implements Machine {
 		return stateMachine;
 	}
 
+
+
 	public SequenceFactory getFactory() {
 		return factory;
 	}
@@ -160,19 +162,27 @@ public class StateMachine implements Machine {
 		return builder.generateGraphML();
 	}
 
+	public Map<String, Map<Sequence, Set<String>>> getMap() {
+		return graph.getMap();
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null || getClass() != obj.getClass()) return false;
 
 		StateMachine that = (StateMachine) obj;
-		return  acceptingStates.equals(that.acceptingStates) &&
-				factory.equals(that.factory) &&
-				graph.equals(that.graph) &&
-				machineId.equals(that.machineId) &&
-				machinesMap.equals(that.machinesMap) &&
-				nodes.equals(that.nodes) &&
-				startStateId.equals(that.startStateId);
+		boolean isEqualAccepting = acceptingStates.equals(that.acceptingStates);
+		boolean isEqualFactory = factory.equals(that.factory);
+		boolean isEqualGraph = graph.equals(that.graph);
+		boolean isEqualIds = machineId.equals(that.machineId);
+		boolean isEqualMachines = machinesMap.equals(that.machinesMap);
+
+		return  isEqualAccepting &&
+			isEqualFactory &&
+			isEqualGraph &&
+			isEqualIds &&
+			isEqualMachines;
 	}
 
 	@Override
@@ -487,6 +497,10 @@ public class StateMachine implements Machine {
 			return map.hashCode();
 		}
 
+		public Map<String, Map<Sequence, Set<String>>> getMap() {
+			return map;
+		}
+
 		private boolean isEmpty() {
 			return map.isEmpty();
 		}
@@ -511,12 +525,13 @@ public class StateMachine implements Machine {
 			return map.get(k1).entrySet();
 		}
 
-		public boolean equals(Object object) {
-			if (this == object) return true;
-			if (null == object) return false;
-			if (getClass() != object.getClass()) return false;
-			TwoKeyMap other = (TwoKeyMap) object;
-			return map.equals(other.map);
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) { return true; }
+			if (null == obj) { return false; }
+			if (getClass() != obj.getClass()) { return false; }
+			TwoKeyMap other = (TwoKeyMap) obj;
+			return map.equals(other.getMap());
 		}
 
 		private Set<Sequence> getKeys(String k1) {
