@@ -16,6 +16,7 @@ package org.haedus.soundchange;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.exceptions.ParseException;
 import org.haedus.machines.Machine;
 import org.haedus.machines.StateMachine;
 import org.haedus.phonetic.Sequence;

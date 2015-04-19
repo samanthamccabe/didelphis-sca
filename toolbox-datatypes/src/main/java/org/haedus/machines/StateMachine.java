@@ -17,6 +17,7 @@
 package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
+import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
@@ -76,6 +77,7 @@ public class StateMachine implements Machine {
 
 	public static StateMachine createStandardMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StateMachine stateMachine = new StateMachine(id, factoryParam);
+
 		List<Expression> expressions = factoryParam.getExpressions(expression);
 		stateMachine.parseExpression("", expressions, direction);
 		return stateMachine;
@@ -351,6 +353,8 @@ public class StateMachine implements Machine {
 
 		if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
 
+		validateExpressions(expressions);
+
 		int nodeId = 0;
 		String previousNode = startStateId;
 
@@ -387,6 +391,19 @@ public class StateMachine implements Machine {
 			}
 			if (!it.hasNext()) {
 				acceptingStates.add(previousNode);
+			}
+		}
+	}
+
+	private static void validateExpressions(List<Expression> expressions) {
+		if (!expressions.isEmpty()) {
+			int lastIndex = expressions.size() - 1;
+			Expression lastExpression = expressions.get(lastIndex);
+			String expr = lastExpression.getExpression();
+			String meta = lastExpression.getMetacharacter();
+			if (expr.equals("#") && !meta.isEmpty()) {
+				throw new ParseException("The boundary characer # may not be " +
+						"modified by a metacharacter: " + expr + meta);
 			}
 		}
 	}

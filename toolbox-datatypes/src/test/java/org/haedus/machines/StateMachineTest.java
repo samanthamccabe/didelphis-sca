@@ -16,6 +16,7 @@ package org.haedus.machines;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.enums.ParseDirection;
+import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
@@ -38,6 +39,11 @@ public class StateMachineTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachineTest.class);
 
 	private static final SequenceFactory FACTORY = SequenceFactory.getEmptyFactory();
+
+	@Test(expected = ParseException.class)
+	public void testIllegalBoundary01() {
+		StateMachine stateMachine = getStateMachine("a#?");
+	}
 
 	@Test
 	public void testBasicStateMachine01() {
@@ -324,10 +330,14 @@ public class StateMachineTest {
 	public void testGroupsDot() {
 		StateMachine stateMachine = getStateMachine(".*(cd)(ef)");
 
+		test(stateMachine, "cdef");
+		test(stateMachine, "bcdef");
 		test(stateMachine, "abcdef");
+		test(stateMachine, "xabcdef");
+		test(stateMachine, "xyabcdef");
+
 		fail(stateMachine, "abcd");
 		fail(stateMachine, "ab");
-		fail(stateMachine, "bcdef");
 	}
 
 	private static StateMachine getStateMachine(String expression) {
