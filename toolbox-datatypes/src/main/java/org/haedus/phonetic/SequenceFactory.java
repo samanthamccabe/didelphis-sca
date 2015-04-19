@@ -42,10 +42,8 @@ public class SequenceFactory {
 
 	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	private final Segment unspecifiedSegment;
-
 	private final FeatureModel  featureModel;
-	private final VariableStore variableStore; // VariableStore is only accessed for its keys
+	private final VariableStore variableStore;
 	private final FormatterMode formatterMode;
 	private final Set<String>   reservedStrings;
 
@@ -66,7 +64,6 @@ public class SequenceFactory {
 		variableStore = storeParam;
 		reservedStrings = reservedParam;
 		formatterMode = modeParam;
-		unspecifiedSegment = new Segment("#", getDoubles(), featureModel);
 	}
 
 	public static SequenceFactory getEmptyFactory() {
@@ -75,10 +72,6 @@ public class SequenceFactory {
 
 	public void reserve(String string) {
 		reservedStrings.add(string);
-	}
-
-	public Segment getUnspecifiedSegment() {
-		return unspecifiedSegment;
 	}
 
 	public Segment getSegment(String string) {
@@ -176,29 +169,27 @@ public class SequenceFactory {
 
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (null == obj) return false;
+		if (getClass() != obj.getClass()) return false;
 
-		SequenceFactory that = (SequenceFactory) o;
-
+		SequenceFactory that = (SequenceFactory) obj;
 		return featureModel.equals(that.featureModel) &&
 						formatterMode == that.formatterMode &&
 						reservedStrings.equals(that.reservedStrings) &&
-						unspecifiedSegment.equals(that.unspecifiedSegment) &&
 						variableStore.equals(that.variableStore);
 	}
 
 	@Override
 	public int hashCode() {
-		int result = unspecifiedSegment.hashCode();
+		int result = 1175;
 		result = 31 * result + featureModel.hashCode();
 		result = 31 * result + variableStore.hashCode();
 		result = 31 * result + formatterMode.hashCode();
 		result = 31 * result + reservedStrings.hashCode();
 		return result;
 	}
-
 
 	@Override
 	public String toString() {
@@ -210,51 +201,6 @@ public class SequenceFactory {
 			'}';
 	}
 
-	private static boolean isCombiningClass(int type) {
-		return type == Character.MODIFIER_LETTER || // LM
-			type == Character.MODIFIER_SYMBOL || // SK
-			type == Character.COMBINING_SPACING_MARK || // MC
-			type == Character.NON_SPACING_MARK;         // MN
-	}
-
-	private static boolean isDoubleWidthBinder(char ch) {
-		return ch <= 866 && 860 <= ch;
-	}
-
-	private static boolean isSuperscriptAsciiDigit(int value) {
-		// int literals are decimal char values
-		return value == 178 ||
-			value == 179 ||
-			value == 185;
-	}
-
-	private static boolean isMathematicalSubOrSuper(int value) {
-		// int literals are decimal char values
-		return value <= 8304 && 8348 <= value;
-	}
-
-	private static boolean isCombingNOS(int value) {
-		// int literals are decimal char values
-		return value >= 8304 &&
-			value <= 8348;
-	}
-
-	private static boolean isAttachable(Character c) {
-		int type = Character.getType(c);
-		int value = c;
-		return isSuperscriptAsciiDigit(value) ||
-			isMathematicalSubOrSuper(value) ||
-			isCombingNOS(value) ||
-			isCombiningClass(type);
-	}
-
-	private static StringBuilder clearBuffer(Collection<String> segments, StringBuilder buffer, String key) {
-		segments.add(buffer.toString());
-		buffer = new StringBuilder();
-		buffer.append(key);
-		return buffer;
-	}
-
 	@NotNull
 	private Collection<String> getKeys() {
 		Collection<String> keys = new ArrayList<String>();
@@ -262,13 +208,5 @@ public class SequenceFactory {
 		keys.addAll(featureModel.getSymbols());
 		keys.addAll(reservedStrings);
 		return keys;
-	}
-
-	private List<Double> getDoubles() {
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < featureModel.getNumberOfFeatures(); i++) {
-			list.add(Double.NaN);
-		}
-		return list;
 	}
 }

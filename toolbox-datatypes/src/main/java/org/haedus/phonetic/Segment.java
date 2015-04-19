@@ -28,8 +28,9 @@ import java.util.List;
  */
 public class Segment implements ModelBearer {
 
-	public static final Segment DOT_SEGMENT = new Segment(".");
+	public static final Segment DOT_SEGMENT   = new Segment(".");
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
+	public static final Segment BOUND_SEGMENT = new Segment("#");
 
 	private final FeatureModel model;
 	private final String       symbol;
@@ -37,28 +38,28 @@ public class Segment implements ModelBearer {
 
 	// Copy-constructor
 	public Segment(Segment segment) {
-		symbol   = segment.symbol;
-		model    = segment.model;
+		symbol = segment.symbol;
+		model = segment.model;
 		features = segment.features;
 	}
 
 	@Deprecated
 	public Segment(String s, FeatureModel modelParam) {
-		symbol   = s;
-		model    = modelParam;
+		symbol = s;
+		model = modelParam;
 		features = model.getValue(s);
 	}
 
 	public Segment(String s, List<Double> featureArray, FeatureModel modelParam) {
-		symbol   = s;
-		model    = modelParam;
+		symbol = s;
+		model = modelParam;
 		features = new ArrayList<Double>(featureArray);
 	}
 
 	// Used to create the empty segment
 	private Segment(String string) {
-		symbol   = string;
-		model    = FeatureModel.EMPTY_MODEL;
+		symbol = string;
+		model = FeatureModel.EMPTY_MODEL;
 		features = new ArrayList<Double>();
 	}
 
@@ -70,7 +71,8 @@ public class Segment implements ModelBearer {
 	 * @return true if all specified (non NaN) features in either segment are equal
 	 */
 	public boolean matches(Segment other) {
-		validateModelOrFail(other);
+		if(other != BOUND_SEGMENT && this != BOUND_SEGMENT) validateModelOrFail(other);
+
 		int size = features.size();
 		if (size > 0) {
 			List<Double> otherFeatures = other.getFeatures();
@@ -106,8 +108,8 @@ public class Segment implements ModelBearer {
 
 	@Override
 	public boolean equals(Object obj) {
-
-		if (obj == null) { return false; }
+		if (this == obj) { return true; }
+		if (null == obj) { return false; }
 		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;

@@ -17,6 +17,7 @@
 package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
+import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.utils.graph.GraphBuilder;
@@ -109,7 +110,7 @@ public class StateMachine implements Machine {
 		}
 
 		Sequence sequence = new Sequence(target);
-		sequence.add(factory.getUnspecifiedSegment());
+		sequence.add(Segment.BOUND_SEGMENT);
 		// At the beginning of the process, we are in the start-state
 		// so we find out what arcs leave the node.
 		List<MatchState> states = new ArrayList<MatchState>();
@@ -197,16 +198,6 @@ public class StateMachine implements Machine {
 		return result;
 	}
 
-//	@Override
-//	public boolean equals(Object object) {
-//		if (object == null) return false;
-//		if (object == this) return true;
-//		if (object.getClass() != getClass()) return false;
-//
-//		StateMachine other = (StateMachine) object;
-//
-//	}
-
 	@Override
 	public String toString() {
 		return "StandardMachine{" +
@@ -239,7 +230,13 @@ public class StateMachine implements Machine {
 	protected String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
 		String referenceNode;
 
-		Sequence sequence = factory.getSequence(exp);
+		Sequence sequence;
+		if (exp.equals(".")) {
+			sequence = Sequence.DOT_SEQUENCE;
+		} else {
+			sequence = factory.getSequence(exp);
+		}
+
 		if (meta.equals("?")) {
 			graph.put(previousNode, sequence, currentNode);
 			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, currentNode);
@@ -259,7 +256,7 @@ public class StateMachine implements Machine {
 		return referenceNode;
 	}
 
-	private static Collection<String> parseSubExpressions(String expressionParam) {
+	private static Iterable<String> parseSubExpressions(String expressionParam) {
 		Collection<String> subExpressions = new ArrayList<String>();
 
 		StringBuilder buffer = new StringBuilder();
@@ -337,7 +334,9 @@ public class StateMachine implements Machine {
 							states.add(new MatchState(index + s.size(), nextNode));
 						}
 					}
-				} else if (tail.startsWith(key) || key == Sequence.DOT_SEQUENCE) {
+				} else if (key == Sequence.DOT_SEQUENCE && !tail.startsWith(Segment.BOUND_SEGMENT)) {
+					states.add(new MatchState(index + key.size(), nextNode));
+				} else if (tail.startsWith(key)) {
 					// Should work for both cases which have the same behavior
 					states.add(new MatchState(index + key.size(), nextNode));
 				}

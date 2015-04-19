@@ -43,7 +43,6 @@ public class SegmentTest {
 		factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
 	}
 
-
 	@Test
 	public void testUnderspecifiedSegment01() {
 		Segment received = factory.getSegment("[-continuant, release:1]");

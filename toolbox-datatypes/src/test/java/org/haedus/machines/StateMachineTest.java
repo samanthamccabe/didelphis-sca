@@ -279,24 +279,56 @@ public class StateMachineTest {
 		fail(machine, "tr");
 	}
 
-//	@Test
-//	public void testDot01() throws IOException {
-//		StandardMachine machine = getStateMachine("..");
-//
-//		test(machine, "ab");
-//		test(machine, "db");
-//		test(machine, "bcdb");
-//		test(machine, "acdb");
-//		test(machine, "abdb");
-//		test(machine, "abcb");
-//		test(machine, "abcdb");
-//
-//		fail(machine, "a");
-//		fail(machine, "b");
-//		fail(machine, "c");
-//		fail(machine, "d");
-//		fail(machine, "e");
-//	}
+	@Test
+	public void testDot01() throws IOException {
+		StateMachine machine = getStateMachine("..");
+
+		test(machine, "ab");
+		test(machine, "db");
+		test(machine, "bcdb");
+		test(machine, "acdb");
+		test(machine, "abdb");
+		test(machine, "abcb");
+		test(machine, "abcdb");
+
+		fail(machine, "a");
+		fail(machine, "b");
+		fail(machine, "c");
+		fail(machine, "d");
+		fail(machine, "e");
+		fail(machine, "");
+	}
+
+	@Test
+	public void testDot02() throws IOException {
+		StateMachine machine = getStateMachine("a..");
+
+		test(machine, "abb");
+		test(machine, "acdb");
+		test(machine, "abdb");
+		test(machine, "abcb");
+		test(machine, "abcdb");
+
+		fail(machine, "");
+		fail(machine, "a");
+		fail(machine, "b");
+		fail(machine, "c");
+		fail(machine, "d");
+		fail(machine, "e");
+		fail(machine, "aa");
+		fail(machine, "db");
+		fail(machine, "bcdb");
+	}
+
+	@Test
+	public void testGroupsDot() {
+		StateMachine stateMachine = getStateMachine(".*(cd)(ef)");
+
+		test(stateMachine, "abcdef");
+		fail(stateMachine, "abcd");
+		fail(stateMachine, "ab");
+		fail(stateMachine, "bcdef");
+	}
 
 	private static StateMachine getStateMachine(String expression) {
 		StateMachine stateMachine = StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);

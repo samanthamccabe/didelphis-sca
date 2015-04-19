@@ -31,6 +31,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	public static final Sequence DOT_SEQUENCE   = new Sequence(Segment.DOT_SEGMENT);
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
+	public static final Sequence BOUND_SEQUENCE = new Sequence(Segment.BOUND_SEGMENT);
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 	private final List<Segment> sequence;
@@ -70,12 +71,12 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public void add(Segment s) {
-		validateModelOrFail(s);
+		if (s != Segment.BOUND_SEGMENT) validateModelOrFail(s);
 		sequence.add(s);
 	}
 
 	public void add(Sequence otherSequence) {
-		validateModelOrFail(otherSequence);
+		if (otherSequence != BOUND_SEQUENCE) validateModelOrFail(otherSequence);
 		for (Segment s : otherSequence) {
 			sequence.add(s);
 		}
