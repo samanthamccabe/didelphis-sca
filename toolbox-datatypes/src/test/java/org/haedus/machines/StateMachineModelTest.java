@@ -17,6 +17,7 @@ package org.haedus.machines;
 import org.apache.commons.io.FileUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.enums.ParseDirection;
+import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
@@ -47,6 +48,22 @@ public class StateMachineModelTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachineModelTest.class);
 
 	private static final SequenceFactory FACTORY = loadModel();
+
+	@Test(expected = ParseException.class)
+	public void testBasicStateMachine00() {
+		getMachine("[]");
+	}
+
+	@Test
+	public void testDot() {
+		StateMachine stateMachine = getMachine(".");
+
+		test(stateMachine, "a");
+		test(stateMachine, "b");
+		test(stateMachine, "c");
+
+		fail(stateMachine, "");
+	}
 
 	@Test
 	public void testBasicStateMachine01() {
@@ -100,6 +117,144 @@ public class StateMachineModelTest {
 		test(stateMachine, "aaaa");
 		test(stateMachine, "aaaaa");
 		test(stateMachine, "aaaaaa");
+	}
+
+	@Test
+	public void testComplex02() {
+		StateMachine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
+
+		test(machine, "āḱʰus");
+		test(machine, "rāḱʰus");
+		test(machine, "lāḱʰus");
+
+		test(machine, "aiḱʰus");
+		test(machine, "raiḱʰus");
+		test(machine, "laiḱʰus");
+
+		test(machine, "ānḱʰus");
+		test(machine, "rānḱʰus");
+		test(machine, "lānḱʰus");
+
+		test(machine, "ātʰus");
+		test(machine, "rātʰus");
+		test(machine, "lātʰus");
+
+		test(machine, "aitʰus");
+		test(machine, "raitʰus");
+		test(machine, "laitʰus");
+
+		test(machine, "āntʰus");
+		test(machine, "rāntʰus");
+		test(machine, "lāntʰus");
+
+		fail(machine, "āntus");
+		fail(machine, "rāntus");
+		fail(machine, "lāntus");
+
+		fail(machine, "intʰus");
+		fail(machine, "rintʰus");
+		fail(machine, "lintʰus");
+	}
+
+	@Test
+	public void testComplex03() {
+		StateMachine machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
+
+		test(machine, "pʰus");
+		test(machine, "tʰus");
+		test(machine, "kʰus");
+		test(machine, "ḱʰus");
+		test(machine, "aḱʰus");
+	}
+
+	@Test
+	public void testComplex04() {
+		StateMachine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
+
+		test(machine, "apʰus");
+		test(machine, "atʰus");
+		test(machine, "akʰus");
+		test(machine, "aḱʰus");
+
+		test(machine, "epʰus");
+		test(machine, "etʰus");
+		test(machine, "ekʰus");
+		test(machine, "eḱʰus");
+
+		test(machine, "opʰus");
+		test(machine, "otʰus");
+		test(machine, "okʰus");
+		test(machine, "oḱʰus");
+
+		test(machine, "āpʰus");
+		test(machine, "ātʰus");
+		test(machine, "ākʰus");
+		test(machine, "āḱʰus");
+
+		test(machine, "ēpʰus");
+		test(machine, "ētʰus");
+		test(machine, "ēkʰus");
+		test(machine, "ēḱʰus");
+
+		test(machine, "ōpʰus");
+		test(machine, "ōtʰus");
+		test(machine, "ōkʰus");
+		test(machine, "ōḱʰus");
+
+		fail(machine, "ōpus");
+		fail(machine, "ōtus");
+		fail(machine, "ōkus");
+		fail(machine, "ōḱus");
+	}
+
+	@Test
+	public void testComplex05() {
+		StateMachine machine = getMachine("[son:3 glt:0][son:0 glt:-3 rel:1 +vot]us");
+
+		test(machine, "apʰus");
+		test(machine, "atʰus");
+		test(machine, "akʰus");
+		test(machine, "aḱʰus");
+
+		test(machine, "epʰus");
+		test(machine, "etʰus");
+		test(machine, "ekʰus");
+		test(machine, "eḱʰus");
+
+		test(machine, "opʰus");
+		test(machine, "otʰus");
+		test(machine, "okʰus");
+		test(machine, "oḱʰus");
+
+		test(machine, "āpʰus");
+		test(machine, "ātʰus");
+		test(machine, "ākʰus");
+		test(machine, "āḱʰus");
+
+		test(machine, "ēpʰus");
+		test(machine, "ētʰus");
+		test(machine, "ēkʰus");
+		test(machine, "ēḱʰus");
+
+		test(machine, "ōpʰus");
+		test(machine, "ōtʰus");
+		test(machine, "ōkʰus");
+		test(machine, "ōḱʰus");
+
+		test(machine, "ipʰus");
+		test(machine, "itʰus");
+		test(machine, "ikʰus");
+		test(machine, "iḱʰus");
+
+		fail(machine, "ōpus");
+		fail(machine, "ōtus");
+		fail(machine, "ōkus");
+		fail(machine, "ōḱus");
+
+		fail(machine, "a̤pʰus");
+		fail(machine, "a̤tʰus");
+		fail(machine, "a̤kʰus");
+		fail(machine, "a̤ḱʰus");
 	}
 
 	private static void test(StateMachine stateMachine, String target) {

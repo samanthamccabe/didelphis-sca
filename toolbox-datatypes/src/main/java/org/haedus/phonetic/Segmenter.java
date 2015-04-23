@@ -112,6 +112,10 @@ public final class Segmenter {
 				} else {
 					throw new ParseException("Attempting to attach diacritics " + tail + " to a feature definition: " + head);
 				}
+			} else if (head.equals(".")) {
+				return Segment.DOT_SEGMENT;
+			} else if (head.equals("#")) {
+				return Segment.BOUND_SEGMENT;
 			} else {
 				return model.getSegment(head, tail);
 			}
@@ -147,6 +151,10 @@ public final class Segmenter {
 			Segment segment;
 			if (head.startsWith("[") && !keys.contains(head) && model != FeatureModel.EMPTY_MODEL) {
 				segment = model.getSegmentFromFeatures(head);
+			} else if (head.equals(".")) {
+				segment = Segment.DOT_SEGMENT;
+			} else if (head.equals("#")) {
+				segment = Segment.BOUND_SEGMENT;
 			} else {
 				segment = model.getSegment(head, tail);
 			}
@@ -378,7 +386,7 @@ public final class Segmenter {
 				segParam == FormatterMode.COMPOSITION ||
 				segParam == FormatterMode.NONE) {
 			for (String s : separatedString) {
-				if (s.startsWith("{") || s.startsWith("(")) {
+				if (s.startsWith("{") || s.startsWith("(") || s.startsWith("[")) {
 					symbols.add(new Symbol(s));
 				} else {
 					symbols.addAll(segmentNaively(s, keys));

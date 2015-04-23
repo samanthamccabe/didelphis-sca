@@ -59,6 +59,7 @@ public class FeatureModel {
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 	private static final Pattern VALUE_PATTERN    = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern BINARY_PATTERN   = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern FEATURE_PATTERN  = Pattern.compile("[,;]\\s?|\\s");
 
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
@@ -92,7 +93,8 @@ public class FeatureModel {
 			featureArray.add(MASKING_VALUE);
 		}
 
-		String[] array = features.replaceAll("\\[|\\]", "").split("[,;] ?");
+		int size = features.length();
+		String[] array = FEATURE_PATTERN.split(features.substring(1, size - 1));
 
 		Map<String, Double> map = new HashMap<String, Double>();
 		for (String element : array) {
@@ -158,6 +160,17 @@ public class FeatureModel {
 
 	public Set<String> getSymbols() {
 		return Collections.unmodifiableSet(featureMap.keySet());
+	}
+
+	@Override
+	public String toString() {
+		String string;
+		if (this == EMPTY_MODEL) {
+			string = "EMPTY MODEL";
+		} else {
+			string = "FeatureModel(number.features="+getNumberOfFeatures()+", number.symbols="+featureMap.size()+ ')';
+		}
+		return string;
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
@@ -122,13 +121,13 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return new Sequence(sequence.subList(i, index), featureModel);
 	}
 
-	public int indexOf(Segment s) {
-		validateModelOrWarn(s);
+	public int indexOf(Segment target) {
+		if (target != Segment.BOUND_SEGMENT && this != BOUND_SEQUENCE) validateModelOrWarn(target);
 		int index = -1;
 
 		for (int i = 0; i < sequence.size() && index == -1; i++) {
 			Segment segment = sequence.get(i);
-			index = segment.matches(s) ? i : -1;
+			index = segment.matches(target) ? i : -1;
 		}
 		return index;
 	}
@@ -150,21 +149,21 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	 * Sequences must be of the same length
 	 * Two sequences are consistent if each other if all corresponding segments are consistent; i.e. if
 	 * if, for ever segment in each sequence, all corresponding features are equal OR if one is NaN
-	 * @param aSequence a sequence to check against this one
+	 * @param target a sequence to check against this one
 	 * @return true if, for each segment in both sequences, all specified (non NaN) features in either segment are equal
 	 */
-	public boolean matches(Sequence aSequence) {
-		validateModelOrFail(aSequence);
+	public boolean matches(Sequence target) {
+		if(target != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(target);
 		boolean matches = false;
 		if (featureModel == FeatureModel.EMPTY_MODEL) {
-			matches = equals(aSequence);
+			matches = equals(target);
 		} else {
 		int size = size();
-		if (size == aSequence.size()) {
+		if (size == target.size()) {
 			matches = true;
 			for (int i = 0; i < size && matches; i++) {
 				Segment a = get(i);
-				Segment b = aSequence.get(i);
+				Segment b = target.get(i);
 				matches = a.matches(b);
 			}
 		}
@@ -172,17 +171,18 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		return matches;
 	}
 
-	public int indexOf(Sequence aSequence) {
-		validateModelOrWarn(aSequence);
-		int size = aSequence.size();
+	public int indexOf(Sequence target) {
+		if(target != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrWarn(target);
+
+		int size = target.size();
 		int index = -1;
 
-		if (size <= size() && !aSequence.isEmpty()) {
-			index = indexOf(aSequence.getFirst());
+		if (size <= size() && !target.isEmpty()) {
+			index = indexOf(target.getFirst());
 			if (index >= 0 && index + size <= size()) {
 				Sequence u = getSubsequence(index, index + size);
 				// originally was equals, but use matches instead
-				if (!aSequence.matches(u)) {
+				if (!target.matches(u)) {
 					index = -1;
 				}
 			}
@@ -191,7 +191,6 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int indexOf(Sequence target, int start) {
-		validateModelOrWarn(target);
 		int index = -1;
 		if (start < size()) {
 			Sequence subsequence = getSubsequence(start);
@@ -204,8 +203,8 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public Sequence replaceAll(Sequence source, Sequence target) {
-		validateModelOrFail(source);
-		validateModelOrFail(target);
+		if(source != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(source);
+		if(source != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(target);
 		Sequence result = new Sequence(this);
 
 		int index = result.indexOf(source);
@@ -274,7 +273,6 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public boolean contains(Sequence sequence) {
-		validateModelOrWarn(sequence);
 		return indexOf(sequence) >= 0;
 	}
 
@@ -284,7 +282,6 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public boolean startsWith(Sequence aSequence) {
-		validateModelOrWarn(aSequence);
 		return indexOf(aSequence) == 0;
 	}
 
@@ -309,7 +306,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	private void validateModelOrWarn(ModelBearer that) {
 		if (!featureModel.equals(that.getModel())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
-				that.getClass(), this, that, featureModel.getFeatureNames(), that.getModel().getFeatureNames());
+				that.getClass(), this, that, featureModel, that.getModel());
 		}
 	}
 
@@ -317,8 +314,8 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		if (!featureModel.equals(that.getModel())) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +
-					'\t' + this + '\t' + featureModel.getFeatureNames() + '\n' +
-					'\t' + that + '\t' + that.getModel().getFeatureNames()
+					'\t' + this + '\t' + featureModel + '\n' +
+					'\t' + that + '\t' + that.getModel()
 			);
 		}
 	}

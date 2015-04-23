@@ -42,7 +42,17 @@ public class StateMachineTest {
 
 	@Test(expected = ParseException.class)
 	public void testIllegalBoundary01() {
-		StateMachine stateMachine = getStateMachine("a#?");
+		getStateMachine("a#?");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testIllegalBoundary02() {
+		getStateMachine("a#+");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testIllegalBoundary03() {
+		getStateMachine("a#*");
 	}
 
 	@Test
@@ -338,6 +348,34 @@ public class StateMachineTest {
 
 		fail(stateMachine, "abcd");
 		fail(stateMachine, "ab");
+	}
+
+	@Test
+	public void testGroupsDotPlus() {
+		StateMachine stateMachine = getStateMachine(".+(cd)(ef)");
+
+		test(stateMachine, "bcdef");
+		test(stateMachine, "abcdef");
+		test(stateMachine, "xabcdef");
+		test(stateMachine, "xyabcdef");
+
+		fail(stateMachine, "cdef");
+		fail(stateMachine, "abcd");
+		fail(stateMachine, "ab");
+	}
+
+	@Test
+	public void testGroupsDotStar() {
+		StateMachine stateMachine = getStateMachine("(a.)*cd#");
+
+		test(stateMachine, "cd");
+		test(stateMachine, "aXcd");
+		test(stateMachine, "aXaYcd");
+		test(stateMachine, "aXaYaZcd");
+
+		fail(stateMachine, "cdef");
+		fail(stateMachine, "bcd");
+		fail(stateMachine, "acd");
 	}
 
 	private static StateMachine getStateMachine(String expression) {
