@@ -71,7 +71,7 @@ public class Segment implements ModelBearer {
 	 * @return true if all specified (non NaN) features in either segment are equal
 	 */
 	public boolean matches(Segment other) {
-		if(other != BOUND_SEGMENT && this != BOUND_SEGMENT) validateModelOrFail(other);
+		validateModelOrFail(other);
 
 		int size = features.size();
 		if (size > 0) {

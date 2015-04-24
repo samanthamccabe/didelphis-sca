@@ -48,9 +48,10 @@ public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
-	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
-	public static final Double       UNDEFINED_VALUE = Double.NaN;
-	public static final Double       MASKING_VALUE   = Double.NEGATIVE_INFINITY;
+	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
+
+	public static final Double UNDEFINED_VALUE = Double.NaN;
+	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 
 	private static final Pattern NEWLINE_PATTERN  = Pattern.compile("(\\r?\\n|\\n)");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
@@ -67,6 +68,8 @@ public class FeatureModel {
 	private final Map<String, List<Double>> diacritics;
 	private final RectangularTable<Double>  weightTable;
 
+	private final List<Double> blankArray;
+
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
@@ -75,12 +78,16 @@ public class FeatureModel {
 		featureMap = new LinkedHashMap<String, List<Double>>();
 		diacritics = new LinkedHashMap<String, List<Double>>();
 		weightTable = new SymmetricTable<Double>(0.0, 0);
+		blankArray = new ArrayList<Double>();
 	}
 
 	public FeatureModel(File file) {
 		this();
 		try {
 			readModelFromFileNewFormat(FileUtils.readFileToString(file, "UTF-8"));
+			for (int i=0; i < featureNames.size(); i++) {
+				blankArray.add(UNDEFINED_VALUE);
+			}
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
@@ -278,7 +285,11 @@ public class FeatureModel {
 				}
 			}
 		}
-		return new Segment(sb.toString(), featureArray, this);
+		if (featureArray == null ) {
+			return new Segment(sb.toString(), new ArrayList<Double>(blankArray), this);
+		} else {
+			return new Segment(sb.toString(), featureArray, this);
+		}
 	}
 
 	private void validate(String label, String features) {

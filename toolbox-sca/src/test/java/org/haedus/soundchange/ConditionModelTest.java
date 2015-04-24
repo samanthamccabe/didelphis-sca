@@ -15,7 +15,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.machines.StateMachine;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
@@ -25,7 +24,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

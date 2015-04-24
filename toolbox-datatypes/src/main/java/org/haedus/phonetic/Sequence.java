@@ -70,12 +70,12 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public void add(Segment s) {
-		if (s != Segment.BOUND_SEGMENT) validateModelOrFail(s);
+		validateModelOrFail(s);
 		sequence.add(s);
 	}
 
 	public void add(Sequence otherSequence) {
-		if (otherSequence != BOUND_SEQUENCE) validateModelOrFail(otherSequence);
+		validateModelOrFail(otherSequence);
 		for (Segment s : otherSequence) {
 			sequence.add(s);
 		}
@@ -122,7 +122,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int indexOf(Segment target) {
-		if (target != Segment.BOUND_SEGMENT && this != BOUND_SEQUENCE) validateModelOrWarn(target);
+		validateModelOrWarn(target);
 		int index = -1;
 
 		for (int i = 0; i < sequence.size() && index == -1; i++) {
@@ -153,7 +153,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	 * @return true if, for each segment in both sequences, all specified (non NaN) features in either segment are equal
 	 */
 	public boolean matches(Sequence target) {
-		if(target != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(target);
+		validateModelOrFail(target);
 		boolean matches = false;
 		if (featureModel == FeatureModel.EMPTY_MODEL) {
 			matches = equals(target);
@@ -172,7 +172,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int indexOf(Sequence target) {
-		if(target != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrWarn(target);
+		validateModelOrWarn(target);
 
 		int size = target.size();
 		int index = -1;
@@ -203,8 +203,8 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public Sequence replaceAll(Sequence source, Sequence target) {
-		if(source != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(source);
-		if(source != BOUND_SEQUENCE && this != BOUND_SEQUENCE) validateModelOrFail(target);
+		validateModelOrFail(source);
+		validateModelOrFail(target);
 		Sequence result = new Sequence(this);
 
 		int index = result.indexOf(source);
