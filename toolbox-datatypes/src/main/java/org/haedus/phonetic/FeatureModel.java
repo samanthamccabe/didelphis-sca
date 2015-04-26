@@ -260,6 +260,10 @@ public class FeatureModel {
 		return featureNames.keySet();
 	}
 
+	public List<Double> getBlankArray() {
+		return blankArray;
+	}
+
 	List<Double> getUnderspecifiedArray() {
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < getNumberOfFeatures(); i++) {

@@ -112,10 +112,6 @@ public final class Segmenter {
 				} else {
 					throw new ParseException("Attempting to attach diacritics " + tail + " to a feature definition: " + head);
 				}
-			} else if (head.equals(".")) {
-				return Segment.DOT_SEGMENT;
-			} else if (head.equals("#")) {
-				return Segment.BOUND_SEGMENT;
 			} else {
 				return model.getSegment(head, tail);
 			}
@@ -147,14 +143,9 @@ public final class Segmenter {
 			String head = item.getHead();
 			List<String> tail = item.getTail();
 
-			// TODO: replace lookup to check variables or feature definitions
 			Segment segment;
 			if (head.startsWith("[") && !keys.contains(head) && model != FeatureModel.EMPTY_MODEL) {
 				segment = model.getSegmentFromFeatures(head);
-			} else if (head.equals(".")) {
-				segment = Segment.DOT_SEGMENT;
-			} else if (head.equals("#")) {
-				segment = Segment.BOUND_SEGMENT;
 			} else {
 				segment = model.getSegment(head, tail);
 			}

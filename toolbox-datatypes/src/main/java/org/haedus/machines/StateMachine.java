@@ -112,7 +112,7 @@ public class StateMachine implements Machine {
 		}
 
 		Sequence sequence = new Sequence(target);
-		sequence.add(Segment.BOUND_SEGMENT);
+		sequence.add(factory.getBorderSegment());
 		// At the beginning of the process, we are in the start-state
 		// so we find out what arcs leave the node.
 		List<MatchState> states = new ArrayList<MatchState>();
@@ -232,12 +232,7 @@ public class StateMachine implements Machine {
 	protected String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
 		String referenceNode;
 
-		Sequence sequence;
-		if (exp.equals(".")) {
-			sequence = Sequence.DOT_SEQUENCE;
-		} else {
-			sequence = factory.getSequence(exp);
-		}
+		Sequence sequence = factory.getSequence(exp);
 
 		if (meta.equals("?")) {
 			graph.put(previousNode, sequence, currentNode);
@@ -336,8 +331,11 @@ public class StateMachine implements Machine {
 							states.add(new MatchState(index + s.size(), nextNode));
 						}
 					}
-				} else if (key == Sequence.DOT_SEQUENCE && !tail.startsWith(Segment.BOUND_SEGMENT)) {
-					states.add(new MatchState(index + key.size(), nextNode));
+				} else if (key.equals(factory.getDotSequence())) {
+					if (!tail.startsWith(factory.getBorderSegment())) {
+						states.add(new MatchState(index + key.size(), nextNode));
+					}
+					// Else: . cannot match #
 				} else if (tail.startsWith(key)) {
 					// Should work for both cases which have the same behavior
 					states.add(new MatchState(index + key.size(), nextNode));

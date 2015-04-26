@@ -48,26 +48,12 @@ public class RuleModelTest {
 	private static final SequenceFactory FACTORY = new SequenceFactory(MODEL, FormatterMode.INTELLIGENT);
 
 	@Test
-	public void testBrackets01() throws Exception {
-
-		VariableStore store = new VariableStore();
-		store.add("VS = a e i o u ə á é í ó ú");
-		store.add("VL = ā ē ī ō ū ə̄  â ê î ô û");
-		store.add("V   = VS VL");
-		store.add("X = x ʔ");
-
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
-
-		Rule rule = new Rule("X  > 0   / [Obstruent]_V", factory);
-	}
-
-	@Test
 	public void testMetathesis01() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$1", factory);
 
@@ -91,7 +77,7 @@ public class RuleModelTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 
 		Rule rule = new Rule("CVN > $3V$1", factory);
@@ -115,7 +101,7 @@ public class RuleModelTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$G1", factory);
 
@@ -232,7 +218,7 @@ public class RuleModelTest {
 		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", FACTORY);
 
 		testRule(rule, FACTORY, "pʰaḱʰus", "baḱʰus");
-		testRule(rule, FACTORY, "pʰāḱʰus", "pʰāḱʰus");
+		testRule(rule, FACTORY, "pʰaːḱʰus", "pʰaːḱʰus");
 	}
 
 	@Test

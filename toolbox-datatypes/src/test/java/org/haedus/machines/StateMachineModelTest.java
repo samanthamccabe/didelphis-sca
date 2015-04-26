@@ -79,17 +79,12 @@ public class StateMachineModelTest {
 	@Test
 	public void testBasicStateMachine03() {
 		StateMachine stateMachine  = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
-		StateMachine stateMachine1 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
-		StateMachine stateMachine2 = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 
 		fail(stateMachine, "a");
 		test(stateMachine, "aa");
 		test(stateMachine, "aaa");
 		test(stateMachine, "aa̤");
 		test(stateMachine, "aa̤a");
-
-		test(stateMachine1, "aa̤a");
-		test(stateMachine2, "aa̤");
 
 		fail(stateMachine, "b");
 		fail(stateMachine, "c");

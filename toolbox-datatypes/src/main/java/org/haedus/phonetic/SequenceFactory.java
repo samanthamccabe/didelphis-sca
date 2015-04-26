@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,12 @@ public class SequenceFactory {
 	private final FormatterMode formatterMode;
 	private final Set<String>   reservedStrings;
 
+	private final Segment  dotSegment;
+	private final Segment  borderSegment;
+
+	private final Sequence dotSequence;
+	private final Sequence borderSequence;
+
 	private SequenceFactory() {
 		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), FormatterMode.NONE);
 	}
@@ -64,6 +71,14 @@ public class SequenceFactory {
 		variableStore = storeParam;
 		reservedStrings = reservedParam;
 		formatterMode = modeParam;
+
+		List<Double> featureArray = Collections.unmodifiableList(featureModel.getBlankArray());
+
+		dotSegment    = new Segment(".", featureArray, featureModel);
+		borderSegment = new Segment("#", featureArray, featureModel);
+
+		dotSequence    = new Sequence(dotSegment);
+		borderSequence = new Sequence(borderSegment);
 	}
 
 	public static SequenceFactory getEmptyFactory() {
@@ -74,8 +89,30 @@ public class SequenceFactory {
 		reservedStrings.add(string);
 	}
 
+	public Segment getDotSegment() {
+		return dotSegment;
+	}
+
+	public Segment getBorderSegment() {
+		return borderSegment;
+	}
+
+	public Sequence getDotSequence() {
+		return dotSequence;
+	}
+
+	public Sequence getBorderSequence() {
+		return borderSequence;
+	}
+
 	public Segment getSegment(String string) {
-		return Segmenter.getSegment(string, featureModel, reservedStrings, formatterMode);
+		if (string.equals("#")) {
+			return borderSegment;
+		} else if (string.equals(".")) {
+			return dotSegment;
+		} else {
+			return Segmenter.getSegment(string, featureModel, reservedStrings, formatterMode);
+		}
 	}
 
 	public Lexicon getLexiconFromSingleColumn(Iterable<String> list) {
@@ -115,10 +152,20 @@ public class SequenceFactory {
 	}
 
 	public Sequence getSequence(String word) {
-		Collection<String> keys = new ArrayList<String>();
-		keys.addAll(variableStore.getKeys());
-		keys.addAll(reservedStrings);
-		return Segmenter.getSequence(word, featureModel, keys, formatterMode);
+		if (word.equals("#")) {
+			Sequence sequence = new Sequence(featureModel);
+			sequence.add(borderSegment);
+			return sequence;
+		} else if (word.equals(".")) {
+			Sequence sequence = new Sequence(featureModel);
+			sequence.add(dotSegment);
+			return sequence;
+		} else {
+			Collection<String> keys = new ArrayList<String>();
+			keys.addAll(variableStore.getKeys());
+			keys.addAll(reservedStrings);
+			return Segmenter.getSequence(word, featureModel, keys, formatterMode);
+		}
 	}
 
 	public boolean hasVariable(String label) {

@@ -28,9 +28,7 @@ import java.util.List;
  */
 public class Sequence implements Iterable<Segment>, ModelBearer {
 
-	public static final Sequence DOT_SEQUENCE   = new Sequence(Segment.DOT_SEGMENT);
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
-	public static final Sequence BOUND_SEQUENCE = new Sequence(Segment.BOUND_SEGMENT);
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 	private final List<Segment> sequence;

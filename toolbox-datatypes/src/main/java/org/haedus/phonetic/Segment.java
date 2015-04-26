@@ -28,9 +28,7 @@ import java.util.List;
  */
 public class Segment implements ModelBearer {
 
-	public static final Segment DOT_SEGMENT   = new Segment(".");
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
-	public static final Segment BOUND_SEGMENT = new Segment("#");
 
 	private final FeatureModel model;
 	private final String       symbol;
@@ -157,7 +155,7 @@ public class Segment implements ModelBearer {
 		FeatureModel otherModel = that.getModel();
 		if (!model.equals(otherModel)) {
 			throw new RuntimeException(
-				"Attempting to add " + that.getClass() + " with an incompatible featureModel!\n" +
+				"Attempting to interoperate " + that.getClass() + " with an incompatible featureModel!\n" +
 					'\t' + this + '\t' + model.getFeatureNames() + '\n' +
 					'\t' + that + '\t' + otherModel.getFeatureNames()
 			);
