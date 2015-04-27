@@ -12,19 +12,39 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.phonetic;
 
-import org.haedus.phonetic.Lexicon;
+import org.haedus.enums.FormatterMode;
+import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 2/5/2015
  */
-public interface SoundChangeScript {
+public class TestSequenceFactory {
 
-	void process();
+	private final FeatureModel model;
 
-	boolean hasLexicon(String handle);
+	public TestSequenceFactory() throws IOException {
+		Resource resource = new ClassPathResource("features.model");
+		File file = resource.getFile();
+		model = new FeatureModel(file);
+	}
 
-	Lexicon getLexicon(String handle);
+	@Test
+	public void testGetSequence01() {
+		String word = "avaːm";
+
+		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+
+		Sequence sequence = factory.getSequence(word);
+		assertTrue(!sequence.isEmpty());
+	}
 }

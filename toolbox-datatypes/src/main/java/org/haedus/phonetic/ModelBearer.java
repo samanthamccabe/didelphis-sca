@@ -12,19 +12,17 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.soundchange;
-
-import org.haedus.phonetic.Lexicon;
+package org.haedus.phonetic;
 
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 1/21/2015
  */
-public interface SoundChangeScript {
+public interface ModelBearer {
 
-	void process();
-
-	boolean hasLexicon(String handle);
-
-	Lexicon getLexicon(String handle);
+	/**
+	 * Returns the model used by this ModelBearer
+	 * @return the FeatureModel; must never be null
+	 */
+	FeatureModel getModel();
 }

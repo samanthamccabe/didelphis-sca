@@ -14,9 +14,9 @@
 
 package org.haedus.soundchange;
 
-import org.haedus.datatypes.FormatterMode;
-import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
 import org.haedus.io.MockFileHandler;

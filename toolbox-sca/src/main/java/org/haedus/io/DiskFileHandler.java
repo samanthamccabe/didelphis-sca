@@ -87,11 +87,12 @@ public class DiskFileHandler implements FileHandler {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) { return true;  }
+		if (o == null) { return false; }
+		if (getClass() != o.getClass()) { return false; }
 
 		DiskFileHandler that = (DiskFileHandler) o;
-		return (!encoding.equals(that.encoding));
+		return !encoding.equals(that.encoding);
 	}
 
 	@Override

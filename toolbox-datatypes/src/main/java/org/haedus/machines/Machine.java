@@ -12,19 +12,23 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.machines;
 
-import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.Sequence;
+
+import java.util.Collection;
 
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 4/7/2015
  */
-public interface SoundChangeScript {
+public interface Machine {
 
-	void process();
-
-	boolean hasLexicon(String handle);
-
-	Lexicon getLexicon(String handle);
+	/**
+	 * Returns the indices
+	 * @param startIndex
+	 * @param target
+	 * @return
+	 */
+	Collection<Integer> getMatchIndices(int startIndex, Sequence target);
 }

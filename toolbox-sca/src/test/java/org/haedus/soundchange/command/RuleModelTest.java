@@ -21,7 +21,12 @@ import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,25 +39,13 @@ import static org.junit.Assert.assertEquals;
  * Time: 3:37 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RuleTest {
+public class RuleModelTest {
+
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(RuleModelTest.class);
 
 	private static final Set<String>     EMPTY_SET   = new HashSet<String>();
-	private static final SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
-	private static final SequenceFactory FACTORY     = SequenceFactory.getEmptyFactory();
-
-	@Test
-	public void testBrackets01() throws Exception {
-
-		VariableStore store = new VariableStore();
-		store.add("VS = a e i o u ə á é í ó ú");
-		store.add("VL = ā ē ī ō ū ə̄  â ê î ô û");
-		store.add("V   = VS VL");
-		store.add("X = x ʔ");
-
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
-
-		Rule rule = new Rule("X  > 0   / [Obstruent]_V", factory);
-	}
+	private static final FeatureModel    MODEL       = loadModel();
+	private static final SequenceFactory FACTORY = new SequenceFactory(MODEL, FormatterMode.INTELLIGENT);
 
 	@Test
 	public void testMetathesis01() {
@@ -60,7 +53,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$1", factory);
 
@@ -84,7 +77,7 @@ public class RuleTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 
 		Rule rule = new Rule("CVN > $3V$1", factory);
@@ -108,7 +101,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$G1", factory);
 
@@ -184,48 +177,48 @@ public class RuleTest {
 
 	@Test
 	public void testConditional03() {
-		Rule rule = new Rule("a > e / _c+#", INTELLIGENT);
-		testRule(rule, INTELLIGENT, "abac", "abec");
-		testRule(rule, INTELLIGENT, "abacc", "abecc");
-		testRule(rule, INTELLIGENT, "abaccc", "abeccc");
-		testRule(rule, INTELLIGENT, "abacccc", "abecccc");
-		testRule(rule, INTELLIGENT, "abaccccc", "abeccccc");
+		Rule rule = new Rule("a > e / _c+#", FACTORY);
+		testRule(rule, FACTORY, "abac", "abec");
+		testRule(rule, FACTORY, "abacc", "abecc");
+		testRule(rule, FACTORY, "abaccc", "abeccc");
+		testRule(rule, FACTORY, "abacccc", "abecccc");
+		testRule(rule, FACTORY, "abaccccc", "abeccccc");
 	}
 
 	@Test
 	public void testUnconditional04() {
-		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
-		testRule(rule, INTELLIGENT, "keʔe", "kē");
-		testRule(rule, INTELLIGENT, "kaʔa", "kā");
-		testRule(rule, INTELLIGENT, "keʔa", "kā");
-		testRule(rule, INTELLIGENT, "kaʔe", "kē");
+		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē", FACTORY);
+		testRule(rule, FACTORY, "keʔe", "kē");
+		testRule(rule, FACTORY, "kaʔa", "kā");
+		testRule(rule, FACTORY, "keʔa", "kā");
+		testRule(rule, FACTORY, "kaʔe", "kē");
 	}
 
 	@Test
 	public void testConditional05() {
-		Rule rule = new Rule("rˌh lˌh > ər əl / _a", INTELLIGENT);
-		testRule(rule, INTELLIGENT, "krˌha", "kəra");
-		testRule(rule, INTELLIGENT, "klˌha", "kəla");
-		testRule(rule, INTELLIGENT, "klˌhe", "klˌhe");
+		Rule rule = new Rule("rˌh lˌh > ər əl / _a", FACTORY);
+		testRule(rule, FACTORY, "krˌha", "kəra");
+		testRule(rule, FACTORY, "klˌha", "kəla");
+		testRule(rule, FACTORY, "klˌhe", "klˌhe");
 	}
 
 	@Test
 	public void testConditional06() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", FACTORY);
 
-		testRule(rule, INTELLIGENT, "pʰāḱʰus", "bāḱʰus");
-		testRule(rule, INTELLIGENT, "pʰentʰros", "bentʰros");
-		testRule(rule, INTELLIGENT, "pʰlaḱʰmēn", "blaḱʰmēn");
-		testRule(rule, INTELLIGENT, "pʰoutʰéyet", "boutʰéyet");
-		testRule(rule, INTELLIGENT, "pʰɛḱʰus", "pʰɛḱʰus");
+		testRule(rule, FACTORY, "pʰāḱʰus", "bāḱʰus");
+		testRule(rule, FACTORY, "pʰentʰros", "bentʰros");
+		testRule(rule, FACTORY, "pʰlaḱʰmēn", "blaḱʰmēn");
+		testRule(rule, FACTORY, "pʰoutʰéyet", "boutʰéyet");
+		testRule(rule, FACTORY, "pʰɛḱʰus", "pʰɛḱʰus");
 	}
 
 	@Test
 	public void testConditional07() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
+		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", FACTORY);
 
-		testRule(rule, INTELLIGENT, "pʰaḱʰus", "baḱʰus");
-		testRule(rule, INTELLIGENT, "pʰāḱʰus", "pʰāḱʰus");
+		testRule(rule, FACTORY, "pʰaḱʰus", "baḱʰus");
+		testRule(rule, FACTORY, "pʰaːḱʰus", "pʰaːḱʰus");
 	}
 
 	@Test
@@ -245,18 +238,18 @@ public class RuleTest {
 
 	@Test
 	public void testUnconditional() {
-		Sequence word = INTELLIGENT.getSequence("h₁óh₁es-");
-		Sequence expected = INTELLIGENT.getSequence("ʔóʔes-");
+		Sequence word = FACTORY.getSequence("h₁óh₁es-");
+		Sequence expected = FACTORY.getSequence("ʔóʔes-");
 
-		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
+		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", FACTORY);
 
 		assertEquals(expected, rule.apply(word));
 	}
 
 	@Test
 	public void testUnconditional02() {
-		Sequence expected = INTELLIGENT.getSequence("telə");
-		Rule rule = new Rule("eʔé > ê", INTELLIGENT);
+		Sequence expected = FACTORY.getSequence("telə");
+		Rule rule = new Rule("eʔé > ê", FACTORY);
 
 		assertEquals(expected, rule.apply(expected));
 	}
@@ -365,34 +358,6 @@ public class RuleTest {
 		testRule(rule, factory, "aza", "azb");
 	}
 
-	/*======================================================================+
-	 | Exception Tests                                                      |
-	 +======================================================================*/
-	@Test(expected = RuleFormatException.class)
-	public void testRuleException01() {
-		new Rule(" > ", FACTORY);
-	}
-
-	@Test(expected = RuleFormatException.class)
-	public void testRuleException02() {
-		new Rule("a > b /", FACTORY);
-	}
-
-	@Test(expected = RuleFormatException.class)
-	public void testRuleException03() {
-		new Rule("a > / b", FACTORY);
-	}
-
-	@Test(expected = RuleFormatException.class)
-	public void testRuleException04() {
-		new Rule(" > a / b", FACTORY);
-	}
-
-	@Test(expected = RuleFormatException.class)
-	public void testRuleException05() {
-		new Rule(" > / b", FACTORY);
-	}
-
 	private static void testRule(Rule rule, String seq, String exp) {
 		testRule(rule, FACTORY, seq, exp);
 	}
@@ -403,5 +368,16 @@ public class RuleTest {
 		Sequence received = rule.apply(sequence);
 
 		assertEquals(expected, received);
+	}
+
+	private static FeatureModel loadModel() {
+		Resource resource = new ClassPathResource("features.model");
+		FeatureModel model = null;
+		try {
+			model = new FeatureModel(resource.getFile());
+		} catch (IOException e) {
+			LOGGER.error("Failed to load file from {}", resource, e);
+		}
+		return model;
 	}
 }

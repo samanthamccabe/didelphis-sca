@@ -16,10 +16,10 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.phonetic.Lexicon;
-import org.haedus.datatypes.phonetic.SequenceFactory;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.SequenceFactory;
 import org.haedus.io.FileHandler;
-import org.haedus.datatypes.phonetic.LexiconMap;
+import org.haedus.phonetic.LexiconMap;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class LexiconOpenCommand extends LexiconIOCommand implements Command {
+public class LexiconOpenCommand extends LexiconIOCommand {
 
 	private final LexiconMap      lexicons;
 	private final SequenceFactory factory;

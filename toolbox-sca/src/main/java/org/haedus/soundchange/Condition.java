@@ -16,15 +16,18 @@ package org.haedus.soundchange;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.datatypes.phonetic.Sequence;
-import org.haedus.datatypes.phonetic.SequenceFactory;
-import org.haedus.machines.Node;
-import org.haedus.datatypes.ParseDirection;
-import org.haedus.machines.NodeFactory;
+import org.haedus.exceptions.ParseException;
+import org.haedus.machines.Machine;
 import org.haedus.machines.StateMachine;
+import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.SequenceFactory;
+import org.haedus.enums.ParseDirection;
+
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.Pattern;
 
 /**
  * User: Samantha Fiona Morrigan McCabe
@@ -35,9 +38,13 @@ public class Condition {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
 
-	private final String          conditionText;
-	private final Node<Sequence>  preCondition;
-	private final Node<Sequence>  postCondition;
+	private static final Pattern WHITESPACE_PATTERN  = Pattern.compile("\\s+");
+	private static final Pattern OPEN_BRACE_PATTERN  = Pattern.compile("([\\[\\{\\(]) ");
+	private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile(" ([\\]\\}\\)])");
+
+	private final String         conditionText;
+	private final Machine  preCondition;
+	private final Machine postCondition;
 
 	// package-private: testing only
 	Condition(String condition) {
@@ -45,15 +52,15 @@ public class Condition {
 	}
 
 	public Condition(String condition, SequenceFactory factoryParam) {
-		conditionText    = cleanup(condition);
+		conditionText = cleanup(condition);
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
+				preCondition  = StateMachine.createStandardMachine("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
 				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
-				preCondition  = NodeFactory.getStateMachine(conditions[0], factoryParam, ParseDirection.BACKWARD, true);
-				postCondition = NodeFactory.getStateMachine(conditions[1], factoryParam, ParseDirection.FORWARD,  true);
+				preCondition  = StateMachine.createStandardMachine("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StateMachine.createStandardMachine("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
 				preCondition  = StateMachine.EMPTY_MACHINE;
 				postCondition = StateMachine.EMPTY_MACHINE;
@@ -70,10 +77,12 @@ public class Condition {
 		return conditionText;
 	}
 
+	public Machine getPostCondition() {
+		return postCondition;
+	}
+
 	private static String cleanup(String s) {
-		return s.replaceAll("\\s+", " ")
-		        .replaceAll("([\\[\\{\\(]) ", "$1")
-		        .replaceAll(" ([\\]\\}\\)])", "$1");
+		return CLOSE_BRACE_PATTERN.matcher(OPEN_BRACE_PATTERN.matcher(WHITESPACE_PATTERN.matcher(s).replaceAll(" ")).replaceAll("$1")).replaceAll("$1");
 	}
 
 	public boolean isMatch(Sequence word, int index) {
@@ -96,14 +105,10 @@ public class Condition {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 
-			preconditionMatch  = preCondition.matches(0, head.getReverseSequence());
-			postconditionMatch = postCondition.matches(0, tail);
+			preconditionMatch  = !preCondition.getMatchIndices(0, head.getReverseSequence()).isEmpty();
+			postconditionMatch = !postCondition.getMatchIndices(0, tail).isEmpty();
 		}
 		return preconditionMatch && postconditionMatch;
-	}
-
-	public boolean isEmpty() {
-		return preCondition.isTerminal() && postCondition.isTerminal();
 	}
 
 	@Override

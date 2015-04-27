@@ -89,7 +89,7 @@ r̩ l̩ > ər əl
 @VS > @VL / _X{[I] [U] y w}V
 @VS > @VL / _XV
 X  > 0   / @VL_{C # u}
-X  > 0   / [Obstruent]_V
+X  > 0   / [OBSTRUENT]_V
 X  > 0   / VA_V
 xa xə > 0 / @VL_
 xu xo > u / @VL_

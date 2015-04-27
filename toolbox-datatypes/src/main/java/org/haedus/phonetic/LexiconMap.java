@@ -12,19 +12,45 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.soundchange;
+package org.haedus.phonetic;
 
-import org.haedus.phonetic.Lexicon;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 1/16/2015
  */
-public interface SoundChangeScript {
+public class LexiconMap {
 
-	void process();
+	private final Map<String, Lexicon> map;
 
-	boolean hasLexicon(String handle);
+	public LexiconMap() {
+		map = new HashMap<String, Lexicon>();
+	}
 
-	Lexicon getLexicon(String handle);
+	public void addLexicon(String handle, Lexicon words) {
+		map.put(handle, words);
+	}
+
+	public Lexicon get(String handle) {
+		return map.get(handle);
+	}
+
+	public boolean hasHandle(String handle) {
+		return map.containsKey(handle);
+	}
+
+	public Collection<String> getHandles() {
+		return map.keySet();
+	}
+
+	public Collection<Lexicon> values() {
+		return map.values();
+	}
+
+	public Lexicon remove(String handle) {
+		return  map.remove(handle);
+	}
 }
