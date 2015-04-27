@@ -199,7 +199,7 @@ public class FeatureModelLoader {
 		FEATURES("FEATURES"),
 		SYMBOLS("SYMBOLS"),
 		MODIFIERS("MODIFIERS"),
-		WEIGHTS("WEIGHTs"),
+		WEIGHTS("WEIGHTS"),
 		NONE("NONE");
 
 		private final String value;

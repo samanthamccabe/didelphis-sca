@@ -15,6 +15,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.tables.Table;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -64,6 +66,14 @@ public class FeatureModelTest {
 	public void testLoad() {
 		// Ensure the model loads correctly.
 		assertTrue(model.getNumberOfFeatures() > 0);
+	}
+
+	@Test
+	public void testWeight() throws IOException {
+		// Ensure the model loads correctly.
+		Table<Double> weights = model.getWeights();
+		assertTrue(weights.getNumberColumns() > 0);
+		assertTrue(weights.get(0, 0) > 0.0);
 	}
 
 	@Test
