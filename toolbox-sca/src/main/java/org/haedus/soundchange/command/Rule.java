@@ -56,23 +56,23 @@ public class Rule implements Command {
 	private final List<Condition> conditions;
 	private final List<Condition> exceptions;
 
-	private final SequenceFactory factory;
+	private final SequenceFactory         factory;
 	private final Map<Sequence, Sequence> transform;
-	private final LexiconMap lexicons;
+	private final LexiconMap              lexicons;
 
 	public Rule(String rule, LexiconMap lexiconsParam, SequenceFactory factoryParam) {
-		ruleText   = rule;
-		lexicons   = lexiconsParam;
-		factory    = factoryParam;
-		transform  = new LinkedHashMap<Sequence, Sequence>();
+		ruleText = rule;
+		lexicons = lexiconsParam;
+		factory = factoryParam;
+		transform = new LinkedHashMap<Sequence, Sequence>();
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
 		populateConditions();
 	}
 
 	@Deprecated
-	// Visible for testing
-	Rule(String rule,  SequenceFactory factoryParam) {
+		// Visible for testing
+	Rule(String rule, SequenceFactory factoryParam) {
 		this(rule, new LexiconMap(), factoryParam);
 	}
 
@@ -120,12 +120,12 @@ public class Rule implements Command {
 		}
 		Rule rhs = (Rule) obj;
 		return new EqualsBuilder()
-				.append(ruleText, rhs.ruleText)
-				.append(conditions, rhs.conditions)
-				.append(exceptions, rhs.exceptions)
-				.append(factory, rhs.factory)
-				.append(transform, rhs.transform)
-				.append(lexicons, rhs.lexicons)
+			.append(ruleText, rhs.ruleText)
+			.append(conditions, rhs.conditions)
+			.append(exceptions, rhs.exceptions)
+			.append(factory, rhs.factory)
+			.append(transform, rhs.transform)
+			.append(lexicons, rhs.lexicons)
 				.isEquals();
 	}
 
@@ -165,6 +165,8 @@ public class Rule implements Command {
 					for (int i = 0; i < source.size() && match; i++) {
 						Sequence subSequence = output.getSubsequence(testIndex);
 						Segment segment = source.get(i);
+
+						// Source symbol is a variable
 						if (factory.hasVariable(segment.getSymbol())) {
 							List<Sequence> elements = factory.getVariableValues(segment.getSymbol());
 							boolean elementMatches = false;
@@ -181,7 +183,7 @@ public class Rule implements Command {
 							}
 							match = elementMatches;
 						} else {
-							// It' a literal
+							// It's a literal
 							match = subSequence.startsWith(segment);
 							if (match) {
 								testIndex++;
@@ -191,6 +193,7 @@ public class Rule implements Command {
 
 					if (match && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
+						// TODO: somewhere here we need to handle feature modification
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
 						// Generate replacement
@@ -319,22 +322,20 @@ public class Rule implements Command {
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transformation);
 			} else {
-//				List<String> sourceString = new ArrayList<String>();
-//				List<String> targetString = new ArrayList<String>();
-				List<String> sourceString = parseToList(array[0]);
-				List<String> targetString = parseToList(array[1]);
 
-				// TODO: change splitting code to capture [] correctly
-//				Collections.addAll(sourceString, WHITESPACE_PATTERN.split(array[0]));
-//				Collections.addAll(targetString, WHITESPACE_PATTERN.split(array[1]));
+				String sourceString = WHITESPACE_PATTERN.matcher(array[0]).replaceAll(" ");
+				String targetString = WHITESPACE_PATTERN.matcher(array[1]).replaceAll(" ");
 
-				balanceTransform(sourceString, targetString);
+				// Split strings, but not within brackets []
+				List<String> sourceList = parseToList(sourceString);
+				List<String> targetList = parseToList(targetString);
 
-				for (int i = 0; i < sourceString.size(); i++) {
+				balanceTransform(sourceList, targetList);
+
+				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
-					Sequence source = factory.getSequence(sourceString.get(i));
-					Sequence target = factory.getSequence(targetString.get(i));
-
+					Sequence source = factory.getSequence(sourceList.get(i));
+					Sequence target = factory.getSequence(targetList.get(i));
 					transform.put(source, target);
 				}
 			}
@@ -347,10 +348,13 @@ public class Rule implements Command {
 		List<String> list = new ArrayList<String>();
 		int start = 0;
 		int end   = 0;
+
 		while (end < source.length()) {
 			char c = source.charAt(end);
 			if (c == ' ') {
 				list.add(source.substring(start, end));
+				end++;
+				start=end;
 			} else if (c == '[') {
 				end = source.indexOf(']', end);
 			} else {

@@ -276,7 +276,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 
 	public boolean startsWith(Segment aSegment) {
 		validateModelOrWarn(aSegment);
-		return !isEmpty() && sequence.get(0).equals(aSegment);
+		return !isEmpty() && sequence.get(0).matches(aSegment);
 	}
 
 	public boolean startsWith(Sequence aSequence) {
