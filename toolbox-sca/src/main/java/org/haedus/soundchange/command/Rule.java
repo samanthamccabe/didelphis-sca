@@ -319,11 +319,14 @@ public class Rule implements Command {
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transformation);
 			} else {
-				List<String> sourceString = new ArrayList<String>();
-				List<String> targetString = new ArrayList<String>();
+//				List<String> sourceString = new ArrayList<String>();
+//				List<String> targetString = new ArrayList<String>();
+				List<String> sourceString = parseToList(array[0]);
+				List<String> targetString = parseToList(array[1]);
 
-				Collections.addAll(sourceString, WHITESPACE_PATTERN.split(array[0]));
-				Collections.addAll(targetString, WHITESPACE_PATTERN.split(array[1]));
+				// TODO: change splitting code to capture [] correctly
+//				Collections.addAll(sourceString, WHITESPACE_PATTERN.split(array[0]));
+//				Collections.addAll(targetString, WHITESPACE_PATTERN.split(array[1]));
 
 				balanceTransform(sourceString, targetString);
 
@@ -338,6 +341,24 @@ public class Rule implements Command {
 		} else {
 			throw new RuleFormatException("Rule missing \">\" sign! " + ruleText);
 		}
+	}
+
+	private static List<String> parseToList(String source) {
+		List<String> list = new ArrayList<String>();
+		int start = 0;
+		int end   = 0;
+		while (end < source.length()) {
+			char c = source.charAt(end);
+			if (c == ' ') {
+				list.add(source.substring(start, end));
+			} else if (c == '[') {
+				end = source.indexOf(']', end);
+			} else {
+				end++;
+			}
+		}
+		list.add(source.substring(start, end));
+		return list;
 	}
 
 	private static void balanceTransform(List<String> source, List<String> target) {

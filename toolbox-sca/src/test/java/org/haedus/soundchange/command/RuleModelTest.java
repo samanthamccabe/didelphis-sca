@@ -48,6 +48,13 @@ public class RuleModelTest {
 	private static final SequenceFactory FACTORY = new SequenceFactory(MODEL, FormatterMode.INTELLIGENT);
 
 	@Test
+	public void testFeatureTransform() {
+		Rule rule = new Rule("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1]", FACTORY);
+
+		testRule(rule, "a", "i");
+	}
+
+	@Test
 	public void testMetathesis01() {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k");
