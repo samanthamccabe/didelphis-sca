@@ -16,10 +16,10 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.phonetic.Lexicon;
-import org.haedus.phonetic.Sequence;
 import org.haedus.io.FileHandler;
+import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
+import org.haedus.phonetic.Sequence;
 
 import java.util.Iterator;
 import java.util.List;

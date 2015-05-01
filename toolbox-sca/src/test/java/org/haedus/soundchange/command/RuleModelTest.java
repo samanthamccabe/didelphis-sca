@@ -47,10 +47,14 @@ public class RuleModelTest {
 	private static final FeatureModel    MODEL       = loadModel();
 	private static final SequenceFactory FACTORY = new SequenceFactory(MODEL, FormatterMode.INTELLIGENT);
 
+	@Test(expected = RuleFormatException.class)
+	public void testFeatureTransformOutOfRange() {
+		new Rule("a > g[hgt:1]", FACTORY);
+	}
+
 	@Test
 	public void testFeatureTransform() {
-		Rule rule = new Rule("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1]", FACTORY);
-
+		Rule rule = new Rule("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1, +atr]", FACTORY);
 		testRule(rule, "a", "i");
 	}
 

@@ -19,22 +19,17 @@
 
 package org.haedus.phonetic;
 
-import org.apache.commons.io.FileUtils;
 import org.haedus.exceptions.ParseException;
-import org.haedus.tables.RectangularTable;
 import org.haedus.tables.SymmetricTable;
 import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +47,6 @@ public class FeatureModel {
 
 	public static final Double UNDEFINED_VALUE = Double.NaN;
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
-
 
 	private static final Pattern VALUE_PATTERN    = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern BINARY_PATTERN   = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);

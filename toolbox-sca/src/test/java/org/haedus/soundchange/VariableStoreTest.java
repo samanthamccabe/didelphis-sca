@@ -15,7 +15,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.phonetic.VariableStore;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

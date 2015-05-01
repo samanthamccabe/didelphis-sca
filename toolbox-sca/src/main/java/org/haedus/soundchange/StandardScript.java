@@ -15,13 +15,13 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.FeatureModel;
-import org.haedus.phonetic.SequenceFactory;
-import org.haedus.phonetic.VariableStore;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.DiskFileHandler;
 import org.haedus.io.FileHandler;
 import org.haedus.io.NullFileHandler;
+import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.VariableStore;
 import org.haedus.soundchange.command.LexiconCloseCommand;
 import org.haedus.soundchange.command.LexiconOpenCommand;
 import org.haedus.soundchange.command.LexiconWriteCommand;

@@ -16,19 +16,18 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.soundchange.Condition;
-import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.exceptions.RuleFormatException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -197,7 +196,7 @@ public class Rule implements Command {
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
 						// Generate replacement
-						Sequence replacement = getReplacementSequence(target, variableMap, indexMap);
+						Sequence replacement = getReplacementSequence(removed, target, variableMap, indexMap);
 						noMatch = false;
 						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
@@ -252,6 +251,8 @@ public class Rule implements Command {
 
 	/**
 	 * Generates an appropriate sequence by filling in backreferences based on the provided maps.
+	 *
+	 * @param source
 	 * @param target the "target" pattern; provides a template of indexed variables and backreferences to be filled in
 	 * @param variableMap Tracks the order of variables used in the "source" pattern; i.e. the 2nd variable in the source
 	 *                    pattern is referenced via {@code $2}. Unlike standard regular expressions, all variables are
@@ -261,7 +262,7 @@ public class Rule implements Command {
 	 *                 between source and target symbols when using backreferences and indexed variables
 	 * @return a Sequence object with variables and references filled in according to the provided maps
 	 */
-	private Sequence getReplacementSequence(Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap) {
+	private Sequence getReplacementSequence(Sequence source, Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap) {
 		int variableIndex = 1;
 		Sequence replacement = factory.getNewSequence();
 		// Step through the target pattern
@@ -292,9 +293,23 @@ public class Rule implements Command {
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
 				variableIndex++;
+			} else if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE)) {
+				// Underspecified
+				List<Double> features = new ArrayList<Double>(source.get(i).getFeatures());
+//				Segment oldSegment = new Segment(source.get(i));
+//				List<Double> features = oldSegment.getFeatures();
+				for (int j = 0; j < features.size(); j++) {
+					double value = segment.getFeatureValue(j);
+					if (!FeatureModel.MASKING_VALUE.equals(value)) {
+						features.set(j, value);
+					}
+				}
+				String symbol = factory.getFeatureModel().getBestSymbol(features);
+				replacement.add(new Segment(symbol, features, factory.getFeatureModel()));
 			} else if (!segment.getSymbol().equals("0")) {
 				replacement.add(segment);
 			}
+			// Else: it's zero, do nothing
 		}
 		return replacement;
 	}
@@ -322,7 +337,6 @@ public class Rule implements Command {
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transformation);
 			} else {
-
 				String sourceString = WHITESPACE_PATTERN.matcher(array[0]).replaceAll(" ");
 				String targetString = WHITESPACE_PATTERN.matcher(array[1]).replaceAll(" ");
 
@@ -330,17 +344,34 @@ public class Rule implements Command {
 				List<String> sourceList = parseToList(sourceString);
 				List<String> targetList = parseToList(targetString);
 
+				// fill in target for cases like "a b c > d"
 				balanceTransform(sourceList, targetList);
 
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
 					Sequence source = factory.getSequence(sourceList.get(i));
 					Sequence target = factory.getSequence(targetList.get(i));
+					validateTransform(source, target);
 					transform.put(source, target);
 				}
 			}
 		} else {
-			throw new RuleFormatException("Rule missing \">\" sign! " + ruleText);
+			throw new RuleFormatException("Missing \">\" sign! in rule " + ruleText);
+		}
+	}
+
+	/**
+	 * Once converted to features, ensure that the rule's tranform is well-formed and has an appropriate structure
+	 */
+	private void validateTransform(Sequence source, Sequence target) {
+		int j = 0;
+		//TODO: add checks for backreferences
+		for (Segment segment : target) {
+			if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE) && source.size() <= j) {
+				throw new RuleFormatException("Unmatched underspecified segment " +
+						segment + " in target of rule " + ruleText);
+			}
+			j++;
 		}
 	}
 
@@ -367,16 +398,16 @@ public class Rule implements Command {
 
 	private static void balanceTransform(List<String> source, List<String> target) {
 		if (target.size() > source.size()) {
-			throw new RuleFormatException("Source/Target totalSize error! " + source + " < " + target);
-		}
-		if (target.size() < source.size()) {
+			throw new RuleFormatException("Target size cannot be greater than source size! " + source + " < " + target);
+		} else if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);
 				while (target.size() < source.size()) {
 					target.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Source/Target totalSize error! " + source + " > " + target + " and target totalSize is greater than 1!");
+				throw new RuleFormatException("Target and source sizes may only be uneven if target size is exactly 1! " +
+						source + " > " + target);
 			}
 		}
 	}

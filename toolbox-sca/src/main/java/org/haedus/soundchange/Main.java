@@ -16,8 +16,8 @@ package org.haedus.soundchange;
 
 import org.apache.commons.io.FileUtils;
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.Lexicon;
 import org.haedus.exceptions.ParseException;
+import org.haedus.phonetic.Lexicon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

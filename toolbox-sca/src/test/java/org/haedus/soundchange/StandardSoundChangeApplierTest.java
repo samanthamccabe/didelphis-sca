@@ -15,11 +15,11 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.Lexicon;
-import org.haedus.phonetic.SequenceFactory;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
 import org.haedus.io.MockFileHandler;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
