@@ -69,10 +69,8 @@ public class Rule implements Command {
 		populateConditions();
 	}
 
-	@Deprecated
-		// Visible for testing
-	Rule(String rule, SequenceFactory factoryParam) {
-		this(rule, new LexiconMap(), factoryParam);
+	public Rule(String rule, SequenceFactory factoryParam) {
+		this(rule, null, factoryParam);
 	}
 
 	@Override

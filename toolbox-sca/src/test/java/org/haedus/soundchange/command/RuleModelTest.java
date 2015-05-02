@@ -58,6 +58,28 @@ public class RuleModelTest {
 		testRule(rule, "a", "i");
 	}
 
+	@Test
+	public void testFeatureTransform02() {
+		Rule rule = new Rule("[son:0, rel:1 glt:-3] > [rel:2]", FACTORY);
+		testRule(rule, "t", "ts");
+		testRule(rule, "p", "pɸ");
+		testRule(rule, "tʰ", "tsʰ");
+
+		testRule(rule, "s", "s");
+		testRule(rule, "d", "d");
+	}
+
+	@Test
+	public void testFeatureTransform03() {
+		Rule rule = new Rule("[son:0, glt:0] > [glt:-3] / _[son:0, glt:-3]", FACTORY);
+		testRule(rule, "dt", "tt");
+		testRule(rule, "bt", "pt");
+
+		testRule(rule, "dd", "dd");
+		testRule(rule, "ad", "ad");
+		testRule(rule, "at", "at");
+	}
+
 //	@Test
 //	public void testFeaturesIndexing01() {
 //		Rule rule = new Rule("c[son:3, glt:0] > $1k", FACTORY);
