@@ -293,11 +293,9 @@ public class Rule implements Command {
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
 				variableIndex++;
-			} else if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE)) {
+			} else if (segment.isUnderspecified()) {
 				// Underspecified
 				List<Double> features = new ArrayList<Double>(source.get(i).getFeatures());
-//				Segment oldSegment = new Segment(source.get(i));
-//				List<Double> features = oldSegment.getFeatures();
 				for (int j = 0; j < features.size(); j++) {
 					double value = segment.getFeatureValue(j);
 					if (!FeatureModel.MASKING_VALUE.equals(value)) {

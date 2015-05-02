@@ -111,9 +111,9 @@ public class Segment implements ModelBearer {
 		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;
-		return features.equals(other.features) &&
-				model.equals(other.getModel()) ||
-				features.isEmpty() && symbol.equals(other.getSymbol());
+		 return model.equals(other.model) &&
+			 features.equals(other.features) &&
+			 symbol.equals(other.symbol);
 	}
 
 	@Override
@@ -153,6 +153,10 @@ public class Segment implements ModelBearer {
 
 	public void setFeatureValue(int index, double value) {
 		features.set(index, value);
+	}
+
+	public boolean isUnderspecified() {
+		return features.contains(FeatureModel.MASKING_VALUE);
 	}
 
 	private void validateModelOrFail(ModelBearer that) {

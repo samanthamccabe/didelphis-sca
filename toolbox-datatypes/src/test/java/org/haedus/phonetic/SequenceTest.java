@@ -125,11 +125,11 @@ public class SequenceTest {
 	}
 
 	private static void assertMatches(Sequence left, Sequence right) {
-		assertTrue(left + " does not match " + right, left.matches(right));
+		assertTrue("\'"+left + "\' does not match " + right, left.matches(right));
 	}
 
 	private static void assertNotMatches(Sequence left, Sequence right) {
-		assertFalse(left + " should not match " + right, left.matches(right));
+		assertFalse("\'"+left + "\' should not match " + right, left.matches(right));
 	}
 
 	@Test

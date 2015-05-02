@@ -53,10 +53,16 @@ public class RuleModelTest {
 	}
 
 	@Test
-	public void testFeatureTransform() {
+	public void testFeatureTransform01() {
 		Rule rule = new Rule("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1, +atr]", FACTORY);
 		testRule(rule, "a", "i");
 	}
+
+//	@Test
+//	public void testFeaturesIndexing01() {
+//		Rule rule = new Rule("c[son:3, glt:0] > $1k", FACTORY);
+//		testRule(rule, "ca", "ak");
+//	}
 
 	@Test
 	public void testMetathesis01() {
