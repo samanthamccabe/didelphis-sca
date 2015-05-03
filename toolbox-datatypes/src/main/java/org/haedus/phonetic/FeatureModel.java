@@ -206,7 +206,7 @@ public class FeatureModel {
 			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
 				double b = r.getFeatureValue(j);
-				score += Math.abs(a - b) * weightTable.get(i, j);
+				score += Math.abs(getDifference(a,b)) * weightTable.get(i, j);
 			}
 		}
 		return score;
@@ -218,7 +218,7 @@ public class FeatureModel {
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
 			double a = l.getFeatureValue(i);
 			double b = r.getFeatureValue(i);
-			score += Math.abs(a - b);
+			score += Math.abs(getDifference(a,b));
 		}
 		return score;
 	}
