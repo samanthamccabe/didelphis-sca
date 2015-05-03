@@ -186,6 +186,11 @@ public class Rule implements Command {
 						}
 					}
 
+					// This is checked second for a good reason: it may not be possible to know in advance what is the
+					// length of the matching initial until it's been evaluated, esp. in the case of a variable whose
+					// elements are allowed to have a length greater than 1. This is allowed because it is possible, or
+					// even likely, that a language might have a set of multi-segment clusters which still pattern
+					// together, or which are part of conditioning environments.
 					if (testIndex >= 0 && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
 						// TODO: somewhere here we need to handle feature modification
@@ -250,10 +255,10 @@ public class Rule implements Command {
 	 *
 	 * @param source
 	 * @param target the "target" pattern; provides a template of indexed variables and backreferences to be filled in
-	 * @param variableMap Tracks the order of variables used in the "source" pattern; i.e. the 2nd variable in the source
+	 * @param variableMap Tracks the order of variables in the "source" pattern; i.e. the 2nd variable in the source
 	 *                    pattern is referenced via {@code $2}. Unlike standard regular expressions, all variables are
 	 *                    tracked, rather than tracking explicit groups
-	 * @param indexMap tracks which variable values are matched by the "source" pattern; a value of (2 -> 4) would
+	 * @param indexMap tracks which variable values are matched by the "source" pattern; an entry (2 -> 4) would
 	 *                 indicate that the source matched the 4th value of the 2nd variable. This permits proper mapping
 	 *                 between source and target symbols when using backreferences and indexed variables
 	 * @return a Sequence object with variables and references filled in according to the provided maps
@@ -344,7 +349,7 @@ public class Rule implements Command {
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
 					Sequence source = factory.getSequence(sourceList.get(i));
-					Sequence target = factory.getSequence(targetList.get(i));
+						Sequence target = factory.getSequence(targetList.get(i));
 					validateTransform(source, target);
 					transform.put(source, target);
 				}
