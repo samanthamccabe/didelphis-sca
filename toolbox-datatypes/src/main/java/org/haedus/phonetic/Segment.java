@@ -62,6 +62,23 @@ public class Segment implements ModelBearer {
 	}
 
 	/**
+	 * Combines the two segments, applying all fully specified features from the other segement onto this one
+	 * @param other an underspecified segment from which to take changes
+	 * @return a new segment based on this one, with modifications from the other
+	 */
+	public Segment alter(Segment other) {
+		List<Double> otherFeatures = new ArrayList<Double>(getFeatures());
+		for (int j = 0; j < otherFeatures.size(); j++) {
+			double value = other.getFeatureValue(j);
+			if (!FeatureModel.MASKING_VALUE.equals(value)) {
+				otherFeatures.set(j, value);
+			}
+		}
+		String newSymbol = model.getBestSymbol(otherFeatures);
+		return new Segment(newSymbol, otherFeatures, model);
+	}
+
+	/**
 	 * Determines if a segment is consistent with this segment.
 	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
 	 *

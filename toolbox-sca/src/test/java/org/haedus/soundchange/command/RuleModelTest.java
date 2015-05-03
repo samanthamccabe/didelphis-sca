@@ -80,11 +80,11 @@ public class RuleModelTest {
 		testRule(rule, "at", "at");
 	}
 
-//	@Test
-//	public void testFeaturesIndexing01() {
-//		Rule rule = new Rule("c[son:3, glt:0] > $1k", FACTORY);
-//		testRule(rule, "ca", "ak");
-//	}
+	@Test
+	public void testFeaturesIndexing01() {
+		Rule rule = new Rule("c[son:3, glt:0] > $1k", FACTORY);
+		testRule(rule, "ca", "ak");
+	}
 
 	@Test
 	public void testMetathesis01() {

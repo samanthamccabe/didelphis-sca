@@ -177,9 +177,18 @@ public class Rule implements Command {
 									elementMatches = true;
 								}
 							}
+							// If none of the variable elements match, fail 
 							if (!elementMatches) {
 								testIndex = -1;
 							}
+						} else if (segment.isUnderspecified()) {
+							// theoretically, this excludes fully specified features, but then
+							// why would use use bracket notation for that? just use the symbol
+							
+							indexMap.put(referenceIndex, -1); // use -1 because there are no elements here
+							variableMap.put(referenceIndex, segment.getSymbol());
+							// Otherwise it's the same as a literal
+							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
 						} else {
 							// It's a literal
 							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
@@ -279,33 +288,42 @@ public class Rule implements Command {
 				int reference = Integer.valueOf(digits);
 				int integer = indexMap.get(reference);
 
-				String variable;
-				if (symbol.isEmpty()) {
-					variable = variableMap.get(reference);
+				Sequence sequence;
+				if ( integer == -1) {
+					// -1 means it was an underspecified feature
+					
+					if (symbol.isEmpty()) {
+						// add the captured segment
+						sequence = factory.getNewSequence();
+//						source.get(i).alter(segment);
+					} else {
+						sequence = factory.getNewSequence();
+//						newSequence.add();
+					}
+					
 				} else {
-					variable = symbol;
+					String variable;
+					if (symbol.isEmpty()) {
+						variable = variableMap.get(reference);
+					} else {
+						variable = symbol;
+					}
+					sequence = factory.getVariableValues(variable).get(integer);
 				}
-
-				Sequence sequence = factory.getVariableValues(variable).get(integer);
 				replacement.add(sequence);
+				
 			} else if (factory.hasVariable(segment.getSymbol())) {
+				// Allows C > G transformations, where C and G have the same number of elements
 				List<Sequence> elements = factory.getVariableValues(segment.getSymbol());
 				Integer anIndex = indexMap.get(variableIndex);
 				Sequence sequence = elements.get(anIndex);
 				replacement.add(sequence);
 				variableIndex++;
 			} else if (segment.isUnderspecified()) {
-				// Underspecified
-				List<Double> features = new ArrayList<Double>(source.get(i).getFeatures());
-				for (int j = 0; j < features.size(); j++) {
-					double value = segment.getFeatureValue(j);
-					if (!FeatureModel.MASKING_VALUE.equals(value)) {
-						features.set(j, value);
-					}
-				}
-				String symbol = factory.getFeatureModel().getBestSymbol(features);
-				replacement.add(new Segment(symbol, features, factory.getFeatureModel()));
+				// Underspecified - overwrite the feature
+				replacement.add(source.get(i).alter(segment));
 			} else if (!segment.getSymbol().equals("0")) {
+				// Normal segment and not 0
 				replacement.add(segment);
 			}
 			// Else: it's zero, do nothing
