@@ -67,6 +67,7 @@ public class Segment implements ModelBearer {
 	 * @return a new segment based on this one, with modifications from the other
 	 */
 	public Segment alter(Segment other) {
+		validateModelOrFail(other);
 		List<Double> otherFeatures = new ArrayList<Double>(getFeatures());
 		for (int j = 0; j < otherFeatures.size(); j++) {
 			double value = other.getFeatureValue(j);

@@ -152,8 +152,10 @@ public class Rule implements Command {
 
 				if (index < output.size()) {
 
-					Map<Integer, Integer> indexMap    = new HashMap<Integer, Integer>();
-					Map<Integer, String>  variableMap = new HashMap<Integer, String>();
+					// These map from reference index ($) to:
+					Map<Integer, Integer>  indexMap     = new HashMap<Integer, Integer>(); // index of the matching variable element
+					Map<Integer, String>   variableMap  = new HashMap<Integer, String>();  // the matched variable / segment string
+					Map<Integer, Sequence> sequenceMap  = new HashMap<Integer, Sequence>(); // the actual input that was matched
 
 					// Step through the source pattern
 					int testIndex = index;
@@ -171,7 +173,7 @@ public class Rule implements Command {
 								if (subSequence.startsWith(element)) {
 									indexMap.put(referenceIndex, k);
 									variableMap.put(referenceIndex, segment.getSymbol());
-
+									sequenceMap.put(referenceIndex, element);
 									referenceIndex++;
 									testIndex += element.size();
 									elementMatches = true;
@@ -184,11 +186,17 @@ public class Rule implements Command {
 						} else if (segment.isUnderspecified()) {
 							// theoretically, this excludes fully specified features, but then
 							// why would use use bracket notation for that? just use the symbol
-							
-							indexMap.put(referenceIndex, -1); // use -1 because there are no elements here
-							variableMap.put(referenceIndex, segment.getSymbol());
+
 							// Otherwise it's the same as a literal
-							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
+//							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
+							if (subSequence.startsWith(segment)) {
+								indexMap.put(referenceIndex, -1); // use -1 because there are no elements here
+								variableMap.put(referenceIndex, segment.getSymbol());
+								sequenceMap.put(referenceIndex, subSequence.getSubsequence(0, 1));
+								testIndex++;
+							} else {
+								testIndex = -1;
+							}
 						} else {
 							// It's a literal
 							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
@@ -206,7 +214,7 @@ public class Rule implements Command {
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
 						// Generate replacement
-						Sequence replacement = getReplacementSequence(removed, target, variableMap, indexMap);
+						Sequence replacement = getReplacementSequence(removed, target, variableMap, indexMap, sequenceMap);
 						noMatch = false;
 						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
@@ -270,9 +278,10 @@ public class Rule implements Command {
 	 * @param indexMap tracks which variable values are matched by the "source" pattern; an entry (2 -> 4) would
 	 *                 indicate that the source matched the 4th value of the 2nd variable. This permits proper mapping
 	 *                 between source and target symbols when using backreferences and indexed variables
+	 * @param sequenceMap
 	 * @return a Sequence object with variables and references filled in according to the provided maps
 	 */
-	private Sequence getReplacementSequence(Sequence source, Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap) {
+	private Sequence getReplacementSequence(Sequence source, Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap, Map<Integer, Sequence> sequenceMap) {
 		int variableIndex = 1;
 		Sequence replacement = factory.getNewSequence();
 		// Step through the target pattern
@@ -291,14 +300,21 @@ public class Rule implements Command {
 				Sequence sequence;
 				if ( integer == -1) {
 					// -1 means it was an underspecified feature
-					
+					// but we need to know what was matched
 					if (symbol.isEmpty()) {
+						sequence = factory.getNewSequence();
+
 						// add the captured segment
-						sequence = factory.getNewSequence();
-//						source.get(i).alter(segment);
+						Segment captured = sequenceMap.get(reference).get(0);
+//						Segment altered = captured.alter(factory.getSegment(symbol));
+						sequence.add(captured);
 					} else {
-						sequence = factory.getNewSequence();
-//						newSequence.add();
+						throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
+//						sequence = factory.getNewSequence();
+//						// length should be guaranteed to be 1
+//						Segment captured = sequenceMap.get(reference).get(0);
+//						Segment altered = captured.alter(factory.getSegment(symbol));
+//						sequence.add(altered);
 					}
 					
 				} else {
@@ -353,6 +369,8 @@ public class Rule implements Command {
 
 			if (array.length <= 1) {
 				throw new RuleFormatException("Malformed transformation! " + transformation);
+			} else if (transformation.contains("$[")) {
+				throw new RuleFormatException("Malformed transformation! use of indexing with $[] is not permitted! " + transformation);
 			} else {
 				String sourceString = WHITESPACE_PATTERN.matcher(array[0]).replaceAll(" ");
 				String targetString = WHITESPACE_PATTERN.matcher(array[1]).replaceAll(" ");
@@ -367,7 +385,7 @@ public class Rule implements Command {
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
 					Sequence source = factory.getSequence(sourceList.get(i));
-						Sequence target = factory.getSequence(targetList.get(i));
+					Sequence target = factory.getSequence(targetList.get(i));
 					validateTransform(source, target);
 					transform.put(source, target);
 				}

@@ -86,6 +86,12 @@ public class RuleModelTest {
 		testRule(rule, "ca", "ak");
 	}
 
+	@Test(expected = RuleFormatException.class)
+	public void testFeaturesIndexing02() {
+		Rule rule = new Rule("c[son:3, glt:0] > $[hgt:1]1k", FACTORY);
+		testRule(rule, "ca", "ɪk");
+	}
+
 	@Test
 	public void testMetathesis01() {
 		VariableStore store = new VariableStore();
