@@ -158,8 +158,7 @@ public class Rule implements Command {
 					// Step through the source pattern
 					int testIndex = index;
 					int referenceIndex = 1;
-					boolean match = true;
-					for (int i = 0; i < source.size() && match; i++) {
+					for (int i = 0; i < source.size() && testIndex >= 0; i++) {
 						Sequence subSequence = output.getSubsequence(testIndex);
 						Segment segment = source.get(i);
 
@@ -178,17 +177,16 @@ public class Rule implements Command {
 									elementMatches = true;
 								}
 							}
-							match = elementMatches;
+							if (!elementMatches) {
+								testIndex = -1;
+							}
 						} else {
 							// It's a literal
-							match = subSequence.startsWith(segment);
-							if (match) {
-								testIndex++;
-							}
+							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
 						}
 					}
 
-					if (match && conditionsMatch(output, startIndex, testIndex)) {
+					if (testIndex >= 0 && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
 						// TODO: somewhere here we need to handle feature modification
 						// Now at this point, if everything worked, we can
