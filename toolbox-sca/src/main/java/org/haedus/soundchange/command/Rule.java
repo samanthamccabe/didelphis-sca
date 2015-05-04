@@ -144,7 +144,7 @@ public class Rule implements Command {
 		// Step through the word to see if the rule might apply, i.e. if the source pattern can be found
 		for (int index = 0; index < output.size(); ) {
 			int startIndex = index;
-			boolean noMatch = true;
+			boolean match = false;
 			// Check each source pattern
 			for (Map.Entry<Sequence, Sequence> entry : transform.entrySet()) {
 				Sequence source = entry.getKey();
@@ -188,7 +188,6 @@ public class Rule implements Command {
 							// why would use use bracket notation for that? just use the symbol
 
 							// Otherwise it's the same as a literal
-//							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
 							if (subSequence.startsWith(segment)) {
 								indexMap.put(referenceIndex, -1); // use -1 because there are no elements here
 								variableMap.put(referenceIndex, segment.getSymbol());
@@ -210,12 +209,10 @@ public class Rule implements Command {
 					// together, or which are part of conditioning environments.
 					if (testIndex >= 0 && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
-						// TODO: somewhere here we need to handle feature modification
 						// Now at this point, if everything worked, we can
 						Sequence removed = output.remove(startIndex, index);
-						// Generate replacement
 						Sequence replacement = getReplacementSequence(removed, target, variableMap, indexMap, sequenceMap);
-						noMatch = false;
+						match = true;
 						if (!replacement.isEmpty()) {
 							output.insert(replacement, startIndex);
 						}
@@ -224,7 +221,7 @@ public class Rule implements Command {
 					}
 				}
 			}
-			if (noMatch) {
+			if (!match) {
 				index++;
 			}
 		}
@@ -306,7 +303,6 @@ public class Rule implements Command {
 
 						// add the captured segment
 						Segment captured = sequenceMap.get(reference).get(0);
-//						Segment altered = captured.alter(factory.getSegment(symbol));
 						sequence.add(captured);
 					} else {
 						throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
