@@ -241,12 +241,6 @@ public class FeatureModel {
 		} else {
 			return new ArrayList<Double>(blankArray);
 		}
-//		} else if (getNumberOfFeatures() == 0) {
-//			return new ArrayList<Double>();
-//		} else {
-//			LOGGER.error("Unable to find " + key + "  in model.");
-//			return null;
-//		}
 	}
 
 	public Table<Double> getWeights() {
@@ -286,11 +280,6 @@ public class FeatureModel {
 				}
 			}
 		}
-//		if (featureArray == null ) {
-//			return new Segment(sb.toString(), new ArrayList<Double>(blankArray), this);
-//		} else {
-//			return new Segment(sb.toString(), featureArray, this);
-//		}
 		return new Segment(sb.toString(), featureArray, this);
 	}
 
