@@ -18,7 +18,6 @@ package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.utils.graph.GraphBuilder;

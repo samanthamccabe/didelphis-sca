@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -111,8 +110,9 @@ public class FeatureModelTest {
 		double b = model.computeScore(left, left);
 		double c = model.computeScore(right, right);
 
-		testNaN(b);
-		testNaN(c);
+		assertTrue(0.0 == b);
+		assertTrue(0.0 == c);
+
 
 		LOGGER.info("diff({},{}) = {}", left, right,a );
 	}
@@ -121,7 +121,9 @@ public class FeatureModelTest {
 	public void testScoreSame() {
 		Segment left  = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
 		Segment right = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
-		testNaN(model.computeScore(left, right));
+//		assertEquals(0.0, model.computeScore(left, right));
+		assertTrue(0.0 == model.computeScore(left, right));
+//		testNaN(model.computeScore(left, right));
 	}
 
 	private static void testNaN(double v) {

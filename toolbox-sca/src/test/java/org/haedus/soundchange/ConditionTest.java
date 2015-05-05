@@ -20,7 +20,6 @@ import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
 import org.haedus.soundchange.exceptions.RuleFormatException;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;

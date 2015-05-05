@@ -19,22 +19,17 @@
 
 package org.haedus.phonetic;
 
-import org.apache.commons.io.FileUtils;
 import org.haedus.exceptions.ParseException;
-import org.haedus.tables.RectangularTable;
 import org.haedus.tables.SymmetricTable;
 import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +47,6 @@ public class FeatureModel {
 
 	public static final Double UNDEFINED_VALUE = Double.NaN;
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
-
 
 	private static final Pattern VALUE_PATTERN    = Pattern.compile("(\\S+):(-?\\d)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern BINARY_PATTERN   = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
@@ -212,7 +206,7 @@ public class FeatureModel {
 			double a = l.getFeatureValue(i);
 			for (int j = 0; j < n; j++) {
 				double b = r.getFeatureValue(j);
-				score += Math.abs(a - b) * weightTable.get(i, j);
+				score += Math.abs(getDifference(a,b)) * weightTable.get(i, j);
 			}
 		}
 		return score;
@@ -224,7 +218,7 @@ public class FeatureModel {
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
 			double a = l.getFeatureValue(i);
 			double b = r.getFeatureValue(i);
-			score += Math.abs(a - b);
+			score += Math.abs(getDifference(a,b));
 		}
 		return score;
 	}
@@ -247,12 +241,6 @@ public class FeatureModel {
 		} else {
 			return new ArrayList<Double>(blankArray);
 		}
-//		} else if (getNumberOfFeatures() == 0) {
-//			return new ArrayList<Double>();
-//		} else {
-//			LOGGER.error("Unable to find " + key + "  in model.");
-//			return null;
-//		}
 	}
 
 	public Table<Double> getWeights() {
@@ -292,11 +280,6 @@ public class FeatureModel {
 				}
 			}
 		}
-//		if (featureArray == null ) {
-//			return new Segment(sb.toString(), new ArrayList<Double>(blankArray), this);
-//		} else {
-//			return new Segment(sb.toString(), featureArray, this);
-//		}
 		return new Segment(sb.toString(), featureArray, this);
 	}
 

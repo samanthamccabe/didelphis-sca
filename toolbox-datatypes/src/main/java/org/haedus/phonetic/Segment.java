@@ -62,6 +62,24 @@ public class Segment implements ModelBearer {
 	}
 
 	/**
+	 * Combines the two segments, applying all fully specified features from the other segement onto this one
+	 * @param other an underspecified segment from which to take changes
+	 * @return a new segment based on this one, with modifications from the other
+	 */
+	public Segment alter(Segment other) {
+		validateModelOrFail(other);
+		List<Double> otherFeatures = new ArrayList<Double>(getFeatures());
+		for (int j = 0; j < otherFeatures.size(); j++) {
+			double value = other.getFeatureValue(j);
+			if (!FeatureModel.MASKING_VALUE.equals(value)) {
+				otherFeatures.set(j, value);
+			}
+		}
+		String newSymbol = model.getBestSymbol(otherFeatures);
+		return new Segment(newSymbol, otherFeatures, model);
+	}
+
+	/**
 	 * Determines if a segment is consistent with this segment.
 	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
 	 *
@@ -111,9 +129,9 @@ public class Segment implements ModelBearer {
 		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;
-		return symbol.equals(other.getSymbol()) &&
-			features.equals(other.features)
-			&& model.equals(other.getModel());
+		 return model.equals(other.model) &&
+			 features.equals(other.features) &&
+			 symbol.equals(other.symbol);
 	}
 
 	@Override
@@ -149,6 +167,14 @@ public class Segment implements ModelBearer {
 			sb.append(' ');
 		}
 		return sb.toString();
+	}
+
+	public void setFeatureValue(int index, double value) {
+		features.set(index, value);
+	}
+
+	public boolean isUnderspecified() {
+		return features.contains(FeatureModel.MASKING_VALUE);
 	}
 
 	private void validateModelOrFail(ModelBearer that) {

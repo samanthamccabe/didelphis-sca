@@ -4,13 +4,6 @@ Manual now available as PDF
 
 Changelog:
 
-Version 0.2.0
-* Added support for . (dot) metacharacter in regular expression language
-* Partial support for ! (negative) operator in regular expression language
-* Added ability to use feature vales in rule transformations and conditions
-* Changed implementation of state machines
-* Improved behavior of phonetic feature code
-
 Version 0.1.0 (First Official Release)
 * Allow user to change segmentation and normalization modes
 * Added support for scripting language (IMPORT, EXECUTE commands)

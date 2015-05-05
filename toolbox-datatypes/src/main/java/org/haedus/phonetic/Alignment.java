@@ -21,6 +21,7 @@ package org.haedus.phonetic;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -28,22 +29,29 @@ import java.util.Iterator;
  */
 public class Alignment implements ModelBearer, Iterable<Alignment> {
 
-	private final FeatureModel featureModel;
-	private final Sequence     left;
-	private final Sequence     right;
+	private final FeatureModel   featureModel;
+	private final List<Sequence> left;
+	private final List<Sequence> right;
+	
 	private double score = Double.NaN;
 
 	public Alignment(FeatureModel modelParam) {
 		featureModel = modelParam;
-		left  = new Sequence(modelParam);
-		right = new Sequence(modelParam);
+		left = new ArrayList<Sequence>();
+		right = new ArrayList<Sequence>();
+	}
+
+	public Alignment(List<Sequence> leftParam, List<Sequence> rightParam) {
+		this(leftParam.get(0).getModel());
+		left.addAll(leftParam);
+		right.addAll(rightParam);
 	}
 
 	public Alignment(Sequence l, Sequence r) {
+		this(l.getModel());
 		modelConsistencyCheck(l, r);
-		left = l;
-		right = r;
-		featureModel = l.getModel();
+		left.add(l);
+		right.add(r);
 	}
 
 	public Alignment(Segment l, Segment r) {
@@ -51,21 +59,26 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 	}
 
 	public Alignment(Alignment alignment) {
-		left = new Sequence(alignment.getLeft());
-		right = new Sequence(alignment.getRight());
-		featureModel = alignment.getModel();
+		this(alignment.getModel());
+		left.addAll(alignment.getLeft());
+		right.addAll(alignment.getRight());
 	}
 
 	public void add(Segment l, Segment r) {
 		modelConsistencyCheck(l, r);
+		left.add(new Sequence(l));
+		right.add(new Sequence(r));
+	}
+	
+	public void add(Sequence l, Sequence r) {
 		left.add(l);
 		right.add(r);
 	}
 
 	public void add(Alignment a) {
 		validateModelOrFail(a);
-		left.add(a.getLeft());
-		right.add(a.getRight());
+		left.addAll(a.getLeft());
+		right.addAll(a.getRight());
 	}
 
 	public int size() {
@@ -74,39 +87,61 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 
 	@Override
 	public String toString() {
-		return left + "|" + right;
-    }
+		StringBuilder sb = new StringBuilder();
 
-    public Alignment get(int i) {
-        Sequence l = left.getSubsequence(i, i + 1);
-        Sequence r = right.getSubsequence(i, i + 1);
-        return new Alignment(l,r);
-    }
+		Iterator<Sequence> l = left.iterator();
+		while (l.hasNext()) {
+			sb.append(l.next());
+			if (l.hasNext()) {
+				sb.append(' ');
+			}
+		}
+		sb.append('\t');
+		Iterator<Sequence> r = right.iterator();
+		while (r.hasNext()) {
+			sb.append(r.next());
+			if (r.hasNext()) {
+				sb.append(' ');
+			}
+		}
+		return sb.toString();
+	}
 
-    public Alignment getLast() {
-        return get(size()-1);
+	public Alignment get(int i) {
+		List<Sequence> l = left.subList(i, i + 1);
+		List<Sequence> r = right.subList(i, i + 1);
+		return new Alignment(l, r);
+	}
+
+	public Alignment getLast() {
+		return get(size()-1);
     }
 
     public void setScore(double scoreParam) {
         score = scoreParam;
     }
 
+	public double getScore() {
+		return score;
+	}
+
 	@Override
     public boolean equals(Object obj) {
+		if (obj == this)                 { return true;  }
         if (obj == null)                 { return false; }
 		if (!(obj instanceof Alignment)) { return false; }
 
 		Alignment alignment = (Alignment) obj;
 
-		return alignment.getLeft().equals(left) &&
-		       alignment.getRight().equals(right);
+		return left.equals(alignment.left) &&
+			right.equals(alignment.right);
 	}
 
-    public Sequence getLeft() {
+    public List<Sequence> getLeft() {
         return left;
     }
 
-    public Sequence getRight() {
+    public List<Sequence> getRight() {
         return right;
     }
 
