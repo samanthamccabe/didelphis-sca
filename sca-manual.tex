@@ -1,0 +1,193 @@
+\documentclass[10pt,letterpaper]{article}
+%\usepackage[utf8]{inputenc}
+\usepackage{xunicode}
+\usepackage{fontspec}
+\usepackage{verbatim}
+\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
+%\usepackage{enumitem}
+%\setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+
+\newcounter{vexcounter}
+\newenvironment{vex}[1]{
+	\refstepcounter{vexcounter}
+	\noindent\emph{Ex.} (\arabic{vexcounter}\label{#1})
+	\verbatim
+}{
+	\endverbatim
+}
+
+\title{Haedus Toolbox SCA, Manual}
+\author{Samantha Fiona Morrígan McCabe}
+
+\setmainfont[Ligatures=Common]{Linux Libertine O}
+\setsansfont{Linux Biolinum O}
+\setmonofont[Scale=0.8]{DejaVu Sans Mono}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+\section{Setup and Execution}\label{sec:setup}
+
+\subsection{Java Runtime Environment}\label{sec:java}
+
+\subsection{Running the Sound-Change Applier}\label{sec:running}
+
+\section{Rule Scripts}\label{sec:scripts}
+The sound change applier is controlled using script files which contain transformation rules and other commands. The commands are executed consequitively from start to end.
+
+\subsection{Reserving Characters}\label{sec:reserving}
+
+\subsection{Defining Variables}\label{sec:definingvariables}
+
+\subsection{Writing Rules}\label{sec:writingrules}
+
+\subsection{Scripting}\label{sec:scripting}
+
+\subsection{Back-Reference and Indices}\label{sec:indices}
+
+\subsection{Using Phonetic Features}\label{sec:usingfeatures}
+
+\section{Scripts \& Syntax}\label{sec:syntax}
+The following section describes every command supported by the SCA, in both basic and advanced modes, and general rules of syntax applicable across commands. It attempts to be as detailed as possible with informative examples and, where applicable, provides notes on implementation.
+
+Scripts and lexicons are, by default, read in as UTF-8; it is not currently possible to change this. One substantial difference between this SCA and others is that these rule files are \emph{compiled} rather than merely interpreted; as script commands are read in, they are validated and parsed to objects in memory. This has several advantages, namely that because compilation happens once, rules are not repeatedly re-interpreted for each word; it also allows that errors can be caught immediately at compile time, rather than at runtime.
+
+%In this rule language, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples.
+
+%While whitespace is used to separate items in lists, padding around operators and delimiters is optional. As elsewhere the quantity is not important.
+
+Script files may contain comments, starting with \texttt{\%}, and may be placed at the start of a line, or in-line; in either case, anything to the right of the comment symbol is ignored.
+
+The following characters have special meanings in the SCA script language and should only be used in the contexts they are expected:
+
+\begin{vex}{ex:reserved}
+# $ % * ? + ! ( ) { } [ ] 0 . = _ / >
+\end{vex}
+\noindent
+This restriction applies primarily to rules (see section \ref{sec:rules}). If a section indicates that a symbol on this list is allowed, then it is allowed in that context but should be avoided in others.
+
+\subsection{Reading \& Writing Lexions}\label{sec:readingwriting}
+\emph{This functionality is not available in basic mode.} It allows lexicons to loaded from and written to disk, using the \texttt{open}, and \texttt{write} or \texttt{close} commands. Once a lexicon is in memory, any sound changes run in the script will be applied to all open lexicons.
+%
+To open a lexicon, use the \texttt{open} command in the following way:
+\\
+\begin{vex}{ex:open}
+open "language.lex" as LANGUAGE
+\end{vex}
+\noindent
+Lexicons are referenced by a file-handle, \texttt{LANGUAGE} in ex. \ref{ex:open}. The handle name must begin with a capital letter an must contain only capital letters, numbers, or the underscore.
+
+The difference between \texttt{write} and \texttt{close} is that the former will write the lexicon, in it's current state, to the specified location, but the handle will still be available and future changes will be applied; \texttt{close} will also write the lexicon to disk but remove the it from memory, making the file-handle unavailable. These commands have the same syntax, simply substituting \texttt{write} for \texttt{close} in the following:
+
+\begin{vex}{ex:close}
+close LANGUAGE as "new_language.lex"
+\end{vex}
+
+Lexicons are not automatically written closed when the script completes, so if you open lexicons and forget to close them, their changes will be lost.
+
+\subsection{Import \& Execute Commands}\label{sec:import}
+\emph{This functionality is not available in basic mode.} 
+It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert it's contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all the commands in the file immediately. The syntax is simple and is as follows:
+
+\begin{vex}{ex:commands}
+execute "other1.rule"
+import  "other2.rule"
+\end{vex}
+\noindent
+The key difference is that \texttt{execute} will run the script separately (reading and writing lexicons, applying rules, calling other resources, and so on) while \texttt{import} plqces the script into your current script so that any lexicons or variables specified in the other file will be usable in the current script.
+
+\subsection{Normalization \& Formatting}\label{sec:normalization}
+
+
+
+\subsection{Variables}\label{sec:variables}
+The SCA allows for the definition of variables (and re-definition) on-the-fly, anywhere in the script. Variables definitions consist of a label, the assignment operator \texttt{=} and a space-separated list of values. Representative example is shown below.
+
+\begin{vex}{ex:variables}
+TH = pʰ tʰ kʰ
+T  = p  t  k
+D  = b  d  g
+W  = w  y  ɰ
+N  = m  n
+C  = TH T D W N r s
+\end{vex}
+
+The definitions in example \ref{ex:variables} illustrate several things: using whitespace to align symbols into columns in a convenient and readable way, reasonably free variable label naming, and the use of variables in the definition of other variables.
+
+There are no formal restrictions placed on variable lablels, beyond requiring that they not use characters reserved by the SCA. You will notice here that both \texttt{TH} and \texttt{T} are defined. This is possible becayse when SCA parses a rule or variable definition, it searches for variables by finding the \emph{longest} matching label first. If you have variables \texttt{T}, \texttt{H}, and \texttt{TH}, a rule containing the string \texttt{TH} will always be understood by the SCA to represent the variable \texttt{TH}, and not \texttt{T} followed by \texttt{H}. The best way to avoid this situation is to name variable carefully.\footnote{Though I do not see this as a problem in need of a resoltion, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{sec:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
+
+It is possible to re-assign variables at any point in the script.This includes appending values to an existing variable in the following way:
+
+\begin{vex}{ex:variables2}
+C = C h
+\end{vex}
+
+% Using features instead; OR using variables as aliases for feature names
+
+\subsection{Rules}\label{sec:rules}
+Rules are the key functionality of any sound change applier software, allowing symbols within each item of a lexicon to be conditionally transformed in a uniform way.
+
+\subsection{Transformation}\label{sec:transformation}
+
+Either the left- and right-hand-sides of the transformation must contain the same number of elements, or the right must contain exactly one; if the right hand side contains a single segments, this signals the SCA to change each sequence of the left to the one on the right. This can be a useful way of representing mergers.
+
+\begin{vex}{ex:convergence}
+ɑ e o > a a a
+ɑ e o > a
+\end{vex}
+
+Note that in this case \texttt{ɑ e o > a a} will produce a compilation error.
+
+The right-hand side of the transformation is permitted to contain the literal zero \texttt{0} which represents a deleted segment.
+
+\subsection{Indices \& Backreferences}\label{sec:indices}
+The SCA permits the transform of commands to contain backreferences which can be very useful in writing commands for metathesis or total assimilation.For example, the commands
+
+\begin{vex}{ex:indices}
+C = p t k
+N = n m
+CN > $2$1
+\end{vex}
+\noindent
+allows us to easily represent metathesis, swapping \texttt{N} and \texttt{C} wherever \texttt{N} is found following \texttt{C}.
+
+When SCA parses a rule, it keeps track of each variable in the source part of the transform and knows in the above example, that \texttt{C}  is at index \texttt{1} and \texttt{N} is at index \texttt{2}. The target part of the transform lets us refer back to this using the \texttt{\$} symbol and the index of the variable we wish to refer to.
+
+We can actually go slightly further and use the indices on a \emph{different} variable, provided they have the same number of elements. In a slightl variation on the previous example, we can write
+
+\begin{verbatim}
+C = p t k
+G = b d g
+N = n m
+CN > $2$G1
+\end{verbatim}
+\noindent
+which does the same as the above, but also replaces any element of \texttt{C} with the corresponding element of \texttt{G}. So, if a word is \emph{atna}, the rule will change it to \emph{anda}.
+
+This can also be used for some kinds of assimilation and dissimilation, such as simplifying clusters of plosives by changing the second to be the same as the first:
+
+\begin{verbatim}
+C = p t k
+CC > $1$1
+\end{verbatim}
+\noindent
+This will change a word like \emph{akpa} to \emph{akka}; in this case, it is actually equivalent to write \texttt{CC > C\$1}
+
+
+\subsection{Conditions}\label{sec:conditions}
+
+\subsection{Expressions}\label{sec:expressions}
+Within rule conditions, it is possible to use regular expressions.
+
+\subsection{Phonetic Features}\label{sec:features}
+
+\section{Appendix}\label{sec:appendix}
+
+\subsection{Intelligent Segmentation}\label{sec:segmentation}
+
+\subsection{Recursive Nondeterministic Finite-State Automata}\label{sec:rndfa}
+
+\subsection{Multivalue Articulatory Feature-Model}\label{sec:mafm}
+\end{document}
