@@ -115,8 +115,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-		int index = k <= size() ? k : size();
-		return new Sequence(sequence.subList(i, index), featureModel);
+		return new Sequence(sequence.subList(i, k), featureModel);
 	}
 
 	public int indexOf(Segment target) {

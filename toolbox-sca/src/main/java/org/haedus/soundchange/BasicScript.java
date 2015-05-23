@@ -92,7 +92,7 @@ public class BasicScript extends AbstractScript {
 					);
 
 					commands.add(new Rule(command, lexicons, factory));
-				} else if (command.startsWith(RESERVE_STRING)) {
+				} else if (RESERVE.matcher(command).lookingAt()) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
 				} else if (command.startsWith("BREAK")) {
