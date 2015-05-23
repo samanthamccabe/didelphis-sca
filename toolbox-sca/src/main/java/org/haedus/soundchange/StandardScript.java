@@ -48,20 +48,23 @@ public class StandardScript extends AbstractScript {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
-	private static final String NORMALIZER = "NORMALIZER";
-	private static final String EXECUTE    = "EXECUTE";
-	private static final String IMPORT     = "IMPORT";
-	private static final String OPEN       = "OPEN";
-	private static final String WRITE      = "WRITE";
-	private static final String CLOSE      = "CLOSE";
 	private static final String FILEHANDLE = "([A-Z0-9_]+)";
 	private static final String FILEPATH   = "[\"\']([^\"\']+)[\"\']";
+	
+	private static final Pattern NORMALIZER = Pattern.compile("(NORMALIZE|normalize)");
+	private static final Pattern EXECUTE    = Pattern.compile("(EXECUTE|execute)");
+	private static final Pattern IMPORT     = Pattern.compile("(IMPORT|import)");
+	private static final Pattern OPEN       = Pattern.compile("(OPEN|open)");
+	private static final Pattern WRITE      = Pattern.compile("(WRITE|write)");
+	private static final Pattern CLOSE      = Pattern.compile("(CLOSE|close)");
+	private static final Pattern BREAK      = Pattern.compile("(BREAK|break)");
 
-	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER + ": *");
-	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE + "\\s+");
-	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT + "\\s+");
+	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern OPEN_PATTERN       = Pattern.compile(OPEN.pattern()  + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
+	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER.pattern() + ": *");
+	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE.pattern() + "\\s+");
+	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT.pattern() + "\\s+");
 	private static final Pattern QUOTES_PATTERN     = Pattern.compile("\"|\'");
 
 	private final FileHandler  fileHandler;
@@ -107,11 +110,11 @@ public class StandardScript extends AbstractScript {
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
-				if (command.startsWith(EXECUTE)) {
+				if (EXECUTE.matcher(command).lookingAt()) {
 					executeScript(command);
-				} else if (command.startsWith(IMPORT)) {
+				} else if (IMPORT.matcher(command).lookingAt()) {
 					importScript(command);
-				} else if (command.startsWith(OPEN)) {
+				} else if (OPEN.matcher(command).lookingAt()) {
 					SequenceFactory factory = new SequenceFactory(
 							featureModel,
 							new VariableStore(variables),         // Be sure to defensively copy
@@ -119,9 +122,9 @@ public class StandardScript extends AbstractScript {
 							formatterMode
 					);
 					openLexicon(command, factory);
-				} else if (command.startsWith(WRITE)) {
+				}else if (WRITE.matcher(command).lookingAt()) {
 					writeLexicon(command);
-				} else if (command.startsWith(CLOSE)) {
+				} else if (CLOSE.matcher(command).lookingAt()) {
 					closeLexicon(command);
 				} else if (command.contains("=")) {
 					variables.add(command);
@@ -135,12 +138,12 @@ public class StandardScript extends AbstractScript {
 							formatterMode
 					);
 					commands.add(new Rule(command, lexicons, factory));
-				} else if (command.startsWith(NORMALIZER)) {
+				} else if (NORMALIZER.matcher(command).lookingAt()) {
 					formatterMode = setNormalizer(command);
-				} else if (command.startsWith(RESERVE_STRING)) {
+				} else if (RESERVE.matcher(command).lookingAt()) {
 					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
-				} else if (command.startsWith("BREAK")) {
+				} else if (BREAK.matcher(command).lookingAt()) {
 					// Stop parsing commands
 					break;
 				} else {
@@ -156,12 +159,10 @@ public class StandardScript extends AbstractScript {
 	 * @param command the whole command staring from OPEN, specifying the path and file-handle
 	 */
 	private void openLexicon(String command, SequenceFactory factory) {
-		Pattern pattern = Pattern.compile(OPEN + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
-		Matcher matcher = pattern.matcher(command);
-
+		Matcher matcher = OPEN_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String path = matcher.group(1);
-			String handle = matcher.group(3);
+			String path   = matcher.group(2);
+			String handle = matcher.group(4);
 			commands.add(new LexiconOpenCommand(lexicons, path, handle, fileHandler, factory));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -177,8 +178,8 @@ public class StandardScript extends AbstractScript {
 	private void closeLexicon(String command) {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String handle = matcher.group(1);
-			String path = matcher.group(3);
+			String handle = matcher.group(2);
+			String path   = matcher.group(4);
 			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -194,8 +195,8 @@ public class StandardScript extends AbstractScript {
 	private void writeLexicon(String command) {
 		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String handle = matcher.group(1);
-			String path = matcher.group(3);
+			String handle = matcher.group(2);
+			String path   = matcher.group(4);
 			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -210,7 +211,7 @@ public class StandardScript extends AbstractScript {
 	 */
 	private void importScript(CharSequence command) {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
-		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
+		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		List<String> strings = fileHandler.readLines(path);
 		parse(strings);
 	}

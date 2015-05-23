@@ -28,12 +28,12 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractScript implements SoundChangeScript {
 
-	protected static final String COMMENT_STRING = "%";
-	protected static final String RESERVE_STRING = "RESERVE";
+	protected static final String  COMMENT_STRING = "%";
+	protected static final Pattern RESERVE        = Pattern.compile("(RESERVE|reserve)");
 
 	protected static final Pattern COMMENT_PATTERN    = Pattern.compile(COMMENT_STRING + ".*");
 	protected static final Pattern NEWLINE_PATTERN    = Pattern.compile("\\s*(\\r?\\n|\\r)\\s*");
-	protected static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE_STRING + ":? *");
+	protected static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE.pattern() + ":? *");
 	protected static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
 	protected final Queue<Command> commands;
