@@ -1,4 +1,4 @@
-
+LOAD "features.model"
 NORMALIZE: INTELLIGENT
 OPEN "testRuleLarge01.lex" as LEXICON
 

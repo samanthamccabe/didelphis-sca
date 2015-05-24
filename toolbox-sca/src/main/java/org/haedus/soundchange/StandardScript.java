@@ -30,6 +30,7 @@ import org.haedus.soundchange.command.ScriptExecuteCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,6 +59,7 @@ public class StandardScript extends AbstractScript {
 	private static final Pattern WRITE      = Pattern.compile("(WRITE|write)");
 	private static final Pattern CLOSE      = Pattern.compile("(CLOSE|close)");
 	private static final Pattern BREAK      = Pattern.compile("(BREAK|break)");
+	private static final Pattern LOAD       = Pattern.compile("(LOAD|LOAD)");
 
 	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
@@ -65,10 +67,10 @@ public class StandardScript extends AbstractScript {
 	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER.pattern() + ": *");
 	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE.pattern() + "\\s+");
 	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT.pattern() + "\\s+");
+	private static final Pattern LOAD_PATTERN       = Pattern.compile(LOAD.pattern() + "\\s+");
 	private static final Pattern QUOTES_PATTERN     = Pattern.compile("\"|\'");
 
 	private final FileHandler  fileHandler;
-	private final FeatureModel featureModel;
 	//	private final VariableStore variables;
 	private final Set<String>  reservedSymbols;
 
@@ -88,7 +90,6 @@ public class StandardScript extends AbstractScript {
 
 	// Visible for testing
 	StandardScript(String[] array, FileHandler fileHandlerParam) {
-		featureModel = FeatureModel.EMPTY_MODEL;
 //		variables = new VariableStore(model);
 		fileHandler = fileHandlerParam;
 		reservedSymbols = new HashSet<String>();
@@ -107,10 +108,14 @@ public class StandardScript extends AbstractScript {
 
 		FormatterMode formatterMode = FormatterMode.NONE;
 		VariableStore variables = new VariableStore();
+		FeatureModel featureModel = FeatureModel.EMPTY_MODEL;
+		
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
-				if (EXECUTE.matcher(command).lookingAt()) {
+				if (LOAD.matcher(command).lookingAt()) {
+					featureModel = loadModel(command);
+				} else if (EXECUTE.matcher(command).lookingAt()) {
 					executeScript(command);
 				} else if (IMPORT.matcher(command).lookingAt()) {
 					importScript(command);
@@ -153,6 +158,12 @@ public class StandardScript extends AbstractScript {
 		}
 	}
 
+	private static FeatureModel loadModel(String command) {
+		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
+		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
+		return new FeatureModel(new File(path));
+	}
+
 	/**
 	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that file into a lexicon stored against the file-handle;
 	 *
@@ -173,7 +184,7 @@ public class StandardScript extends AbstractScript {
 	 * CLOSE FILEHANDLE (as) "some_output2.txt" to close the file-handle and save the lexicon to the specified file.
 	 *
 	 * @param command the whole command starting from CLOSE, specifying the file-handle and path
-	 * @throws org.haedus.exceptions.ParseException
+	 * @throws  ParseException
 	 */
 	private void closeLexicon(String command) {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
@@ -190,7 +201,7 @@ public class StandardScript extends AbstractScript {
 	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified file, but leave the handle open
 	 *
 	 * @param command the whole command starting from WRITE, specifying the file-handle and path
-	 * @throws org.haedus.exceptions.ParseException
+	 * @throws ParseException
 	 */
 	private void writeLexicon(String command) {
 		Matcher matcher = WRITE_PATTERN.matcher(command);

@@ -91,8 +91,6 @@ public class StandardSoundChangeApplierTest {
 		new StandardScript(commands);
 	}
 
-
-
 	@Test
 	public void reserveTest() {
 		String[] commands = {
