@@ -31,19 +31,23 @@ public class FeatureModelLoader {
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
 
-	private Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
-	private Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
-	private Map<String, List<Double>> featureMap     = new LinkedHashMap<String, List<Double>>();
-	private Map<String, List<Double>> diacritics     = new LinkedHashMap<String, List<Double>>();
+	private final Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
+	private final Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
+	private final Map<String, List<Double>> featureMap     = new LinkedHashMap<String, List<Double>>();
+	private final Map<String, List<Double>> diacritics     = new LinkedHashMap<String, List<Double>>();
 
 	private Table<Double> weightTable = new SymmetricTable<Double>(0.0, 0);
 
 	public FeatureModelLoader(File file) {
 		try {
-			readModelFromFileNewFormat(FileUtils.readFileToString(file, "UTF-8"));
+			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
 			LOGGER.error("Failed to read from file {}", file, e);
 		}
+	}
+
+	public FeatureModelLoader(Iterable<String> file) {
+		readModelFromFileNewFormat(file);
 	}
 
 	public Map<String, Integer> getFeatureNames() {
@@ -66,11 +70,9 @@ public class FeatureModelLoader {
 		return weightTable;
 	}
 
-	private void readModelFromFileNewFormat(CharSequence file) {
+	private void readModelFromFileNewFormat(Iterable<String> file) {
 		Zone currentZone = Zone.NONE;
-
-		String[] data = NEWLINE_PATTERN.split(file);
-
+		
 		Collection<String> featureZone  = new ArrayList<String>();
 		Collection<String> symbolZone   = new ArrayList<String>();
 		Collection<String> modifierZone = new ArrayList<String>();
@@ -80,7 +82,7 @@ public class FeatureModelLoader {
 		 * or EOF. Put these in lists, one for each zone. Then parse each zone separately. This will
 		 * reduce cyclomatic complexity and should avoid redundant checks.
 		 */
-		for (String string : data) {
+		for (String string : file) {
 			// Remove comments
 			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
 			Matcher matcher = ZONE_PATTERN.matcher(line);

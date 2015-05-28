@@ -71,7 +71,11 @@ public class FeatureModel {
 		blankArray     = new ArrayList<Double>();
 	}
 
-	private FeatureModel(FeatureModelLoader loader) {
+	public FeatureModel(File file) {
+		this(new FeatureModelLoader(file));
+	}
+	
+	public FeatureModel(FeatureModelLoader loader) {
 		featureNames   = loader.getFeatureNames();
 		featureAliases = loader.getFeatureAliases();
 		featureMap     = loader.getFeatureMap();
@@ -82,10 +86,6 @@ public class FeatureModel {
 		for (int i = 0; i < featureNames.size(); i++) {
 			blankArray.add(UNDEFINED_VALUE);
 		}
-	}
-
-	public FeatureModel(File file) {
-		this(new FeatureModelLoader(file));
 	}
 
 	public Segment getSegmentFromFeatures(String features) {

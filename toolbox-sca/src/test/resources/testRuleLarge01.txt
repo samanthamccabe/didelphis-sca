@@ -1,5 +1,4 @@
-LOAD "features.model"
-NORMALIZE: INTELLIGENT
+NqORMALIZE: INTELLIGENT
 OPEN "testRuleLarge01.lex" as LEXICON
 
 y w > i u

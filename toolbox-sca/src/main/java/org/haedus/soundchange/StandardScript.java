@@ -20,6 +20,7 @@ import org.haedus.io.DiskFileHandler;
 import org.haedus.io.FileHandler;
 import org.haedus.io.NullFileHandler;
 import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.FeatureModelLoader;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
 import org.haedus.soundchange.command.LexiconCloseCommand;
@@ -59,7 +60,7 @@ public class StandardScript extends AbstractScript {
 	private static final Pattern WRITE      = Pattern.compile("(WRITE|write)");
 	private static final Pattern CLOSE      = Pattern.compile("(CLOSE|close)");
 	private static final Pattern BREAK      = Pattern.compile("(BREAK|break)");
-	private static final Pattern LOAD       = Pattern.compile("(LOAD|LOAD)");
+	private static final Pattern LOAD       = Pattern.compile("(LOAD|load)");
 
 	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
@@ -114,7 +115,7 @@ public class StandardScript extends AbstractScript {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
 				if (LOAD.matcher(command).lookingAt()) {
-					featureModel = loadModel(command);
+					featureModel = loadModel(command, fileHandler);
 				} else if (EXECUTE.matcher(command).lookingAt()) {
 					executeScript(command);
 				} else if (IMPORT.matcher(command).lookingAt()) {
@@ -158,10 +159,12 @@ public class StandardScript extends AbstractScript {
 		}
 	}
 
-	private static FeatureModel loadModel(String command) {
-		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
+	private static FeatureModel loadModel(String command, FileHandler handler) {
+		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
-		return new FeatureModel(new File(path));
+
+		FeatureModelLoader loader = new FeatureModelLoader(handler.readLines(path));
+		return new FeatureModel(loader);
 	}
 
 	/**

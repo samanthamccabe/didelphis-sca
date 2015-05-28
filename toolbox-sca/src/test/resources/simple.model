@@ -21,7 +21,7 @@ GlottalState    glt Numeric(-3,3)   % or -2 to 2
 Length          len Numeric(0,1)
 
 SYMBOLS
-%	son	con	vot	rel	nas	lat	lab	rnd	lin	lam	hgt	frn	bck	atr	rad	air	glt	len
+%	son	con	vot	rel	nas	lat	lab	rnd	lin	lam	hgt	frn	bck	atr	rad	air	glt	len 
 p	0	-		1			1										-3	0
 b	0	-		1			1										0	0
 p̪	0	-		1			2										-3	0
