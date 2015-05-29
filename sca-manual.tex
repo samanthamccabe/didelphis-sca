@@ -66,51 +66,73 @@ To run the SCA in standard mode, simply invoke it without a flag, and the paths 
 toolbox script1.rule script2.rule
 \end{vex}
 
-\section{Rule Scripts}\label{sec:scripts}
-Operation of the SCA is controlled through a script file consisting largely of transformation-rule definitions, but which also allows you to define variables, reserve character sequences, control segmentation and normalization, and import or execute commands from other scripts. This section will first address core topics for rules, variables, and reserving characters; the others are an avanced topic covered later and in the section \ref{sec:syntax}.
+\section{Writing Rule Scripts}\label{sec:scripts}
+%\section{Rule Scripts}\label{sec:scripts}
+%Operation of the SCA is controlled through a script file consisting largely of transformation-rule definitions, but which also allows you to define variables, reserve character sequences, control segmentation and normalization, and import or execute commands from other scripts. This section will first address core topics for rules, variables, and reserving characters; the others are an avanced topic covered later and in the section \ref{sec:syntax}.
+%
+%In this rule language, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples.
+%
+%You can write comments, starting with a percent sign. Anything following \texttt{\%} will be ignored by the parser. There is also a \texttt{break} command which will halt all parsing.
+%
+%\subsection{Reserving Characters}\label{sec:reserving}
+%When writing rule files which do not rely on intelligent segentation, you can use the \texttt{reserve} keyword to indicate sequences of characters which are intended to represent a single sound. Following the keyword, simply list  the string you wish to be treated this way, separated by whitespace: \\
+%\begin{vex}{ex:reserve}
+%reserve ph th kh kw kwh
+%\end{vex}
+%\noindent
+%This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. 
+%
+%\subsection{Defining Variables}\label{sec:definingvariables}
+%Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent refernce.
+%
+%Variables are defined using the \texttt{=} operator, with the variable label on the left, and a list of elements on the right, separated by whitespace: \\
+%\begin{vex}{ex:basicvars}
+%V = a e i o u
+%\end{vex}
+%\noindent
+%Variables may contain other variables as elements: \\
+%\begin{vex}{ex:basicvars2}
+%VS = a e i o u
+%VL = ā ē ī ō ū
+%V  = VS VL
+%\end{vex}
+%\noindent
+%This can be especially useful to avoid repeating the same elements across mutliple variables, such as in the case of defining variables for short and long vowels, as well as all vowels in example (\ref{ex:basicvars2}). 
+%
+%You can also append or prepend new values onto an existing variable in the following way: \\
+%\begin{vex}{ex:reassignvars}
+%C = t k
+%C = C q % Append
+%C = p C % Prepend
+%\end{vex}
+%\noindent
+%This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
 
-In this rule language, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples.
+%\subsection{Writing Rules}\label{sec:writingrules}
+%Transformation rules are the heart of any SCA. The Haedus SCA has a lot of power, and is designed to make basic tasks quite simple. It gives you the ability to easily change multiple sequences with a single rule, and under multiple alternate conditions, to use regular expressions in conditions, and to perform metathesis using some more advanced features.
 
-You can write comments, starting with a percent sign. Anything following \texttt{\%} will be ignored by the parser. There is also a \texttt{break} command which will halt all parsing.
+%The SCA uses the right-angle bracket, or greater-than symbol \texttt{>} as the transformation operator separating the sounds you would like to change on the left, from the sounds to which you want those to change on he right:
 
-\subsection{Reserving Characters}\label{sec:reserving}
-When writing rule files which do not rely on intelligent segentation, you can use the \texttt{reserve} keyword to indicate sequences of characters which are intended to represent a single sound. Following the keyword, simply list  the string you wish to be treated this way, separated by whitespace: \\
-\begin{vex}{ex:reserve}
-reserve ph th kh kw kwh
-\end{vex}
-\noindent
-This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. 
+%\begin{vex}{ex:rulebasic}
+%a₁ a₂ a₃ a₄ > e₁ e₂ e₃ e₄
+%\end{vex}
+%\noindent
+%Each element on the left corresponds to one on the right, so that \texttt{a₁} is changed to \texttt{e₁}, \texttt{a₂} to \texttt{e₂} and so on. In the context of the SCA language, this part of the rule is called the \emph{transform}, the left side of which is the \emph{source} and the right side the \emph{target}.
+%
+%The rule in example (\ref{ex:rulebasic}) is unconditioned and will apply any time one of the source symbols is encountered. Adding a condition is quite similar in this SCA as in others: it is set off from the transform with the forward slash \texttt{/} and uses the underscore \texttt{\_} to denote where in the pattern the source symbol should occur, as in:
 
-\subsection{Defining Variables}\label{sec:definingvariables}
-Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent refernce.
+%\begin{vex}{ex:rulecondition}
+%d > r / _#
+%\end{vex}
+%\noindent
+%which indicates that \emph{d} changes to \emph{r} at the end of a word, \emph{i.e.} when it occurs before a word boundary, designated by \texttt{\#}. A marginally more complex rule changes voiceless plosives to voiced plosives between vowels can be written:
+%
+%\begin{vex}{ex:rulevoicing}
+%V = a i u
+%p t k > b d g / V_V
+%\end{vex}
 
-Variables are defined using the \texttt{=} operator, with the variable label on the left, and a list of elements on the right, separated by whitespace: \\
-\begin{vex}{ex:basicvars}
-V = a e i o u
-\end{vex}
-\noindent
-Variables may contain other variables as elements: \\
-\begin{vex}{ex:basicvars2}
-VS = a e i o u
-VL = ā ē ī ō ū
-V  = VS VL
-\end{vex}
-\noindent
-This can be especially useful to avoid repeating the same elements across mutliple variables, such as in the case of defining variables for short and long vowels, as well as all vowels in example (\ref{ex:basicvars2}). 
-
-You can also append or prepend new values onto an existing variable in the following way: \\
-\begin{vex}{ex:reassignvars}
-C = t k
-C = C q % Append
-C = p C % Prepend
-\end{vex}
-\noindent
-This is especially helpful for variables like \texttt{C} used for consonants or plosives, sound changes might add new consonants to the language's inventory.
-
-\subsection{Writing Rules}\label{sec:writingrules}
-Transformation rules are the heart of the SCA, of any SCA.
-
-\subsection{Scripting}\label{sec:scripting}
+%\subsection{Scripting}\label{sec:scripting}
 
 % It may not be appropriate to deal with these topics here; they are likely to be adequately described in the syntax section
 %\subsection{Back-Reference and Indices}\label{sec:indices}
