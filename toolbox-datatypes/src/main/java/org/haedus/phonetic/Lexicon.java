@@ -41,6 +41,7 @@ public class Lexicon implements Iterable<List<Sequence>> {
 		lexicon.add(row);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> iterator = lexicon.iterator();

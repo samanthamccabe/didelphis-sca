@@ -241,7 +241,7 @@ public class StandardScript extends AbstractScript {
 	}
 
 	private FormatterMode setNormalizer(CharSequence command) {
-		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("");
+		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("").toUpperCase();
 		try {
 			return FormatterMode.valueOf(mode);
 		} catch (IllegalArgumentException e) {

@@ -68,14 +68,6 @@ public class FeatureModelTest {
 	}
 
 	@Test
-	public void testWeight() throws IOException {
-		// Ensure the model loads correctly.
-		Table<Double> weights = model.getWeights();
-		assertTrue(weights.getNumberColumns() > 0);
-		assertTrue(weights.get(0, 0) > 0.0);
-	}
-
-	@Test
 	public void testFeatureParse01() {
 		List<Double> ex = new ArrayList<Double>();
 		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len

@@ -91,7 +91,19 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 
 		Iterator<Sequence> l = left.iterator();
 		while (l.hasNext()) {
-			sb.append(l.next());
+			Sequence next = l.next();
+			
+			for (Segment segment : next) {
+				List<Double> features = segment.getFeatures();
+				String symbol;
+				if (features.equals(featureModel.getBlankArray())) {
+					symbol = segment.getSymbol();
+				} else {
+					symbol = featureModel.getBestSymbol(features);
+				}
+				sb.append(symbol);
+			}
+
 			if (l.hasNext()) {
 				sb.append(' ');
 			}
@@ -99,7 +111,19 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 		sb.append('\t');
 		Iterator<Sequence> r = right.iterator();
 		while (r.hasNext()) {
-			sb.append(r.next());
+			Sequence next = r.next();
+
+			for (Segment segment : next) {
+				List<Double> features = segment.getFeatures();
+				String symbol;
+				if (features.equals(featureModel.getBlankArray())) {
+					symbol = segment.getSymbol();
+				} else {
+					symbol = featureModel.getBestSymbol(features);
+				}
+				sb.append(symbol);
+			}
+			
 			if (r.hasNext()) {
 				sb.append(' ');
 			}

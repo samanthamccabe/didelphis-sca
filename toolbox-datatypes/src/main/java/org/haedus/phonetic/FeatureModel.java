@@ -20,8 +20,6 @@
 package org.haedus.phonetic;
 
 import org.haedus.exceptions.ParseException;
-import org.haedus.tables.SymmetricTable;
-import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +54,6 @@ public class FeatureModel {
 	private final Map<String, Integer>      featureAliases;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
-
-	private final Table<Double>  weightTable;
-
 	private final List<Double> blankArray;
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
@@ -67,7 +62,6 @@ public class FeatureModel {
 		featureAliases = new HashMap<String, Integer>();
 		featureMap     = new HashMap<String, List<Double>>();
 		diacritics     = new HashMap<String, List<Double>>();
-		weightTable    = new SymmetricTable<Double>(0.0, 0);
 		blankArray     = new ArrayList<Double>();
 	}
 
@@ -80,7 +74,6 @@ public class FeatureModel {
 		featureAliases = loader.getFeatureAliases();
 		featureMap     = loader.getFeatureMap();
 		diacritics     = loader.getDiacritics();
-		weightTable    = loader.getWeightTable();
 
 		blankArray = new ArrayList<Double>();
 		for (int i = 0; i < featureNames.size(); i++) {
@@ -178,7 +171,6 @@ public class FeatureModel {
 	public int hashCode() {
 		int code = 91;
 		code *= featureMap != null ? featureMap.hashCode() : 1;
-		code *= weightTable != null ? weightTable.hashCode() : 1;
 		return code;
 	}
 
@@ -192,25 +184,11 @@ public class FeatureModel {
 
 		boolean diacriticsEquals = diacritics.equals(other.diacritics);
 		boolean featureEquals    = featureMap.equals(other.getFeatureMap());
-		boolean weightsEquals    = weightTable.equals(other.getWeights());
 		boolean namesEquals      = featureNames.equals(other.featureNames);
 		boolean aliasesEquals    = featureAliases.equals(other.featureAliases);
-		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals && weightsEquals;
+		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals;
 	}
-
-	public double computeScoreUsingWeights(Segment l, Segment r) {
-		modelConsistencyCheck(l, r);
-		double score = 0.0;
-		int n = getNumberOfFeatures();
-		for (int i = 0; i < n; i++) {
-			double a = l.getFeatureValue(i);
-			for (int j = 0; j < n; j++) {
-				double b = r.getFeatureValue(j);
-				score += Math.abs(getDifference(a,b)) * weightTable.get(i, j);
-			}
-		}
-		return score;
-	}
+	
 
 	public double computeScore(Segment l, Segment r) {
 		modelConsistencyCheck(l, r);
@@ -241,10 +219,6 @@ public class FeatureModel {
 		} else {
 			return new ArrayList<Double>(blankArray);
 		}
-	}
-
-	public Table<Double> getWeights() {
-		return weightTable;
 	}
 
 	public Set<String> getFeatureNames() {

@@ -1,0 +1,8 @@
+normalize: intelligent
+open "vainakh_test.lex" as PROTO
+
+ʡ > ʕ
+ɬ > l
+ū > u
+
+[glt:-2] > [glt:0] / [son:2,glt:0]_
