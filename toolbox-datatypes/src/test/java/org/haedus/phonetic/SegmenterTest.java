@@ -36,7 +36,7 @@ public class SegmenterTest
 	public static void init() throws IOException {
 		Resource resource = new ClassPathResource("features.model");
 		File file = resource.getFile();
-		model = new FeatureModel(file);
+		model = new FeatureModel(file,FormatterMode.NONE);
 	}
 
 	@Test

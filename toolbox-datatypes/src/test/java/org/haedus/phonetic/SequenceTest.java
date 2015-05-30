@@ -82,10 +82,12 @@ public class SequenceTest {
 
 	@Test
 	public void testMatches03() throws IOException {
-
+		FormatterMode mode = FormatterMode.INTELLIGENT;
+		
 		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = new FeatureModel(resource.getFile());
-		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		FeatureModel model = new FeatureModel(resource.getFile(), mode);
+		
+		SequenceFactory factory = new SequenceFactory(model, mode);
 
 		Sequence sequence = factory.getSequence("a[-continuant, release:1]");
 
@@ -98,10 +100,11 @@ public class SequenceTest {
 
 	@Test
 	public void testMatches04() throws IOException {
+		FormatterMode mode = FormatterMode.INTELLIGENT;
 
 		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = new FeatureModel(resource.getFile());
-		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		FeatureModel model = new FeatureModel(resource.getFile(), mode);
+		SequenceFactory factory = new SequenceFactory(model, mode);
 
 		Sequence sequence = factory.getSequence("a[-continuant, release:2, glt:-3]");
 

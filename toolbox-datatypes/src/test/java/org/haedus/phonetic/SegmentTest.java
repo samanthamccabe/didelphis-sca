@@ -39,8 +39,9 @@ public class SegmentTest {
 	@BeforeClass
 	public static void init() throws IOException {
 		Resource resource = new ClassPathResource("features.model");
-		model = new FeatureModel(resource.getFile());
-		factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		FormatterMode mode = FormatterMode.INTELLIGENT;
+		model = new FeatureModel(resource.getFile(), mode);
+		factory = new SequenceFactory(model, mode);
 	}
 
 	@Test

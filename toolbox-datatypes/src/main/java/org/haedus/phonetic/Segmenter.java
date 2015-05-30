@@ -99,7 +99,7 @@ public final class Segmenter {
 
 	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
 		Collection<String> keys = getKeys(model, reservedStrings);
-		String normalString = normalize(string, formatterMode);
+		String normalString = formatterMode.normalize(string);
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
 		if (segmentedSymbol.size() >= 1) {
 			Symbol symbol = segmentedSymbol.get(0);
@@ -121,7 +121,7 @@ public final class Segmenter {
 	}
 
 	public static List<String> getSegmentedString(String word, Collection<String> keys, FormatterMode formatterMode) {
-		String normalString = normalize(word, formatterMode);
+		String normalString = formatterMode.normalize(word);
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
 		List<String> list = new ArrayList<String>();
 		for (Symbol symbol : segmentedSymbol) {
@@ -136,7 +136,7 @@ public final class Segmenter {
 
 	public static Sequence getSequence(String word, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
 		Collection<String> keys = getKeys(model, reservedStrings);
-		String normalString = normalize(word, formatterMode);
+		String normalString = formatterMode.normalize(word);
 		List<Symbol> list = getCompositeSymbols(normalString, keys, formatterMode);
 		Sequence sequence = new Sequence(model);
 		for (Symbol item : list) {
@@ -346,19 +346,6 @@ public final class Segmenter {
 			type == Character.MODIFIER_SYMBOL || // SK
 			type == Character.COMBINING_SPACING_MARK || // MC
 			type == Character.NON_SPACING_MARK;         // MN
-	}
-
-	private static String normalize(String word, FormatterMode mode) {
-
-		if (mode == FormatterMode.INTELLIGENT || mode == FormatterMode.DECOMPOSITION) {
-			return Normalizer.normalize(word, Normalizer.Form.NFD);
-		} else if (mode == FormatterMode.COMPOSITION) {
-			return Normalizer.normalize(word, Normalizer.Form.NFC);
-		} else if (mode == FormatterMode.NONE) {
-			return word;
-		} else {
-			throw new IllegalArgumentException("Unknown or unsupported FormatMode " + mode);
-		}
 	}
 
 	private static List<Symbol> getCompositeSymbols(String word, Iterable<String> keys, FormatterMode segParam) {

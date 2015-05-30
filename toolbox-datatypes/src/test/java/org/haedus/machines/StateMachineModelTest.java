@@ -279,11 +279,12 @@ public class StateMachineModelTest {
 	private static SequenceFactory loadModel() {
 		Resource resource = new ClassPathResource("features.model");
 		FeatureModel model = null;
+		FormatterMode mode = FormatterMode.INTELLIGENT;
 		try {
-			model = new FeatureModel(resource.getFile());
+			model = new FeatureModel(resource.getFile(), mode);
 		} catch (IOException e) {
 			LOGGER.error("Failed to load file from {}", resource, e);
 		}
-		return new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		return new SequenceFactory(model, mode);
 	}
 }

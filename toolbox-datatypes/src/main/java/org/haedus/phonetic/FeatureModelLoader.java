@@ -1,6 +1,7 @@
 package org.haedus.phonetic;
 
 import org.apache.commons.io.FileUtils;
+import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.tables.SymmetricTable;
 import org.haedus.tables.Table;
@@ -30,15 +31,17 @@ public class FeatureModelLoader {
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern TAP_PATTERN      = Pattern.compile("\\t");
 
 	private final Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
 	private final Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
 	private final Map<String, List<Double>> featureMap     = new LinkedHashMap<String, List<Double>>();
 	private final Map<String, List<Double>> diacritics     = new LinkedHashMap<String, List<Double>>();
 
-	private Table<Double> weightTable = new SymmetricTable<Double>(0.0, 0);
+	private final FormatterMode formatterMode;
 
-	public FeatureModelLoader(File file) {
+	public FeatureModelLoader(File file, FormatterMode modeParam) {
+		formatterMode = modeParam;
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
@@ -46,7 +49,8 @@ public class FeatureModelLoader {
 		}
 	}
 
-	public FeatureModelLoader(Iterable<String> file) {
+	public FeatureModelLoader(Iterable<String> file, FormatterMode modeParam) {
+		formatterMode = modeParam;
 		readModelFromFileNewFormat(file);
 	}
 
@@ -66,17 +70,12 @@ public class FeatureModelLoader {
 		return diacritics;
 	}
 
-	public Table<Double> getWeightTable() {
-		return weightTable;
-	}
-
 	private void readModelFromFileNewFormat(Iterable<String> file) {
 		Zone currentZone = Zone.NONE;
 		
 		Collection<String> featureZone  = new ArrayList<String>();
 		Collection<String> symbolZone   = new ArrayList<String>();
 		Collection<String> modifierZone = new ArrayList<String>();
-		Collection<String> weightZone   = new ArrayList<String>();
 
 		/* Probably what we need to do here is use the zones to capture every line up to the next zone
 		 * or EOF. Put these in lists, one for each zone. Then parse each zone separately. This will
@@ -96,8 +95,6 @@ public class FeatureModelLoader {
 					symbolZone.add(line);
 				} else if (currentZone == Zone.MODIFIERS) {
 					modifierZone.add(line);
-				} else if (currentZone == Zone.WEIGHTS) {
-					weightZone.add(line);
 				}
 			}
 		}
@@ -105,22 +102,6 @@ public class FeatureModelLoader {
 		populateFeatures(featureZone);
 		populateSymbols(symbolZone);
 		populateModifiers(modifierZone);
-		populateWeights(weightZone);
-	}
-
-	private void populateWeights(Iterable<String> weightZone) {
-		if (!featureNames.isEmpty()) {
-			weightTable = new SymmetricTable<Double>(0.0, featureNames.size());
-			int row = 0;
-			for (String entry : weightZone) {
-				String[] data = entry.trim().split("\\s+");
-				for (int col = 0; col <= row; col++) {
-					double datum = Double.valueOf(data[col]);
-					weightTable.set(datum, row, col);
-				}
-				row++;
-			}
-		}
 	}
 
 	private void populateModifiers(Iterable<String> modifierZone) {
@@ -147,8 +128,8 @@ public class FeatureModelLoader {
 			Matcher matcher = SYMBOL_PATTERN.matcher(entry);
 
 			if (matcher.matches()) {
-				String symbol = matcher.group(1);
-				String[] values = matcher.group(2).split("\\t", -1);
+				String symbol = formatterMode.normalize(matcher.group(1));
+				String[] values = TAP_PATTERN.split(matcher.group(2), -1);
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
@@ -201,7 +182,6 @@ public class FeatureModelLoader {
 		FEATURES("FEATURES"),
 		SYMBOLS("SYMBOLS"),
 		MODIFIERS("MODIFIERS"),
-		WEIGHTS("WEIGHTS"),
 		NONE("NONE");
 
 		private final String value;

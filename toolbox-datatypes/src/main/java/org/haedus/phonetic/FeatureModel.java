@@ -19,6 +19,7 @@
 
 package org.haedus.phonetic;
 
+import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +66,8 @@ public class FeatureModel {
 		blankArray     = new ArrayList<Double>();
 	}
 
-	public FeatureModel(File file) {
-		this(new FeatureModelLoader(file));
+	public FeatureModel(File file, FormatterMode modeParam) {
+		this(new FeatureModelLoader(file, modeParam) );
 	}
 	
 	public FeatureModel(FeatureModelLoader loader) {

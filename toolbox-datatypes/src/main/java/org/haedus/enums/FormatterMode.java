@@ -14,6 +14,8 @@
 
 package org.haedus.enums;
 
+import java.text.Normalizer;
+
 /**
  * This type is to succeed the earlier SegmentationMode and Normalizer mode enums by merging their functionality.
  * We originally supported types that were entirely unnecessary and presented the user with an excess of options,
@@ -22,9 +24,23 @@ package org.haedus.enums;
  * Samantha Fiona Morrigan McCabe
  * Created: 1/14/2015
  */
-public enum FormatterMode {
-	DECOMPOSITION,	// Unicode Canonical Decomposition
-	COMPOSITION,	// Unicode Canonical Decomposition followed by Canonical Composition
-	INTELLIGENT,	// Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
-	NONE			// No change to input strings; they are read just as they appear in the lexicon and rule
+public enum FormatterMode{
+	DECOMPOSITION(Normalizer.Form.NFD),  // Unicode Canonical Decomposition
+	COMPOSITION(Normalizer.Form.NFC),    // Unicode Canonical Decomposition followed by Canonical Composition
+	INTELLIGENT(Normalizer.Form.NFD),    // Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
+	NONE(null);                          // No change to input strings; they are read just as they appear in the lexicon and rule
+	
+	private final Normalizer.Form form;
+	
+	FormatterMode(Normalizer.Form param) {
+		form = param;
+	}
+	
+	public String normalize(String word) {
+		if (form == null) {
+			return word;
+		} else {
+			return Normalizer.normalize(word, form);
+		}
+	}
 }

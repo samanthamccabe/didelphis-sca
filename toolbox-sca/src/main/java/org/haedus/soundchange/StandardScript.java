@@ -115,7 +115,7 @@ public class StandardScript extends AbstractScript {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
 				if (LOAD.matcher(command).lookingAt()) {
-					featureModel = loadModel(command, fileHandler);
+					featureModel = loadModel(command, fileHandler,formatterMode);
 				} else if (EXECUTE.matcher(command).lookingAt()) {
 					executeScript(command);
 				} else if (IMPORT.matcher(command).lookingAt()) {
@@ -159,11 +159,11 @@ public class StandardScript extends AbstractScript {
 		}
 	}
 
-	private static FeatureModel loadModel(String command, FileHandler handler) {
+	private static FeatureModel loadModel(String command, FileHandler handler, FormatterMode mode) {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 
-		FeatureModelLoader loader = new FeatureModelLoader(handler.readLines(path));
+		FeatureModelLoader loader = new FeatureModelLoader(handler.readLines(path), mode);
 		return new FeatureModel(loader);
 	}
 

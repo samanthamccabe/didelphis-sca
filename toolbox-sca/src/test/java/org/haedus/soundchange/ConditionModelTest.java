@@ -158,7 +158,7 @@ public class ConditionModelTest {
 		Resource resource = new ClassPathResource("features.model");
 		FeatureModel model = null;
 		try {
-			model = new FeatureModel(resource.getFile());
+			model = new FeatureModel(resource.getFile(),FormatterMode.INTELLIGENT);
 		} catch (IOException e) {
 			LOGGER.error("Failed to load file from {}", resource, e);
 		}

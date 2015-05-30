@@ -58,7 +58,7 @@ public class FeatureModelTest {
 		Collections.addAll(KKWH_FEATURES, 0.0,-1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN, NAN,-3.0, 1.0);
 
 		Resource resource = new ClassPathResource("features.model");
-		model = new FeatureModel(resource.getFile());
+		model = new FeatureModel(resource.getFile(), FormatterMode.INTELLIGENT);
 	}
 
 	@Test
