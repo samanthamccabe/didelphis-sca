@@ -1,6 +1,7 @@
 package org.haedus.phonetic;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.tables.SymmetricTable;
@@ -8,10 +9,15 @@ import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,16 +28,18 @@ import java.util.regex.Pattern;
 /**
  * Created by samantha on 4/27/15.
  */
+@SuppressWarnings("ReturnOfCollectionOrArrayField")
 public class FeatureModelLoader {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelLoader.class);
 
-	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
-	private static final Pattern NEWLINE_PATTERN  = Pattern.compile("(\\r?\\n|\\n)");
-	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
-	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
-	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern TAP_PATTERN      = Pattern.compile("\\t");
+	private static final Pattern ZONE_PATTERN       = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
+	private static final Pattern NEWLINE_PATTERN    = Pattern.compile("(\\r?\\n|\\n)");
+	private static final Pattern COMMENT_PATTERN    = Pattern.compile("\\s*%.*");
+	private static final Pattern FEATURES_PATTERN   = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
+	private static final Pattern SYMBOL_PATTERN     = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern TAP_PATTERN        = Pattern.compile("\\t");
+	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\r?\\n|\\r");
 
 	private final Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
 	private final Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
@@ -52,6 +60,16 @@ public class FeatureModelLoader {
 	public FeatureModelLoader(Iterable<String> file, FormatterMode modeParam) {
 		formatterMode = modeParam;
 		readModelFromFileNewFormat(file);
+	}
+
+	public FeatureModelLoader(InputStream stream, FormatterMode modeParam) {
+		formatterMode = modeParam;
+		
+		try {
+			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"));
+		} catch (IOException e) {
+			LOGGER.error("Problem while reading from stream {}", stream, e);
+		}
 	}
 
 	public Map<String, Integer> getFeatureNames() {

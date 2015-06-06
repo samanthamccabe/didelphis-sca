@@ -23,10 +23,9 @@ import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,13 +53,13 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeatureTransform01() {
-		Rule rule = new Rule("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1, +atr]", FACTORY);
+		Rule rule = new Rule("[son:4, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1, +atr]", FACTORY);
 		testRule(rule, "a", "i");
 	}
 
 	@Test
 	public void testFeatureTransform02() {
-		Rule rule = new Rule("[son:0, rel:1 glt:-3] > [rel:2]", FACTORY);
+		Rule rule = new Rule("[son:0, rel:1 glt:-2] > [rel:2]", FACTORY);
 		testRule(rule, "t", "ts");
 		testRule(rule, "p", "pɸ");
 		testRule(rule, "tʰ", "tsʰ");
@@ -71,7 +70,7 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeatureTransform03() {
-		Rule rule = new Rule("[son:0, glt:0] > [glt:-3] / _[son:0, glt:-3]", FACTORY);
+		Rule rule = new Rule("[son:0, glt:0] > [glt:-2] / _[son:0, glt:-2]", FACTORY);
 		testRule(rule, "dt", "tt");
 		testRule(rule, "bt", "pt");
 
@@ -82,13 +81,13 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeaturesIndexing01() {
-		Rule rule = new Rule("c[son:3, glt:0] > $1k", FACTORY);
+		Rule rule = new Rule("c[son:4, glt:0] > $1k", FACTORY);
 		testRule(rule, "ca", "ak");
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testFeaturesIndexing02() {
-		Rule rule = new Rule("c[son:3, glt:0] > $[hgt:1]1k", FACTORY);
+		Rule rule = new Rule("c[son:4, glt:0] > $[hgt:1]1k", FACTORY);
 		testRule(rule, "ca", "ɪk");
 	}
 
@@ -416,13 +415,7 @@ public class RuleModelTest {
 	}
 
 	private static FeatureModel loadModel() {
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = null;
-		try {
-			model = new FeatureModel(resource.getFile(), FormatterMode.INTELLIGENT);
-		} catch (IOException e) {
-			LOGGER.error("Failed to load file from {}", resource, e);
-		}
-		return model;
+		InputStream stream = RuleModelTest.class.getClassLoader().getResourceAsStream("reduced.model");
+		return new FeatureModel(stream, FormatterMode.INTELLIGENT);
 	}
 }

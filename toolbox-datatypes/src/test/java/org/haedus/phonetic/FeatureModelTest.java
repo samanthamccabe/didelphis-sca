@@ -15,15 +15,13 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.tables.Table;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,16 +47,17 @@ public class FeatureModelTest {
 
 	@BeforeClass
 	public static void init() throws IOException {
-		//                                  0     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17
-		//                                son  con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
-		Collections.addAll(G_FEATURES,    0.0,-1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
-		Collections.addAll(GH_FEATURES,   0.0,-1.0, 1.0, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
-		Collections.addAll(GJ_FEATURES,   0.0,-1.0, NAN, 1.0, NAN, NAN, NAN, NAN, NAN, NAN, 1.0, 1.0, 1.0, NAN, NAN, NAN, 0.0, 0.0);
-		Collections.addAll(KWH_FEATURES,  0.0,-1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN, NAN,-3.0, 0.0);
-		Collections.addAll(KKWH_FEATURES, 0.0,-1.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN, NAN,-3.0, 1.0);
+		//                                  0    2    3    4    5    6    7    8   10   11   12   13   14    16   17
+		//                                son  vot  rel  nas  lat  lab  rnd  lin  hgt  frn  bck  atr  rad   glt  len
+		Collections.addAll(G_FEATURES,    0.0,-1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(GH_FEATURES,   0.0, 1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0,-1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(GJ_FEATURES,   0.0,-1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0, 1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(KWH_FEATURES,  0.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0,-1.0, 1.0, NAN, NAN, -2.0, 0.0);
+		Collections.addAll(KKWH_FEATURES, 0.0, 1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0,-1.0, 1.0, NAN, NAN, -2.0, 1.0);
 
-		Resource resource = new ClassPathResource("features.model");
-		model = new FeatureModel(resource.getFile(), FormatterMode.INTELLIGENT);
+//		Resource resource = new ClassPathResource("reduced.model");
+		InputStream stream = FeatureModelTest.class.getClassLoader().getResourceAsStream("reduced.model");
+		model = new FeatureModel(stream, FormatterMode.INTELLIGENT);
 	}
 
 	@Test
@@ -70,54 +69,26 @@ public class FeatureModelTest {
 	@Test
 	public void testFeatureParse01() {
 		List<Double> ex = new ArrayList<Double>();
-		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
-		// 					p  ___   ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
-		Collections.addAll(ex, 0.0, -1.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
+		//                     son  vot  rel  nas  lat  lab  rnd  lin  hgt  frn  bck  atr  rad  glt  len
+		// 					p  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
+		Collections.addAll(ex, 0.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
 		Segment expected = new Segment("p", ex, model);
-		Segment received = model.getSegmentFromFeatures("[son:0,-con,rel:1,lab:1,glt:-3,len:0]");
+		Segment received = model.getSegmentFromFeatures("[son:0,rel:1,lab:1,glt:-3,len:0]");
 		assertEquals(expected.getFeatures(), received.getFeatures());
 	}
 
 	@Test
 	public void testFeatureParse02() {
 		List<Double> ex = new ArrayList<Double>();
-		//                     son   con  vot  rel  nas  lat  lab  rnd  lin  lam  hgt  frn  bck  atr  rad  air  glt  len
-		// 					p  ___   ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
-		Collections.addAll(ex, 0.0, -1.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
+		//                     son  vot  rel  nas  lat  lab  rnd  lin  hgt  frn  bck  atr  rad  glt  len
+		// 					p  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
+		Collections.addAll(ex, 0.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
 
 		Segment expected = new Segment("p", ex, model);
-		Segment received = model.getSegmentFromFeatures("[sonorance:0,-continuant,release:1,labial:1,glottalstate:-3,length:0]");
+		Segment received = model.getSegmentFromFeatures("[sonorance:0,release:1,labial:1,glottalstate:-3,length:0]");
 		assertEquals(expected.getFeatures(), received.getFeatures());
 	}
-
-	@Test
-	public void testScoreSemivowels() {
-		Segment left  = Segmenter.getSegment("a", model, FormatterMode.INTELLIGENT);
-		Segment right = Segmenter.getSegment("n", model, FormatterMode.INTELLIGENT);
-
-		LOGGER.info(left.toStringLong());
-		LOGGER.info(right.toStringLong());
-
-		double a = model.computeScore(left, right);
-		double b = model.computeScore(left, left);
-		double c = model.computeScore(right, right);
-
-		assertTrue(0.0 == b);
-		assertTrue(0.0 == c);
-
-
-		LOGGER.info("diff({},{}) = {}", left, right,a );
-	}
-
-	@Test
-	public void testScoreSame() {
-		Segment left  = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
-		Segment right = Segmenter.getSegment("t", model, FormatterMode.INTELLIGENT);
-//		assertEquals(0.0, model.computeScore(left, right));
-		assertTrue(0.0 == model.computeScore(left, right));
-//		testNaN(model.computeScore(left, right));
-	}
-
+	
 	private static void testNaN(double v) {
 		assertTrue("Value was " + v + " not NaN", Double.isNaN(v));
 	}

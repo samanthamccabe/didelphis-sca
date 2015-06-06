@@ -17,8 +17,6 @@ package org.haedus.io;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,13 +47,12 @@ public class ClassPathFileHandler implements FileHandler {
 
 		List<String> lines = new ArrayList<String>();
 
-		InputStreamSource resource = new ClassPathResource(path);
+		InputStream inputStream = ClassPathFileHandler.class.getClassLoader().getResourceAsStream(path);
 		try {
-			InputStream inputStream = resource.getInputStream();
 			lines.addAll(IOUtils.readLines(inputStream, encoding));
 			inputStream.close();
 		} catch (IOException e) {
-			LOGGER.error("Error when reading from path \"{}\"!", path);
+			LOGGER.error("Error when reading from path \"{}\"!", path, e);
 		}
 		return lines;
 	}

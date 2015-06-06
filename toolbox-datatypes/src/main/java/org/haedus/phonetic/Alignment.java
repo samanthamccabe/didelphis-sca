@@ -33,7 +33,7 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 	private final List<Sequence> left;
 	private final List<Sequence> right;
 	
-	private double score = Double.NaN;
+	private double score;
 
 	public Alignment(FeatureModel modelParam) {
 		featureModel = modelParam;
@@ -85,6 +85,43 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 		return left.size();
 	}
 
+	public String toStringPretty() {
+		StringBuilder leftBuilder  = new StringBuilder();
+		StringBuilder rightBuilder = new StringBuilder();
+		for (int i = 0; i < left.size(); i++) {
+			String l = left.get(i).toString();
+			String r = right.get(i).toString();
+			
+			int leftVisible  = 0;
+			int rightVisible = 0;
+
+			for (char c : l.toCharArray()) {
+				if (Character.getType(c) != Character.NON_SPACING_MARK) {
+					leftVisible++;
+				}
+			}
+
+			for (char c : r.toCharArray()) {
+				if (Character.getType(c) != Character.NON_SPACING_MARK) {
+					rightVisible++;
+				}
+			}
+
+			leftBuilder.append(l).append(' ');
+			rightBuilder.append(r).append(' ');
+			while (leftVisible > rightVisible) {
+				rightBuilder.append(' ');
+				rightVisible++;
+			}
+			
+			while (leftVisible < rightVisible) {
+				leftBuilder.append(' ');
+				leftVisible++;
+			}
+		}
+		return leftBuilder.toString().trim() + '\t' + rightBuilder.toString().trim();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -94,14 +131,14 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 			Sequence next = l.next();
 			
 			for (Segment segment : next) {
-				List<Double> features = segment.getFeatures();
-				String symbol;
-				if (features.equals(featureModel.getBlankArray())) {
-					symbol = segment.getSymbol();
-				} else {
-					symbol = featureModel.getBestSymbol(features);
-				}
-				sb.append(symbol);
+//				List<Double> features = segment.getFeatures();
+//				String symbol;
+//				if (features.equals(featureModel.getBlankArray())) {
+//					symbol = segment.getSymbol();
+//				} else {
+//					symbol = featureModel.getBestSymbol(features);
+//				}
+				sb.append(segment);
 			}
 
 			if (l.hasNext()) {
@@ -114,14 +151,14 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 			Sequence next = r.next();
 
 			for (Segment segment : next) {
-				List<Double> features = segment.getFeatures();
-				String symbol;
-				if (features.equals(featureModel.getBlankArray())) {
-					symbol = segment.getSymbol();
-				} else {
-					symbol = featureModel.getBestSymbol(features);
-				}
-				sb.append(symbol);
+//				List<Double> features = segment.getFeatures();
+//				String symbol;
+//				if (features.equals(featureModel.getBlankArray())) {
+//					symbol = segment.getSymbol();
+//				} else {
+//					symbol = featureModel.getBestSymbol(features);
+//				}
+				sb.append(segment);
 			}
 			
 			if (r.hasNext()) {

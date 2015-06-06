@@ -24,9 +24,15 @@ import org.haedus.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +63,8 @@ public class FeatureModel {
 	private final Map<String, List<Double>> diacritics;
 	private final List<Double> blankArray;
 
+	private final FormatterMode formatterMode;
+	
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
 		featureNames   = new HashMap<String, Integer>();
@@ -64,18 +72,25 @@ public class FeatureModel {
 		featureMap     = new HashMap<String, List<Double>>();
 		diacritics     = new HashMap<String, List<Double>>();
 		blankArray     = new ArrayList<Double>();
+		formatterMode  = FormatterMode.NONE;
 	}
 
-	public FeatureModel(File file, FormatterMode modeParam) {
-		this(new FeatureModelLoader(file, modeParam) );
+	public FeatureModel(InputStream stream, FormatterMode modeParam) {
+		this(new FeatureModelLoader(stream, modeParam), modeParam);
 	}
 	
-	public FeatureModel(FeatureModelLoader loader) {
+	public FeatureModel(File file, FormatterMode modeParam) {
+		this(new FeatureModelLoader(file, modeParam), modeParam);
+	}
+	
+	public FeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
 		featureNames   = loader.getFeatureNames();
 		featureAliases = loader.getFeatureAliases();
 		featureMap     = loader.getFeatureMap();
 		diacritics     = loader.getDiacritics();
 
+		formatterMode = modeParam;
+		
 		blankArray = new ArrayList<Double>();
 		for (int i = 0; i < featureNames.size(); i++) {
 			blankArray.add(UNDEFINED_VALUE);
@@ -146,11 +161,18 @@ public class FeatureModel {
 			}
 		}
 
-		String bestDiacritic = "";
+//		String bestDiacritic = "";
+		StringBuilder sb = new StringBuilder();
 		if (minimum > 0.0) {
-			bestDiacritic = getBestDiacritic(featureArray, bestFeatures);
+			Collection collection = getBestDiacritic(featureArray, bestFeatures);
+			for (String diacritic : diacritics.keySet()) {
+				 if (collection.contains(diacritic)) {
+					 sb.append(diacritic);
+				 }
+			}
+
 		}
-		return Normalizer.normalize(bestSymbol + bestDiacritic, Normalizer.Form.NFC);
+		return formatterMode.normalize(bestSymbol + sb);
 	}
 
 	public Set<String> getSymbols() {
@@ -190,18 +212,6 @@ public class FeatureModel {
 		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals;
 	}
 	
-
-	public double computeScore(Segment l, Segment r) {
-		modelConsistencyCheck(l, r);
-		double score = 0.0;
-		for (int i = 0; i < getNumberOfFeatures(); i++) {
-			double a = l.getFeatureValue(i);
-			double b = r.getFeatureValue(i);
-			score += Math.abs(getDifference(a,b));
-		}
-		return score;
-	}
-
 	public boolean containsKey(String key) {
 		return featureMap.containsKey(key);
 	}
@@ -263,25 +273,14 @@ public class FeatureModel {
 			throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
 		}
 	}
-
-	private void modelConsistencyCheck(ModelBearer l, ModelBearer r) {
-		FeatureModel mL = l.getModel();
-		FeatureModel mR = r.getModel();
-		if (!mL.equals(this) && !mR.equals(this)) {
-			throw new RuntimeException(
-				"Attempting to compare segments using an incompatible model!\n" +
-					'\t' + l + '\t' + mL.getFeatureNames() + '\n' +
-					'\t' + r + '\t' + mR.getFeatureNames() + '\n' +
-					"\tUsing model: " + getFeatureNames()
-			);
-		}
-	}
-
-	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
+	
+	private Collection<String> getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
 		List<Double> bestCompiled = new ArrayList<Double>();
 
+		Collection<String> diacriticList = new ArrayList<String>();
+		
 		for (Map.Entry<String, List<Double>> entry : diacritics.entrySet()) {
 			List<Double> diacriticFeatures = entry.getValue();
 			List<Double> compiledFeatures = new ArrayList<Double>();
@@ -311,13 +310,15 @@ public class FeatureModel {
 		}
 		// TODO: how does changing this condition affect behavior?
 		if (minimumDifference > 0.0 && minimumDifference < lastMinimum) {
-			return bestDiacritic + getBestDiacritic(featureArray, bestCompiled, minimumDifference);
+			diacriticList.add(bestDiacritic);
+			diacriticList.addAll(getBestDiacritic(featureArray, bestCompiled, minimumDifference));
 		} else {
-			return bestDiacritic;
+			diacriticList.add(bestDiacritic);
 		}
+		return diacriticList;
 	}
 
-	private String getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
+	private Collection getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 

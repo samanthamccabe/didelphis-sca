@@ -393,7 +393,13 @@ public final class Segmenter {
 
 		@Override
 		public String toString() {
-			return head + " " + tail;
+			StringBuilder sb = new StringBuilder(8);
+			sb.append(head);
+			for (String s : tail) {
+				sb.append(s);
+			}
+
+			return sb.toString();
 		}
 
 		private boolean isEmpty() {

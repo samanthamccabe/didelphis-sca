@@ -16,11 +16,9 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.Assert.assertTrue;
 
@@ -28,21 +26,19 @@ import static org.junit.Assert.assertTrue;
  * Samantha Fiona Morrigan McCabe
  * Created: 2/5/2015
  */
-public class TestSequenceFactory {
+public class SequenceFactoryTest {
 
-	private final FeatureModel model;
-
-	public TestSequenceFactory() throws IOException {
-		Resource resource = new ClassPathResource("features.model");
-		File file = resource.getFile();
-		model = new FeatureModel(file, FormatterMode.NONE);
-	}
 
 	@Test
-	public void testGetSequence01() {
+	public void testGetSequence01() throws IOException {
+		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("features.model");
+		FormatterMode formatterMode = FormatterMode.INTELLIGENT;
+		
+		FeatureModel model = new FeatureModel(stream, formatterMode);
+		
 		String word = "avaːm";
 
-		SequenceFactory factory = new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(model, formatterMode);
 
 		Sequence sequence = factory.getSequence(word);
 		assertTrue(!sequence.isEmpty());

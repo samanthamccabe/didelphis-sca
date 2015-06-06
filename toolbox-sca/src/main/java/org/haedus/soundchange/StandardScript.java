@@ -164,7 +164,7 @@ public class StandardScript extends AbstractScript {
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 
 		FeatureModelLoader loader = new FeatureModelLoader(handler.readLines(path), mode);
-		return new FeatureModel(loader);
+		return new FeatureModel(loader, mode);
 	}
 
 	/**

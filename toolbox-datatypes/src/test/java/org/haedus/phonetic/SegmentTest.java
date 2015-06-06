@@ -17,10 +17,9 @@ package org.haedus.phonetic;
 import org.haedus.enums.FormatterMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -38,9 +37,10 @@ public class SegmentTest {
 
 	@BeforeClass
 	public static void init() throws IOException {
-		Resource resource = new ClassPathResource("features.model");
+		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("features.model");
+
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		model = new FeatureModel(resource.getFile(), mode);
+		model = new FeatureModel(stream, mode);
 		factory = new SequenceFactory(model, mode);
 	}
 

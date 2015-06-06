@@ -24,11 +24,10 @@ import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
@@ -277,14 +276,11 @@ public class StateMachineModelTest {
 	}
 
 	private static SequenceFactory loadModel() {
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = null;
+		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("features.model");
+		
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		try {
-			model = new FeatureModel(resource.getFile(), mode);
-		} catch (IOException e) {
-			LOGGER.error("Failed to load file from {}", resource, e);
-		}
+		FeatureModel model = new FeatureModel(stream, mode);
+
 		return new SequenceFactory(model, mode);
 	}
 }

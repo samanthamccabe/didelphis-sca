@@ -233,9 +233,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		if (obj == null) { return false; }
 		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
-		boolean sequenceEquals = sequence.equals(object.sequence);
-		boolean featuresEquals = featureModel.equals(object.featureModel);
-		return sequenceEquals && featuresEquals;
+		return featureModel.equals(object.featureModel) && sequence.equals(object.sequence);
 	}
 
 	@Override

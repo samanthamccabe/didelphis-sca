@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2015. Samantha Fiona McCabe
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,9 @@ import org.haedus.enums.FormatterMode;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,10 +82,11 @@ public class SequenceTest {
 	@Test
 	public void testMatches03() throws IOException {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = new FeatureModel(resource.getFile(), mode);
-		
+
+		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("features.model");
+
+		FeatureModel model = new FeatureModel(stream, mode);
+
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
 		Sequence sequence = factory.getSequence("a[-continuant, release:1]");
@@ -102,8 +102,9 @@ public class SequenceTest {
 	public void testMatches04() throws IOException {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = new FeatureModel(resource.getFile(), mode);
+		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("features.model");
+
+		FeatureModel model = new FeatureModel(stream, mode);
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
 		Sequence sequence = factory.getSequence("a[-continuant, release:2, glt:-3]");
@@ -128,11 +129,11 @@ public class SequenceTest {
 	}
 
 	private static void assertMatches(Sequence left, Sequence right) {
-		assertTrue("\'"+left + "\' does not match " + right, left.matches(right));
+		assertTrue("\'" + left + "\' does not match " + right, left.matches(right));
 	}
 
 	private static void assertNotMatches(Sequence left, Sequence right) {
-		assertFalse("\'"+left + "\' should not match " + right, left.matches(right));
+		assertFalse("\'" + left + "\' should not match " + right, left.matches(right));
 	}
 
 	@Test
