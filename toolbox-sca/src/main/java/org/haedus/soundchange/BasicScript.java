@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -35,11 +36,12 @@ import java.util.List;
 public class BasicScript extends AbstractScript {
 
 	public static final String DEFAULT_LEXICON = "DEFAULT";
+	private static final Pattern TAB_PATTERN = Pattern.compile("\\t");
 
 	private final HashSet<String> reservedSymbols;
 
 	private final FormatterMode formatterMode;
-	private final FeatureModel     featureModel;
+	private final FeatureModel  featureModel;
 
 	public BasicScript(String[] rulesParam, String[] lexiconParam, FormatterMode modeParam) {
 		reservedSymbols = new HashSet<String>();
@@ -66,7 +68,7 @@ public class BasicScript extends AbstractScript {
 		Lexicon lexicon = new Lexicon();
 		for (String line : lexiconParam) {
 			List<Sequence> row = new ArrayList<Sequence>();
-			for (String cell : line.split("\\t")) {
+			for (String cell : TAB_PATTERN.split(line)) {
 				row.add(factory.getSequence(cell));
 			}
 			lexicon.add(row);
@@ -85,10 +87,10 @@ public class BasicScript extends AbstractScript {
 					variables.add(command);
 				} else if (command.contains(">")) {
 					SequenceFactory factory = new SequenceFactory(
-							FeatureModel.EMPTY_MODEL,
-							new VariableStore(variables),
-							new HashSet<String>(reservedSymbols),
-							formatterMode
+						FeatureModel.EMPTY_MODEL,
+						new VariableStore(variables),
+						new HashSet<String>(reservedSymbols),
+						formatterMode
 					);
 
 					commands.add(new Rule(command, lexicons, factory));
@@ -105,5 +107,14 @@ public class BasicScript extends AbstractScript {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "BasicScript{" +
+			"reservedSymbols=" + reservedSymbols +
+			", formatterMode=" + formatterMode +
+			", featureModel=" + featureModel +
+			'}';
 	}
 }

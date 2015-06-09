@@ -75,12 +75,10 @@ public class Condition {
 		return conditionText;
 	}
 
-	public Machine getPostCondition() {
-		return postCondition;
-	}
-
-	private static String cleanup(String s) {
-		return CLOSE_BRACE_PATTERN.matcher(OPEN_BRACE_PATTERN.matcher(WHITESPACE_PATTERN.matcher(s).replaceAll(" ")).replaceAll("$1")).replaceAll("$1");
+	private static String cleanup(String string) {
+		string = WHITESPACE_PATTERN.matcher(string).replaceAll(" ");
+		string = OPEN_BRACE_PATTERN.matcher(string).replaceAll("$1");
+		return CLOSE_BRACE_PATTERN.matcher(string).replaceAll("$1");
 	}
 
 	public boolean isMatch(Sequence word, int index) {

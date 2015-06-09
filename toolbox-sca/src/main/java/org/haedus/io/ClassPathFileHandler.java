@@ -32,16 +32,19 @@ public class ClassPathFileHandler implements FileHandler {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ClassPathFileHandler.class);
 
+	private static final String               DEFAULT_ENCODING = "UTF-8";
+	private static final ClassPathFileHandler DEFAULT_INSTANCE = new ClassPathFileHandler(DEFAULT_ENCODING);
+
 	private final String encoding;
 
+	public static ClassPathFileHandler getDefaultInstance() {
+		return DEFAULT_INSTANCE;
+	}
+	
 	public ClassPathFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}
-
-	public ClassPathFileHandler() {
-		encoding = "UTF-8";
-	}
-
+	
 	@Override
 	public List<String> readLines(String path) {
 
@@ -71,13 +74,22 @@ public class ClassPathFileHandler implements FileHandler {
 
 	@Override
 	public void writeString(String path, String data) {
-		throw new UnsupportedOperationException("Trying to write using an instance of "
-		                                        +ClassPathFileHandler.class.getCanonicalName());
+		throw new UnsupportedOperationException(
+			"Trying to write using an instance of "
+				+ ClassPathFileHandler.class.getCanonicalName()
+		);
 	}
 
 	@Override
 	public void writeLines(String path, List<String> data) {
-		throw new UnsupportedOperationException("Trying to write using an instance of "
-		                                        +ClassPathFileHandler.class.getCanonicalName());
+		throw new UnsupportedOperationException(
+			"Trying to write using an instance of "
+			+ ClassPathFileHandler.class.getCanonicalName()
+		);
+	}
+
+	@Override
+	public String toString() {
+		return "ClassPathFileHandler:" + encoding;
 	}
 }

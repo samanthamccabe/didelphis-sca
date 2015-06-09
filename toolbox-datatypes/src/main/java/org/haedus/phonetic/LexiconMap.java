@@ -53,4 +53,9 @@ public class LexiconMap {
 	public Lexicon remove(String handle) {
 		return  map.remove(handle);
 	}
+
+	@Override
+	public String toString() {
+		return "LexiconMap:" + map;
+	}
 }

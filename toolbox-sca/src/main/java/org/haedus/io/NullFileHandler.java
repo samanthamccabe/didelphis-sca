@@ -23,8 +23,9 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class NullFileHandler implements FileHandler {
-
+public enum NullFileHandler implements FileHandler {
+	INSTANCE;
+	
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(NullFileHandler.class);
 
 	@Override

@@ -44,7 +44,7 @@ public class StandardSoundChangeApplierTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardSoundChangeApplierTest.class);
 
-	public static final ClassPathFileHandler CLASSPATH_HANDLER   = new ClassPathFileHandler();
+	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
 	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
 	public static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
 

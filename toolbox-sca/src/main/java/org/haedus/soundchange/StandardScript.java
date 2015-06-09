@@ -31,7 +31,6 @@ import org.haedus.soundchange.command.ScriptExecuteCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,7 +75,7 @@ public class StandardScript extends AbstractScript {
 	private final Set<String>  reservedSymbols;
 
 	public StandardScript(CharSequence script) {
-		this(script, new DiskFileHandler());
+		this(script, DiskFileHandler.getDefaultInstance());
 	}
 
 	// Visible for testing
@@ -86,7 +85,7 @@ public class StandardScript extends AbstractScript {
 
 	// Visible for testing
 	StandardScript(String[] array) {
-		this(array, new NullFileHandler());
+		this(array, NullFileHandler.INSTANCE);
 	}
 
 	// Visible for testing
@@ -159,7 +158,7 @@ public class StandardScript extends AbstractScript {
 		}
 	}
 
-	private static FeatureModel loadModel(String command, FileHandler handler, FormatterMode mode) {
+	private static FeatureModel loadModel(CharSequence command, FileHandler handler, FormatterMode mode) {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 
@@ -247,5 +246,13 @@ public class StandardScript extends AbstractScript {
 		} catch (IllegalArgumentException e) {
 			throw new ParseException(e);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "StandardScript{" +
+			"fileHandler=" + fileHandler +
+			", reservedSymbols=" + reservedSymbols +
+			'}';
 	}
 }

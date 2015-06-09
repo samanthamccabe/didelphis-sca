@@ -31,17 +31,20 @@ import java.util.List;
 public class DiskFileHandler implements FileHandler {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(DiskFileHandler.class);
+	
+	private static final String          DEFAULT_ENCODING = "UTF-8";
+	private static final DiskFileHandler DEFAULT_INSTANCE = new DiskFileHandler(DEFAULT_ENCODING);
 
 	private final String encoding;
 
+	public static DiskFileHandler getDefaultInstance() {
+		return DEFAULT_INSTANCE;
+	}
+	
 	public DiskFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}
-
-	public DiskFileHandler() {
-		encoding = "UTF-8";
-	}
-
+	
 	@Override
 	public List<String> readLines(String path) {
 		File file = new File(path);
@@ -49,7 +52,7 @@ public class DiskFileHandler implements FileHandler {
 		try {
 			lines.addAll(FileUtils.readLines(file, encoding));
 		} catch (IOException e) {
-			LOGGER.error("Error when reading file {} from path \"{}\"!",path, file.getAbsolutePath(), e);
+			LOGGER.error("Error when reading file {} from path \"{}\"!", path, file.getAbsolutePath(), e);
 		}
 		return lines;
 	}
@@ -98,5 +101,10 @@ public class DiskFileHandler implements FileHandler {
 	@Override
 	public int hashCode() {
 		return DiskFileHandler.class.hashCode() * encoding.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "DiskFileHandler:" + encoding;
 	}
 }

@@ -25,8 +25,8 @@ import java.util.Map;
 /**
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
- * This mock handler simpler uses maps to simulate a crude file-system
- * The map is from path to data, so a test can instantiate the class
+ * This mock handler simply uses maps to simulate a crude file-system
+ * The map is from 'path' to data, so a test can instantiate the class
  * with this object, either providing it data, or reading from it;
  */
 public class MockFileHandler implements FileHandler {
@@ -95,5 +95,10 @@ public class MockFileHandler implements FileHandler {
 			sb.append(line).append('\n');
 		}
 		mockFileSystem.put(path, sb.toString());
+	}
+
+	@Override
+	public String toString() {
+		return "MockFileHandler:" + mockFileSystem;
 	}
 }

@@ -223,6 +223,15 @@ public class Alignment implements ModelBearer, Iterable<Alignment> {
 		return pairs.iterator();
 	}
 
+	@Override
+	public int hashCode() {
+		int result;
+		result = featureModel.hashCode();
+		result = 31 * result + left.hashCode();
+		result = 31 * result + right.hashCode();
+		return result;
+	}
+
 	private void validateModelOrFail(ModelBearer that) {
 		FeatureModel thatFeatureModel = that.getModel();
 		if (!featureModel.equals(thatFeatureModel)) {
