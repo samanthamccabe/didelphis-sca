@@ -11,11 +11,15 @@ C P T K V L > k p t k a r
 
 ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û
 
-E = e ē é ê
-A = a ā á â
-O = o ō ó ô
-I = i ī í î
-U = u ū ú û
+% For the sake of this example, we will not deal with stress
+á é í ó ú > a e i o u
+â ê î ô û > ā ē ī ō ū
+
+E = e ē % é ê
+A = a ā % á â
+O = o ō % ó ô
+I = i ī % í î
+U = u ū % ú û
 
 H = x ʔ
 N = m n
@@ -27,21 +31,23 @@ Q  = kʷʰ kʷ gʷ
 K  = kʰ  k  g
 P  = pʰ  p  b
 T  = tʰ  t  d
-[PLOSIVE]   = P T K Q
+[PLOSIVE] = P T K Q
 [OBSTRUENT] = [PLOSIVE] s
 C = [OBSTRUENT] R W
 
-VSA = a e i o u % Short, Atonic
-VST = á é í ó ú % Short, Tonic
+% VSA = a e i o u % Short, Atonic
+% VST = á é í ó ú % Short, Tonic
 
-VLA = ā ē ī ō ū % Long, Atonic
-VLT = â ê î ô û % Long, Tonic
+% VLA = ā ē ī ō ū % Long, Atonic
+% VLT = â ê î ô û % Long, Tonic
 
-VS  = VSA ə VST % Short Vowels
-VL  = VLA ə̄ VLT % Long Vowels
+% VS  = VSA ə VST % Short Vowels
+% VL  = VLA ə̄ VLT % Long Vowels
+VS = a e i o u
+VL = ā ē ī ō ū
 LOW = A E O
 V   = VS VL 
-IU  = i u í ú
+IU  = I U
 
 ʜ > ʔ
 
@@ -56,8 +62,8 @@ n- > n̩  / #_
 - > 0
 
 ee eo oe ea ae > ē ō ō ā ā
-ée eé éo eó óe oé > ê ê ô ô ô ô
-éa eá áe aé > â â â â
+% ée eé éo eó óe oé > ê ê ô ô ô ô
+% éa eá áe aé > â â â â
 
 %%%% PHASE 01 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -87,7 +93,7 @@ H > 0 / _{i y í}
 iH uH > ī ū
 
 au eu ou am em om > ā ē ō ā ē ō / _m#
-áu éu óu ám ém óm > â ê ô â ê ô / _m#
+%áu éu óu ám ém óm > â ê ô â ê ô / _m#
 
 %%%% PHASE 02 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
