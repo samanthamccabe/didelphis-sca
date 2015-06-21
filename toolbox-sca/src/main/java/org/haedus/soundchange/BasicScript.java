@@ -81,7 +81,7 @@ public class BasicScript extends AbstractScript {
 
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
-				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
+				String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
 
 				if (command.contains("=")) {
 					variables.add(command);

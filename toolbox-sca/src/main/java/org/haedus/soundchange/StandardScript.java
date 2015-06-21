@@ -64,7 +64,7 @@ public class StandardScript extends AbstractScript {
 	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
 	private static final Pattern OPEN_PATTERN       = Pattern.compile(OPEN.pattern()  + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
-	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER.pattern() + ": *");
+	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER.pattern() + ":? *");
 	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE.pattern() + "\\s+");
 	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT.pattern() + "\\s+");
 	private static final Pattern LOAD_PATTERN       = Pattern.compile(LOAD.pattern() + "\\s+");
@@ -112,7 +112,7 @@ public class StandardScript extends AbstractScript {
 		
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
-				String command = COMMENT_PATTERN.matcher(string).replaceAll("");
+				String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
 				if (LOAD.matcher(command).lookingAt()) {
 					featureModel = loadModel(command, fileHandler,formatterMode);
 				} else if (EXECUTE.matcher(command).lookingAt()) {
@@ -239,12 +239,12 @@ public class StandardScript extends AbstractScript {
 		commands.add(new ScriptExecuteCommand(path));
 	}
 
-	private FormatterMode setNormalizer(CharSequence command) {
-		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("").toUpperCase();
+	private static FormatterMode setNormalizer(CharSequence command) {
+		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("");
 		try {
-			return FormatterMode.valueOf(mode);
+			return FormatterMode.valueOf(mode.toUpperCase());
 		} catch (IllegalArgumentException e) {
-			throw new ParseException(e);
+			throw new ParseException("Unsupported mode: "+mode, e);
 		}
 	}
 

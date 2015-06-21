@@ -101,7 +101,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int size() {
-		return sequence.size	();
+		return sequence.size();
 	}
 
 	public Sequence getSubsequence(int i) {
