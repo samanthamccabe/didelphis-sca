@@ -63,6 +63,7 @@ public class Condition {
 				preCondition  = StateMachine.EMPTY_MACHINE;
 				postCondition = StateMachine.EMPTY_MACHINE;
 			} else {
+				LOGGER.error("Malformed Condition, multiple _ characters in condition: {}", condition);
 				throw new RuleFormatException("Malformed Condition, multiple _ characters");
 			}
 		} else {

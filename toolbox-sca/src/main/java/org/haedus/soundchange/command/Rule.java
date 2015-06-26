@@ -46,8 +46,8 @@ public class Rule implements Command {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
 	private static final Pattern BACKREFERENCE      = Pattern.compile("\\$([^\\$]*)(\\d+)");
-	private static final Pattern NOT_PATTERN        = Pattern.compile("\\s+NOT\\s+");
-	private static final Pattern OR_PATTERN         = Pattern.compile("\\s+OR\\s+");
+	private static final Pattern NOT_PATTERN        = Pattern.compile("\\s+(NOT|not)\\s+");
+	private static final Pattern OR_PATTERN         = Pattern.compile("\\s+(OR|or)\\s+");
 	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 	private static final Pattern TRANSFORM_PATTERN  = Pattern.compile("\\s*>\\s*");
 

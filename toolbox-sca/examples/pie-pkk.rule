@@ -3,7 +3,7 @@
 % Samantha Fiona Morrigan McCabe
 
 normalize INTELLIGENT
-open 'pie_lexicon.txt' as LEXICON
+open "pie_lexicon.txt" as LEXICON
 
 y w > i u
 
@@ -15,11 +15,11 @@ C P T K V L > k p t k a r
 á é í ó ú > a e i o u
 â ê î ô û > ā ē ī ō ū
 
-E = e ē % é ê
-A = a ā % á â
-O = o ō % ó ô
-I = i ī % í î
-U = u ū % ú û
+E = e ē
+A = a ā
+O = o ō
+I = i ī
+U = u ū
 
 H = x ʔ
 N = m n
@@ -27,37 +27,26 @@ L = r l
 R = N L
 W = y w
 
-Q  = kʷʰ kʷ gʷ
-K  = kʰ  k  g
-P  = pʰ  p  b
-T  = tʰ  t  d
-[PLOSIVE] = P T K Q
-[OBSTRUENT] = [PLOSIVE] s
-C = [OBSTRUENT] R W
+Q = kʷʰ kʷ gʷ
+K = kʰ  k  g
+P = pʰ  p  b
+T = tʰ  t  d
 
-% VSA = a e i o u % Short, Atonic
-% VST = á é í ó ú % Short, Tonic
+[Pls] = P T K Q
+[Obs] = [Pls] s
+C = [Obs] R W
 
-% VLA = ā ē ī ō ū % Long, Atonic
-% VLT = â ê î ô û % Long, Tonic
-
-% VS  = VSA ə VST % Short Vowels
-% VL  = VLA ə̄ VLT % Long Vowels
-VS = a e i o u
-VL = ā ē ī ō ū
+VS  = a e i o u
+VL  = ā ē ī ō ū
 LOW = A E O
 V   = VS VL 
-IU  = I U
-
-ʜ > ʔ
 
 % Szemerenyi's law
 Z = R s t nt
 VSm-m VSZ-s > VLm VLZ / _#
-̩   > ̩
 
 % For correct handling of negation prefix
-n- > n̩  / #_
+n- > nˌ  / #_
 
 - > 0
 
@@ -65,110 +54,108 @@ ee eo oe ea ae > ē ō ō ā ā
 % ée eé éo eó óe oé > ê ê ô ô ô ô
 % éa eá áe aé > â â â â
 
-%%%% PHASE 01 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% --- PHASE I -----------------------------------------------------------------
 
 h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ
 hₓ hₐ > ʔ ʕ
 
-E > A / {x ʕ}_ OR _{x ʕ}
-E > O / ɣ_ OR _ɣ
+E > A / {x ʕ}_ or _{x ʕ}
+E > O / ɣ_ or _ɣ
 ɣ ʕ > x ʔ
 
 ǵʰ ǵ ḱ > gʰ g k % Centum, loss of palatovelars
 
 % h₂ and h₃ cause aspiration of plosives
-b d g gʷ  > bʰ dʰ gʰ gʷʰ / _{ x ɣ }
-p t k kʷ  > pʰ tʰ kʰ kʷʰ / _{ x ɣ }
+b d g gʷ  > bʰ dʰ gʰ gʷʰ / _{x ɣ}
+p t k kʷ  > pʰ tʰ kʰ kʷʰ / _{x ɣ}
 
 % Grassman's Law should apply here, actually
 [Aspirata]   = bʰ dʰ gʰ gʷʰ pʰ tʰ kʰ kʷʰ
 [Anaspirata] = b  d  g  gʷ  p  t  k  kʷ
 
-[Aspirata] > [Anaspirata] / _{R W}?VV?C*[Aspirata] % Do we need H somewhere?
+[Aspirata] > [Anaspirata] / _{R W}?VV?C*[Aspirata]
 
 bʰ dʰ gʰ gʷʰ > pʰ tʰ kʰ kʷʰ
 
-H > 0 / _H
-H > 0 / _{i y í}
+H > 0 / _{H i y}
+
 iH uH > ī ū
 
 au eu ou am em om > ā ē ō ā ē ō / _m#
-%áu éu óu ám ém óm > â ê ô â ê ô / _m#
 
-%%%% PHASE 02 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% --- PHASE II ----------------------------------------------------------------
 
 mr wr ml wl > br br bl bl / #_V
 
 mH nH > mə nə / #_C
 
-rH lH nH mH > r̩H l̩H n̩H m̩H / [OBSTRUENT]_
+% Originally, we did this with two rules. However, the first one
+%		rH lH mH nH > rˌH lˌH mˌH nˌH / [Obs]_
+% can have H moved into the condition, at which point it's 
+%		r l m n > rˌ lˌ mˌ nˌ / [Obs]_H
+% which is compatible with another old rule:
+%		r l m n > rˌ lˌ mˌ nˌ / [Obs]_{C #}
 
-n m > n̩ m̩ / C_#
-r l m n > r̩ l̩ m̩ n̩ / [OBSTRUENT]_{C #}
-r̩ l̩ > r l / C_{m̩ n̩}{C #}
+r l m n > rˌ lˌ mˌ nˌ / [Obs]_{H C #}
 
-n̩H m̩H > ə̄     / _C
-n̩H m̩H > ə̄n ə̄m / _{V #}
+n m > nˌ mˌ / C_#
 
-n̩ m̩ > ə     / _C
-n̩ m̩ > ən əm / _{V #}
+rˌ lˌ > r l / C_{mˌ nˌ}{C #}
 
-r̩H l̩H > ə̄r ə̄l / _{C #} OR _V
-r̩  l̩  > ər əl
+nˌH mˌH > əˉ      / _C
+nˌH mˌH > əˉn əˉm / _{V #}
+rˌH lˌH > əˉr əˉl / _{C #} or _V
 
-ə ə̄ > u ū / {K Q}_
+% Desyllabification
+nˌ mˌ > ə     / _C
+nˌ mˌ > ən əm / _{V #}
+rˌ  lˌ  > ər  əl
 
-% LABIOVELAL SPLIT
-Q > K / _{ O U w [OBSTRUENT]} OR {U w}_
-Q > P
+ə əˉ > u ū / {K Q}_
 
 kʰ k g > cʰ c ɟ / _{I E y}
 
-%%%% PHASE 03 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LABIOVELAL SPLIT
+Q > K / {U w}_ or _{O U w [Obs]}
+Q > P
 
-VS > VL / _H{C #}
-VS > VL / _H{I U y w}?V
+% --- PHASE III ---------------------------------------------------------------
 
-H   > 0   / VL_{C # u}
-H   > 0   / {[Obstruent] R}_V
-H   > 0   / R_R
+% These could also be merged, which is made more interesting
+% with its resulting nested sets 
+% VS > VL / _H{C #}
+% VS > VL / _H{I U W}?V
+
+VS > VL / _H{C # {I U W}?V}
+
+H > 0 / {[Obs] R}_V
+H > 0 /         R_R
+H > 0 /        VL_{C # u}
+
 xa xə > 0 / VL_
 xu xo > u / VL_
-
-% ʔ > y / E_{A O}
-% ʔ > w / O_{A E}
-% x > w / A_O OR O_A
 
 % Desyllabification of Semivowels
 i u > y w / _VC
 iuiH uiuH > iwī uyū / C_
 
-i u > y w / #_{IUH LOW}
-i u > y w / _LOW
-i u > y w / LOW_VL
-
+i u > y w / #_{I U}H
+i u > y w / LOW_VL or _LOW
 i u > y w / {H C}_V
+
 y w > i u / _{C H #}
 
 VSī VSū > VLi VLu / _{C #}
 VSī VSū > VLy VLw / _V
 
-H > ə / {# [OBSTRUENT]}_C
-H > ə / C_#
-H > ə / R_R#
+H > ə / {# [Obs]}_C
+H > ə / C_# or R_R#
 
-H > 0 / _{C #}
-H > 0 / C_
+H > 0 / _{C #} or C_
 ʔ > 0 / #_
 
-iʔə uʔə > ī ū
+iʔə uʔə > ī ū % Does this even occur?
 Hə > 0 / VL_
-
-%H > w / V_{O U}
-%ʔ > y / V_{O I}
-%H > w / {O U}_V
-%ʔ > y / {O I}_V
 
 % Consonant Clusters
 Ks > ks
@@ -176,55 +163,31 @@ Ks > ks
 
 s > 0 / _ss*
 
-oʔLOW LOWʔo > ō ō
-ʔ > 0  / {E A O}_{I U}
+oʔLOW LOWʔo > ō
+
+ʔ > 0 / LOW_{I U}
 
 eʔe aʔa eʔa aʔe > ē ā ā ē
-éʔe áʔa éʔa áʔe > ê â â ê
-eʔé aʔá eʔá aʔá > ê â â ê
 
-EU > Eu
-EI > Ei
-AU > Au
-AI > Ai
-OU > Ou
-OI > Oi
+% Rules like this are to be avoided in this language nad probably
+% Indicative that there is a problem somewhere
+EU EI > Eu Ei
+AU AI > Au Ai
+OU OI > Ou Oi
 
-WY = IU W
-aʔ eʔ oʔ > ā ē ō /_WY
-áʔ éʔ óʔ > â ê ô /_WY
+aʔ eʔ oʔ > ā ē ō / _{I U W}
 
-ēʔə êʔə > ē ê
-ēʔe êʔE > ē ê
-āʔe âʔE > ā â
-āʔa âʔA > ā â
-āxa âxA > ā â
+ēʔə ēʔe > ē
+āʔe āʔa āxa > ā
 
 oi ōi eu ēu > ai ei au ou
-ói ôi éu êu > ái éi áu óu
 
-% Siever's Nasals
+% Siever's law for Nasals
 n m > ən əm / CC+_V
 y w > iy uw / CC+_V
-ə̄ ə > ū u   / K_
 
-% Syllable Lules:
-% [Short-Atonic] = ai au a e i o u
-% [Long-Atonic]  = āi āu ā ē ī ō ū
-% [Short-Tonic]  = ái áu á é í ó ú
-% [Long-Tonic]   = âi âu â ê î ô û
-% [ATONIC] = [Short-Atonic] [Long-Atonic]
-% [TONIC]  = [Short-Tonic]  [Long-Tonic]
-% [WEAK]   = [Short-Weak]   [Long-Weak]
+% This may be a bit arbitrary
+əˉ ə > ū u / K_
 
-% If a weak accented syllable is preceded by another weak or a strong delete it.
 
-% W = y w
-% C = C H W v ɕ
-
-% [Short-Weak] [Long-Weak] > [Short-Atonic] [Long-Atonic] / {[TONIC] [WEAK]}C*_
-% [Short-Weak] [Long-Weak] > [Short-Atonic] [Long-Atonic] / {[TONIC] [WEAK]}C*VC*_
-% [Short-Weak] [Long-Weak] > [Short-Atonic] [Long-Atonic] / {[TONIC] [WEAK]}C*VC*VC*_
-% [Short-Weak] [Long-Weak] > [Short-Tonic]  [Long-Tonic] % Otherwise, they become strong.
-
-CLOSE LEXICON as 'pkk_lexicon.txt'
+close LEXICON as 'pkk_lexicon.txt'
