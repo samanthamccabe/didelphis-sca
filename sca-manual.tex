@@ -4,21 +4,20 @@
 \usepackage{fontspec}
 \usepackage{verbatim}
 \usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
-%\usepackage{enumitem}
-%\setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
 
-\newcounter{vexcounter}
+\newcounter{excounter}
+% verbatim example
 \newenvironment{vex}[1]{
-	\refstepcounter{vexcounter}
-	\noindent\emph{Ex.} (\arabic{vexcounter}\label{#1})
+	\refstepcounter{excounter}
+	\noindent\emph{Ex.} (\arabic{excounter}\label{#1})
 	\verbatim
 }{\endverbatim}
 
 \title{Haedus Toolbox SCA, Manual}
 \author{Samantha Fiona Morrígan McCabe}
 
-%\setmainfont[Ligatures=Common]{Linux Libertine O}
-%\setsansfont{Linux Biolinum O}
+\setmainfont[Ligatures=Common]{Linux Libertine O}
+\setsansfont{Linux Biolinum O}
 \setmonofont[Scale=0.8]{DejaVu Sans Mono}
 
 \begin{document}
@@ -35,48 +34,49 @@ This manual is divided into two main parts, with an appendix. The first part pro
 The first section provides a narrative description of using the SCA, from prerequisites and executing provided example scripts, to writing basic rule sets for a single lexicon, to using scripting capabilities to read and write lexicons in the full rule implementation.
 
 \section{Setup and Execution}\label{sec:setup}
-This section describes the steps required to set up and run the Haedus SCA, either on a Windows or \texttt{*nix} systems. The SCA is provided as a self-executing \texttt{.jar} file, requiring that the Java Runtime Environment (JRE 1.6 or later) be installed on your system.
+This section describes the steps required to set up and run the Haedus SCA, either on Windows or \texttt{*nix} systems. The SCA is provided as a self-executing \texttt{.jar} file, requiring that the Java Runtime Environment (JRE 1.6 or later) be installed on your system.
 
-\subsection{Java Runtime Environment}\label{sec:java}
+\subsection{Java Runtime Environment}\label{sec:javaruntime}
 If you do not have a JRE installed, you will need to acquire an appropriate version from Oracle's website. If you have a JRE installed already, it must be Java 6 or later and, because that version was released quite a few years ago at the time this manuel is being prepared, it likely will be.
 
 If everything is set up correctly, when you open a terminal window and type \texttt{java -version} you should see output like the following:\\
 \begin{vex}{ex:javatest}
-samantha@haedus-server:~$ java -version
+samantha@haedus-server: java -version
 java version "1.7.0_79"
 OpenJDK Runtime Environment (IcedTea 2.5.5) (7u79-2.5.5-0ubuntu0.14.04.2)
 OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
-\end{vex}
+\end{vex} 
 \noindent
-On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), the same sort of information will be displayed. If the command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
+On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the \texttt{java version} itself is what matters. If the command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
 
-\subsection{Running the Sound-Change Applier}\label{sec:running}
+\subsection{Running the Sound-Change Applier}\label{sec:runningsca}
 In order to actually run the Haedus SCA, your best option is to navigate a terminal to the folder where you have extracted the archive.
-In addition to the main \texttt{.jar} file, we also provide a pair of scrips to simplify running the program, and it is suggested that you use these, rather than running the \texttt{.jar} file directly. These are \texttt{toolbox.bat} for windows and \texttt{toolbox.sh} for *nix platforms\footnote{This script uses \texttt{#!/bin/sh} so if you system is configured such that \texttt{sh} is not accessible here, you will need to do something else.}
+In addition to the main \texttt{.jar} file, we also provide a pair of scrips to simplify running the program\footnote{This is done for several reasons, but one is that it allows the \texttt{.jar} to have a longer name indicating the specific version, while still running the program with a simple \texttt{toolbox} command rather than \texttt{java -jar} with the full file-name. Additionally, an especially enterprising using might wish to keep program and project files entirely separate, and then either add the SCA folder to the system path, or symlink the \texttt{toolbox} runner script into a folder like \texttt{/usr/bin} in order to make it available on the system path}, and it is suggested that you use these, rather than running the \texttt{.jar} file directly. These are \texttt{toolbox.bat} for Windows and \texttt{toolbox.sh} for *nix platforms\footnote{This script uses \texttt{\#!/bin/sh} so if you system is configured such that \texttt{sh} is not accessible here, you will need to either make it accessible at that path, or alter the script itself.}
 
-\footnote{This is done for several reasons, but one is that it allows the \texttt{.jar} to have a longer name indicating the specific version, while still running the program with a simple \texttt{./toolbox} command rather than \texttt{java -jar} with the full file-name. Additionally, an especially enterprising using might wish to keep program and project files entirely separate, and then either add the SCA folder to the system path, or symlink the \texttt{toolbox} runner script into a folder like \texttt{/usr/bin}}
+%The SCA has two modes, basic and standard. The basic mode is like more traditional SCAs, where the user specifies the input and output lexicons and rule file when starting the program; the standard mode is started by providing any number of script files, and handles all lexicon reading and writing via scripting capabilities (section \ref{sec:scripting}). Basic mode does not support these and will warn you if you attempt to use them.
 
-The SCA has two modes, basic and standard. The basic mode is like more traditional SCAs, where the user specifies the input and output lexicons and rule file when starting the program; the standard mode is started by providing any number of script files, and handles all lexicon reading and writing via scripting capabilities (section \ref{sec:scripting}).
+%To start in basic mode, use the \texttt{-b} flag, followed by an input lexicon, rule file, and output lexicon as follows:\\
+%\begin{vex}{ex:runbasic}
+%toolbox.sh -b input.lex basic.rule output.lex
+%\end{vex}
+%\noindent
+%You can optionally specify a formatter using the \texttt{-m} argument, followed by one of the following: \texttt{S} for smart segmentation, \texttt{D} for canonical decomposition, or \texttt{C} for canonical composition. For specifics of these modes, see section \ref{sec:normalization}. With no flag, the both the lexicons and rules are loaded unchanged.
 
-To start in basic mode, use the \texttt{-b} flag, followed by an input lexicon, rule file, and output lexicon as follows:\\
-\begin{vex}{ex:runbasic}
-toolbox -b input.lex basic.rule output.lex
+To run the SCA, you only need to provide the paths of one or more rules files: \\
+\begin{vex}{ex:runstandard}
+toolbox.sh script1.rule script2.rule ... scriptN.rule
 \end{vex}
 \noindent
-You can optionally specify a formatter using the \texttt{-m} argument, followed by one of the following: \texttt{S} for smart segmentation, \texttt{D} for canonical decomposition, or \texttt{C} for canonical composition. For specifics of these modes, see section \ref{sec:normalization}. With no flag, the both the lexicons and rules are loaded unchanged.
+Rather than specifying input and output lexicons when starting the program, lexicons are read and written using the language's scripting capabilities (section \ref{sec:scripting}).
 
-To run the SCA in standard mode, simply invoke it without a flag, and the paths of one or more rules files. \\
-\begin{vex}{ex:runbasic}
-toolbox script1.rule script2.rule
-\end{vex}
+\section{Writing Rule Scripts}\label{sec:writingscripts}
+All of the SCA's functionality is controlled using script files. In addition to the expected rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into Kuma-Koban.
 
-\section{Writing Rule Scripts}\label{sec:scripts}
-%\section{Rule Scripts}\label{sec:scripts}
-Operation of the SCA is controlled through a script file consisting largely of transformation-rule definitions, but which also allows you to define variables, reserve character sequences, control segmentation and normalization, and import or execute commands from other scripts. This section will first address core topics for rules, variables, and reserving characters; the others are an avanced topic covered later and in the section \ref{sec:syntax}.
-%
+%Operation of the SCA is controlled through a script file consisting largely rule definitions, but which also allows you to define variables, and reserve character sequences, as well as control segmentation and normalization, and import or execute commands from other scripts when running in standard mode. This section will first address core topics for rules, variables, and reserving characters; the others are an advanced topic covered later and in the section \ref{sec:syntax}.
+
 %In this rule language, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples.
 %
-You can write comments, starting with a percent sign. Anything following \texttt{\%} will be ignored by the parser. There is also a \texttt{break} command which will halt all parsing.
+You can write comments, starting with a percent sign. Anything following \texttt{\%} will be ignored by the parser. %There is also a \texttt{break} command which will halt all parsing.
 %
 %\subsection{Reserving Characters}\label{sec:reserving}
 %When writing rule files which do not rely on intelligent segentation, you can use the \texttt{reserve} keyword to indicate sequences of characters which are intended to represent a single sound. Following the keyword, simply list  the string you wish to be treated this way, separated by whitespace: \\
@@ -156,7 +156,7 @@ Script files may contain comments, starting with \texttt{\%}, and may be placed 
 The following characters have special meanings in the SCA script language and should only be used in the contexts they are expected:
 
 \begin{vex}{ex:reserved}
-# $ % * ? + ! ( ) { } [ ] 0 . _ = / >
+% # $ * ? + ! ( ) { } [ ] 0 . \_ = / >
 \end{vex}
 
 \noindent
@@ -190,7 +190,7 @@ Lexicons are not automatically written closed when the script completes, so if y
 
 \subsubsection{Import \& Execute Commands}\label{sec:import}
 \emph{This functionality is not available in basic mode.} 
-It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert it's contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all the commands in the file immediately. The syntax is simple and is as follows:
+It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert it's contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all thse commands in the file immediately. The syntax is simple and is as follows:
 
 \begin{vex}{ex:commands}
 execute "other1.rule"
