@@ -128,9 +128,9 @@ public class StandardScript extends AbstractScript {
 					);
 					openLexicon(command, factory);
 				}else if (WRITE.matcher(command).lookingAt()) {
-					writeLexicon(command);
+					writeLexicon(command, formatterMode);
 				} else if (CLOSE.matcher(command).lookingAt()) {
-					closeLexicon(command);
+					closeLexicon(command, formatterMode);
 				} else if (command.contains("=")) {
 					variables.add(command);
 				} else if (command.contains(">")) {
@@ -188,12 +188,12 @@ public class StandardScript extends AbstractScript {
 	 * @param command the whole command starting from CLOSE, specifying the file-handle and path
 	 * @throws  ParseException
 	 */
-	private void closeLexicon(String command) {
+	private void closeLexicon(String command, FormatterMode mode) {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(2);
 			String path   = matcher.group(4);
-			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler));
+			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}
@@ -205,12 +205,12 @@ public class StandardScript extends AbstractScript {
 	 * @param command the whole command starting from WRITE, specifying the file-handle and path
 	 * @throws ParseException
 	 */
-	private void writeLexicon(String command) {
+	private void writeLexicon(String command, FormatterMode mode) {
 		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(2);
 			String path   = matcher.group(4);
-			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler));
+			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}

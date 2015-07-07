@@ -16,6 +16,7 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.enums.FormatterMode;
 import org.haedus.io.FileHandler;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
@@ -31,15 +32,17 @@ import java.util.List;
 public class LexiconCloseCommand extends LexiconIOCommand {
 
 	private final LexiconMap lexicons;
+	private final FormatterMode mode;
 
-	public LexiconCloseCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
-		super(pathParam, handleParam, handlerParam);
-		lexicons = lexiconParam;
+	public LexiconCloseCommand(LexiconMap lexParam, String path, String handle, FileHandler name, FormatterMode modeParam) {
+		super(path, handle, name);
+		lexicons = lexParam;
+		mode = modeParam;
 	}
 
 	@Override
 	public void execute() {
-
+		// REMOVE data from lexicons
 		Lexicon lexicon = lexicons.remove(fileHandle);
 
 		StringBuilder sb = new StringBuilder();
@@ -54,27 +57,30 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 			}
 			if (i1.hasNext()) { sb.append('\n'); }
 		}
-		fileHandler.writeString(filePath, sb.toString().trim());
+		String data = sb.toString().trim();
+		String normalized = mode.normalize(data);
+		fileHandler.writeString(filePath, normalized);
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) { return true;  }
-		if (o == null) { return false; }
-		if (getClass() != o.getClass()) { return false; }
+	public boolean equals(Object obj) {
+		if (this == obj) { return true; }
+		if (obj == null) { return false; }
+		if (getClass() != obj.getClass()) { return false; }
 
-		LexiconCloseCommand rhs = (LexiconCloseCommand) o;
+		LexiconCloseCommand other = (LexiconCloseCommand) obj;
 		return new EqualsBuilder()
-				.appendSuper(super.equals(o))
-				.append(lexicons, rhs.lexicons)
-				.isEquals();
+			.appendSuper(super.equals(obj))
+			.append(mode, other.mode)
+			.append(lexicons, other.lexicons)
+			.isEquals();
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
-				.appendSuper(super.hashCode())
-				.append(lexicons)
-				.toHashCode();
+			.appendSuper(super.hashCode())
+			.append(lexicons)
+			.toHashCode();
 	}
 }

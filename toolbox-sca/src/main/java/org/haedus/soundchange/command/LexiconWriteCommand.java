@@ -16,6 +16,7 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.enums.FormatterMode;
 import org.haedus.io.FileHandler;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
@@ -31,16 +32,19 @@ import java.util.List;
 public class LexiconWriteCommand extends LexiconIOCommand {
 
 	private final LexiconMap lexicons;
+	private final FormatterMode mode;
 
-	public LexiconWriteCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam) {
-		super(pathParam, handleParam, handlerParam);
-		lexicons = lexiconParam;
+	public LexiconWriteCommand(LexiconMap lexParam, String path, String handle, FileHandler name, FormatterMode modeParam) {
+		super(path, handle, name);
+		lexicons = lexParam;
+		mode = modeParam;
 	}
 
 	@Override
 	public void execute() {
-
+		// GET data from lexicons
 		Lexicon lexicon = lexicons.get(fileHandle);
+		
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();
 		while (i1.hasNext()) {
@@ -53,20 +57,23 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 			}
 			if (i1.hasNext()) { sb.append('\n'); }
 		}
-		fileHandler.writeString(filePath, sb.toString().trim());
+		String data = sb.toString().trim();
+		String normalized = mode.normalize(data);
+		fileHandler.writeString(filePath, normalized);
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) { return true;  }
-		if (o == null) { return false; }
-		if (getClass() != o.getClass()) { return false; }
+	public boolean equals(Object obj) {
+		if (this == obj) { return true;  }
+		if (obj == null) { return false; }
+		if (getClass() != obj.getClass()) { return false; }
 
-		LexiconWriteCommand rhs = (LexiconWriteCommand) o;
+		LexiconWriteCommand other = (LexiconWriteCommand) obj;
 		return new EqualsBuilder()
-				.appendSuper(super.equals(o))
-				.append(lexicons, rhs.lexicons)
-				.isEquals();
+			.appendSuper(super.equals(obj))
+			.append(mode, other.mode)
+			.append(lexicons, other.lexicons)
+			.isEquals();
 	}
 
 	@Override
