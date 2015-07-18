@@ -1,3 +1,4 @@
+%!TEX program = xelatex
 \documentclass[10pt,letterpaper]{article}
 \usepackage{fontspec}
 \usepackage{xunicode}
@@ -28,18 +29,17 @@
 \section*{Introduction} 
 \label{sec:introduction}
 The Haedus Toolbox SCA is a powerful, script-driven sound-change applier program implemented in Java. It supports UTF-8 natively and has a rule syntax designed for clarity and similarity to sound change notation in linguistics.
-% The Haedus SCA was developed to provide hypothesis testing capabilities for another project, but in its core functionality it is a sound-change-applier.
 
-It was designed to support functionality often in demand in SCA programs, but often not available together, or only available after a substantial investment in time to overcome a learning curve. Not only does the Haedus SCA support functions like mutliple rule conditions, regular expressions, metasthesis, unrestricted variable naming, and scripting but allows novice users to entierly advanced functionality they do not need.
+The Haedus SCA supports capabilities like multiple rule conditions, regular expressions, metathesis, unrestricted variable naming, and scripting but also allows novice users to ignore advanced functionality they do not need.
 
-This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and it's capabilities using a completed example rules file; the second part is a more detailed reference to the rule language and its syntax; the appendix provides some implementational details which are only likely to be of interest to more advanced users.
+This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and it's capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users.
 
 % section: introduction (end)
 % -----------------------------------------------------------------------------
 
 \section{User Guide} 
 \label{prt:user_guide}
-The following sections will guide you, as a new user, through using the SCA and create a rules script, from prerequisites and executing provided example scripts, to writing basic rules, and using some of the more powerful supported features.
+The following sections will guide you, as a new user, through using the SCA and create a rules script, from prerequisites and executing provided example scripts, to writing basic rules, to using some of the more powerful supported features.
 
 % part: user_guide (end)
 % -----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ This section describes the steps required to set up and run the Haedus SCA, eith
 
 \subsubsection{Java Runtime Environment}
 \label{sub:java_runtime_environment}
-If you do not have a JRE installed, you will need to acquire an appropriate version from Oracle's website. If you have a JRE installed already, it must be Java 6 or later and, because that version was released quite a few years ago at the time this manuel is being prepared, it likely will be.
+If you do not have a JRE installed, you will need to acquire an appropriate version from Oracle's website. If you have a JRE installed already, it must be Java 6 or later (because that version was released quite a few years ago at the time this manual is being prepared, it likely will be).
 
 If everything is set up correctly, when you open a terminal window and type \texttt{java -version} you should see output like the following:\\
 \begin{vex}{ex:javatest}
@@ -63,75 +63,67 @@ OpenJDK Runtime Environment (IcedTea 2.5.5) (7u79-2.5.5-0ubuntu0.14.04.2)
 OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
 \end{vex} 
 \noindent
-On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the \texttt{java version} itself is what matters. If the command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
+On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the ``\texttt{java version}'' itself is what matters. If the \texttt{java} command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
 
 % subsection: java_runtime_environment (end)
 % -----------------------------------------------------------------------------
 
 \subsubsection{Running the Sound-Change Applier}
 \label{sub:running_sca}
-In order to actually run the Haedus SCA, your best option is to navigate a terminal to the folder where you have extracted the archive.
-In addition to the main \texttt{.jar} file, we also provide a pair of scrips to simplify running the program\footnote{This is done for several reasons, but one is that it allows the \texttt{.jar} to have a longer name indicating the specific version, while still running the program with a simple \texttt{toolbox} command rather than \texttt{java -jar} with the full file-name. Additionally, an especially enterprising using might wish to keep program and project files entirely separate, and then either add the SCA folder to the system path, or symlink the \texttt{toolbox} runner script into a folder like \texttt{/usr/bin} in order to make it available on the system path}, and it is suggested that you use these, rather than running the \texttt{.jar} file directly. These are \texttt{toolbox.bat} for Windows and \texttt{toolbox.sh} for *nix platforms\footnote{This script uses \texttt{\#!/bin/sh} so if you system is configured such that \texttt{sh} is not accessible here, you will need to either make it accessible at that path, or alter the script itself.}
+%In order to actually run the Haedus SCA, your best option is to navigate a terminal to the folder where you have extracted the archive.
 
-%The SCA has two modes, basic and standard. The basic mode is like more traditional SCAs, where the user specifies the input and output lexicons and rule file when starting the program; the standard mode is started by providing any number of script files, and handles all lexicon reading and writing via scripting capabilities (section \ref{sec:scripting}). Basic mode does not support these and will warn you if you attempt to use them.
+The Haedus SCA is run from the command line, using the \texttt{toolbox.bat} or \texttt{toolbox.sh} commands (for Windows and Unix-like systems respectively). It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
 
-%To start in basic mode, use the \texttt{-b} flag, followed by an input lexicon, rule file, and output lexicon as follows:\\
-%\begin{vex}{ex:runbasic}
-%toolbox.sh -b input.lex basic.rule output.lex
-%\end{vex}
-%\noindent
-%You can optionally specify a formatter using the \texttt{-m} argument, followed by one of the following: \texttt{S} for smart segmentation, \texttt{D} for canonical decomposition, or \texttt{C} for canonical composition. For specifics of these modes, see section \ref{sec:normalization}. With no flag, the both the lexicons and rules are loaded unchanged.
-
-To run the SCA, you only need to provide the paths of one or more rules files: \\
+In either case, run the SCA, you only need to provide the paths of one or more rules files: \\
 \begin{vex}{ex:runstandard}
 toolbox.sh script1.rule script2.rule ... scriptN.rule
 \end{vex}
 \noindent
-Rather than specifying input and output lexicons when starting the program, lexicons are read and written using the language's scripting capabilities (section \ref{sub:scripting_capabilities}).
+There are no other arguments to provide, only the script names. Rather than specifying input and output lexicons when starting the program, lexicons are read and written within the rules files themselves (section \ref{sub:scripting_capabilities}).
 
 % subsection: running_sca (end)
 % -----------------------------------------------------------------------------
 
 \subsection{Writing Rule Scripts}
 \label{sec:writing_rule_scripts}
-All of the SCA's functionality is controlled using script files. In addition to the expected rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into Kuma-Koban; the hope is that this will be a smooth way of introducing new users to the rule syntax.
+All of the SCA's functionality is controlled using script files. In addition to rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into a corresponding list for Kuma-Koban; the hope is that this will be a smooth way of introducing new users to the rule syntax. At this point and for the rest of the section, some of the examples will refer to the provided \texttt{pie-pkk.rule} example file.
 
-%In this rule language, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples.
+The Haedus rule language is generally insensitive to whitespace, and while items in lists (sets, items in rule transforms, or variable definitions) are delimited by whitespace, it is still insensitive to quantity\footnote{Specifically, lists are stripped of padding whitespace at the beginning and end, and split using the regex \texttt{\textbackslash\hspace{0pt}s+}}; this will be apparent in the examples. 
 
-There are two general things worth noting at this point. First, that this rule language is generally insensitive to whitespace, and while items in lists (sets, items in rule transforms, or variable definitions) are delimited by whitespace, it is still insensitive to quantity\footnote{Specifically, lists are stripped of padding whitespace at the beginning and end, and split using the regex \texttt{\textbackslash\hspace{0pt}s+}} which will be apparent in the examples. Second, that anything on a line following a percent sign \texttt{\%} will be treated as a comment and ignored by the parser. Full-line and inline comments are both allowed:
+Comments can always be created using the \texttt{\%} symbol, as shown below:
 
 \begin{vex}{ex:comment}
 % This is a comment (full-line)
 ph th kh > f s x % this is a rule, followed by a comment (inline)
 \end{vex}
+\noindent
+Anything following the \texttt{\%} will be ignored; there is not currently any way to create block comments, however. 
 
 % section: writing_rule_scripts (end)
 %------------------------------------------------------------------------------
 
 \subsubsection{Using Normalization} 
 \label{sub:using_normalization}
-Though it is by no means required, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{normalize} keyword, followed by one of the three supported modes, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
+Though it is by no means required that you set this yourself, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{mode} keyword, followed by one of the three supported modes, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
 
-The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way; composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can write rules which operate on the diacritics themselves.
+The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like X with X+X. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
 
-The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to assemble larger representations, allowing the SCA to treat \emph{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
+The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \emph{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
 
-The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that a rule which targets \emph{k} will not trigger on \emph{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode.
+The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \emph{k} will not trigger on \emph{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
 
 % subsection using_normalization (end)
 %------------------------------------------------------------------------------
 
-\subsubsection{Loading Lexicons} 
+\subsubsection{Loading Lexicons}
 \label{sub:loading_lexicons}
-The first necessary step in writing rules is loading a lexicon. This is done using the \texttt{open} keyword, followed by the path to a lexicon in single or double quotes, the optional\footnote{The \texttt{as} keyword was made optional because its presence can make the commands more fluent and clear to read, but it is not syntactically important, so it may be omitted for compactness} keyword \texttt{as} and a file-handle name by which you can reference the lexicon later. In the provided example file, you are loading \texttt{pie\_lexicon.txt} and binding it to the file-handle \texttt{LEXICON}, using the command
+One of the first things you will want to do when writing rules is to load a lexicon. This is done using the \texttt{open} keyword, followed by the path to a lexicon in single or double quotes, the optional\footnote{The \texttt{as} keyword was made optional because its presence can make the commands more fluent and clear to read, but it is not syntactically important, so it may be omitted for compactness} keyword \texttt{as} and a file-handle name by which you can reference the lexicon later. In the provided example file, you are loading \texttt{pie\_lexicon.txt} and binding it to the file-handle \texttt{LEXICON}, using the command
 
 \begin{vex}{ex:openlexicon}
 open 'pie_lexicon.txt' as LEXICON
 \end{vex}
 
-You may use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path.
-
-You might start writing a rules file like the following:
+You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following: \\
 \begin{vex}{ex:closelexicon}
 open 'pie_lexicon.txt' as LEXICON
 % Intervening rules go here
@@ -140,16 +132,17 @@ write LEXICON as 'late-pie_lexicon.txt'
 close LEXICON as 'pkk_lexicon.txt'
 \end{vex}
 \noindent
-Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.\footnote{Author's note: I've created a ticket for future versions to support ``probe words'', where the user can bind an input word to a handle, and assert that it has a particular value at any number of points in the rule script. This could (optionally) halt processing entirely, and write the lexicons to disk in their current state to aid the user in identifying any errors. See [toolbox-sca-15] https://github.com/samanthamccabe/toolbox-sca/issues/51}
+Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.
+%\footnote{Author's note: I've created a ticket for future versions to support ``probe words'', where the user can bind an input word to a handle, and assert that it has a particular value at any number of points in the rule script. This could (optionally) halt processing entirely, and write the lexicons to disk in their current state to aid the user in identifying any errors. See [toolbox-sca-15] https://github.com/samanthamccabe/toolbox-sca/issues/51}
 
-Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. In some cases, this could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled before writing any rules, a rule containing \texttt{pʰ} will not trigger on a word containing \texttt{pʰ} because it will have been loaded as two separate characters \texttt{p} and \texttt{ʰ}. 
+Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. If you were to change modes \emph{after} loading a lexicon, it could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled prior to writing any rules, a rule containing \texttt{pʰ} will not trigger on a word containing \texttt{pʰ} because it will have been loaded as two separate characters \texttt{p} and \texttt{ʰ}. 
 
 % subsection loading_lexicons (end)
 %------------------------------------------------------------------------------
 
 \subsubsection{Reserving Characters} 
 \label{sub:reserving_characters}
-Though there are no uses of reserving characters in the Kuma-Koban examples, it can be useful to do in some cases, especially when you are not using intelligent segmentation (see section \ref{sub:using_normalization}), or where your orthographic conventions may conflict in some way with it.
+Though there are no uses of reserving characters in the Kuma-Koban examples, it can be useful to do, especially when you are not using intelligent segmentation (see section \ref{sub:using_normalization}), or where your orthographic conventions may conflict in some way with it (such as if your language uses pre-aspirated stop, which you represent \emph{ʰt}).
 
 You can use the \texttt{reserve} keyword to indicate which sequences of characters which are intended to represent single sounds. Following the keyword, simply list the string you wish to be treated this way, separated by whitespace:
 

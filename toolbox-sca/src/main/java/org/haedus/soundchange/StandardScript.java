@@ -52,7 +52,7 @@ public class StandardScript extends AbstractScript {
 	private static final String FILEHANDLE = "([A-Z0-9_]+)";
 	private static final String FILEPATH   = "[\"\']([^\"\']+)[\"\']";
 	
-	private static final Pattern NORMALIZER = Pattern.compile("(NORMALIZE|normalize)");
+	private static final Pattern NORMALIZER = Pattern.compile("(NORMALIZE|normalize|MODE|mode)");
 	private static final Pattern EXECUTE    = Pattern.compile("(EXECUTE|execute)");
 	private static final Pattern IMPORT     = Pattern.compile("(IMPORT|import)");
 	private static final Pattern OPEN       = Pattern.compile("(OPEN|open)");
