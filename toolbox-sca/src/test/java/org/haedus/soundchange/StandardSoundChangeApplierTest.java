@@ -51,7 +51,7 @@ public class StandardSoundChangeApplierTest {
 
 	@Test(expected = ParseException.class)
 	public void testNormalizerBadMode() {
-		new StandardScript("NORMALIZER:XXX");
+		new StandardScript("MODE:XXX");
 	}
 
 	@Test

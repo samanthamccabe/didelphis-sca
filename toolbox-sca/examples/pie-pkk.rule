@@ -2,8 +2,9 @@
 % Haedus Toolbox SCA Rules File
 % Samantha Fiona Morrigan McCabe
 
-normalize intelligent
-% Set the normalization mode before
+mode intelligent
+
+% Set the normalization mode before loading the lexicon
 open 'pie_lexicon.txt' as LEXICON
 
 % Normalize [i u] vs [y w] use
