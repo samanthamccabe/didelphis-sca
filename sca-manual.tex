@@ -4,7 +4,8 @@
 \usepackage{xunicode}
 % Ok apparently you should never load xunicode before fontspec
 \usepackage{verbatim}
-\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
+%\usepackage{enumitem}
+\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geom etry}
 
 \newcounter{excounter}
 % verbatim example
@@ -242,13 +243,33 @@ There is another tool we can use to combine both rules into one, and that is the
 E > A / {x ʕ}_ or _{x ʕ}
 \end{vex}
 \noindent
-Using \texttt{or} allows a rule to have multiple conditions, any one of which can trigger the rule. If find you have the same change being made under several separate conditions, you can write then as a single rule using \texttt{or}. But only do this judiciously, as is can substantially impair the legibility of your rules, especially if the conditions are complicated.
+Using \texttt{or} allows a rule to have multiple conditions, any one of which can trigger the rule. If find you have the same change being made under several separate conditions, you can write then as a single rule using \texttt{or}. But only do this judiciously, as is can substantially impair the legibility of your rules, especially if the conditions are complicated. Throughout the Kuma-Koban rules you will see places where this is used, as well as places it was not but could have been
 
 % section writing_conditions (end)
 % -----------------------------------------------------------------------------
 
 \subsubsection{Writing Advanced Conditions} 
 \label{sec:writing_advanced_conditions}
+If you browse through the Kuma-Koban example rules, you will see that most of them can be described using only what has been covered so far. There will inevitably be cases you cannot cover with these techniques alone however.
+
+One of the most powerful capabilities supported by this SCA is that it allows the use of regular expressions in rule conditions. This is discussed in detail in section \ref{ssub:expressions} but can be addressed here in the context of how regular expressions can be used to accomplish particular tasks.
+
+Some Indo-European languages exhibit a change known as Grassman's law, where aspirated stops are de-aspirated if another aspirate occurs after it (this is certainly true within a root or stem, but may apply to aspirates in suffixes as well). The following example is intended only to apply to aspirates which occur in adjacent syllables, or within the same syllable:\\
+
+\begin{vex}{ex:grassman}
+% Grassman's Law
+bʰ dʰ gʰ gʷʰ > b  d  g  gʷ / _{R W}?VV?C*{bʰ dʰ gʰ gʷʰ}
+\end{vex}
+\noindent
+The two new symbols were are \texttt{?} and \texttt{*}. If you are familiar with regular expressions, their meanings are what you would expect:
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[\texttt{?}] Matches the preceding expression zero or one times
+\item[\texttt{*}] Matches the preceding expression zero or more times
+\item[\texttt{+}] Matches the preceding expression one or more times
+\end{description}
+
+
 
 % section writing_advanced_conditions (end)
 % -----------------------------------------------------------------------------
@@ -521,7 +542,7 @@ b d g > p t k / #_
 which represents devoicing of plosivses in word intitial position.
 
 \subsubsection{Expressions}
-\label{sub:expressions}
+\label{ssub:expressions}
 Within rule conditions, it is possible to use regular expressions. While the Haedus implementation is not POSIX compliant, it nevertheless permits the use of metacharacters \texttt{?}, \texttt{*}, \texttt{+}, and \texttt{.} and also allows grouping through with parentheses \texttt{()}.
 
 These have the behaviors you should expect if you are familiar with regular expression languages: \texttt{?} indicates that a preceding expression may be matched zero or one times; \texttt{*} indicates that a preceding expression may be matched zero or more times; \texttt{+} indicates that a preceding expression may be one or more times. The dot-metacharacter \texttt{.} will match any single literal. Grouping with parentheses allow application of the quantifying metacharacters to sequences of expressions, such as: 
