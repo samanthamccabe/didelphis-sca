@@ -106,7 +106,9 @@ Anything following the \texttt{\%} will be ignored; there is not currently any w
 \label{sub:using_normalization}
 Though it is by no means required that you set this yourself, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{mode} keyword, followed by one of the three supported modes, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
 
-The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like X with X+X. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
+The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like ö with o+ ̈. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
+
+% ◌
 
 The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \emph{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
 
@@ -158,43 +160,37 @@ This will ensure that a rule intended to target \emph{p} will not affect \emph{p
 
 \subsubsection{Writing Simple Rules}
 \label{sub:writing_simple_rules}
-The first rule you will see in the Kuma-Koban example is quite simple:
+It is possible to write some rather complicated rules using the Haedus language, but it is generally not necessary. Most rules are fairly simple, and these are what will be discussed here.
 
+This is first rule you will see in the Kuma-Koban example:\\
 \begin{vex}{ex:simplerule}
 y w > i u
 \end{vex}
 \noindent
-The intention is to change every \emph{y} to an \emph{i} and every \emph{w} to a \emph{u}, regardless of context. The items on the left and right are separated by spaces, and could actually consist of any number of characters, including variables.
+The intention is to change every \emph{y} to an \emph{i} and every \emph{w} to a \emph{u}, regardless of context. The first set of rules in the Kuma-Koban example are like this; simple rules for making orthographic corrections in the raw data.
 
-The first set of rules in the Kuma-Koban example are simple and of this kind, put in place specifically to make orthographic corrections in the raw data.
-
-There are two more early rules that should also be instructive, and illustrate how to work with basic conditions and word boundaries, and how to delete segments, respectively. More detailed information is discussed in section \ref{sub:rules}
-
-First is this rule using a condition:
-\begin{vex}{ex:simplerule2}
-% For correct handling of negation prefix
-n- > nˌ / #_
-\end{vex}
-\noindent
-%It will ensure that words starting with \emph{n-} will be treated as "syllabic" later on.
-The slash character \texttt{/} separates the transformation from the condition.The hash character \texttt{\#} represents a word boundary, and the underscore represents the target sequence's location within the condition. Most of these symbols' uses should be familiar to you if you have used any of the more common SCAs that exist, or have studied sound changes or phonological rules academically.
-
-The second is this rule, which demonstrates how to delete characters:
+Though it is used less often, deletion is a useful feature of rules. The following example shows how to do this:
 
 \begin{vex}{ex:simplerule3}
 % Delete morpheme boundary marking
 - > 0
 \end{vex}
 \noindent
-It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). Changing any segments to \texttt{0} cause them to be deleted.
+It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). Changing any segments to \texttt{0} cause them to be deleted. 
+
+%There are two more early rules that should also be instructive, and illustrate how to work with basic conditions and word boundaries, and how to delete segments, respectively. More detailed information is discussed in section \ref{sub:rules}
+
+%This first rule is intended to apply to universally so it does not require a condition. 
+
+%The rule in ex. \ref(ex:simplerule2) uses, as part of its condition, the word-boundary symbol \texttt{\#} which is a rather common component of many condition. The rule itself can be understood as meaning ``\emph{n-} changes to \emph{nˌ} word-initially''.
+
 
 % section: writing_simple_rules (end)
 % -----------------------------------------------------------------------------
 
 \subsubsection{Defining Variables}
 \label{sub:defining_variables}
-A common early task in the development process is defining some common variables. A definition consists of a variable name (often, though not necessarily a capital letter), the assignment operator \texttt{=}, followed by any number of child elements (strings of literal symbols or other variables) which are separated by white space, as in the following:
-
+A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either terminal symbols, or other variables. The following is a representative example from the Kuma-Koban data:\\
 \begin{vex}{ex:basicvars}
 H = x ʔ
 N = m n
@@ -206,32 +202,40 @@ W = y w
 Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent reference until and unless it is changed. You can find more detailed information in section \ref{sub:variables}.
 
 % section defining_variables (end)
+% -----------------------------------------------------------------------------
 
-%%TODO: move this to the technical section ------------------------------------- 
-%You can also append or prepend new values onto an existing variable in the following way: \\
-%\begin{vex}{ex:reassignvars}
-%C = t k
-%C = C q % Append
-%C = p C % Prepend
-%\end{vex}
-%\noindent
-%This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
-
-\subsubsection{Writing Conditions}
+\subsubsection{writing Conditions}
 \label{sub:writing_conditions}
-Good conditions are where an SCA's real power lies. In this rule language, there is a lot to know about writing conditions, and that is detailed in section \ref{sub:conditions}; however, we will discuss these in a more organic fashion, as they appear in the Kuma-Koban example, for the benefit of new users.
+While the rules we've discussed so far have not needed to use conditions, the  majority of rules might ever find yourself writing will. One of the simplest possible conditions is seen in the following rule:\\
+\begin{vex}{ex:simplerule2}
+% For correct handling of negation prefix
+n- > nˌ / #_
+\end{vex}
+\noindent
+
+If you are familiar with the standard formalisms for discussing sound change academically, most of this notation will be familiar. The forward-slash \texttt{/} indicates the start of the condition, and the underscore \texttt{\_} indicates where the ``source'' symbol (any of the elements on the left side of the \texttt{>} operator) occurs in relation to the rest of the condition.
+
+%Good conditions are where an SCA's real power lies. In this rule language, there is a lot to know about writing conditions, and that is detailed in section \ref{sub:conditions}; however, we will discuss these in a more organic fashion, as they appear in the Kuma-Koban example, for the benefit of new users.
 
 There is a very common rule in Indo-European languages where \emph{*e} is changed to \emph{*a} in the environment of \emph{*h₂} and possibly \emph{*h₄} if there ever was such a thing\footnote{where distinguishing between these is not possible, \emph{*hₐ} is used, at least in those sources which admit a \emph{*h₄}}. For convenience, these are simply converted to consonants \emph{x} and \emph{ʕ}.
 
-Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. If, for the time being, we choose the `before' and set aside the `after', it is possible to write the following rule:
-
-\begin{vex}{ex:beforelaryngeals}
-E > A / _{x ʕ}
+Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. One way to write this is with four rules:\\
+\begin{vex}{ex:fourlaryngealrule}
+E > A / _x
+E > A / _ʕ
+E > A / x_
+E > A / ʕ_
 \end{vex}
 \noindent
-which makes use of the concept of a \emph{set}. Functionally, it's nearly the same as defining these in a variable beforehand, but without the need to actually use a separate command to do it, or to tie up a variable name for the rest of the file. A set is just a list of elements, separated by whitespace, and contained within a pair of curly braces \texttt{\{} and \texttt{\}}\footnote{Padding is also permitted around the set elements, so writing \texttt{\{ x ʕ \}} is legal and equivalent to \texttt{\{x ʕ\}}}.
+If this seems sub-optimal, there are two ways we can condense the number of individual rules. First, we can cut the number of rules in half by using \emph{sets}:\\
+\begin{vex}{ex:laryngealrulesets}
+E > A /      _{x ʕ}
+E > A / {x ʕ}_
+\end{vex}
+\noindent
+A set is just a list of elements, separated by whitespace, and contained within a pair of curly braces \texttt{\{} and \texttt{\}}\footnote{Padding is also permitted around the set elements, so writing \texttt{\{ x ʕ \}} is legal and equivalent to \texttt{\{x ʕ\}}}. Functionally, it's nearly the same as defining these in a variable beforehand, but without the need to actually use a separate command to do it.
 
-That deals with the ``before'' clause, but not ``after''. There is another tool we can use, however, and that is the \texttt{or} keyword:
+There is another tool we can use to combine both rules into one, and that is the \texttt{or} keyword:
 
 \begin{vex}{ex:fourrules}
 % e to a, before or after x or ʕ
@@ -406,6 +410,17 @@ It is possible to re-assign variables at any point in the script.This includes a
 \begin{vex}{ex:variables2}
 C = C h
 \end{vex}
+
+%%TODO: INCORPORATE ------------------------------------- 
+%You can also append or prepend new values onto an existing variable in the following way: \\
+%\begin{vex}{ex:reassignvars}
+%C = t k
+%C = C q % Append
+%C = p C % Prepend
+%\end{vex}
+%\noindent
+%This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
+
 
 % Using features instead; OR using variables as aliases for feature names
 
