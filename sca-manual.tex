@@ -261,7 +261,7 @@ Some Indo-European languages exhibit a change known as Grassman's law, where asp
 bʰ dʰ gʰ gʷʰ > b  d  g  gʷ / _{R W}?VV?C*{bʰ dʰ gʰ gʷʰ}
 \end{vex}
 \noindent
-The two new symbols were are \texttt{?} and \texttt{*}. If you are familiar with regular expressions, their meanings are what you would expect:
+The two new symbols were are \texttt{?} and \texttt{*}. A third, \texttt{+}, is also possible. If you are familiar with regular expressions, their meanings are what you would expect:
 \begin{description}
 \itemsep1pt \parskip0pt \parsep0pt 
 \item[\texttt{?}] Matches the preceding expression zero or one times
@@ -269,7 +269,22 @@ The two new symbols were are \texttt{?} and \texttt{*}. If you are familiar with
 \item[\texttt{+}] Matches the preceding expression one or more times
 \end{description}
 \noindent
+These are generally called \emph{quantifiers}, as they indicate how many of a symbol can be matched.\footnote{These are always greedy, and will match the \emph{longest} possible sequence, though because they are only used for detecting conditions, this is less of a problem than it is when, for example, using regular expressions to find-and-replace.} Representing the rule in example \ref{ex:grassman} without using regular expressions would require a minimum of 12 conditions. In most cases you will only even need to use \texttt{?} to make a symbol or variable optional. The Kuma-Koban example only uses any of these in 5 total rules.
 
+Under some circumstances in Indo-European languages, laryngeals could cause a preceding short vowel to be come long; in Kuma-Koban, this is represented using the following rule:\\
+\begin{vex}{ex:lengthening}
+VS > VL / _H{C # {I U W}?V}
+\end{vex}
+\noindent
+There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally written as follows:\\
+\begin{vex}{ex:lenthening_old}
+VS > VL / _H{C #}
+VS > VL / _H{I U W}?V
+\end{vex}
+\noindent
+This may actually be slightly clearer in it's intent, without having to be unpacked. Both both simply express that the ``source'' should be followed by \texttt{H}, itself followed by one of several other expressions (\texttt{C}, \texttt{\#}, or \texttt{{I U W}?V}); this intent is matched by the semantics of sets and the fact that one of the other expressions also contains a set is not relevant.
+
+Apart from the familiar quantifiers, two more standard elements of regular expressions is also supported here: the dot character \texttt{.} which will match any single symbol\footnote{Note that this does not say \emph{character}; if you are using normalization, or have reserved strings, ``character'' and ``symbol'' will not have a one-to-one correspondence.} and groups enclosed by parentheses \texttt{()}. Both can be combined with the quantifiers, of course. Groups are mainly used if you wish to make a sequence of expressions repeatable, or optional and are especially useful for writing syllabification rules, or accent patters.
 
 % section writing_advanced_conditions (end)
 % -----------------------------------------------------------------------------
@@ -311,9 +326,9 @@ The two new symbols were are \texttt{?} and \texttt{*}. If you are familiar with
 
 % PART II =====================================================================
 
-\section{Scripts \& Syntax}
+\section{Haedus Rule Language \& Syntax}
 \label{prt:scripts_and_syntax}
-This section describes the commands supported by the SCA, and their syntax ans semantics. It attempts to be as detailed as possible with informative examples and, in some cases, provides notes on implementation.
+This section describes the commands supported by the SCA and their syntax and semantics. It attempts to be as detailed as possible with informative examples and, in some cases, provides notes on implementation.
 
 Scripts and lexicons are, by default, read in as UTF-8; it is not currently possible to change this. One substantial difference between this SCA and others is that these rule files are \emph{compiled} rather than merely interpreted; as script commands are read in, they are validated and parsed to objects in memory. This has several advantages, namely that because compilation happens once, rules are not repeatedly re-interpreted for each word; it also allows that errors can be caught immediately at compile time, rather than at runtime.
 
