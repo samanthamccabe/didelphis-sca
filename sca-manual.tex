@@ -589,7 +589,28 @@ a > b / C_ or _C not x_ not _y
 
 \subsection{Intelligent Segmentation}
 \label{sub:segmentation}
-One significant capability of the Haedus SCA is its intelligent segmentation algorithm, which allows a sequence of characters which would represent a single sound in IPA to be treated as a single unit. It applies canonical decomposition and then uses a series of rules based on Unicode character classes and character ranges to attach diacritics to the appropriate head character. This section describes the process.
+One significant capability of the Haedus SCA is its intelligent segmentation algorithm, which allows a sequence of characters which would represent a single sound in IPA to be treated as a single unit. The SCA can do this in part because it does not, in fact, use strings to represent internally. When any data is read in, whether it is words in a lexicon, or parts of a rule or variable definition, the strings are split up according to the normalization mode. In modes other than intelligent, each character is then used to create a \texttt{segment}; using intelligent segmentation, a \texttt{segment} represents a phonetic segment, a single speech sound. A list of \texttt{segment}s constitute a \texttt{sequence}, which can be a word, or part of a word. When the \texttt{reserve} command is used, this indicates that some strings will be given special treatment, and will always be represented as a single \texttt{segment} despite containing multiple characters.
+
+The normalization mode applies canonical decomposition and then uses a series of rules based on Unicode character classes and character ranges to attach diacritics to the appropriate head character. This section describes the process.
+
+There are two places data is stored during the segmentation process: a list whose elements will be the \texttt{segment} objects that will be created, and a buffer which contains a single \texttt{segment} as it is being built.
+
+If the character is not a diacritic and the buffer is empty, the character is added to the buffer; if the buffer is not empty, the contents of the buffer are added to the list, the buffer is cleared, and then the current character is added to the buffer. However, if the character is a diacritic, it is simply added to the buffer. At the end of the string, anything remaining in the buffer is added to the list.
+
+This process is relatively simple, apart from some special rules for checking for variable names and reserved characters. What constitutes a diacritic is somewhat arbitrary, insofar as the decision is based on Unicode character classes and certain specific character or character ranges chosen by the author.
+
+The following types of symbols are considered diacritics for the purposes of this algorithm:
+\begin{itemize}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item Alphanumeric Super- or Subscripts
+\item Unicode class Lm [Letter, Modifier]
+\item Unicode class Mn [Mark, Non-Spacing]
+\item Unicode class Sk [Symbol, Modifier]
+\end{itemize}
+
+One type of diacritic is given special treatment, and that is the double-width or \texttt{COMBINING DOUBLE} diacritics which occur between code-points \texttt{u+035C} and \texttt{u+0362}. When these are encountered, the algorithm will jump to the next character (which should always be a non-diacritic), add it to the buffer, and then continue to operate normally.
+
+Once the list of compiled strings is complete, each \texttt{segment} is added to a \texttt{sequence} object which will represent the original input.
 
 %\subsection{Recursive Nondeterministic Finite-State Automata}
 %\label{sub:rndfa}

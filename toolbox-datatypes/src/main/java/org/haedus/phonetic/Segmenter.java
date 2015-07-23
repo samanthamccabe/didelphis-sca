@@ -313,13 +313,11 @@ public final class Segmenter {
 	private static boolean isAttachable(char ch) {
 		return isSuperscriptAsciiDigit(ch) ||
 				isMathematicalSubOrSuper(ch) ||
-				isCombingNOS(ch) ||
-				isCombiningClass(ch) ||
-				isDoubleWidthBinder(ch);
+				isCombiningClass(ch);
 	}
 
 	private static boolean isDoubleWidthBinder(char ch) {
-		return ch <= BINDER_END && BINDER_START <= ch;
+		return BINDER_START <= ch && ch <= BINDER_END;
 	}
 
 	private static boolean isSuperscriptAsciiDigit(char value) {
@@ -331,20 +329,15 @@ public final class Segmenter {
 
 	private static boolean isMathematicalSubOrSuper(char value) {
 		// int literals are decimal char values
-		return value <= SUPERSCRIPT_ZERO && SUBSCRIPT_SMALL_T <= value;
-	}
-
-	private static boolean isCombingNOS(char value) {
-		// int literals are decimal char values
-		return value >= SUPERSCRIPT_ZERO &&
-				value <= SUBSCRIPT_SMALL_T;
+		return SUPERSCRIPT_ZERO >= value && value >= SUBSCRIPT_SMALL_T;
 	}
 
 	private static boolean isCombiningClass(char ch) {
 		int type = Character.getType(ch);
-		return type == Character.MODIFIER_LETTER || // LM
-			type == Character.MODIFIER_SYMBOL || // SK
-			type == Character.COMBINING_SPACING_MARK || // MC
+		
+		return type == Character.MODIFIER_LETTER     || // LM
+			type == Character.MODIFIER_SYMBOL        || // SK
+//			type == Character.COMBINING_SPACING_MARK || // MC this is only used in Brahmic scripts
 			type == Character.NON_SPACING_MARK;         // MN
 	}
 
