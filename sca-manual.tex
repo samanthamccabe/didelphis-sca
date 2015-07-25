@@ -1,0 +1,662 @@
+%!TEX program = xelatex
+\documentclass[10pt,letterpaper]{article}
+\usepackage{fontspec}
+\usepackage{xunicode}
+% Ok apparently you should never load xunicode before fontspec
+
+\usepackage{verbatim}
+\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
+
+\newcounter{excounter}
+% verbatim example
+\newenvironment{vex}[1]{
+  % 
+	\vspace{1em}
+	\refstepcounter{excounter}
+	\noindent\makebox[3em][l]{[\arabic{excounter}\label{#1}]}
+	\minipage{\textwidth}
+	\verbatim
+}{
+	\endverbatim
+	\endminipage
+	\vspace{1em}
+}
+
+
+\title{Haedus Toolbox SCA, Manual}
+\author{Samantha Fiona Morrígan McCabe}
+\date{\today}
+
+\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
+%\setsansfont{Linux Biolinum O}
+\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section*{Introduction} 
+\label{sec:introduction}
+The Haedus Toolbox SCA is a powerful, script-driven sound-change applier program implemented in Java. It supports UTF-8 natively and has a rule syntax designed for clarity and similarity to sound change notation in linguistics.
+
+The Haedus SCA supports capabilities like multiple rule conditions, regular expressions, metathesis, unrestricted variable naming, and scripting but also allows novice users to ignore advanced functionality they do not need.
+
+This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and it's capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users.
+
+% section: introduction (end)
+% -----------------------------------------------------------------------------
+
+\section{User Guide} 
+\label{sec:user_guide}
+The following sections will guide you, as a new user, through using the SCA and create a rules script, from prerequisites and executing provided example scripts, to writing basic rules, to using some of the more powerful supported features.
+
+% part: user_guide (end)
+% -----------------------------------------------------------------------------
+
+\subsection{Setup and Execution}
+\label{sub:setup_and_execution}
+This section describes the steps required to set up and run the Haedus SCA, either on Windows or Unix-like systems. The SCA is provided as an executable \texttt{.jar} file, which will require that the Java Runtime Environment (JRE 1.6 or later) be installed on your system.
+
+% section: setup_and_execution (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Java Runtime Environment}
+\label{ssub:java_runtime_environment}
+If you do not have a JRE installed, you will need to acquire an appropriate version from Oracle's website. If you have a JRE installed already, it must be Java 6 or later (because that version was released quite a few years ago at the time this manual is being prepared, it likely will be).
+
+If everything is set up correctly, when you open a terminal window and type \texttt{java -version} you should see output like the following:
+
+\begin{vex}{ex:javatest}
+samantha@colossus: java -version
+java version "1.7.0_79"
+OpenJDK Runtime Environment (IcedTea 2.5.5) (7u79-2.5.5-0ubuntu0.14.04.2)
+OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
+\end{vex}
+
+\noindent
+On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the ``\texttt{java version}'' itself is what matters. If the \texttt{java} command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
+
+% subsection: java_runtime_environment (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Running the Sound-Change Applier}
+\label{ssub:running_sca}
+%In order to actually run the Haedus SCA, your best option is to navigate a terminal to the folder where you have extracted the archive.
+
+The Haedus SCA is run from the command line, using the \texttt{toolbox.bat} or \texttt{toolbox.sh} commands (for Windows and Unix-like systems respectively). It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
+
+In either case, run the SCA, you only need to provide the paths of one or more rules files:
+
+\begin{vex}{ex:runstandard}
+toolbox.sh script1.rule script2.rule ... scriptN.rule
+\end{vex}
+
+\noindent
+There are no other arguments to provide, only the script names. Rather than specifying input and output lexicons when starting the program, lexicons are read and written within the rules files themselves (section \ref{sub:scripting_capabilities}).
+
+% subsection: running_sca (end)
+% -----------------------------------------------------------------------------
+
+\subsection{Writing Rule Scripts}
+\label{sub:writing_rule_scripts}
+All of the SCA's functionality is controlled using script files. In addition to rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into a corresponding list for Kuma-Koban; the hope is that this will be a smooth way of introducing new users to the rule syntax. At this point and for the rest of the section, some of the examples will refer to the provided \texttt{pie-pkk.rule} example file.
+
+The Haedus rule language is generally insensitive to whitespace, and while items in lists (sets, items in rule transforms, or variable definitions) are delimited by whitespace, it is still insensitive to quantity\footnote{Specifically, lists are stripped of padding whitespace at the beginning and end, and split using the regex \texttt{\textbackslash\hspace{0pt}s+}}; this will be apparent in the examples. 
+
+Comments can always be created using the \texttt{\%} symbol, as shown below:
+
+\begin{vex}{ex:comment}
+% This is a comment (full-line)
+ph th kh > f s x % this is a rule, followed by a comment (inline)
+\end{vex}
+
+\noindent
+Anything following the \texttt{\%} will be ignored; there is not currently any way to create block comments, however. 
+
+% section: writing_rule_scripts (end)
+%------------------------------------------------------------------------------
+
+\subsubsection{Using Normalization} 
+\label{ssub:using_normalization}
+Though it is by no means required that you set this yourself, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{mode} keyword, followed by one of the three supported modes, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
+
+The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like ö with o+ ̈. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
+
+% ◌
+
+The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \emph{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
+
+The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \emph{k} will not trigger on \emph{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
+
+% subsection using_normalization (end)
+%------------------------------------------------------------------------------
+
+\subsubsection{Loading Lexicons}
+\label{ssub:loading_lexicons}
+One of the first things you will want to do when writing rules is to load a lexicon. This is done using the \texttt{open} keyword, followed by the path to a lexicon in single or double quotes, the optional\footnote{The \texttt{as} keyword was made optional because its presence can make the commands more fluent and clear to read, but it is not syntactically important, so it may be omitted for compactness} keyword \texttt{as} and a file-handle name by which you can reference the lexicon later. In the provided example file, you are loading \texttt{pie\_lexicon.txt} and binding it to the file-handle \texttt{LEXICON}, using the command
+
+\begin{vex}{ex:openlexicon}
+open 'pie_lexicon.txt' as LEXICON
+\end{vex}
+
+You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following:
+
+\begin{vex}{ex:closelexicon}
+open 'pie_lexicon.txt' as LEXICON
+% Intervening rules go here
+write LEXICON as 'late-pie_lexicon.txt'
+% Intervening rules go here
+close LEXICON as 'pkk_lexicon.txt'
+\end{vex}
+
+\noindent
+Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.
+%\footnote{Author's note: I've created a ticket for future versions to support ``probe words'', where the user can bind an input word to a handle, and assert that it has a particular value at any number of points in the rule script. This could (optionally) halt processing entirely, and write the lexicons to disk in their current state to aid the user in identifying any errors. See [toolbox-sca-15] https://github.com/samanthamccabe/toolbox-sca/issues/51}
+
+Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. If you were to change modes \emph{after} loading a lexicon, it could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled prior to writing any rules, a rule containing \texttt{pʰ} will not trigger on a word containing \texttt{pʰ} because it will have been loaded as two separate characters \texttt{p} and \texttt{ʰ}. 
+
+% subsection loading_lexicons (end)
+%------------------------------------------------------------------------------
+
+\subsubsection{Reserving Characters} 
+\label{ssub:reserving_characters}
+Though there are no uses of reserving characters in the Kuma-Koban examples, it can be useful to do, especially when you are not using intelligent segmentation (see section \ref{ssub:using_normalization}), or where your orthographic conventions may conflict in some way with it (such as if your language uses pre-aspirated stop, which you represent \emph{ʰt}).
+
+You can use the \texttt{reserve} keyword to indicate which sequences of characters which are intended to represent single sounds. Following the keyword, simply list the string you wish to be treated this way, separated by whitespace:
+
+\begin{vex}{ex:reserve}
+reserve ph th kh kw kwh
+\end{vex}
+
+\noindent
+This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. Be mindful when writing rules; carelessly reserving sequences could lead to unexpected behavior in your outputs.
+
+% section: reserving_characters (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Writing Simple Rules}
+\label{ssub:writing_simple_rules}
+It is possible to write some rather complicated rules using the Haedus language, but it is generally not necessary. Most rules are fairly simple, and these are what will be discussed here.
+
+This is first rule you will see in the Kuma-Koban example:
+
+\begin{vex}{ex:simplerule}
+y w > i u
+\end{vex}
+
+\noindent
+The intention is to change every \emph{y} to an \emph{i} and every \emph{w} to a \emph{u}, regardless of context. The first set of rules in the Kuma-Koban example are like this; simple rules for making orthographic corrections in the raw data.
+
+Though it is used less often, deletion is a useful feature of rules. The following example shows how to do this:
+
+\begin{vex}{ex:simplerule3}
+% Delete morpheme boundary marking
+- > 0
+\end{vex}
+
+\noindent
+It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). Changing any segments to \texttt{0} cause them to be deleted. 
+
+%There are two more early rules that should also be instructive, and illustrate how to work with basic conditions and word boundaries, and how to delete segments, respectively. More detailed information is discussed in section \ref{sub:rules}
+
+%This first rule is intended to apply to universally so it does not require a condition. 
+
+%The rule in ex. \ref(ex:simplerule2) uses, as part of its condition, the word-boundary symbol \texttt{\#} which is a rather common component of many condition. The rule itself can be understood as meaning ``\emph{n-} changes to \emph{nˌ} word-initially''.
+
+
+% section: writing_simple_rules (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Defining Variables}
+\label{ssub:defining_variables}
+A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either terminal symbols, or other variables. The following is a representative example from the Kuma-Koban data:
+
+\begin{vex}{ex:basicvars}
+H = x ʔ
+N = m n
+L = r l
+R = N L
+W = y w
+\end{vex}
+
+\noindent
+Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent reference until and unless it is changed. You can find more detailed information in section \ref{sub:variables}.
+
+% section defining_variables (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{writing Conditions}
+\label{ssub:writing_conditions}
+While the rules we've discussed so far have not needed to use conditions, the  majority of rules might ever find yourself writing will. One of the simplest possible conditions is seen in the following rule:
+
+\begin{vex}{ex:simplerule2}
+% For correct handling of negation prefix
+n- > nˌ / #_
+\end{vex}
+
+\noindent
+If you are familiar with the standard formalisms for discussing sound change academically, most of this notation will be familiar. The forward-slash \texttt{/} indicates the start of the condition, and the underscore \texttt{\_} indicates where the ``source'' symbol (any of the elements on the left side of the \texttt{>} operator) occurs in relation to the rest of the condition.
+
+%Good conditions are where an SCA's real power lies. In this rule language, there is a lot to know about writing conditions, and that is detailed in section \ref{sub:conditions}; however, we will discuss these in a more organic fashion, as they appear in the Kuma-Koban example, for the benefit of new users.
+
+There is a very common rule in Indo-European languages where \emph{*e} is changed to \emph{*a} in the environment of \emph{*h₂} and possibly \emph{*h₄} if there ever was such a thing\footnote{where distinguishing between these is not possible, \emph{*hₐ} is used, at least in those sources which admit a \emph{*h₄}}. For convenience, these are simply converted to consonants \emph{x} and \emph{ʕ}.
+
+Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. One way to write this is with four rules:
+
+\begin{vex}{ex:fourlaryngealrule}
+E > A / _x
+E > A / _ʕ
+E > A / x_
+E > A / ʕ_
+\end{vex}
+
+\noindent
+If this seems sub-optimal, there are two ways we can condense the number of individual rules. First, we can cut the number of rules in half by using \emph{sets}:
+
+\begin{vex}{ex:laryngealrulesets}
+E > A /      _{x ʕ}
+E > A / {x ʕ}_
+\end{vex}
+
+\noindent
+A set is just a list of elements, separated by whitespace, and contained within a pair of curly braces \texttt{\{} and \texttt{\}}\footnote{Padding is also permitted around the set elements, so writing \texttt{\{ x ʕ \}} is legal and equivalent to \texttt{\{x ʕ\}}}. Functionally, it's nearly the same as defining these in a variable beforehand, but without the need to actually use a separate command to do it.
+
+There is another tool we can use to combine both rules into one, and that is the \texttt{or} keyword:
+
+\begin{vex}{ex:fourrules}
+% e to a, before or after x or ʕ
+E > A / {x ʕ}_ or _{x ʕ}
+\end{vex}
+
+\noindent
+Using \texttt{or} allows a rule to have multiple conditions, any one of which can trigger the rule. If find you have the same change being made under several separate conditions, you can write then as a single rule using \texttt{or}. But only do this judiciously, as is can substantially impair the legibility of your rules, especially if the conditions are complicated. Throughout the Kuma-Koban rules you will see places where this is used, as well as places it was not but could have been
+
+% section writing_conditions (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Writing Advanced Conditions} 
+\label{ssec:writing_advanced_conditions}
+If you browse through the Kuma-Koban example rules, you will see that most of them can be described using only what has been covered so far. There will inevitably be cases you cannot cover with these techniques alone however.
+
+One of the most powerful capabilities supported by this SCA is that it allows the use of regular expressions in rule conditions. This is discussed in detail in section \ref{ssub:expressions} but can be addressed here in the context of how regular expressions can be used to accomplish particular tasks.
+
+Some Indo-European languages exhibit a change known as Grassman's law, where aspirated stops are de-aspirated if another aspirate occurs after it (this is certainly true within a root or stem, but may apply to aspirates in suffixes as well). The following example is intended only to apply to aspirates which occur in adjacent syllables, or within the same syllable:
+
+\begin{vex}{ex:grassman}
+% Grassman's Law
+bʰ dʰ gʰ gʷʰ > b  d  g  gʷ / _{R W}?VV?C*{bʰ dʰ gʰ gʷʰ}
+\end{vex}
+
+\noindent
+The two new symbols were are \texttt{?} and \texttt{*}. A third, \texttt{+}, is also possible. If you are familiar with regular expressions, their meanings are what you would expect:
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[\texttt{?}] Matches the preceding expression zero or one times
+\item[\texttt{*}] Matches the preceding expression zero or more times
+\item[\texttt{+}] Matches the preceding expression one or more times
+\end{description}
+\noindent
+These are generally called \emph{quantifiers}, as they indicate how many of a symbol can be matched.\footnote{These are always greedy, and will match the \emph{longest} possible sequence, though because they are only used for detecting conditions, this is less of a problem than it is when, for example, using regular expressions to find-and-replace.} Representing the rule in example \ref{ex:grassman} without using regular expressions would require a minimum of 12 conditions. In most cases you will only even need to use \texttt{?} to make a symbol or variable optional. The Kuma-Koban example only uses any of these in 5 total rules.
+
+Under some circumstances in Indo-European languages, laryngeals could cause a preceding short vowel to be come long; in Kuma-Koban, this is represented using the following rule:
+
+\begin{vex}{ex:lengthening}
+VS > VL / _H{C # {I U W}?V}
+\end{vex}
+
+\noindent
+There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally written as follows:
+
+\begin{vex}{ex:lenthening_old}
+VS > VL / _H{C #}
+VS > VL / _H{I U W}?V
+\end{vex}
+
+\noindent
+This may actually be slightly clearer in it's intent, without having to be unpacked. Both both simply express that the ``source'' should be followed by \texttt{H}, itself followed by one of several other expressions (\texttt{C}, \texttt{\#}, or \texttt{{I U W}?V}); this intent is matched by the semantics of sets and the fact that one of the other expressions also contains a set is not relevant.
+
+Apart from the familiar quantifiers, two more standard elements of regular expressions is also supported here: the dot character \texttt{.} which will match any single symbol\footnote{Note that this does not say \emph{character}; if you are using normalization, or have reserved strings, ``character'' and ``symbol'' will not have a one-to-one correspondence.} and groups enclosed by parentheses \texttt{()}. Both can be combined with the quantifiers, of course. Groups are mainly used if you wish to make a sequence of expressions repeatable, or optional and are especially useful for writing syllabification rules, or accent patters.
+
+% section writing_advanced_conditions (end)
+% -----------------------------------------------------------------------------
+
+% PART II =====================================================================
+
+\section{Haedus Rule Language \& Syntax}
+\label{sec:scripts_and_syntax}
+This section describes the commands supported by the SCA and their syntax and semantics. It attempts to be as detailed as possible with informative examples and, in some cases, provides notes on implementation.
+
+Scripts and lexicons are, by default, read in as UTF-8; it is not currently possible to change this. One substantial difference between this SCA and others is that these rule files are \emph{compiled} rather than merely interpreted; as script commands are read in, they are validated and parsed to objects in memory. This has several advantages, namely that because compilation happens once, rules are not repeatedly re-interpreted for each word; it also allows that errors can be caught immediately at compile time, rather than at runtime.
+
+In this rule language generally, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples. This is also true of the padding around most operator symbols (\emph{viz.} \texttt{= > /} )
+
+%While whitespace is used to separate items in lists, padding around operators and delimiters is optional. As elsewhere the quantity is not important.
+
+Script files may contain comments, starting with \texttt{\%}, and may be placed at the start of a line, or in-line; in either case, anything to the right of the comment symbol is ignored.
+
+The following characters have special meanings in the SCA script language and should only be used in the contexts they are expected:
+
+\begin{vex}{ex:reserved}
+% # $ * ? + ! ( ) { } [ ] 0 . \_ = / >
+\end{vex}
+
+\noindent
+Most of these are sensitive to context, but \texttt{=}, \texttt{/}, and \texttt{>} are restricted and using them inappropriate ways will cause the script to  fail to compile.\footnote{This is because these symbols in particular are used to identify variable definitions and transformation rules. Specifically, a line which contains \texttt{=} assumed by the parser to be a varaible definition. Likewise, a line which contains \texttt{>} is assumed to be a rule definition.} If a section indicates that a symbol on this list is allowed, then it is allowed in that context but should still be avoided in others.
+
+% section: scripts_and_syntax
+% -----------------------------------------------------------------------------
+
+\subsection{Scripting Capabilities}
+\label{sub:scripting_capabilities}
+The script syntax also allows the user to do things like read and write lexicons from disk, import or execute other script files, and set normalization and formatting modes within a rules file.
+
+% subsection: scripting_capabilities
+% -----------------------------------------------------------------------------
+
+\subsubsection{Reading \& Writing Lexicons}
+\label{ssub:reading_and_writing_lexicons}
+These commands are used to read and write lexicons from disk. Once a lexicon is in memory, any sound changes run in the script will be applied to all open lexicons. There are three commands of this type:
+
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[\texttt{open}] Reads a lexicon and binds it to a file-handle
+\item[\texttt{write}] Retrieves data using a file-handle and writes it to disk.
+\item[\texttt{close}] Like \texttt{write} but after writing, it will then unload the lexicon from memory and remove the file-handle it is bound to.
+\end{description}
+%
+To open a lexicon, use the \texttt{open} command in the following way:
+
+\begin{vex}{ex:open}
+open "language.lex" as LANGUAGE
+\end{vex}
+
+\noindent
+Lexicons are referenced by a file-handle, \texttt{LANGUAGE} in ex. \ref{ex:open}. The handle name must begin with a capital letter an can only contain capital letters, numbers, or the underscore.
+
+The difference between \texttt{write} and \texttt{close} is that the former will write the lexicon, in it's current state, to the specified location, but the handle will still be available and future changes will be applied; \texttt{close} will also write the lexicon to disk but remove the it from memory, making the file-handle unavailable. These commands have the same syntax, simply substituting \texttt{write} for \texttt{close} in the following:
+
+\begin{vex}{ex:close}
+close LANGUAGE as "new_language.lex"
+\end{vex}
+
+\noindent
+Lexicons are not automatically written closed when the script completes, so if you open lexicons and forget to close them, their changes will be lost.
+
+% subsubsection: reading_and_writing_lexicons (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Import \& Execute Commands}
+\label{ssub:import_and_execute_commands}
+It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert it's contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all these commands in the file immediately. The syntax is simple and is as follows:
+
+\begin{vex}{ex:commands}
+execute "other1.rule"
+import  "other2.rule"
+\end{vex}
+
+\noindent
+The key difference is that \texttt{execute} will run the script separately (reading and writing lexicons, applying rules, calling other resources, and so on) while \texttt{import} places the script into your current script so that any lexicons or variables specified in the other file will be usable in the current script.
+
+% section: import_and_execute_commands (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Normalization \& Formatting}
+\label{ssub:normalization_and_formatting}
+Specifying a normalization mode allows for consistent handling of diacritics in data and rules, so it is important to consider which mode will be appropriate to your needs. Four modes are supported:
+
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[\texttt{none}] Makes no changes to lexicon data or rules; all strings are left as-is.
+\item[\texttt{composition}] Applies Canonical Composition according to the Unicode Standard Annex \#15.
+\item[\texttt{decomposition}] Applies Canonical Decomposition according to the Unicode Standard Annex \#15.
+\item[\texttt{intelligent}] Applies intelligent segmentation according to the method described in section \ref{sub:segmentation}.
+\end{description} 
+
+To set the formatter while running in standard mode, use the keyword \texttt{mode} followed by a supported mode:
+
+\begin{vex}{ex:normalization}
+mode intelligent
+\end{vex}
+
+Because the formatting mode has an effect on the parsing of all forms of data, it is critical that you declare the format before loading any other resources or declaring any rule or variable statements.
+
+It is possible to change the formatting mode anywhere in a rule file, but it is suggested that you not do this without an extremely good understanding of how this will impact the parsing of your data. Once a resource is loaded or statement declared in a given formatting mode, it will not be affected by future mode changes.
+
+% subsubsection: normalization_and_formatting (end)
+% -----------------------------------------------------------------------------
+
+\subsection{Variables}
+\label{sub:variables}
+Variables represent ordered sets of non-variable symbols, as they typically do in other SCAs. When defining a variable, the assignment operator \texttt{=} binds a label on the left-hand-side to a space-separated list on the right. The following example shows how variables are often defined:
+
+\begin{vex}{ex:variables}
+TH = pʰ tʰ kʰ
+T  = p  t  k
+D  = b  d  g
+W  = w  y  ɰ
+N  = m  n
+C  = TH T D W N r s
+\end{vex}
+
+The definitions in example \ref{ex:variables} illustrate several things: using whitespace to align symbols into columns in a convenient and readable way, reasonably free variable label naming, and the use of variables in the definition of other variables.
+
+There are no formal restrictions placed on variable labels, beyond requiring that they not use characters reserved by the SCA. You will notice in ex. \ref{ex:variables} that both \texttt{TH} and \texttt{T} are defined. This is possible because when SCA parses a rule or variable definition, it searches for variables by finding the \emph{longest} matching label first. If you have variables \texttt{T}, \texttt{H}, and \texttt{TH}, a rule containing the string \texttt{TH} will always be understood by the SCA to represent the variable \texttt{TH}, and not \texttt{T} followed by \texttt{H}. The best way to avoid this situation is to name variable carefully
+	\footnote{Though I do not see this as a problem in need of a resolution, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{ssub:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
+
+It is possible to re-assign variables at any point in the script. This includes appending or prepending values to an existing variable, or redefining it entirely:
+
+\begin{vex}{ex:reassignvars}
+C = t k
+C = C q % Append
+C = p C % Prepend
+C = p t ts k q
+\end{vex}
+
+\noindent
+This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
+
+% Using features instead; OR using variables as aliases for feature names
+
+% subsection: variables (end)
+% -----------------------------------------------------------------------------
+
+\subsection{Rules}
+\label{sub:rules}
+This section describes the syntax of rule definitions and basic conditions; more advanced functionality is described in section \ref{sub:conditions}. Any uncommented line containing the right angle-bracket symbol \texttt{>} will be parsed as a rule; that is, a line represents a rule definition \emph{iff} it contains the symbol \texttt{>}. 
+
+A rule consists of two principal parts, the ``transform'' and the ``condition''. Not all rules contain a condition, but all rules will contain a transform.
+
+% subsection: rules (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Transform}
+\label{ssub:transform}
+The transform consists of two lists of elements on either side of the \texttt{>} operator. The left-hand-side is called the ``source'' group and the right-hand-side is called the ``target'' group. The transform specifies that each element of the source will be changed to the corresponding element of the target if the rule's condition is satisfied. The following is an abstract representation of a rule transform:
+
+\begin{vex}{ex:transform}
+s₁ s₂ s₃ ... sₙ > t₁ t₂ t₃ ... tₙ
+\end{vex}
+
+\noindent
+Each element on the left corresponds to one on the right, so that \texttt{s₁} is changed to \texttt{t₁}, \texttt{s₂} to \texttt{t₂} and so on. Each source element must have a corresponding target element, \emph{unless} the target contains exactly one element:
+
+\begin{vex}{ex:transform_merger}
+s₁ s₂ s₃ ... sₙ > t
+\end{vex}
+
+\noindent
+This can be a useful way of representing mergers. Because of this, the following two statements are equivalent:
+
+\begin{vex}{ex:convergence}
+æ e o > a a a
+æ e o > a
+\end{vex}
+
+Additionally, the right-hand side of the transformation is may contain the literal zero \texttt{0} which represents a deleted segment. For example, the following rule will delete schwas where they occur in word-final position:
+
+\begin{vex}{ex:deletion}
+ə > 0 / _#
+\end{vex}
+
+\noindent
+However, it is not necessary that \texttt{0} be the \emph{only} symbol in the target; a single rule is permitted to delete one sound while simply changing others.
+
+\subsubsection{Indices \& Backreferences}
+\label{ssub:indices_and_backreferences}
+Within the transform of a rule, it is possible to use indexing in the target to refer to symbols in the source, which can be very useful in writing commands for metathesis or total assimilation. Within the rule's target group, the dollar sign \texttt{\$} followed by a digit allows you to refer back to a variable matched within the source group. For example, the commands
+
+\begin{vex}{ex:backreferences}
+C = p t k
+N = n m
+CN > $2$1
+\end{vex}
+
+\noindent
+allow us to easily represent metathesis, swapping \texttt{N} and \texttt{C} wherever \texttt{N} is found following \texttt{C}. 
+
+When SCA parses a rule, it keeps track of each variable in the source group and knows in the above example, that \texttt{C}  is at index \texttt{1} and \texttt{N} is at index \texttt{2}. The target part of the transform lets us refer back to this using the \texttt{\$} symbol and the index of the variable we wish to refer to.
+
+We can actually go slightly further and use the indices on a \emph{different} variable, provided they have the same number of elements. In a variation on the previous example, we can write
+
+\begin{vex}{ex:indices}
+C = p t k
+G = b d g
+N = n m
+CN > $2$G1
+\end{vex}
+
+\noindent
+which does the same as the above, but also replaces any element of \texttt{C} with the corresponding element of \texttt{G}. So, if a word is \emph{atna}, the rule will change it to \emph{anda}.
+
+This can also be used for some kinds of assimilation and dissimilation, such as simplifying clusters of plosives by changing the second to be the same as the first:
+
+\begin{vex}{ex:assimilation}
+C = p t k
+CC > $1$1
+\end{vex}
+
+\noindent
+This will change a word like \emph{akpa} to \emph{akka}. To assimilate in the other direction, you can simply use \texttt{\$2\$2}
+
+% subsubsection: indices_and_backreferences (end)
+% -----------------------------------------------------------------------------
+
+\subsection{Conditions}
+\label{sub:conditions}
+The rule condition determines where in a word it will be possible for a rule to apply. Any rule without a condition specified will apply under all circumstances.
+The start of the condition is signaled by the forward-slash symbol \texttt{/}. The condition necessarily consists of at least one clause. A single clause consists of the underscore character \texttt{\_} and an expression on either or both sides:
+
+\begin{vex}{ex:clause}
+Eₐ_Eₚ
+\end{vex}
+
+where \texttt{Eₐ} represents an expression to be matched before the source segment, and \texttt{Eₚ} represents an expression to be matched after the source segment.
+	\footnote{At the implementation-level, this is done by searching a word, start to end, for a symbol from the transform. If it is found, the symbols before and after it are checked against the condition. If both match, the changes are applied.}
+
+Many common conditions are relatively simple, representing things like ``between consonants'', ``before nasal consonants'', or ``word-initially'', as in the following example:
+
+\begin{vex}{ex:devoicing}
+b d g > p t k / #_
+\end{vex}
+
+\noindent
+which represents devoicing of plosives in word initial position.
+
+\subsubsection{Expressions}
+\label{ssub:expressions}
+While the Haedus regular expressions are not POSIX compliant, they nevertheless allow the use of metacharacters \texttt{?}, \texttt{*}, \texttt{+}, and \texttt{.} and also allows grouping through with parentheses \texttt{()}.
+
+The metacharacters have the behaviors you should expect if you are familiar with regular expression languages: 
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[\texttt{?}] Matches the preceding expression zero or one times
+\item[\texttt{*}] Matches the preceding expression zero or more times
+\item[\texttt{+}] Matches the preceding expression one or more times
+\item[\texttt{.}] Matches any literal character
+\end{description}
+\noindent
+Grouping with parentheses allow application of the quantifying metacharacters to sequences of expressions, such as: 
+
+\begin{vex}{ex:grouping}
+(ab?c)+
+\end{vex}
+
+\noindent
+which will match the expression \texttt{ab?c} one or more times, and thus any of the following strings \emph{ac}, \emph{abc}, \emph{acac}, \emph{abcac}, \emph{abcacacabac} and so on.\footnote{As a product of the syntax of groups, it is possibly to nest them to any depth, so that \texttt{(a)} will match the same set of strings as \texttt{(((a)))} for example, but doing this has no benefit and unnecessary nesting merely generates more complicated machines which require more time to evaluate.}
+
+%As in other regular expression languages, a single symbol is an expression, as is a sequence of expressions, or a group or set.
+
+The most substantial deviation from common regular expression implementations is the use of curly braces to represent sets. Expressions enclosed in curly braces are separated by spaces, so that the following expression:
+
+\begin{vex}{ex:sets}
+{ E₁ E₂ E₃ }
+\end{vex}
+
+\noindent
+will match any one of the expressions \texttt{E₁}, \texttt{E₂}, or \texttt{E₃}. The expression in \ref{ex:sets} is equivalent to \texttt{(E₁|E₂|E₃)} in standard regular expressions. Sets can be used with quantifier metacharacters, just as groups can.
+
+% subsection: conditions
+% -----------------------------------------------------------------------------
+
+\subsubsection{Multiple Clauses \& Exceptions} 
+\label{ssub:multiple_clauses}
+When a single transformation is triggered under multiple conditions, you may decided to represent this with two separate rules, or a single rule with multiple condition clauses. When more than one clause is present in a condition, they are separated by the \texttt{or} keyword, as in the following:
+
+\begin{vex}{ex:multiple_clauses}
+H > 0 / _{C #} or C_
+\end{vex}
+
+\noindent
+Using multiple clauses can sometimes render rules more difficult to read, so using this capability is not always ideal, from a user's point of view.
+
+It is also possible to specify condition clauses under which the rule should \emph{not} apply even though the conditions might otherwise be satisfied. This is done using the \texttt{not} keyword.	The exception clauses must always occur after the main clauses, though the main clauses are allowed to be empty. All of the following are valid uses of exception clauses:
+
+\begin{vex}{ex:exception_clauses}
+a > b / not _y
+a > b / C_ not x_
+a > b / C_ or _C not x_
+a > b / C_ or _C not x_ not _y
+\end{vex}
+
+% subsubsection condition_chaining (end)
+% -----------------------------------------------------------------------------
+
+%\subsection{Phonetic Features} 
+%\label{sub:phonetic_features}
+% subsection phonetic_features (end)
+% -----------------------------------------------------------------------------
+
+\section{Appendix}
+\label{sec:appendix}
+
+\subsection{Intelligent Segmentation}
+\label{sub:segmentation}
+One significant capability of the Haedus SCA is its intelligent segmentation algorithm, which allows a sequence of characters which would represent a single sound in IPA to be treated as a single unit. The SCA can do this in part because it does not, in fact, use strings to represent internally. When any data is read in, whether it is words in a lexicon, or parts of a rule or variable definition, the strings are split up according to the normalization mode. In modes other than intelligent, each character is then used to create a \texttt{segment}; using intelligent segmentation, a \texttt{segment} represents a phonetic segment, a single speech sound. A list of \texttt{segment}s constitute a \texttt{sequence}, which can be a word, or part of a word. When the \texttt{reserve} command is used, this indicates that some strings will be given special treatment, and will always be represented as a single \texttt{segment} despite containing multiple characters.
+
+The normalization mode applies canonical decomposition and then uses a series of rules based on Unicode character classes and character ranges to attach diacritics to the appropriate head character. This section describes the process.
+
+There are two places data is stored during the segmentation process: a list whose elements will be the \texttt{segment} objects that will be created, and a buffer which contains a single \texttt{segment} as it is being built.
+
+If the character is not a diacritic and the buffer is empty, the character is added to the buffer; if the buffer is not empty, the contents of the buffer are added to the list, the buffer is cleared, and then the current character is added to the buffer. However, if the character is a diacritic, it is simply added to the buffer. At the end of the string, anything remaining in the buffer is added to the list.
+
+This process is relatively simple, apart from some special rules for checking for variable names and reserved characters. What constitutes a diacritic is somewhat arbitrary, insofar as the decision is based on Unicode character classes and certain specific character or character ranges chosen by the author.
+
+The following types of symbols are considered diacritics for the purposes of this algorithm:
+\begin{itemize}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item Alphanumeric Super- or Subscripts
+\item Unicode class Lm [Letter, Modifier]
+\item Unicode class Mn [Mark, Non-Spacing]
+\item Unicode class Sk [Symbol, Modifier]
+\end{itemize}
+
+One type of diacritic is given special treatment, and that is the double-width or \texttt{COMBINING DOUBLE} diacritics which occur between code-points \texttt{u+035C} and \texttt{u+0362}. When these are encountered, the algorithm will jump to the next character (which should always be a non-diacritic), add it to the buffer, and then continue to operate normally.
+
+Once the list of compiled strings is complete, each \texttt{segment} is added to a \texttt{sequence} object which will represent the original input.
+
+%\subsection{Recursive Nondeterministic Finite-State Automata}
+%\label{sub:rndfa}
+
+%\subsection{Multivalue Articulatory Feature-Model}
+%\label{sub:mafm}
+\end{document}

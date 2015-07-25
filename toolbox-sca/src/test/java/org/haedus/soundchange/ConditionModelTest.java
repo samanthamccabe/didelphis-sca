@@ -20,10 +20,9 @@ import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -37,8 +36,7 @@ public class ConditionModelTest {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionModelTest.class);
 
 	private static final SequenceFactory FACTORY = loadModel();
-
-
+	
 	@Test
 	public void testBasicStateMachine01() {
 		Condition condition = new Condition("_a[son:3, +con, hgt:-1, +frn, -bck, -atr]+", FACTORY);
@@ -155,13 +153,8 @@ public class ConditionModelTest {
 	}
 
 	private static SequenceFactory loadModel() {
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = null;
-		try {
-			model = new FeatureModel(resource.getFile());
-		} catch (IOException e) {
-			LOGGER.error("Failed to load file from {}", resource, e);
-		}
+		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("features.model");
+		FeatureModel model = new FeatureModel(stream,FormatterMode.INTELLIGENT);
 		return new SequenceFactory(model, FormatterMode.INTELLIGENT);
 	}
 }

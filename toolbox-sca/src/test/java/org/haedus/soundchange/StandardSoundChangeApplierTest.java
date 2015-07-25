@@ -44,14 +44,14 @@ public class StandardSoundChangeApplierTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardSoundChangeApplierTest.class);
 
-	public static final ClassPathFileHandler CLASSPATH_HANDLER   = new ClassPathFileHandler();
+	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
 	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
 	public static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
 
 
 	@Test(expected = ParseException.class)
 	public void testNormalizerBadMode() {
-		new StandardScript("NORMALIZER:XXX");
+		new StandardScript("MODE:XXX");
 	}
 
 	@Test
@@ -76,6 +76,40 @@ public class StandardSoundChangeApplierTest {
 		assertEquals(expected, received);
 	}
 
+	@Test
+	public void testRuleLargeWithModel() throws Exception {
+
+		String[] exWords = {
+			"xocri", "pʰacā",
+			"tʰilā", "ɟentrī",
+			"ərɟicwon", "əwetʰə",
+			"ccū", "ccemen",
+			"cʰesəlccomtʰə", "byôuyom",
+			"tusciyos", "tə̄rwe",
+			"tou", "telə",
+			"somoɟəyos", "sēm",
+			"ôwes", "blan"
+		};
+
+		SoundChangeScript sca = new StandardScript(
+			"LOAD 'features.model'\nIMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER
+		);
+		sca.process();
+		Lexicon received = sca.getLexicon("LEXICON");
+		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(exWords);
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testNakh() throws Exception {
+		SoundChangeScript sca = new StandardScript(
+			"LOAD 'reduced.model'\nIMPORT 'nakh.rules'", CLASSPATH_HANDLER
+		);
+		sca.process();
+		Lexicon received = sca.getLexicon("PROTO");
+		assertTrue(true);
+	}
+
 	@Test(timeout = 2000)
 	public void testLoop01() {
 		String[] commands = {
@@ -90,8 +124,6 @@ public class StandardSoundChangeApplierTest {
 
 		new StandardScript(commands);
 	}
-
-
 
 	@Test
 	public void reserveTest() {

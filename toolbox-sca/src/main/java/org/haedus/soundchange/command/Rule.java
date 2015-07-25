@@ -45,9 +45,12 @@ public class Rule implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
+	private static final Pattern NOT_KEYWORD        = Pattern.compile("(NOT|not)");
+	private static final Pattern OR_KEYWORD         = Pattern.compile("(OR|or)");
+
 	private static final Pattern BACKREFERENCE      = Pattern.compile("\\$([^\\$]*)(\\d+)");
-	private static final Pattern NOT_PATTERN        = Pattern.compile("\\s+NOT\\s+");
-	private static final Pattern OR_PATTERN         = Pattern.compile("\\s+OR\\s+");
+	private static final Pattern NOT_PATTERN        = Pattern.compile("\\s+" + NOT_KEYWORD.pattern() + "\\s+");
+	private static final Pattern OR_PATTERN         = Pattern.compile("\\s+" + OR_KEYWORD.pattern() + "\\s+");
 	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 	private static final Pattern TRANSFORM_PATTERN  = Pattern.compile("\\s*>\\s*");
 
@@ -239,13 +242,27 @@ public class Rule implements Command {
 				transformString = array[0].trim();
 
 				String conditionString = array[1].trim();
-				if (conditionString.contains("NOT")) {
+
+				Matcher notMatcher = NOT_KEYWORD.matcher(conditionString);
+				if (notMatcher.lookingAt()) {
+					// Starts with NOT
+					String[] split = NOT_KEYWORD.split(notMatcher.replaceFirst(""));
+
+					for (String clause : split) {
+						exceptions.add(new Condition(clause.trim(), factory));
+					}
+
+				} else if (notMatcher.find()) {
 					String[] split = NOT_PATTERN.split(conditionString);
 					if (split.length == 2) {
-						for (String con : OR_PATTERN.split(split[0])) {
+						String conditionClauses = split[0];
+						String exceptionClauses = split[1];
+
+						for (String con : OR_PATTERN.split(conditionClauses)) {
 							conditions.add(new Condition(con, factory));
 						}
-						for (String exc : OR_PATTERN.split(split[1])) {
+
+						for (String exc : OR_PATTERN.split(exceptionClauses)) {
 							exceptions.add(new Condition(exc, factory));
 						}
 					} else {
@@ -344,17 +361,26 @@ public class Rule implements Command {
 	}
 
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
+		Iterator<Condition> cI = conditions.iterator();
+		Iterator<Condition> eI = exceptions.iterator();
+
 		boolean conditionMatch = false;
 		boolean exceptionMatch = false;
-		Iterator<Condition> cI = conditions.iterator();
-		while (cI.hasNext() && !conditionMatch) {
-			Condition condition = cI.next();
-			conditionMatch = condition.isMatch(word, startIndex, endIndex);
+
+		if (cI.hasNext()) {
+			while (cI.hasNext() && !conditionMatch) {
+				Condition condition = cI.next();
+				conditionMatch = condition.isMatch(word, startIndex, endIndex);
+			}
+		} else {
+			conditionMatch = true;
 		}
-		Iterator<Condition> eI = exceptions.iterator();
-		while (eI.hasNext() && !exceptionMatch) {
-			Condition exception = eI.next();
-			exceptionMatch = exception.isMatch(word, startIndex, endIndex);
+
+		if (eI.hasNext()) {
+			while (eI.hasNext() && !exceptionMatch) {
+				Condition exception = eI.next();
+				exceptionMatch = exception.isMatch(word, startIndex, endIndex);
+			}
 		}
 		return conditionMatch && !exceptionMatch;
 	}

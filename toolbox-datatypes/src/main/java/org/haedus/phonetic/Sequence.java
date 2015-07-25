@@ -101,7 +101,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	}
 
 	public int size() {
-		return sequence.size	();
+		return sequence.size();
 	}
 
 	public Sequence getSubsequence(int i) {
@@ -115,8 +115,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-		int index = k <= size() ? k : size();
-		return new Sequence(sequence.subList(i, index), featureModel);
+		return new Sequence(sequence.subList(i, k), featureModel);
 	}
 
 	public int indexOf(Segment target) {
@@ -234,9 +233,7 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 		if (obj == null) { return false; }
 		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
-		boolean sequenceEquals = sequence.equals(object.sequence);
-		boolean featuresEquals = featureModel.equals(object.featureModel);
-		return sequenceEquals && featuresEquals;
+		return featureModel.equals(object.featureModel) && sequence.equals(object.sequence);
 	}
 
 	@Override

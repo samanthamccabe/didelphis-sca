@@ -24,11 +24,10 @@ import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
@@ -259,14 +258,7 @@ public class StateMachineModelTest {
 
 
 	private static StateMachine getMachine(String expression) {
-		StateMachine stateMachine = StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
-		String graphML = stateMachine.getGraph();
-		try {
-			FileUtils.write(new File("test.graphml"), graphML, "UTF-8");
-		} catch (IOException e) {
-			LOGGER.error("failed to write graph", e);
-		}
-		return stateMachine;
+		return StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
 	}
 
 	private static Collection<Integer> testMachine(StateMachine stateMachine, String target) {
@@ -277,13 +269,11 @@ public class StateMachineModelTest {
 	}
 
 	private static SequenceFactory loadModel() {
-		Resource resource = new ClassPathResource("features.model");
-		FeatureModel model = null;
-		try {
-			model = new FeatureModel(resource.getFile());
-		} catch (IOException e) {
-			LOGGER.error("Failed to load file from {}", resource, e);
-		}
-		return new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("features.model");
+		
+		FormatterMode mode = FormatterMode.INTELLIGENT;
+		FeatureModel model = new FeatureModel(stream, mode);
+
+		return new SequenceFactory(model, mode);
 	}
 }

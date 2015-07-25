@@ -17,8 +17,6 @@ package org.haedus.io;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,28 +32,30 @@ public class ClassPathFileHandler implements FileHandler {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ClassPathFileHandler.class);
 
+	private static final String               DEFAULT_ENCODING = "UTF-8";
+	private static final ClassPathFileHandler DEFAULT_INSTANCE = new ClassPathFileHandler(DEFAULT_ENCODING);
+
 	private final String encoding;
 
+	public static ClassPathFileHandler getDefaultInstance() {
+		return DEFAULT_INSTANCE;
+	}
+	
 	public ClassPathFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}
-
-	public ClassPathFileHandler() {
-		encoding = "UTF-8";
-	}
-
+	
 	@Override
 	public List<String> readLines(String path) {
 
 		List<String> lines = new ArrayList<String>();
 
-		InputStreamSource resource = new ClassPathResource(path);
+		InputStream inputStream = ClassPathFileHandler.class.getClassLoader().getResourceAsStream(path);
 		try {
-			InputStream inputStream = resource.getInputStream();
 			lines.addAll(IOUtils.readLines(inputStream, encoding));
 			inputStream.close();
 		} catch (IOException e) {
-			LOGGER.error("Error when reading from path \"{}\"!", path);
+			LOGGER.error("Error when reading from path \"{}\"!", path, e);
 		}
 		return lines;
 	}
@@ -74,13 +74,22 @@ public class ClassPathFileHandler implements FileHandler {
 
 	@Override
 	public void writeString(String path, String data) {
-		throw new UnsupportedOperationException("Trying to write using an instance of "
-		                                        +ClassPathFileHandler.class.getCanonicalName());
+		throw new UnsupportedOperationException(
+			"Trying to write using an instance of "
+				+ ClassPathFileHandler.class.getCanonicalName()
+		);
 	}
 
 	@Override
 	public void writeLines(String path, List<String> data) {
-		throw new UnsupportedOperationException("Trying to write using an instance of "
-		                                        +ClassPathFileHandler.class.getCanonicalName());
+		throw new UnsupportedOperationException(
+			"Trying to write using an instance of "
+			+ ClassPathFileHandler.class.getCanonicalName()
+		);
+	}
+
+	@Override
+	public String toString() {
+		return "ClassPathFileHandler:" + encoding;
 	}
 }

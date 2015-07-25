@@ -12,35 +12,35 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.enums;
+package org.haedus.phonetic;
 
-import java.text.Normalizer;
+import org.haedus.enums.FormatterMode;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.junit.Assert.assertTrue;
 
 /**
- * This type is to succeed the earlier SegmentationMode and Normalizer mode enums by merging their functionality.
- * We originally supported types that were entirely unnecessary and presented the user with an excess of options,
- * most of where were of no value (compatibility modes,  or segmentation with composition e.g.)
- *
  * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * Created: 2/5/2015
  */
-public enum FormatterMode{
-	DECOMPOSITION(Normalizer.Form.NFD),  // Unicode Canonical Decomposition
-	COMPOSITION(Normalizer.Form.NFC),    // Unicode Canonical Decomposition followed by Canonical Composition
-	INTELLIGENT(Normalizer.Form.NFD),    // Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
-	NONE(null);                          // No change to input strings; they are read just as they appear in the lexicon and rule
-	
-	private final Normalizer.Form form;
-	
-	FormatterMode(Normalizer.Form param) {
-		form = param;
-	}
-	
-	public String normalize(String word) {
-		if (form == null) {
-			return word;
-		} else {
-			return Normalizer.normalize(word, form);
-		}
+public class SequenceFactoryTest {
+
+
+	@Test
+	public void testGetSequence01() throws IOException {
+		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("features.model");
+		FormatterMode formatterMode = FormatterMode.INTELLIGENT;
+		
+		FeatureModel model = new FeatureModel(stream, formatterMode);
+		
+		String word = "avaːm";
+
+		SequenceFactory factory = new SequenceFactory(model, formatterMode);
+
+		Sequence sequence = factory.getSequence(word);
+		assertTrue(!sequence.isEmpty());
 	}
 }

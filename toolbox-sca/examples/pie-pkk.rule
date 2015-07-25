@@ -1,0 +1,197 @@
+% PIE to Proto-Kuma-Kuban Rules
+% Haedus Toolbox SCA Rules File
+% Samantha Fiona Morrigan McCabe
+
+mode intelligent
+
+% Set the normalization mode before loading the lexicon
+open 'pie_lexicon.txt' as LEXICON
+
+% Normalize [i u] vs [y w] use
+y w > i u
+
+C P T K V L > k p t k a r
+
+ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û
+
+% For the sake of this example, we will not deal with stress
+% Which is not consistently marked in our data anyway
+á é í ó ú > a e i o u
+â ê î ô û > ā ē ī ō ū
+
+E = e ē
+A = a ā
+O = o ō
+I = i ī
+U = u ū
+
+H = x ʔ
+N = m n
+L = r l
+R = N L
+W = y w
+
+Q = kʷʰ kʷ gʷ
+K = kʰ  k  g
+P = pʰ  p  b
+T = tʰ  t  d
+
+[Pls] = P T K Q
+[Obs] = [Pls] s
+C = [Obs] R W
+
+VS  = a e i o u
+VL  = ā ē ī ō ū
+LOW = A E O
+V   = VS VL 
+
+% Szemerenyi's law
+Z = R s t nt
+VSm-m VSZ-s > VLm VLZ / _#
+
+% For correct handling of negation prefix
+n- > nˌ / #_
+
+% Delete morpheme boundary marking
+- > 0
+
+% This is bad design, maybe we can fix the data
+ee eo oe ea ae > ē ō ō ā ā
+
+% --- PHASE I -----------------------------------------------------------------
+
+h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ
+hₓ hₐ > ʔ ʕ
+
+E > A / {x ʕ}_ or _{x ʕ}
+E > O / ɣ_ or _ɣ
+ɣ ʕ > x ʔ
+
+ǵʰ ǵ ḱ > gʰ g k % Centum, loss of palatovelars
+
+% h₂ and h₃ cause aspiration of plosives
+b d g gʷ  > bʰ dʰ gʰ gʷʰ / _{x ɣ}
+p t k kʷ  > pʰ tʰ kʰ kʷʰ / _{x ɣ}
+
+% Grassman's Law should apply here, actually
+[Aspirata]   = bʰ dʰ gʰ gʷʰ pʰ tʰ kʰ kʷʰ
+[Anaspirata] = b  d  g  gʷ  p  t  k  kʷ
+
+[Aspirata] > [Anaspirata] / _{R W}?VV?C*[Aspirata]
+
+bʰ dʰ gʰ gʷʰ > pʰ tʰ kʰ kʷʰ
+
+H > 0 / _{H i y}
+
+iH uH > ī ū
+
+au eu ou am em om > ā ē ō ā ē ō / _m#
+
+% --- PHASE II ----------------------------------------------------------------
+
+mr wr ml wl > br br bl bl / #_V
+
+mH nH > mə nə / #_C
+
+% Originally, we did this with two rules. However, the first one
+%		rH lH mH nH > rˌH lˌH mˌH nˌH / [Obs]_
+% can have H moved into the condition, at which point it's 
+%		r l m n > rˌ lˌ mˌ nˌ / [Obs]_H
+% which is compatible with another old rule:
+%		r l m n > rˌ lˌ mˌ nˌ / [Obs]_{C #}
+
+r l m n > rˌ lˌ mˌ nˌ / [Obs]_{H C #}
+
+n m > nˌ mˌ / C_#
+
+rˌ lˌ > r l / C_{mˌ nˌ}{C #}
+
+nˌH mˌH > əˉ      / _C
+nˌH mˌH > əˉn əˉm / _{V #}
+rˌH lˌH > əˉr əˉl / _{C #} or _V
+
+% Desyllabification
+nˌ mˌ > ə     / _C
+nˌ mˌ > ən əm / _{V #}
+rˌ  lˌ  > ər  əl
+
+ə əˉ > u ū / {K Q}_
+
+kʰ k g > cʰ c ɟ / _{I E y}
+
+% LABIOVELAL SPLIT
+Q > K / {U w}_ or _{O U w [Obs]}
+Q > P
+
+% --- PHASE III ---------------------------------------------------------------
+
+% These could also be merged, which is made more interesting
+% with its resulting nested sets 
+% VS > VL / _H{C #}
+% VS > VL / _H{I U W}?V
+
+VS > VL / _H{C # {I U W}?V}
+
+H > 0 / {[Obs] R}_V
+H > 0 /         R_R
+H > 0 /        VL_{C # u}
+
+xa xə > 0 / VL_
+xu xo > u / VL_
+
+% Desyllabification of Semivowels
+i u > y w / _VC
+iuiH uiuH > iwī uyū / C_
+
+i u > y w / #_{I U}H
+i u > y w / LOW_VL or _LOW
+i u > y w / {H C}_V
+
+y w > i u / _{C H #}
+
+VSī VSū > VLi VLu / _{C #}
+VSī VSū > VLy VLw / _V
+
+H > ə / {# [Obs]}_C
+H > ə / C_# or R_R#
+
+H > 0 / _{C #} or C_
+ʔ > 0 / #_
+
+iʔə uʔə > ī ū % Does this even occur?
+Hə > 0 / VL_
+
+% Consonant Clusters
+Ks > ks
+% tk tʰkʰ  > ks ks
+
+s > 0 / _ss*
+
+oʔLOW LOWʔo > ō
+
+ʔ > 0 / LOW_{I U}
+
+eʔe aʔa eʔa aʔe > ē ā ā ē
+
+% Rules like this are to be avoided in this language nad probably
+% Indicative that there is a problem somewhere
+EU EI > Eu Ei
+AU AI > Au Ai
+OU OI > Ou Oi
+
+aʔ eʔ oʔ > ā ē ō / _{I U W}
+
+ēʔə ēʔe > ē
+āʔe āʔa āxa > ā
+
+oi ōi eu ēu > ai ei au ou
+
+% Siever's law for Nasals
+n m > ən əm / CC+_V
+y w > iy uw / CC+_V
+
+% This may be a bit arbitrary
+əˉ ə > ū u / K_
+
+
+close LEXICON as 'pkk_lexicon.txt'

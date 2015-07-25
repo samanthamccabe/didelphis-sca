@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2015. Samantha Fiona McCabe
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,26 +17,23 @@ package org.haedus.phonetic;
 import org.haedus.enums.FormatterMode;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class SegmenterTest
-{
+public class SegmenterTest {
 	private static FeatureModel model;
 
 	@BeforeClass
 	public static void init() throws IOException {
-		Resource resource = new ClassPathResource("features.model");
-		File file = resource.getFile();
-		model = new FeatureModel(file);
+		InputStream stream = SegmenterTest.class.getClassLoader().getResourceAsStream("features.model");
+
+		model = new FeatureModel(stream, FormatterMode.NONE);
 	}
 
 	@Test
@@ -52,7 +49,7 @@ public class SegmenterTest
 		String word = "t͜sʰ";
 
 		List<String> segmentedString = Segmenter.getSegmentedString(word, new ArrayList<String>(), FormatterMode.INTELLIGENT);
-		assertFalse("Nothing was returned by the Segmenter!",segmentedString.isEmpty());
+		assertFalse("Nothing was returned by the Segmenter!", segmentedString.isEmpty());
 	}
 
 	@Test

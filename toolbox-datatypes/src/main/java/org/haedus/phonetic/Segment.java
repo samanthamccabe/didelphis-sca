@@ -90,12 +90,14 @@ public class Segment implements ModelBearer {
 		validateModelOrFail(other);
 
 		int size = features.size();
-		if (size > 0) {
+		if (isUndefined() && other.isUndefined()) {
+			return symbol.equals(other.symbol);
+		} else if (size > 0) {
 			List<Double> otherFeatures = other.getFeatures();
 			for (int i = 0; i < size; i++) {
 				Double a = features.get(i);
 				Double b = otherFeatures.get(i);
-				// One-way comparison
+				// Two-way comparison? I'm not certain this is the most desirable semantics.
 				if (!a.equals(b) &&
 					!b.equals(FeatureModel.MASKING_VALUE) &&
 					!a.equals(FeatureModel.MASKING_VALUE)) {
@@ -173,6 +175,10 @@ public class Segment implements ModelBearer {
 		features.set(index, value);
 	}
 
+	public boolean isUndefined() {
+		return model.getBlankArray().equals(features);
+	}
+	
 	public boolean isUnderspecified() {
 		return features.contains(FeatureModel.MASKING_VALUE);
 	}

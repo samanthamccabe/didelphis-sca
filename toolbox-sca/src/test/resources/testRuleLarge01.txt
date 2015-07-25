@@ -1,5 +1,4 @@
-
-NORMALIZER: INTELLIGENT
+MODE: INTELLIGENT
 OPEN "testRuleLarge01.lex" as LEXICON
 
 y w > i u

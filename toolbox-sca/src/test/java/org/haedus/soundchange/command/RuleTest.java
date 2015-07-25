@@ -363,6 +363,23 @@ public class RuleTest {
 		testRule(rule, factory, "axa", "axa");
 		testRule(rule, factory, "aya", "ayb");
 		testRule(rule, factory, "aza", "azb");
+		testRule(rule, factory, "a", "a");
+	}
+
+	@Test
+	public void testCompound04() {
+		VariableStore store = new VariableStore();
+		store.add("C = x y z");
+
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+
+		Rule rule = new Rule("a > b / not x_", factory);
+
+		testRule(rule, factory, "xaa", "xab");
+		testRule(rule, factory, "axa", "bxa");
+		testRule(rule, factory, "aya", "byb");
+		testRule(rule, factory, "aza", "bzb");
+		testRule(rule, factory, "a",   "b");
 	}
 
 	/*======================================================================+

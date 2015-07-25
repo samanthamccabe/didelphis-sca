@@ -379,14 +379,7 @@ public class StateMachineTest {
 	}
 
 	private static StateMachine getStateMachine(String expression) {
-		StateMachine stateMachine = StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
-		String graphML = stateMachine.getGraph();
-		try {
-			FileUtils.write(new File("test.graphml"), graphML, "UTF-8");
-		} catch (IOException e) {
-			LOGGER.error("failed to write graph", e);
-		}
-		return stateMachine;
+		return StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
 	}
 
 	private static void test(StateMachine stateMachine, String target) {
