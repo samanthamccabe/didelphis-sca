@@ -3,25 +3,33 @@
 \usepackage{fontspec}
 \usepackage{xunicode}
 % Ok apparently you should never load xunicode before fontspec
+
 \usepackage{verbatim}
-%\usepackage{enumitem}
-\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geom etry}
+\usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
 
 \newcounter{excounter}
 % verbatim example
 \newenvironment{vex}[1]{
+  % 
+	\vspace{1em}
 	\refstepcounter{excounter}
-	\noindent\emph{Ex.} (\arabic{excounter}\label{#1})
+	\noindent\makebox[3em][l]{[\arabic{excounter}\label{#1}]}
+	\minipage{\textwidth}
 	\verbatim
-}{\endverbatim}
+}{
+	\endverbatim
+	\endminipage
+	\vspace{1em}
+}
+
 
 \title{Haedus Toolbox SCA, Manual}
 \author{Samantha Fiona Morrígan McCabe}
 \date{\today}
 
-\setmainfont[Ligatures=Common]{Linux Libertine O}
-\setsansfont{Linux Biolinum O}
-\setmonofont[Scale=0.8]{DejaVu Sans Mono}
+\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
+%\setsansfont{Linux Biolinum O}
+\setmonofont[Scale=0.9]{DejaVu Sans Mono}
 
 \begin{document}
 \maketitle
@@ -56,13 +64,15 @@ This section describes the steps required to set up and run the Haedus SCA, eith
 \label{ssub:java_runtime_environment}
 If you do not have a JRE installed, you will need to acquire an appropriate version from Oracle's website. If you have a JRE installed already, it must be Java 6 or later (because that version was released quite a few years ago at the time this manual is being prepared, it likely will be).
 
-If everything is set up correctly, when you open a terminal window and type \texttt{java -version} you should see output like the following:\\
+If everything is set up correctly, when you open a terminal window and type \texttt{java -version} you should see output like the following:
+
 \begin{vex}{ex:javatest}
 samantha@colossus: java -version
 java version "1.7.0_79"
 OpenJDK Runtime Environment (IcedTea 2.5.5) (7u79-2.5.5-0ubuntu0.14.04.2)
 OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
-\end{vex} 
+\end{vex}
+
 \noindent
 On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the ``\texttt{java version}'' itself is what matters. If the \texttt{java} command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
 
@@ -75,10 +85,12 @@ On a Windows or Mac system, you will see something a bit different (specifically
 
 The Haedus SCA is run from the command line, using the \texttt{toolbox.bat} or \texttt{toolbox.sh} commands (for Windows and Unix-like systems respectively). It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
 
-In either case, run the SCA, you only need to provide the paths of one or more rules files: \\
+In either case, run the SCA, you only need to provide the paths of one or more rules files:
+
 \begin{vex}{ex:runstandard}
 toolbox.sh script1.rule script2.rule ... scriptN.rule
 \end{vex}
+
 \noindent
 There are no other arguments to provide, only the script names. Rather than specifying input and output lexicons when starting the program, lexicons are read and written within the rules files themselves (section \ref{sub:scripting_capabilities}).
 
@@ -97,6 +109,7 @@ Comments can always be created using the \texttt{\%} symbol, as shown below:
 % This is a comment (full-line)
 ph th kh > f s x % this is a rule, followed by a comment (inline)
 \end{vex}
+
 \noindent
 Anything following the \texttt{\%} will be ignored; there is not currently any way to create block comments, however. 
 
@@ -126,7 +139,8 @@ One of the first things you will want to do when writing rules is to load a lexi
 open 'pie_lexicon.txt' as LEXICON
 \end{vex}
 
-You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following: \\
+You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following:
+
 \begin{vex}{ex:closelexicon}
 open 'pie_lexicon.txt' as LEXICON
 % Intervening rules go here
@@ -134,6 +148,7 @@ write LEXICON as 'late-pie_lexicon.txt'
 % Intervening rules go here
 close LEXICON as 'pkk_lexicon.txt'
 \end{vex}
+
 \noindent
 Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.
 %\footnote{Author's note: I've created a ticket for future versions to support ``probe words'', where the user can bind an input word to a handle, and assert that it has a particular value at any number of points in the rule script. This could (optionally) halt processing entirely, and write the lexicons to disk in their current state to aid the user in identifying any errors. See [toolbox-sca-15] https://github.com/samanthamccabe/toolbox-sca/issues/51}
@@ -152,8 +167,8 @@ You can use the \texttt{reserve} keyword to indicate which sequences of characte
 \begin{vex}{ex:reserve}
 reserve ph th kh kw kwh
 \end{vex}
-\noindent
 
+\noindent
 This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. Be mindful when writing rules; carelessly reserving sequences could lead to unexpected behavior in your outputs.
 
 % section: reserving_characters (end)
@@ -163,10 +178,12 @@ This will ensure that a rule intended to target \emph{p} will not affect \emph{p
 \label{ssub:writing_simple_rules}
 It is possible to write some rather complicated rules using the Haedus language, but it is generally not necessary. Most rules are fairly simple, and these are what will be discussed here.
 
-This is first rule you will see in the Kuma-Koban example:\\
+This is first rule you will see in the Kuma-Koban example:
+
 \begin{vex}{ex:simplerule}
 y w > i u
 \end{vex}
+
 \noindent
 The intention is to change every \emph{y} to an \emph{i} and every \emph{w} to a \emph{u}, regardless of context. The first set of rules in the Kuma-Koban example are like this; simple rules for making orthographic corrections in the raw data.
 
@@ -176,6 +193,7 @@ Though it is used less often, deletion is a useful feature of rules. The followi
 % Delete morpheme boundary marking
 - > 0
 \end{vex}
+
 \noindent
 It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). Changing any segments to \texttt{0} cause them to be deleted. 
 
@@ -191,7 +209,8 @@ It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundarie
 
 \subsubsection{Defining Variables}
 \label{ssub:defining_variables}
-A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either terminal symbols, or other variables. The following is a representative example from the Kuma-Koban data:\\
+A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either terminal symbols, or other variables. The following is a representative example from the Kuma-Koban data:
+
 \begin{vex}{ex:basicvars}
 H = x ʔ
 N = m n
@@ -199,6 +218,7 @@ L = r l
 R = N L
 W = y w
 \end{vex}
+
 \noindent
 Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent reference until and unless it is changed. You can find more detailed information in section \ref{sub:variables}.
 
@@ -207,32 +227,37 @@ Variables can be defined at any point in the script, and can also be re-defined 
 
 \subsubsection{writing Conditions}
 \label{ssub:writing_conditions}
-While the rules we've discussed so far have not needed to use conditions, the  majority of rules might ever find yourself writing will. One of the simplest possible conditions is seen in the following rule:\\
+While the rules we've discussed so far have not needed to use conditions, the  majority of rules might ever find yourself writing will. One of the simplest possible conditions is seen in the following rule:
+
 \begin{vex}{ex:simplerule2}
 % For correct handling of negation prefix
 n- > nˌ / #_
 \end{vex}
-\noindent
 
+\noindent
 If you are familiar with the standard formalisms for discussing sound change academically, most of this notation will be familiar. The forward-slash \texttt{/} indicates the start of the condition, and the underscore \texttt{\_} indicates where the ``source'' symbol (any of the elements on the left side of the \texttt{>} operator) occurs in relation to the rest of the condition.
 
 %Good conditions are where an SCA's real power lies. In this rule language, there is a lot to know about writing conditions, and that is detailed in section \ref{sub:conditions}; however, we will discuss these in a more organic fashion, as they appear in the Kuma-Koban example, for the benefit of new users.
 
 There is a very common rule in Indo-European languages where \emph{*e} is changed to \emph{*a} in the environment of \emph{*h₂} and possibly \emph{*h₄} if there ever was such a thing\footnote{where distinguishing between these is not possible, \emph{*hₐ} is used, at least in those sources which admit a \emph{*h₄}}. For convenience, these are simply converted to consonants \emph{x} and \emph{ʕ}.
 
-Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. One way to write this is with four rules:\\
+Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. One way to write this is with four rules:
+
 \begin{vex}{ex:fourlaryngealrule}
 E > A / _x
 E > A / _ʕ
 E > A / x_
 E > A / ʕ_
 \end{vex}
+
 \noindent
-If this seems sub-optimal, there are two ways we can condense the number of individual rules. First, we can cut the number of rules in half by using \emph{sets}:\\
+If this seems sub-optimal, there are two ways we can condense the number of individual rules. First, we can cut the number of rules in half by using \emph{sets}:
+
 \begin{vex}{ex:laryngealrulesets}
 E > A /      _{x ʕ}
 E > A / {x ʕ}_
 \end{vex}
+
 \noindent
 A set is just a list of elements, separated by whitespace, and contained within a pair of curly braces \texttt{\{} and \texttt{\}}\footnote{Padding is also permitted around the set elements, so writing \texttt{\{ x ʕ \}} is legal and equivalent to \texttt{\{x ʕ\}}}. Functionally, it's nearly the same as defining these in a variable beforehand, but without the need to actually use a separate command to do it.
 
@@ -242,6 +267,7 @@ There is another tool we can use to combine both rules into one, and that is the
 % e to a, before or after x or ʕ
 E > A / {x ʕ}_ or _{x ʕ}
 \end{vex}
+
 \noindent
 Using \texttt{or} allows a rule to have multiple conditions, any one of which can trigger the rule. If find you have the same change being made under several separate conditions, you can write then as a single rule using \texttt{or}. But only do this judiciously, as is can substantially impair the legibility of your rules, especially if the conditions are complicated. Throughout the Kuma-Koban rules you will see places where this is used, as well as places it was not but could have been
 
@@ -254,12 +280,13 @@ If you browse through the Kuma-Koban example rules, you will see that most of th
 
 One of the most powerful capabilities supported by this SCA is that it allows the use of regular expressions in rule conditions. This is discussed in detail in section \ref{ssub:expressions} but can be addressed here in the context of how regular expressions can be used to accomplish particular tasks.
 
-Some Indo-European languages exhibit a change known as Grassman's law, where aspirated stops are de-aspirated if another aspirate occurs after it (this is certainly true within a root or stem, but may apply to aspirates in suffixes as well). The following example is intended only to apply to aspirates which occur in adjacent syllables, or within the same syllable:\\
+Some Indo-European languages exhibit a change known as Grassman's law, where aspirated stops are de-aspirated if another aspirate occurs after it (this is certainly true within a root or stem, but may apply to aspirates in suffixes as well). The following example is intended only to apply to aspirates which occur in adjacent syllables, or within the same syllable:
 
 \begin{vex}{ex:grassman}
 % Grassman's Law
 bʰ dʰ gʰ gʷʰ > b  d  g  gʷ / _{R W}?VV?C*{bʰ dʰ gʰ gʷʰ}
 \end{vex}
+
 \noindent
 The two new symbols were are \texttt{?} and \texttt{*}. A third, \texttt{+}, is also possible. If you are familiar with regular expressions, their meanings are what you would expect:
 \begin{description}
@@ -271,16 +298,20 @@ The two new symbols were are \texttt{?} and \texttt{*}. A third, \texttt{+}, is 
 \noindent
 These are generally called \emph{quantifiers}, as they indicate how many of a symbol can be matched.\footnote{These are always greedy, and will match the \emph{longest} possible sequence, though because they are only used for detecting conditions, this is less of a problem than it is when, for example, using regular expressions to find-and-replace.} Representing the rule in example \ref{ex:grassman} without using regular expressions would require a minimum of 12 conditions. In most cases you will only even need to use \texttt{?} to make a symbol or variable optional. The Kuma-Koban example only uses any of these in 5 total rules.
 
-Under some circumstances in Indo-European languages, laryngeals could cause a preceding short vowel to be come long; in Kuma-Koban, this is represented using the following rule:\\
+Under some circumstances in Indo-European languages, laryngeals could cause a preceding short vowel to be come long; in Kuma-Koban, this is represented using the following rule:
+
 \begin{vex}{ex:lengthening}
 VS > VL / _H{C # {I U W}?V}
 \end{vex}
+
 \noindent
-There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally written as follows:\\
+There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally written as follows:
+
 \begin{vex}{ex:lenthening_old}
 VS > VL / _H{C #}
 VS > VL / _H{I U W}?V
 \end{vex}
+
 \noindent
 This may actually be slightly clearer in it's intent, without having to be unpacked. Both both simply express that the ``source'' should be followed by \texttt{H}, itself followed by one of several other expressions (\texttt{C}, \texttt{\#}, or \texttt{{I U W}?V}); this intent is matched by the semantics of sets and the fact that one of the other expressions also contains a set is not relevant.
 
@@ -297,7 +328,7 @@ This section describes the commands supported by the SCA and their syntax and se
 
 Scripts and lexicons are, by default, read in as UTF-8; it is not currently possible to change this. One substantial difference between this SCA and others is that these rule files are \emph{compiled} rather than merely interpreted; as script commands are read in, they are validated and parsed to objects in memory. This has several advantages, namely that because compilation happens once, rules are not repeatedly re-interpreted for each word; it also allows that errors can be caught immediately at compile time, rather than at runtime.
 
-In this rule language generally, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples. This is also true of the padding around most operator symbols (\emph{viz.} \texttt{= > /})
+In this rule language generally, the contents of lists are whitespace-separated (the space character, or tab) and quantity-insensitive (one space is treated the same as two), so you can use extra spaces or tabs to make columns align, as you will see throughout the examples. This is also true of the padding around most operator symbols (\emph{viz.} \texttt{= > /} )
 
 %While whitespace is used to separate items in lists, padding around operators and delimiters is optional. As elsewhere the quantity is not important.
 
@@ -308,6 +339,7 @@ The following characters have special meanings in the SCA script language and sh
 \begin{vex}{ex:reserved}
 % # $ * ? + ! ( ) { } [ ] 0 . \_ = / >
 \end{vex}
+
 \noindent
 Most of these are sensitive to context, but \texttt{=}, \texttt{/}, and \texttt{>} are restricted and using them inappropriate ways will cause the script to  fail to compile.\footnote{This is because these symbols in particular are used to identify variable definitions and transformation rules. Specifically, a line which contains \texttt{=} assumed by the parser to be a varaible definition. Likewise, a line which contains \texttt{>} is assumed to be a rule definition.} If a section indicates that a symbol on this list is allowed, then it is allowed in that context but should still be avoided in others.
 
@@ -346,6 +378,7 @@ The difference between \texttt{write} and \texttt{close} is that the former will
 \begin{vex}{ex:close}
 close LANGUAGE as "new_language.lex"
 \end{vex}
+
 \noindent
 Lexicons are not automatically written closed when the script completes, so if you open lexicons and forget to close them, their changes will be lost.
 
@@ -374,10 +407,10 @@ Specifying a normalization mode allows for consistent handling of diacritics in 
 \begin{description}
 \itemsep1pt \parskip0pt \parsep0pt 
 \item[\texttt{none}] Makes no changes to lexicon data or rules; all strings are left as-is.
-\item[\texttt{composition}] Applies Canonical Composition according to the Unicode Standard Annex \#15
-\item[\texttt{decomposition}] Applies Canonical Decomposition according to the Unicode Standard Annex \#15
-\item[\texttt{intelligent}] 
-\end{description} Applies intelligent segmentation according to the method described in section \ref{sub:segmentation}.
+\item[\texttt{composition}] Applies Canonical Composition according to the Unicode Standard Annex \#15.
+\item[\texttt{decomposition}] Applies Canonical Decomposition according to the Unicode Standard Annex \#15.
+\item[\texttt{intelligent}] Applies intelligent segmentation according to the method described in section \ref{sub:segmentation}.
+\end{description} 
 
 To set the formatter while running in standard mode, use the keyword \texttt{mode} followed by a supported mode:
 
@@ -410,13 +443,15 @@ The definitions in example \ref{ex:variables} illustrate several things: using w
 There are no formal restrictions placed on variable labels, beyond requiring that they not use characters reserved by the SCA. You will notice in ex. \ref{ex:variables} that both \texttt{TH} and \texttt{T} are defined. This is possible because when SCA parses a rule or variable definition, it searches for variables by finding the \emph{longest} matching label first. If you have variables \texttt{T}, \texttt{H}, and \texttt{TH}, a rule containing the string \texttt{TH} will always be understood by the SCA to represent the variable \texttt{TH}, and not \texttt{T} followed by \texttt{H}. The best way to avoid this situation is to name variable carefully
 	\footnote{Though I do not see this as a problem in need of a resolution, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{ssub:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
 
-It is possible to re-assign variables at any point in the script. This includes appending or prepending values to an existing variable, or redefining it entirely: \\
+It is possible to re-assign variables at any point in the script. This includes appending or prepending values to an existing variable, or redefining it entirely:
+
 \begin{vex}{ex:reassignvars}
 C = t k
 C = C q % Append
 C = p C % Prepend
 C = p t ts k q
 \end{vex}
+
 \noindent
 This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
 
@@ -441,25 +476,28 @@ The transform consists of two lists of elements on either side of the \texttt{>}
 \begin{vex}{ex:transform}
 s₁ s₂ s₃ ... sₙ > t₁ t₂ t₃ ... tₙ
 \end{vex}
+
 \noindent
 Each element on the left corresponds to one on the right, so that \texttt{s₁} is changed to \texttt{t₁}, \texttt{s₂} to \texttt{t₂} and so on. Each source element must have a corresponding target element, \emph{unless} the target contains exactly one element:
 
 \begin{vex}{ex:transform_merger}
 s₁ s₂ s₃ ... sₙ > t
 \end{vex}
+
 \noindent
-This can be a useful way of representing mergers. Because of this, the following two statements are equivalent:\\
+This can be a useful way of representing mergers. Because of this, the following two statements are equivalent:
 
 \begin{vex}{ex:convergence}
 æ e o > a a a
 æ e o > a
 \end{vex}
 
-Additionally, the right-hand side of the transformation is may contain the literal zero \texttt{0} which represents a deleted segment. For example, the following rule will delete schwas where they occur in word-final position:\\
+Additionally, the right-hand side of the transformation is may contain the literal zero \texttt{0} which represents a deleted segment. For example, the following rule will delete schwas where they occur in word-final position:
 
 \begin{vex}{ex:deletion}
 ə > 0 / _#
 \end{vex}
+
 \noindent
 However, it is not necessary that \texttt{0} be the \emph{only} symbol in the target; a single rule is permitted to delete one sound while simply changing others.
 
@@ -511,6 +549,7 @@ The start of the condition is signaled by the forward-slash symbol \texttt{/}. T
 \begin{vex}{ex:clause}
 Eₐ_Eₚ
 \end{vex}
+
 where \texttt{Eₐ} represents an expression to be matched before the source segment, and \texttt{Eₚ} represents an expression to be matched after the source segment.
 	\footnote{At the implementation-level, this is done by searching a word, start to end, for a symbol from the transform. If it is found, the symbols before and after it are checked against the condition. If both match, the changes are applied.}
 
@@ -519,6 +558,7 @@ Many common conditions are relatively simple, representing things like ``between
 \begin{vex}{ex:devoicing}
 b d g > p t k / #_
 \end{vex}
+
 \noindent
 which represents devoicing of plosives in word initial position.
 
@@ -551,6 +591,7 @@ The most substantial deviation from common regular expression implementations is
 \begin{vex}{ex:sets}
 { E₁ E₂ E₃ }
 \end{vex}
+
 \noindent
 will match any one of the expressions \texttt{E₁}, \texttt{E₂}, or \texttt{E₃}. The expression in \ref{ex:sets} is equivalent to \texttt{(E₁|E₂|E₃)} in standard regular expressions. Sets can be used with quantifier metacharacters, just as groups can.
 
@@ -564,6 +605,7 @@ When a single transformation is triggered under multiple conditions, you may dec
 \begin{vex}{ex:multiple_clauses}
 H > 0 / _{C #} or C_
 \end{vex}
+
 \noindent
 Using multiple clauses can sometimes render rules more difficult to read, so using this capability is not always ideal, from a user's point of view.
 
