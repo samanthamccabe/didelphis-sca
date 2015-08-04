@@ -22,6 +22,8 @@ import java.util.List;
  */
 public interface FileHandler {
 
+	String read(String path);
+	
 	List<String> readLines(String path);
 
 	List<List<String>> readTable(String path);

@@ -44,7 +44,19 @@ public class ClassPathFileHandler implements FileHandler {
 	public ClassPathFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}
-	
+
+	@Override
+	public String read(String path) {
+		
+		StringBuilder sb = new StringBuilder();
+		for (String line : readLines(path)) {
+			sb.append(line);
+			sb.append('\n');
+		}
+
+		return sb.toString();
+	}
+
 	@Override
 	public List<String> readLines(String path) {
 
