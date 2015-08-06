@@ -15,6 +15,7 @@
 package org.haedus.soundchange.command;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
@@ -40,14 +41,29 @@ public class RuleTest {
 	private static final SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
 	private static final SequenceFactory FACTORY     = SequenceFactory.getEmptyFactory();
 
+	@Test(expected = ParseException.class)
+	public void testMultipleSourceZeroes() {
+		new Rule("0 0 > a", FACTORY);
+	}
+
+	@Test(expected = ParseException.class)
+	public void testZeroWithMultipleTarget() {
+		new Rule("0 > a a", FACTORY);
+	}
+
+	@Test(expected = ParseException.class)
+	public void testMultipleZeroWithMultipleTarget() {
+		new Rule("0 0 > a a", FACTORY);
+	}
+
 	@Test
 	public void testBrackets01() throws Exception {
 
 		VariableStore store = new VariableStore();
 		store.add("VS = a e i o u ə á é í ó ú");
 		store.add("VL = ā ē ī ō ū ə̄  â ê î ô û");
-		store.add("V   = VS VL");
-		store.add("X = x ʔ");
+		store.add("V  = VS VL");
+		store.add("X  = x ʔ");
 
 		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
@@ -244,6 +260,23 @@ public class RuleTest {
 	}
 
 	@Test
+	public void testInsertion02() {
+		Rule rule = new Rule("0 > n / q_", FACTORY);
+
+		testRule(rule, FACTORY, "aqa", "aqna");
+	}
+
+	@Test
+	public void testInsertion03() {
+		Rule rule = new Rule("0 > a / x_x", FACTORY);
+
+		testRule(rule, FACTORY, "xx", "xax");
+		testRule(rule, FACTORY, "xxx", "xaxax");
+		testRule(rule, FACTORY, "xxxx", "xaxaxax");
+		testRule(rule, FACTORY, "xzxx", "xzxax");
+	}
+
+	@Test
 	public void testUnconditional() {
 		Sequence word = INTELLIGENT.getSequence("h₁óh₁es-");
 		Sequence expected = INTELLIGENT.getSequence("ʔóʔes-");
@@ -381,6 +414,7 @@ public class RuleTest {
 		testRule(rule, factory, "aza", "bzb");
 		testRule(rule, factory, "a",   "b");
 	}
+
 
 	/*======================================================================+
 	 | Exception Tests                                                      |
