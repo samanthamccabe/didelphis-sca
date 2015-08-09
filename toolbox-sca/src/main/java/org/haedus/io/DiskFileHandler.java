@@ -41,10 +41,27 @@ public class DiskFileHandler implements FileHandler {
 		return DEFAULT_INSTANCE;
 	}
 	
+	public DiskFileHandler() {
+		this(DEFAULT_ENCODING);
+	}
+	
 	public DiskFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}
-	
+
+	@Override
+	public String read(String path) {
+		File file = new File(path);
+		String string;
+		try {
+			string = FileUtils.readFileToString(file, encoding);
+		} catch (IOException e) {
+			LOGGER.error("Error when reading file {} from path \"{}\"!", path, file.getAbsolutePath(), e);
+			string = "";
+		}
+		return string;
+	}
+
 	@Override
 	public List<String> readLines(String path) {
 		File file = new File(path);

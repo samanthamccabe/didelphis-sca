@@ -17,7 +17,9 @@ package org.haedus.soundchange;
 import org.apache.commons.io.FileUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
+import org.haedus.io.DiskFileHandler;
 import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.LexiconMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,74 +40,27 @@ public class Main {
 	private Main() {
 	}
 
-	public static void main(String[] args) throws IOException, ParseException {
-		double startTime = System.nanoTime();
-		// 1) toolbox example.rule # loads rule; all segmentation/normalization is controlled internally
-		// 2) toolbox -b [-m(S|D|C)] input.lex basic.rule output.lex
-		//		>> toolbox -b input.lex basic.rule output.lex     # basic mode without normalization
-		//		>> toolbox -b -mS input.lex basic.rule output.lex # basic mode with smart segmentation
-		//		>> toolbox -b -mD input.lex basic.rule output.lex # basic mode with canonical decomposition, no segmentation
-
+	public static void main(String[] args) throws IOException {
+		
 		if (args.length == 0) {
 			throw new IllegalArgumentException("No arguments were provided!");
-		} else if (args[0].equals("-b")) {
-			String lexiconPath;
-			String rulesPath;
-			String outputPath;
-
-			FormatterMode mode;
-			if (args[1].startsWith("-m")) {
-				lexiconPath = args[2];
-				rulesPath = args[3];
-				outputPath = args[4];
-				String modeFlag = args[1].substring(2);
-				mode = getFormatterMode(modeFlag);
-			} else {
-				lexiconPath = args[1];
-				rulesPath   = args[2];
-				outputPath  = args[3];
-				mode = FormatterMode.NONE;
-			}
-
-			String lexicon = FileUtils.readFileToString(new File(lexiconPath), UTF_8);
-			String rules   = FileUtils.readFileToString(new File(rulesPath),   UTF_8);
-
-			SoundChangeScript sca = new BasicScript(rules, lexicon, mode);
-			sca.process();
-
-			Lexicon outputLexicon = sca.getLexicon(BasicScript.DEFAULT_LEXICON);
-			FileUtils.write(new File(outputPath), UTF_8, outputLexicon.toString());
-
-//		} else {
-//			throw new IllegalArgumentException("An improper number of arguments were provided!\n" +
-//					"If running in 'basic' mode, ensure that the first parameter is 'b', followed by INPUT, RULE, and OUTPUT file paths.\n" +
-//					"If running in 'standard' mode, only provide the path of a rule file.");
-//		}
 		} else {
 			for (String arg : args) {
-				File ruleFile = new File(arg);
-				String rules = FileUtils.readFileToString(ruleFile, UTF_8);
-				SoundChangeScript standardScript = new StandardScript(rules);
-				standardScript.process();
+				double startTime = System.nanoTime();
+				File file = new File(arg);
+				String rules = FileUtils.readFileToString(file, UTF_8);
+				SoundChangeScript script = new StandardScript(
+					file.getName(),
+					rules,
+					new LexiconMap(),
+					DiskFileHandler.getDefaultInstance()
+				);
+				script.process();
+
+				double elapsedTime = System.nanoTime() - startTime;
+				double time = elapsedTime / StrictMath.pow(10.0,9.0);
+				LOGGER.info("Finished script {} in {} seconds", file.getName(), time);
 			}
 		}
-
-		double elapsedTime = System.nanoTime() - startTime;
-		double time = elapsedTime / StrictMath.pow(10.0,9.0);
-		LOGGER.info("Finished in {} seconds", time);
-	}
-
-	private static FormatterMode getFormatterMode(String modeFlag) {
-		FormatterMode mode;
-		if (modeFlag.equals("S")) {
-			mode = FormatterMode.INTELLIGENT;
-		} else if (modeFlag.equals("D")) {
-			mode = FormatterMode.DECOMPOSITION;
-		} else if (modeFlag.equals("C")) {
-			mode = FormatterMode.COMPOSITION;
-		} else {
-			throw new IllegalArgumentException("Unsupported or unknown format flag '"+modeFlag+"' was provided!");
-		}
-		return mode;
 	}
 }

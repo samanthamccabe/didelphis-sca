@@ -29,6 +29,11 @@ public enum NullFileHandler implements FileHandler {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(NullFileHandler.class);
 
 	@Override
+	public String read(String path) {
+		return null;
+	}
+	
+	@Override
 	public List<String> readLines(String path) {
 		return null;
 	}

@@ -62,6 +62,11 @@ public class MockFileHandler implements FileHandler {
 	}
 
 	@Override
+	public String read(String path) {
+		return mockFileSystem.get(path);
+	}
+
+	@Override
 	public List<String> readLines(String path) {
 		String data = readString(path);
 
