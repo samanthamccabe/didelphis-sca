@@ -18,7 +18,7 @@
 
     <groupId>org.haedus.toolbox</groupId>
     <artifactId>haedus-toolbox</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.6.0</version>
 
     <modules>
         <module>toolbox-datatypes</module>
