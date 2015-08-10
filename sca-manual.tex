@@ -23,7 +23,7 @@
 }
 
 
-\title{Haedus Toolbox SCA, Manual}
+\title{Haedus Toolbox SCA, Manual (v0.6.0)}
 \author{Samantha Fiona Morrígan McCabe}
 \date{\today}
 
@@ -81,11 +81,12 @@ On a Windows or Mac system, you will see something a bit different (specifically
 
 \subsubsection{Running the Sound-Change Applier}
 \label{ssub:running_sca}
-%In order to actually run the Haedus SCA, your best option is to navigate a terminal to the folder where you have extracted the archive.
 
-The Haedus SCA is run from the command line, using the \texttt{toolbox.bat} or \texttt{toolbox.sh} commands (for Windows and Unix-like systems respectively). It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
+Although a graphical interface is in early development, the Haedus SCA is currently run best through the command line. A pair of scripts have been provided to streamline the process, \texttt{toolbox.bat} or \texttt{toolbox.sh} for Windows and Unix-like systems respectively. It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
 
-In either case, run the SCA, you only need to provide the paths of one or more rules files:
+Only basic knowledge of using the terminal is required, but if you are unfamiliar with it, there are ample resources provided online. If you want to avoid the terminal entirely, you should be able to (from your operating system's folder view) drag-and-drop a rule script onto the appropriate \texttt{toolbox} script. Any errors produced will be sent to \texttt{toolbox.log}
+
+If you are using the terminal to run the SCA, you need to provide the paths of one or more rules files:
 
 \begin{vex}{ex:runstandard}
 toolbox.sh script1.rule script2.rule ... scriptN.rule
@@ -93,6 +94,8 @@ toolbox.sh script1.rule script2.rule ... scriptN.rule
 
 \noindent
 There are no other arguments to provide, only the script names. Rather than specifying input and output lexicons when starting the program, lexicons are read and written within the rules files themselves (section \ref{sub:scripting_capabilities}).
+
+Logging is handled automatically; the same information is printed to the console and written to \texttt{toolbox.log} to help you debug any problems that might arise.
 
 % subsection: running_sca (end)
 % -----------------------------------------------------------------------------
@@ -151,7 +154,6 @@ close LEXICON as 'pkk_lexicon.txt'
 
 \noindent
 Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.
-%\footnote{Author's note: I've created a ticket for future versions to support ``probe words'', where the user can bind an input word to a handle, and assert that it has a particular value at any number of points in the rule script. This could (optionally) halt processing entirely, and write the lexicons to disk in their current state to aid the user in identifying any errors. See [toolbox-sca-15] https://github.com/samanthamccabe/toolbox-sca/issues/51}
 
 Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. If you were to change modes \emph{after} loading a lexicon, it could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled prior to writing any rules, a rule containing \texttt{pʰ} will not trigger on a word containing \texttt{pʰ} because it will have been loaded as two separate characters \texttt{p} and \texttt{ʰ}. 
 
@@ -172,6 +174,34 @@ reserve ph th kh kw kwh
 This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. Be mindful when writing rules; carelessly reserving sequences could lead to unexpected behavior in your outputs.
 
 % section: reserving_characters (end)
+% -----------------------------------------------------------------------------
+
+\subsubsection{Defining Variables}
+\label{ssub:defining_variables}
+A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either literal symbols, or other variables; but not a combination of both. The following is a representative example from the Kuma-Koban data and is typical of how variables are defined:
+
+\begin{vex}{ex:basicvars}
+H = x ʔ
+N = m n
+L = r l
+R = N L
+W = y w
+\end{vex}
+
+\noindent
+Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent reference until and unless it is changed. You can find more detailed information in section \ref{sub:variables}. 
+
+As mentioned previous, values must be either a sequence of terminals or a single variable. Any circumstance in which you might feel the need to do something like the following is probably better handled by a sequence of variables in a rule itself:
+
+\begin{vex}{ex:badvars}
+P = p pʼ
+T = t tʼ
+H = x ħ
+
+Y = PH TH nT
+\end{vex}
+
+% section defining_variables (end)
 % -----------------------------------------------------------------------------
 
 \subsubsection{Writing Simple Rules}
@@ -195,34 +225,37 @@ Though it is used less often, deletion is a useful feature of rules. The followi
 \end{vex}
 
 \noindent
-It will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). Changing any segments to \texttt{0} cause them to be deleted. 
+Changing anything into the literal zero character \texttt{0} will cause it to be deleted. In this case, the rule will delete all hyphens in the lexicon (\emph{i.e.} remove morpheme boundaries). 
 
-%There are two more early rules that should also be instructive, and illustrate how to work with basic conditions and word boundaries, and how to delete segments, respectively. More detailed information is discussed in section \ref{sub:rules}
+It is also possible to \texttt{insert} segments in a similar fashion:
 
-%This first rule is intended to apply to universally so it does not require a condition. 
-
-%The rule in ex. \ref(ex:simplerule2) uses, as part of its condition, the word-boundary symbol \texttt{\#} which is a rather common component of many condition. The rule itself can be understood as meaning ``\emph{n-} changes to \emph{nˌ} word-initially''.
-
-
-% section: writing_simple_rules (end)
-% -----------------------------------------------------------------------------
-
-\subsubsection{Defining Variables}
-\label{ssub:defining_variables}
-A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either terminal symbols, or other variables. The following is a representative example from the Kuma-Koban data:
-
-\begin{vex}{ex:basicvars}
-H = x ʔ
-N = m n
-L = r l
-R = N L
-W = y w
+\begin{vex}{ex:insertion}
+0 > e / #_sC
 \end{vex}
 
 \noindent
-Variables can be defined at any point in the script, and can also be re-defined at any point. Once a variable is defined a certain way, it will have that value for every subsequent reference until and unless it is changed. You can find more detailed information in section \ref{sub:variables}.
+There are several things to note however: when inserting segments, there can only be one \texttt{0} on the left, and one literal sequence on the right; additionally, insertions \emph{requires} a condition (see section \ref{ssub:writing_conditions} for how to do this). Failing to obey the required syntax here will produce a compilation error.
 
-% section defining_variables (end)
+Like other SCAs, this one allows you to transform from one variable to another, provided they have the same number of elements. For instance, Kuma-Koban transforms labiovelars into plain labials using the following rule:
+
+\begin{vex}{ex:variabletransform1}
+Q = kʷʰ kʷ gʷ
+P = pʰ  p  b
+% ... intervening rules ... %
+Q > P
+\end{vex}
+
+\noindent
+This will change \emph{kʷʰ} to \emph{pʰ}, \emph{kʷ} to \emph{p}, and \emph{gʷ} to \emph{b}. It is also possible to write rules like:
+
+\begin{vex}{ex:variabletransform2}
+iH uH > ī ū
+\end{vex}
+
+\noindent
+which will change any sequence of \emph{i} and any element of \texttt{H} to \emph{ī}, and do the same for \emph{u}. Changing a variable to a literal will change every element matched by the variable into that literal sequence.
+
+% section: writing_simple_rules (end)
 % -----------------------------------------------------------------------------
 
 \subsubsection{writing Conditions}
@@ -341,7 +374,9 @@ The following characters have special meanings in the SCA script language and sh
 \end{vex}
 
 \noindent
-Most of these are sensitive to context, but \texttt{=}, \texttt{/}, and \texttt{>} are restricted and using them inappropriate ways will cause the script to  fail to compile.\footnote{This is because these symbols in particular are used to identify variable definitions and transformation rules. Specifically, a line which contains \texttt{=} assumed by the parser to be a varaible definition. Likewise, a line which contains \texttt{>} is assumed to be a rule definition.} If a section indicates that a symbol on this list is allowed, then it is allowed in that context but should still be avoided in others.
+Most of these are sensitive to context, but \texttt{=}, \texttt{/}, and \texttt{>} are restricted and using them in inappropriate ways will cause the script to  fail to compile.\footnote{This is because these symbols in particular are used to identify variable definitions and transformation rules. Specifically, a line which contains \texttt{=} assumed by the parser to be a variable definition. Likewise, a line which contains \texttt{>} is assumed to be a rule definition.} If a section indicates that a symbol on this list is allowed, then it is allowed in that context but should still be avoided in others.
+
+The square brackets \texttt{[]} warrant some additional explanation, as they are reserved \emph{per se} but are treated specially. Anything contained between square brackets will be automatically parsed as a single sequence; that is, any time the SCA parser encounters \texttt{[} it will automatically jump to the next closing \texttt{]} and treat everything in between as a single sequence, just as it would a user-reserved sequence, or variable name. Square brackets are also used to delimit feature arrays in future versions of the SCA.
 
 % section: scripts_and_syntax
 % -----------------------------------------------------------------------------
@@ -427,7 +462,7 @@ It is possible to change the formatting mode anywhere in a rule file, but it is 
 
 \subsection{Variables}
 \label{sub:variables}
-Variables represent ordered sets of non-variable symbols, as they typically do in other SCAs. When defining a variable, the assignment operator \texttt{=} binds a label on the left-hand-side to a space-separated list on the right. The following example shows how variables are often defined:
+Variables represent ordered sets of variable and literal symbols, as they typically do in other SCAs. When defining a variable, the assignment operator \texttt{=} binds a label on the left-hand-side to a space-separated list on the right. The following example shows how variables are often defined:
 
 \begin{vex}{ex:variables}
 TH = pʰ tʰ kʰ
@@ -439,6 +474,8 @@ C  = TH T D W N r s
 \end{vex}
 
 The definitions in example \ref{ex:variables} illustrate several things: using whitespace to align symbols into columns in a convenient and readable way, reasonably free variable label naming, and the use of variables in the definition of other variables.
+
+Note that each item bound to a variable must be a sequence of literals, or a single variable, \emph{not} combinations of both. Assuming the definitions in example \ref{ex:variables} are already in place, a definition like \texttt{X = DW} or \texttt{TH = Tʰ} is not permitted.
 
 There are no formal restrictions placed on variable labels, beyond requiring that they not use characters reserved by the SCA. You will notice in ex. \ref{ex:variables} that both \texttt{TH} and \texttt{T} are defined. This is possible because when SCA parses a rule or variable definition, it searches for variables by finding the \emph{longest} matching label first. If you have variables \texttt{T}, \texttt{H}, and \texttt{TH}, a rule containing the string \texttt{TH} will always be understood by the SCA to represent the variable \texttt{TH}, and not \texttt{T} followed by \texttt{H}. The best way to avoid this situation is to name variable carefully
 	\footnote{Though I do not see this as a problem in need of a resolution, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{ssub:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
@@ -499,7 +536,7 @@ Additionally, the right-hand side of the transformation is may contain the liter
 \end{vex}
 
 \noindent
-However, it is not necessary that \texttt{0} be the \emph{only} symbol in the target; a single rule is permitted to delete one sound while simply changing others.
+However, it is not necessary that \texttt{0} be the \emph{only} symbol in the target; a single rule is permitted to delete one sound while simply changing others. It is, however, necessary that \texttt{0} not be used in a string with other characters: a rule containing something like \texttt{s0} will fail to compile.
 
 \subsubsection{Indices \& Backreferences}
 \label{ssub:indices_and_backreferences}

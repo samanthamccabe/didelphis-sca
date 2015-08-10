@@ -15,6 +15,9 @@
 package org.haedus.soundchange;
 
 import org.haedus.phonetic.Lexicon;
+import org.haedus.soundchange.command.Command;
+
+import java.util.Queue;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -27,4 +30,6 @@ public interface SoundChangeScript {
 	boolean hasLexicon(String handle);
 
 	Lexicon getLexicon(String handle);
+	
+	Queue<Command> getCommands();
 }

@@ -104,7 +104,6 @@ public class FeatureModelTest {
 	@Test
 	public void testGetStringFromFeatures01()  {
 		String bestSymbol = model.getBestSymbol(G_FEATURES);
-		LOGGER.info(bestSymbol);
 		assertEquals("g", bestSymbol);
 	}
 

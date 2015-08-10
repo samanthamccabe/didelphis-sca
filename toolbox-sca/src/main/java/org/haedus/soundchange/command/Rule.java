@@ -16,6 +16,7 @@ package org.haedus.soundchange.command;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
@@ -69,7 +70,7 @@ public class Rule implements Command {
 		transform = new LinkedHashMap<Sequence, Sequence>();
 		exceptions = new ArrayList<Condition>();
 		conditions = new ArrayList<Condition>();
-		populateConditions();
+		parseRule();
 	}
 
 	public Rule(String rule, SequenceFactory factoryParam) {
@@ -199,6 +200,8 @@ public class Rule implements Command {
 							} else {
 								testIndex = -1;
 							}
+						} else if (segment.getSymbol().equals("0")) {
+							// TODO: nothing??
 						} else {
 							// It's a literal
 							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
@@ -213,7 +216,12 @@ public class Rule implements Command {
 					if (testIndex >= 0 && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
 						// Now at this point, if everything worked, we can
-						Sequence removed = output.remove(startIndex, index);
+						Sequence removed;
+						if (startIndex < index) {
+							removed = output.remove(startIndex, index);
+						} else {
+							removed = factory.getNewSequence();
+						}
 						Sequence replacement = getReplacementSequence(removed, target, variableMap, indexMap, sequenceMap);
 						match = true;
 						if (!replacement.isEmpty()) {
@@ -231,7 +239,7 @@ public class Rule implements Command {
 		return output;
 	}
 
-	private void populateConditions() {
+	private void parseRule() {
 		String transformString;
 		// Check-and-parse for conditions
 		if (ruleText.contains("/")) {
@@ -304,43 +312,8 @@ public class Rule implements Command {
 
 			Matcher matcher = BACKREFERENCE.matcher(segment.getSymbol());
 			if (matcher.matches()) {
-
-				String symbol = matcher.group(1);
-				String digits = matcher.group(2);
-
-				int reference = Integer.valueOf(digits);
-				int integer = indexMap.get(reference);
-
-				Sequence sequence;
-				if ( integer == -1) {
-					// -1 means it was an underspecified feature
-					// but we need to know what was matched
-					if (symbol.isEmpty()) {
-						sequence = factory.getNewSequence();
-
-						// add the captured segment
-						Segment captured = sequenceMap.get(reference).get(0);
-						sequence.add(captured);
-					} else {
-						throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
-//						sequence = factory.getNewSequence();
-//						// length should be guaranteed to be 1
-//						Segment captured = sequenceMap.get(reference).get(0);
-//						Segment altered = captured.alter(factory.getSegment(symbol));
-//						sequence.add(altered);
-					}
-					
-				} else {
-					String variable;
-					if (symbol.isEmpty()) {
-						variable = variableMap.get(reference);
-					} else {
-						variable = symbol;
-					}
-					sequence = factory.getVariableValues(variable).get(integer);
-				}
+				Sequence sequence = getReferencedReplacement(target, variableMap, indexMap, sequenceMap, matcher);
 				replacement.add(sequence);
-				
 			} else if (factory.hasVariable(segment.getSymbol())) {
 				// Allows C > G transformations, where C and G have the same number of elements
 				List<Sequence> elements = factory.getVariableValues(segment.getSymbol());
@@ -358,6 +331,44 @@ public class Rule implements Command {
 			// Else: it's zero, do nothing
 		}
 		return replacement;
+	}
+
+	private Sequence getReferencedReplacement(Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap, Map<Integer, Sequence> sequenceMap, Matcher matcher) {
+		String symbol = matcher.group(1);
+		String digits = matcher.group(2);
+
+		int reference = Integer.valueOf(digits);
+		int integer = indexMap.get(reference);
+
+		Sequence sequence;
+		if ( integer == -1) {
+			// -1 means it was an underspecified feature
+			// but we need to know what was matched
+			if (symbol.isEmpty()) {
+				sequence = factory.getNewSequence();
+
+				// add the captured segment
+				Segment captured = sequenceMap.get(reference).get(0);
+				sequence.add(captured);
+			} else {
+				throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
+//						sequence = factory.getNewSequence();
+//						// length should be guaranteed to be 1
+//						Segment captured = sequenceMap.get(reference).get(0);
+//						Segment altered = captured.alter(factory.getSegment(symbol));
+//						sequence.add(altered);
+			}
+
+		} else {
+			String variable;
+			if (symbol.isEmpty()) {
+				variable = variableMap.get(reference);
+			} else {
+				variable = symbol;
+			}
+			sequence = factory.getVariableValues(variable).get(integer);
+		}
+		return sequence;
 	}
 
 	private boolean conditionsMatch(Sequence word, int startIndex, int endIndex) {
@@ -401,8 +412,18 @@ public class Rule implements Command {
 				List<String> sourceList = parseToList(sourceString);
 				List<String> targetList = parseToList(targetString);
 
+				// Validate, make sure that if an entry contains 0, it's the string length == 1
+//				validateZeros(sourceList);
+//				validateZeros(targetList);
+				// j/k can't check here - 0 might occur as part of a feature definition
+
 				// fill in target for cases like "a b c > d"
-				balanceTransform(sourceList, targetList);
+
+				if (sourceList.contains("0") && (sourceList.size() != 1 || targetList.size() != 1)) {
+					throw new ParseException("A rule may only use \"0\" in the \"source\" if that ");
+				} else {
+					balanceTransform(sourceList, targetList);
+				}
 
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
@@ -414,6 +435,14 @@ public class Rule implements Command {
 			}
 		} else {
 			throw new RuleFormatException("Missing \">\" sign! in rule " + ruleText);
+		}
+	}
+
+	private static void validateZeros(List<String> sourceList) {
+		for (String item : sourceList) {
+			if (item.contains("0") && item.length() > 1) {
+				throw new RuleFormatException("\"0\" cannot be combined with other symbols.");
+			}
 		}
 	}
 

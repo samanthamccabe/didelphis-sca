@@ -14,7 +14,6 @@
 
 package org.haedus.machines;
 
-import org.apache.commons.io.FileUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
@@ -25,8 +24,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
@@ -246,12 +243,12 @@ public class StateMachineModelTest {
 		fail(machine, "a̤ḱʰus");
 	}
 
-	private static void test(StateMachine stateMachine, String target) {
+	private static void test(Machine stateMachine, String target) {
 		Collection<Integer> matchIndices = testMachine(stateMachine, target);
 		assertFalse("Machine failed to accept input", matchIndices.isEmpty());
 	}
 
-	private static void fail(StateMachine stateMachine, String target) {
+	private static void fail(Machine stateMachine, String target) {
 		Collection<Integer> matchIndices = testMachine(stateMachine, target);
 		assertTrue("Machine accepted input it should not have", matchIndices.isEmpty());
 	}
@@ -261,11 +258,9 @@ public class StateMachineModelTest {
 		return StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
 	}
 
-	private static Collection<Integer> testMachine(StateMachine stateMachine, String target) {
+	private static Collection<Integer> testMachine(Machine stateMachine, String target) {
 		Sequence sequence = FACTORY.getSequence(target);
-		Collection<Integer> matchIndices = stateMachine.getMatchIndices(0, sequence);
-		LOGGER.debug("{} ran against \"{}\" and produced output {}",stateMachine, sequence, matchIndices);
-		return matchIndices;
+		return stateMachine.getMatchIndices(0, sequence);
 	}
 
 	private static SequenceFactory loadModel() {
