@@ -8,6 +8,13 @@ The Haedus SCA supports capabilities like multiple rule conditions, regular expr
 
 Changelog:
 
+Version 0.6.0
+* Allows insertion / epenthesis of segments
+* Logging to file + console
+* Improved logging, including line number and file name for the script in which the error was found.
+* Now attempts to log all compilation errors encountered in all loaded scripts before quitting
+* Added some clarifications to the manual where users indicated some sections were unclear.
+
 Version 0.5.0
 * Improved normalization mode operation
 * Greatly expanded manual

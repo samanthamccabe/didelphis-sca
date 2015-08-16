@@ -98,7 +98,7 @@ public class Condition {
 		boolean preconditionMatch  = false;
 		boolean postconditionMatch = false;
 
-		if (endIndex <= word.size() && startIndex < endIndex) {
+		if (endIndex <= word.size() && startIndex <= endIndex) {
 			Sequence head = word.getSubsequence(0, startIndex);
 			Sequence tail = word.getSubsequence(endIndex);
 

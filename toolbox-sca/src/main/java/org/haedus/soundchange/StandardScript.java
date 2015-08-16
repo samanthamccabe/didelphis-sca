@@ -16,13 +16,15 @@ package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
-import org.haedus.io.DiskFileHandler;
 import org.haedus.io.FileHandler;
 import org.haedus.io.NullFileHandler;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.FeatureModelLoader;
+import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.soundchange.command.Command;
 import org.haedus.soundchange.command.LexiconCloseCommand;
 import org.haedus.soundchange.command.LexiconOpenCommand;
 import org.haedus.soundchange.command.LexiconWriteCommand;
@@ -31,11 +33,13 @@ import org.haedus.soundchange.command.ScriptExecuteCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,117 +49,169 @@ import java.util.regex.Pattern;
  * Date: 4/18/13
  * Time: 11:46 PM
  */
-public class StandardScript extends AbstractScript {
+public class StandardScript implements SoundChangeScript {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
-	private static final String FILEHANDLE = "([A-Z0-9_]+)";
-	private static final String FILEPATH   = "[\"\']([^\"\']+)[\"\']";
-	
-	private static final Pattern NORMALIZER = Pattern.compile("(NORMALIZE|normalize|MODE|mode)");
-	private static final Pattern EXECUTE    = Pattern.compile("(EXECUTE|execute)");
-	private static final Pattern IMPORT     = Pattern.compile("(IMPORT|import)");
-	private static final Pattern OPEN       = Pattern.compile("(OPEN|open)");
-	private static final Pattern WRITE      = Pattern.compile("(WRITE|write)");
-	private static final Pattern CLOSE      = Pattern.compile("(CLOSE|close)");
-	private static final Pattern BREAK      = Pattern.compile("(BREAK|break)");
-	private static final Pattern LOAD       = Pattern.compile("(LOAD|load)");
+	private static final String COMMENT_STRING = "%";
+	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
+	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
 
-	private static final Pattern CLOSE_PATTERN      = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern WRITE_PATTERN      = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern OPEN_PATTERN       = Pattern.compile(OPEN.pattern()  + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
-	private static final Pattern NORMALIZER_PATTERN = Pattern.compile(NORMALIZER.pattern() + ":? *");
-	private static final Pattern EXECUTE_PATTERN    = Pattern.compile(EXECUTE.pattern() + "\\s+");
-	private static final Pattern IMPORT_PATTERN     = Pattern.compile(IMPORT.pattern() + "\\s+");
-	private static final Pattern LOAD_PATTERN       = Pattern.compile(LOAD.pattern() + "\\s+");
-	private static final Pattern QUOTES_PATTERN     = Pattern.compile("\"|\'");
+	private static final Pattern MODE    = Pattern.compile("(NORMALIZE|normalize|MODE|mode)");
+	private static final Pattern EXECUTE = Pattern.compile("(EXECUTE|execute)");
+	private static final Pattern IMPORT  = Pattern.compile("(IMPORT|import)");
+	private static final Pattern OPEN    = Pattern.compile("(OPEN|open)");
+	private static final Pattern WRITE   = Pattern.compile("(WRITE|write)");
+	private static final Pattern CLOSE   = Pattern.compile("(CLOSE|close)");
+	private static final Pattern BREAK   = Pattern.compile("(BREAK|break)");
+	private static final Pattern LOAD    = Pattern.compile("(LOAD|load)");
+	private static final Pattern RESERVE = Pattern.compile("(RESERVE|reserve)");
 
-	private final FileHandler  fileHandler;
-	//	private final VariableStore variables;
-	private final Set<String>  reservedSymbols;
+	private static final Pattern COMMENT_PATTERN    = Pattern.compile(COMMENT_STRING + ".*");
+	private static final Pattern NEWLINE_PATTERN    = Pattern.compile("\\s*(\\r?\\n|\\r)\\s*");
+	private static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE.pattern() + ":? *");
+	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-	public StandardScript(CharSequence script) {
-		this(script, DiskFileHandler.getDefaultInstance());
+	private static final Pattern CLOSE_PATTERN   = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern WRITE_PATTERN   = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
+	private static final Pattern OPEN_PATTERN    = Pattern.compile(OPEN.pattern() + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
+	private static final Pattern MODE_PATTERN    = Pattern.compile(MODE.pattern() + ":? *");
+	private static final Pattern EXECUTE_PATTERN = Pattern.compile(EXECUTE.pattern() + "\\s+");
+	private static final Pattern IMPORT_PATTERN  = Pattern.compile(IMPORT.pattern() + "\\s+");
+	private static final Pattern LOAD_PATTERN    = Pattern.compile(LOAD.pattern() + "\\s+");
+	private static final Pattern QUOTES_PATTERN  = Pattern.compile("\"|\'");
+
+	private final String         scriptId;
+	private final FileHandler    fileHandler;
+	private final Queue<Command> commands;
+	private final LexiconMap     lexicons;
+
+	public StandardScript(String id, String[] script, LexiconMap lexMap, FileHandler handler) {
+		scriptId = id;
+		fileHandler = handler;
+		commands = new ArrayDeque<Command>();
+		lexicons = lexMap;
+
+		Collection<String> lines = new ArrayList<String>();
+		Collections.addAll(lines, script);
+
+		boolean success = parse(lines);
+
+		if (!success) {
+			throw new ParseException("There were problems compiling thie script " + id + "; please see logs for details");
+		}
+	}
+
+	public StandardScript(String id, CharSequence script, LexiconMap lexMap, FileHandler handler) {
+		this(id, NEWLINE_PATTERN.split(script), lexMap, handler);
 	}
 
 	// Visible for testing
 	StandardScript(CharSequence script, FileHandler fileHandlerParam) {
-		this(NEWLINE_PATTERN.split(script), fileHandlerParam); // Splits newlines and removes padding whitespace
+//		this(NEWLINE_PATTERN.split(script), fileHandlerParam); // Splits newlines and removes padding whitespace
+		this("DEFAULT", script, new LexiconMap(), fileHandlerParam);
 	}
 
 	// Visible for testing
 	StandardScript(String[] array) {
-		this(array, NullFileHandler.INSTANCE);
+		this("DEFAULT", array, new LexiconMap(), NullFileHandler.INSTANCE);
 	}
 
 	// Visible for testing
 	StandardScript(String[] array, FileHandler fileHandlerParam) {
-//		variables = new VariableStore(model);
-		fileHandler = fileHandlerParam;
-		reservedSymbols = new HashSet<String>();
-
-		Collection<String> list = new ArrayList<String>();
-		Collections.addAll(list, array);
-		parse(list);
+		this("DEFAULT", array, new LexiconMap(), fileHandlerParam);
 	}
 
-	// Visible for testing
-	Collection<String> getReservedSymbols() {
-		return Collections.unmodifiableSet(reservedSymbols);
+	// Visible for Testing
+	StandardScript(String id, CharSequence script) {
+		this(id, script, new LexiconMap(), NullFileHandler.INSTANCE);
 	}
 
-	private void parse(Iterable<String> strings) {
+	@Override
+	public boolean hasLexicon(String handle) {
+		return lexicons.hasHandle(handle);
+	}
+
+	@Override
+	public Lexicon getLexicon(String handle) {
+		return lexicons.get(handle);
+	}
+
+	@Override
+	public Queue<Command> getCommands() {
+		return commands;
+	}
+
+	@Override
+	public void process() {
+		for (Command command : commands) {
+			command.execute();
+		}
+	}
+
+	private boolean parse(Iterable<String> strings) {
 
 		FormatterMode formatterMode = FormatterMode.NONE;
-		VariableStore variables = new VariableStore();
 		FeatureModel featureModel = FeatureModel.EMPTY_MODEL;
-		
+		VariableStore variables = new VariableStore();
+		Set<String> reserved = new LinkedHashSet<String>();
+
+		// For error reporting
+		int lineNumber = 1;
+		boolean success = true;
+
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
-				if (LOAD.matcher(command).lookingAt()) {
-					featureModel = loadModel(command, fileHandler,formatterMode);
-				} else if (EXECUTE.matcher(command).lookingAt()) {
-					executeScript(command);
-				} else if (IMPORT.matcher(command).lookingAt()) {
-					importScript(command);
-				} else if (OPEN.matcher(command).lookingAt()) {
-					SequenceFactory factory = new SequenceFactory(
+				try {
+					if (LOAD.matcher(command).lookingAt()) {
+						featureModel = loadModel(command, fileHandler, formatterMode);
+					} else if (EXECUTE.matcher(command).lookingAt()) {
+						executeScript(command);
+					} else if (IMPORT.matcher(command).lookingAt()) {
+						importScript(command);
+					} else if (OPEN.matcher(command).lookingAt()) {
+						SequenceFactory factory = new SequenceFactory(
 							featureModel,
 							new VariableStore(variables),         // Be sure to defensively copy
-							new HashSet<String>(reservedSymbols), // Be sure to defensively copy
+							new HashSet<String>(reserved), // Be sure to defensively copy
 							formatterMode
-					);
-					openLexicon(command, factory);
-				}else if (WRITE.matcher(command).lookingAt()) {
-					writeLexicon(command, formatterMode);
-				} else if (CLOSE.matcher(command).lookingAt()) {
-					closeLexicon(command, formatterMode);
-				} else if (command.contains("=")) {
-					variables.add(command);
-				} else if (command.contains(">")) {
-					// This is probably the correct scope; if other commands change the variables or segmentation mode,
-					// we could get unexpected behavior if this is initialized outside the loop
-					SequenceFactory factory = new SequenceFactory(
+						);
+						openLexicon(command, factory);
+					} else if (WRITE.matcher(command).lookingAt()) {
+						writeLexicon(command, formatterMode);
+					} else if (CLOSE.matcher(command).lookingAt()) {
+						closeLexicon(command, formatterMode);
+					} else if (command.contains("=")) {
+						variables.add(command);
+					} else if (command.contains(">")) {
+						// This is probably the correct scope; if other commands change the variables or segmentation mode,
+						// we could get unexpected behavior if this is initialized outside the loop
+						SequenceFactory factory = new SequenceFactory(
 							featureModel,
 							new VariableStore(variables),
-							new HashSet<String>(reservedSymbols),
+							new HashSet<String>(reserved),
 							formatterMode
-					);
-					commands.add(new Rule(command, lexicons, factory));
-				} else if (NORMALIZER.matcher(command).lookingAt()) {
-					formatterMode = setNormalizer(command);
-				} else if (RESERVE.matcher(command).lookingAt()) {
-					String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
-					Collections.addAll(reservedSymbols, WHITESPACE_PATTERN.split(reserve));
-				} else if (BREAK.matcher(command).lookingAt()) {
-					// Stop parsing commands
-					break;
-				} else {
-					LOGGER.warn("Unrecognized Command: {}", string);
+						);
+						commands.add(new Rule(command, lexicons, factory));
+					} else if (MODE.matcher(command).lookingAt()) {
+						formatterMode = setNormalizer(command);
+					} else if (RESERVE.matcher(command).lookingAt()) {
+						String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
+						Collections.addAll(reserved, WHITESPACE_PATTERN.split(reserve));
+					} else if (BREAK.matcher(command).lookingAt()) {
+						// Stop parsing commands
+						break;
+					} else {
+						LOGGER.warn("Unrecognized Command: {}", string);
+					}
+				} catch (Exception e) {
+					success = false;
+					LOGGER.error("Script: {} Line: {} --- Compilation Error: {}", scriptId, lineNumber, e);
 				}
 			}
 		}
+		return success;
 	}
 
 	private static FeatureModel loadModel(CharSequence command, FileHandler handler, FormatterMode mode) {
@@ -225,8 +281,9 @@ public class StandardScript extends AbstractScript {
 	private void importScript(CharSequence command) {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
-		List<String> strings = fileHandler.readLines(path);
-		parse(strings);
+		String data = fileHandler.read(path);
+		SoundChangeScript script = new StandardScript(path, data, lexicons, fileHandler);
+		commands.addAll(script.getCommands());
 	}
 
 	/**
@@ -236,11 +293,11 @@ public class StandardScript extends AbstractScript {
 	 */
 	private void executeScript(CharSequence command) {
 		String path = EXECUTE_PATTERN.matcher(command).replaceAll("");
-		commands.add(new ScriptExecuteCommand(path));
+		commands.add(new ScriptExecuteCommand(path, fileHandler));
 	}
 
 	private static FormatterMode setNormalizer(CharSequence command) {
-		String mode = NORMALIZER_PATTERN.matcher(command).replaceAll("");
+		String mode = MODE_PATTERN.matcher(command).replaceAll("");
 		try {
 			return FormatterMode.valueOf(mode.toUpperCase());
 		} catch (IllegalArgumentException e) {
@@ -250,9 +307,6 @@ public class StandardScript extends AbstractScript {
 
 	@Override
 	public String toString() {
-		return "StandardScript{" +
-			"fileHandler=" + fileHandler +
-			", reservedSymbols=" + reservedSymbols +
-			'}';
+		return "StandardScript{"+scriptId+'}';
 	}
 }

@@ -18,6 +18,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.exceptions.ParseException;
+import org.haedus.io.FileHandler;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.StandardScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,7 @@ public class ScriptExecuteCommand implements Command {
 
 	private final StandardScript sca;
 
-	public ScriptExecuteCommand(String pathParam) {
+	public ScriptExecuteCommand(String pathParam, FileHandler handler) {
 		File file = new File(pathParam);
 		String data;
 		try {
@@ -43,7 +45,7 @@ public class ScriptExecuteCommand implements Command {
 		} catch (IOException e) {
 			throw new ParseException(e);
 		}
-		sca = new StandardScript(data);
+		sca = new StandardScript(file.getName(), data, new LexiconMap(), handler);
 	}
 
 	@Override

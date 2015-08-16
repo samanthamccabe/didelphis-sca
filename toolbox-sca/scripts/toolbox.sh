@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar toolbox-sca-0.5.0.jar $*
+java -jar toolbox-sca-0.6.0.jar $*

@@ -50,8 +50,8 @@ public class StandardSoundChangeApplierTest {
 
 
 	@Test(expected = ParseException.class)
-	public void testNormalizerBadMode() {
-		new StandardScript("MODE:XXX");
+	public void testBadMode() {
+		new StandardScript("testBadMode","MODE:XXX");
 	}
 
 	@Test
@@ -125,21 +125,21 @@ public class StandardSoundChangeApplierTest {
 		new StandardScript(commands);
 	}
 
-	@Test
-	public void reserveTest() {
-		String[] commands = {
-				"SEGMENTATION: FALSE",
-				"RESERVE ph th kh"
-		};
-		StandardScript sca = new StandardScript(commands);
-		sca.process();
-		Collection<String> received = sca.getReservedSymbols();
-		Collection<String> expected = new HashSet<String>();
-		expected.add("ph");
-		expected.add("th");
-		expected.add("kh");
-		assertEquals(expected, received);
-	}
+//	@Test
+//	public void reserveTest() {
+//		String[] commands = {
+//				"SEGMENTATION: FALSE",
+//				"RESERVE ph th kh"
+//		};
+//		StandardScript sca = new StandardScript(commands);
+//		sca.process();
+//		Collection<String> received = sca.getReservedSymbols();
+//		Collection<String> expected = new HashSet<String>();
+//		expected.add("ph");
+//		expected.add("th");
+//		expected.add("kh");
+//		assertEquals(expected, received);
+//	}
 
 	@Test
 	public void testOpen01() {
