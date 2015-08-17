@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>org.haedus.toolbox</groupId>
 		<artifactId>haedus-toolbox</artifactId>
-		<version>0.6.0</version>
+		<version>0.6.1-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>org.haedus.toolbox</groupId>
 			<artifactId>toolbox-datatypes</artifactId>
-			<version>0.6.0</version>
+			<version>0.6.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
