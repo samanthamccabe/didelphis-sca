@@ -4,20 +4,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
-import org.haedus.tables.SymmetricTable;
-import org.haedus.tables.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,27 +22,27 @@ import java.util.regex.Pattern;
 /**
  * Created by samantha on 4/27/15.
  */
-@SuppressWarnings("ReturnOfCollectionOrArrayField")
 public class FeatureModelLoader {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelLoader.class);
 
-	private static final Pattern ZONE_PATTERN       = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
-	private static final Pattern NEWLINE_PATTERN    = Pattern.compile("(\\r?\\n|\\n)");
-	private static final Pattern COMMENT_PATTERN    = Pattern.compile("\\s*%.*");
-	private static final Pattern FEATURES_PATTERN   = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
-	private static final Pattern SYMBOL_PATTERN     = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern TAP_PATTERN        = Pattern.compile("\\t");
-	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\r?\\n|\\r");
+	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
+	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
+	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
+	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern TAB_PATTERN      = Pattern.compile("\\t");
 
 	private final Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
 	private final Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
 	private final Map<String, List<Double>> featureMap     = new LinkedHashMap<String, List<Double>>();
 	private final Map<String, List<Double>> diacritics     = new LinkedHashMap<String, List<Double>>();
 
+	private final String source;
+
 	private final FormatterMode formatterMode;
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
+		source = "file:"+file.getAbsolutePath();
 		formatterMode = modeParam;
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
@@ -58,13 +52,15 @@ public class FeatureModelLoader {
 	}
 
 	public FeatureModelLoader(Iterable<String> file, FormatterMode modeParam) {
+		source = file.toString();
 		formatterMode = modeParam;
 		readModelFromFileNewFormat(file);
 	}
 
 	public FeatureModelLoader(InputStream stream, FormatterMode modeParam) {
+		source = stream.toString();
 		formatterMode = modeParam;
-		
+
 		try {
 			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"));
 		} catch (IOException e) {
@@ -72,18 +68,27 @@ public class FeatureModelLoader {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "FeatureModelLoader{" + source + '}';
+	}
+
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, Integer> getFeatureNames() {
 		return featureNames;
 	}
 
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, Integer> getFeatureAliases() {
 		return featureAliases;
 	}
 
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, List<Double>> getFeatureMap() {
 		return featureMap;
 	}
 
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, List<Double>> getDiacritics() {
 		return diacritics;
 	}
@@ -128,7 +133,7 @@ public class FeatureModelLoader {
 
 			if (matcher.matches()) {
 				String symbol = matcher.group(1);
-				String[] values = matcher.group(2).split("\\t", -1);
+				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
@@ -147,15 +152,27 @@ public class FeatureModelLoader {
 
 			if (matcher.matches()) {
 				String symbol = formatterMode.normalize(matcher.group(1));
-				String[] values = TAP_PATTERN.split(matcher.group(2), -1);
+				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
 				List<Double> features = new ArrayList<Double>();
 				for (String value : values) {
 					features.add(getDouble(value, FeatureModel.UNDEFINED_VALUE));
 				}
+				checkFeatureCollisions(symbol, features);
 				featureMap.put(symbol, features);
 			} else {
 				LOGGER.error("Unrecognized symbol definition {}", entry);
+			}
+		}
+	}
+
+	private void checkFeatureCollisions(String symbol, List<Double> features) {
+		if (featureMap.containsValue(features)) {
+			for (Map.Entry<String, List<Double>> e : featureMap.entrySet()) {
+				if (features.equals(e.getValue())) {
+					LOGGER.warn("Collision between features {} and {} --- both have value {}",
+							symbol, e.getKey(), features);
+				}
 			}
 		}
 	}
@@ -169,7 +186,7 @@ public class FeatureModelLoader {
 
 				String name = matcher.group(1);
 				String alias = matcher.group(2);
-				String type = matcher.group(3);
+//				String type = matcher.group(3); // TODO: Will have to build Feature interface
 
 				featureNames.put(name, i);
 				featureAliases.put(alias, i);
