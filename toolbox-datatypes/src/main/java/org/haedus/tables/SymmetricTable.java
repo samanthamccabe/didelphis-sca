@@ -15,25 +15,25 @@
 package org.haedus.tables;
 
 /**
- * @param <T>
+ * @param <E>
  * @author Samantha Fiona Morrigan McCabe
  */
-public class SymmetricTable<T> extends SquareTable<T> {
+public class SymmetricTable<E> extends SquareTable<E> {
 
 	protected SymmetricTable(int r, int c) {
 		super(r, c);
 	}
 
-	public SymmetricTable(T defaultValue, int n) {
-		super(n, n);
+	public SymmetricTable(E defaultValue, int n) {
+		this(n, n);
 		int number = getIndex(n, n)-1;
 		for (int i = 0; i < number; i++) {
 			array.add(defaultValue);
 		}
 	}
 
-	public SymmetricTable(SymmetricTable<T> otherTable) {
-		super(otherTable.getNumberRows(), otherTable.getNumberRows());
+	public SymmetricTable(SymmetricTable<E> otherTable) {
+		this(otherTable.getNumberRows(), otherTable.getNumberRows());
 		array.addAll(otherTable.array);
 	}
 
@@ -56,13 +56,13 @@ public class SymmetricTable<T> extends SquareTable<T> {
 	}
 
 	@Override
-	public void set(T t, int i, int j) {
+	public void set(E element, int i, int j) {
 		int index = getIndex(i, j);
-		array.set(index, t);
+		array.set(index, element);
 	}
 
 	@Override
-	public T get(int i, int j) {
+	public E get(int i, int j) {
 		return array.get(getIndex(i, j));
 	}
 

@@ -24,22 +24,22 @@ import java.util.List;
  *
  * @author Samantha Fiona Morrigan McCabe
  *
- * @param <T>
+ * @param <E>
  */
-public class RectangularTable<T> implements Table<T> {
+public class RectangularTable<E> implements Table<E> {
 
 	private   final   int   numberRows;
 	private   final   int   numberColumns;
-	protected final List<T> array;
+	protected final List<E> array;
 
 	protected RectangularTable(int k, int l) {
 		numberRows    = k;
 		numberColumns = l;
 
-		array = new ArrayList<T>();
+		array = new ArrayList<E>();
 	}
 
-	public RectangularTable(T defaultValue, int k, int l) {
+	public RectangularTable(E defaultValue, int k, int l) {
 		this(k, l);
 		for (int i = 0; i < k * l; i++) {
 			array.add(defaultValue);
@@ -53,20 +53,20 @@ public class RectangularTable<T> implements Table<T> {
 	 * @return the object stored at these coordinates
 	 */
 	@Override
-	public T get(int i, int j) {
+	public E get(int i, int j) {
 		return array.get(getIndex(i, j));
 	}
 
 	/**
 	 * Put an element into the specified location in the Table
-	 * @param t the object to place at the specified coordinates
+	 * @param element the object to place at the specified coordinates
 	 * @param i the index for column
 	 * @param j the index for row
 	 */
 	@Override
-	public void set(T t, int i, int j) {
+	public void set(E element, int i, int j) {
 		int index = getIndex(i, j);
-		array.set(index, t);
+		array.set(index, element);
 	}
 
 	@Override

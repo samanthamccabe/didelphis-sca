@@ -18,10 +18,10 @@ package org.haedus.tables;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 11/30/2014
  */
-public interface Table<T> {
-	T get(int i, int j);
+public interface Table<E> {
+	E get(int i, int j);
 
-	void set(T t, int i, int j);
+	void set(E element, int i, int j);
 
 	int getNumberRows();
 

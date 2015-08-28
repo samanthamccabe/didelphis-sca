@@ -18,13 +18,13 @@ package org.haedus.tables;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 12/14/2014
  */
-public class SquareTable<T> extends RectangularTable<T> {
+public class SquareTable<E> extends RectangularTable<E> {
 
 	protected SquareTable(int r, int c) {
 		super(r, c);
 	}
 
-	public SquareTable(T defaultValue, int n) {
+	public SquareTable(E defaultValue, int n) {
 		super(defaultValue, n, n);
 	}
 }

@@ -128,4 +128,12 @@ public class SegmentTest {
 		assertFalse(e.matches(segment));
 		assertFalse(segment.matches(e));
 	}
+	
+	@Test
+	public void testComparison01() {
+		Segment p = factory.getSegment("p");
+		Segment b = factory.getSegment("b");
+		// These differ only by voicing, where p is -2 and b is 0
+		assertTrue(p.compareTo(b) == -1);
+	}
 }

@@ -19,14 +19,17 @@
 
 package org.haedus.phonetic;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Samantha Fiona Morrigan McCabe
  */
-public class Segment implements ModelBearer {
+public class Segment implements ModelBearer, Comparable<Segment> {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
@@ -181,6 +184,29 @@ public class Segment implements ModelBearer {
 	
 	public boolean isUnderspecified() {
 		return features.contains(FeatureModel.MASKING_VALUE);
+	}
+
+	@Override
+	public int compareTo(@NotNull Segment o) {
+		if (equals(o)) {
+			return 0;
+		} else {
+			validateModelOrFail(o);
+			List<Double> oFeatures = o.getFeatures();
+			for (int i = 0; i < features.size(); i++) {
+				Double a = features.get(i);
+				Double b = oFeatures.get(i);
+				
+				if (a > b) {
+					return 1;
+				} else if (a < b) {
+					return -1;
+				}
+				// Else, do nothing; the loop will check the next value
+			}
+			// If we get here, there is either no features, or feature arrays are equal
+			return symbol.compareTo(o.getSymbol()); // so just compare the symbols
+		}
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
