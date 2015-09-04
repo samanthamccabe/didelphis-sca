@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-public class Sequence implements Iterable<Segment>, ModelBearer {
+public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequence> {
 
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
@@ -283,6 +283,18 @@ public class Sequence implements Iterable<Segment>, ModelBearer {
 	@Override
 	public FeatureModel getModel() {
 		return featureModel;
+	}
+
+	@Override
+	public int compareTo(Sequence o) {
+		
+		for (int i = 0; i < size() && i < o.size(); i++) {
+			int value = get(i).compareTo(o.get(i));
+			if (value != 0) {
+				return value;
+			}
+		}
+		return size() > o.size() ? 1 : -1;
 	}
 
 	// Visible for testing

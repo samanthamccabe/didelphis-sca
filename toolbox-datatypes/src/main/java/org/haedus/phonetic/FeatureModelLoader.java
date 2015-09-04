@@ -205,7 +205,7 @@ public class FeatureModelLoader {
 			featureValue = defaultValue;
 		} else if (cell.equals("+")) {
 			featureValue = 1.0;
-		} else if (cell.equals("-")) {
+		} else if (cell.equals("-") || cell.equals("−")) {
 			featureValue = -1.0;
 		} else {
 			featureValue = Double.valueOf(cell);

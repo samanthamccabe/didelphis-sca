@@ -201,6 +201,10 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 					return 1;
 				} else if (a < b) {
 					return -1;
+				} else if (b.isNaN() && !a.isNaN() || b.isInfinite() && !a.isInfinite()) {
+					return 1;
+				} else if (a.isNaN() && !b.isNaN() || a.isInfinite() && !b.isInfinite()) {
+					return -1;
 				}
 				// Else, do nothing; the loop will check the next value
 			}

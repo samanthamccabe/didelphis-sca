@@ -1,0 +1,173 @@
+%	Feature	Model
+
+FEATURES
+consonantal	con	Binary
+sonorant	son	Binary
+lateral		lat	Binary
+strident	str	Binary
+continuant	cnt	Binary
+nasal		nas	Binary
+labial		lab	Unary
+round		rnd	Binary
+coronal		cor	Unary
+anterior	ant	Binary
+distributed	dst	Binary
+dorsal		dor	Unary
+back		bck	Binary
+high		hgh	Binary
+low			low	Binary
+atr			atr	Binary
+voice		voi	Binary
+spread		spr	Binary
+constricted	cst	Binary
+
+SYMBOLS
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+p	+	−	−		−	−	+	−	−	−	−	−					−		
+b	+	−	−		−	−	+	−	−	−	−	−					+		
+p̪	+	−	−		−	−	+	−	−	−	+	−					−		
+b̪	+	−	−		−	−	+	−	−	−	+	−					+		
+t	+	−	−		−	−	−	−	+	+	−	−					−		
+d	+	−	−		−	−	−	−	+	+	−	−					+		
+ʈ	+	−	−		−	−	−	−	+	−	−	−					−		
+ɖ	+	−	−		−	−	−	−	+	−	−	−					+		
+c	+	−	−		−	−	−	−	+	−	−	−					−		
+ɟ	+	−	−		−	−	−	−	+	−	−	−					+		
+k	+	−	−		−	−	−	−	−	−	−	+	+	+	−		−		
+g	+	−	−		−	−	−	−	−	−	−	+	+	+	−		+		
+kp	+	−	−		−	−	+	−	−	−	−	+	+	+	−		−		
+gb	+	−	−		−	−	+	−	−	−	−	+	+	+	−		+		
+q	+	−	−		−	−	−	−	−	−	−	+	+	−	−		−		
+ɢ	+	−	−		−	−	−	−	−	−	−	+	+	−	−		+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+pɸ	+	−	−	−	−	−	+	−	−	−	−	−					−		
+bβ	+	−	−	−	−	−	+	−	−	−	−	−					+		
+pf	+	−	−	+	−	−	+	−	−	−	+	−					−		
+bv	+	−	−	+	−	−	+	−	−	−	+	−					+		
+tθ	+	−	−	−	−	−	−	−	+	+	+	−					−		
+dð	+	−	−	−	−	−	−	−	+	+	+	−					+		
+tɬ	+	−	+	+	−	−	−	−	+	+	−	−					−		
+dɮ	+	−	+	+	−	−	−	−	+	+	−	−					+		
+ts	+	−	−	+	−	−	−	−	+	+	−	−					−		
+dz	+	−	−	+	−	−	−	−	+	+	−	−					+		
+tʃ	+	−	−	+	−	−	−	−	+	−	+	−					−		
+dʒ	+	−	−	+	−	−	−	−	+	−	+	−					+		
+tɕ	+	−	−	+	−	−	−	−	+	−	+	−	−				−		
+dʑ	+	−	−	+	−	−	−	−	+	−	+	−	−				+		
+ʈʂ	+	−	−	+	−	−	−	−	+	−	−	−					−		
+ɖʐ	+	−	−	+	−	−	−	−	+	−	−	−					+		
+cç	+	−	−	−	−	−	−	−	+	−	−	−					−		
+ɟʝ	+	−	−	−	−	−	−	−	+	−	−	−					+		
+kx	+	−	−	−	−	−	−	−	−			+	+	+	−		−		
+gɣ	+	−	−	−	−	−	−	−	−			+	+	+	−		+		
+qχ	+	−	−	+	−	−	−	−	−			+	+	−	−		−		
+ɢʁ	+	−	−	+	−	−	−	−	−			+	+	−	−		+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+ɸ	+	−	−	−	+	−	+	−	−	−	−	−					−		
+β	+	−	−	−	+	−	+	−	−	−	−	−					+		
+f	+	−	−	+	+	−	+	−	−	−	+	−					−		
+v	+	−	−	+	+	−	+	−	−	−	+	−					+		
+θ	+	−	−	−	+	−	−	−	+	+	+	−					−		
+ð	+	−	−	−	+	−	−	−	+	+	+	−					+		
+ɬ	+	−	+	+	+	−	−	−	+	+	−	−					−		
+ɮ	+	−	+	+	+	−	−	−	+	+	−	−					+		
+s	+	−	−	+	+	−	−	−	+	+	−	−					−		
+z	+	−	−	+	+	−	−	−	+	+	−	−					+		
+ʃ	+	−	−	+	+	−	−	−	+	−	+	−					−		
+ʒ	+	−	−	+	+	−	−	−	+	−	+	−					+		
+ɕ	+	−	−	+	+	−	−	−	+	−	+	−					−		
+ʑ	+	−	−	+	+	−	−	−	+	−	+	−					+		
+ʂ	+	−	−	+	+	−	−	−	+	−	−	−					−		
+ʐ	+	−	−	+	+	−	−	−	+	−	−	−					+		
+ç	+	−	−	−	+	−	−	−	+	−	−	−					−		
+ʝ	+	−	−	−	+	−	−	−	+	−	−	−					+		
+x	+	−	−	−	+	−	−	−	−			+	+	+	−		−		
+ɣ	+	−	−	−	+	−	−	−	−			+	+	+	−		+		
+χ	+	−	−	+	+	−	−	−	−			+	+	−	−		−		
+ʁ	+	−	−	+	+	−	−	−	−			+	+	−	−		+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+m	+	+	−	−	−	+	+	−	−	−	−	−					+		
+ɱ	+	+	−	−	−	+	+	−	−	−	+	−					+		
+n	+	+	−	−	−	+	−	−	+	+	−	−					+		
+ɳ	+	+	−	−	−	+	−	−	+	−	−	−					+		
+ɲ	+	+	−	+	−	+	−	−	+	−	−	−					+		
+ŋ	+	+	−	−	−	+	−	−	+			+	+	+	−		+		
+ŋm	+	+	+	−	−	+	−	−	+			+	+	+	−		+		
+ɴ	+	+	−	−	−	+	−	−	−			+	+	−	−		+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+r	+	+	−	−	+	−	−	−	+	+	−	−					+		
+ɾ	+	+	−	−	+	−	−	−	+	+	−	−					+		
+ɹ	+	+	−	−	+	−	−	−	+	+	−	−					+		
+ɻ	+	+	−	−	+	−	−	−	+	−	−	−					+		
+ɽ	+	+	−	−	+	−	−	−	+	−	−	−					+		
+ʀ	+	+	−	−	+	−	−	−				+	+	−	−		+		
+
+l	+	+	+	−	+	−	−	−	+	+	−	−					+		
+ɫ	+	+	+	−	+	−	−	−	+	+	−	−					+		
+ɭ	+	+	+	−	+	−	−	−	+	−	−	−					+		
+ɺ	+	+	+	−	+	−	−	−	+	−	−	−					+		
+ʎ	+	+	+	+	+	−	−	−	+	−	−	−					+		
+ʟ	+	+	+	−	+	−	−	−				+	+	+	−		+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+i	−	+				−	−	−				+	−	+	−	+	+		
+y	−	+				−	−	+				+	−	+	−	+	+		
+ɪ	−	+				−	−	−				+	−	+	−	−	+		
+ʏ	−	+				−	−	+				+	−	+	−	−	+		
+
+ɯ	−	+				−	−	−				+	+	+	−	+	+		
+u	−	+				−	−	+				+	+	+	−	+	+		
+ɷ	−	+				−	−	−				+	+	+	−	−	+		
+ʊ	−	+				−	−	+				+	+	+	−	−	+		
+
+ə	−	+				−	−	−				+					+		
+ɨ	−	+				−	−	−				+		+	−		+		
+ʉ	−	+				−	−	+				+		+	−		+		
+
+e	−	+				−	−	−				+	−	−	−	+	+		
+ø	−	+				−	−	+				+	−	−	−	+	+		
+ɛ	−	+				−	−	−				+	−	−	−	−	+		
+œ	−	+				−	−	+				+	−	−	−	−	+		
+
+ɤ	−	+				−	−	−				+	+	−	−	+	+		
+o	−	+				−	−	+				+	+	−	−	+	+		
+ʌ	−	+				−	−	−				+	+	−	−	−	+		
+ɔ	−	+				−	−	+				+	+	−	−	−	+		
+
+æ	−	+				−	−	−				+	−	−	+	+	+		
+a	−	+				−	−	−				+	−	−	+	−	+		
+ɶ	−	+				−	−	+				+	+	−	+	−	+		
+ɐ	−	+				−	−	−				+	+	−	+	+	+		
+ɑ	−	+				−	−	−				+	+	−	+	−	+		
+ɒ	−	+				−	−	+				+	+	−	+	−	+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+ʋ	−	+				−	−	+	−	−	−	−					+		
+j	−	+				−	−	−	+	−	−	−	−	+	−	+	+		
+ɥ	−	+				−	−	+	+	−	−	−	−	+	−	+	+		
+ɰ	−	+				−	−	−				+	+	+	−	+	+		
+ʍ	−	+				−	+	−				+	+	+	−	+	+		
+w	−	+				−	+	+				+	+	+	−	+	+		
+
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+ʡ	−	+	−		−	−	−	−	−	−	−	−			+	+	+		
+ʜ	−	+	−		+	−	−	−	−	−	−	−			+	+	−		
+ʢ	−	+	−		+	−	−	−	−	−	−	−			+	−	+		
+ħ	−	+	−		+	−	−	−	−	−	−	−			+	−	−		
+ʕ	−	+	−		+	−	−	−	−	−	−	−					+		
+ʔ	−	+	−		−	−	−	−	−	−	−	−					−	−	+
+h	−	+	−		+	−	−	−	−	−	−	−					−	+	−
+ɦ	−	+	−		+	−	−	−	−	−	−	−					+	+	−
+
+MODIFIERS
+%	con son lat str cnt nas lab rnd cor ant dst dor bck hgh low atr voi spr cst
+ʰ																	−	+	
+ʱ																	+	+	
+ʲ													−	+					
+ʸ								+					−	+					
+ʷ								+					+	+					
+ʼ																	−	−	+

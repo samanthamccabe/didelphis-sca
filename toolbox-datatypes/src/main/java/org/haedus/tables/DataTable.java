@@ -125,12 +125,30 @@ public class DataTable<E> implements ColumnTable<E> {
 
 	@Override
 	public int getNumberColumns() {
-		return keys.size();
+		return keys.size();	
 	}
 
 	@Override
 	public String getPrettyTable() {
-		return null; // TODO:
+		StringBuilder sb = new StringBuilder();
+
+		Iterator<String> keyItr = keys.iterator();
+		while (keyItr.hasNext()) {
+			sb.append(keyItr.next());
+			if (keyItr.hasNext()) sb.append('\t');
+		}
+		sb.append('\n');
+
+		for (List<E> row : rows) {
+			Iterator<E> rowItr = row.iterator();
+			while (rowItr.hasNext()) {
+				sb.append(rowItr.next());
+				if (rowItr.hasNext()) sb.append('\t');
+			}
+			sb.append('\n');
+		}
+
+		return sb.toString();
 	}
 
 	@Override
