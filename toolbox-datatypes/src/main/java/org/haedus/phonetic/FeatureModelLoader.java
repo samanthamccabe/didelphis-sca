@@ -28,7 +28,7 @@ public class FeatureModelLoader {
 
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
-	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
+	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s+(ternary|binary|unary|numeric(\\(-?\\d,\\d\\))?)");
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern TAB_PATTERN      = Pattern.compile("\\t");
 
@@ -106,7 +106,7 @@ public class FeatureModelLoader {
 		 */
 		for (String string : file) {
 			// Remove comments
-			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
+			String line = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
 			Matcher matcher = ZONE_PATTERN.matcher(line);
 			if (matcher.find()) {
 				String zoneName = matcher.group(0);
