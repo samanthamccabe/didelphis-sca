@@ -28,7 +28,9 @@ public class FeatureModelLoader {
 
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
-	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s*(binary|unary|numeric\\(-?\\d,\\d\\))");
+	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s+(ternary|binary|unary|numeric(\\(-?\\d,\\d\\))?)");
+//	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s+(binary|unary|numeric\\(-?\\d,\\d\\))");
+
 	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern TAB_PATTERN      = Pattern.compile("\\t");
 
@@ -111,7 +113,7 @@ public class FeatureModelLoader {
 			if (matcher.find()) {
 				String zoneName = matcher.group(0);
 				currentZone = Zone.valueOf(zoneName);
-			} else if (!line.isEmpty()) {
+			} else if (!line.isEmpty() && !line.trim().isEmpty()) {
 				if (currentZone == Zone.FEATURES) {
 					featureZone.add(line.toLowerCase());
 				} else if (currentZone == Zone.SYMBOLS) {

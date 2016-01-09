@@ -83,7 +83,7 @@ public class StandardScriptTest {
 
 		String received = fileSystem.get("output.lex");
 
-		assertEquals(outpt, received);
+		assertEquals(outpt.replaceAll("\\r\\n|\\n|\\r","\n"), received);
 	}
 
 	@Test

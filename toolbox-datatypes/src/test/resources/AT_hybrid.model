@@ -1,0 +1,141 @@
+%	Feature	Model
+
+FEATURES
+consonantal	con	binary
+sonorant	son	binary
+continuant	cnt	binary
+lateral		lat	binary
+nasal		nas	binary
+labial		lab	ternary
+round		rnd	binary
+coronal		cor	numeric
+dorsal		dor	unary
+front		frn	ternary
+high		hgh	ternary
+atr			atr	ternary
+glottal		glt	numeric
+vot			vot	binary
+
+SYMBOLS
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+p	+	−	−	−	−	+	−						-2	
+b	+	−	−	−	−	+	−						0	
+p̪	+	−	−	−	−	−	−						-2	
+b̪	+	−	−	−	−	−	−						0	
+t	+	−	−	−	−		−	2					-2	
+d	+	−	−	−	−		−	2					0	
+ʈ	+	−	−	−	−		−	4					-2	
+ɖ	+	−	−	−	−		−	4					0	
+c	+	−	−	−	−		−	5		+	+		-2	
+ɟ	+	−	−	−	−		−	5		+	+		0	
+k	+	−	−	−	−		−		+	−	+		-2	
+g	+	−	−	−	−		−		+	−	+		0	
+kp	+	−	−	−	−	+	−		+	−	+		-2	
+gb	+	−	−	−	−	+	−		+	−	+		0	
+q	+	−	−	−	−		−		+	−	−		-2	
+ɢ	+	−	−	−	−		−		+	−	−		0	
+														
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+ɸ	+	−	+	−	−	−	−						-2	
+β	+	−	+	−	−	−	−						0	
+f	+	−	+	−	−	+	−						-2	
+v	+	−	+	−	−	+	−						0	
+θ	+	−	+	−	−		−	1					-2	
+ð	+	−	+	−	−		−	1					0	
+ɬ	+	−	+	+	−		−	2					-2	
+ɮ	+	−	+	+	−		−	2					0	
+s	+	−	+	−	−		−	2					-2	
+z	+	−	+	−	−		−	2					0	
+ʃ	+	−	+	−	−		−	3					-2	
+ʒ	+	−	+	−	−		−	3					0	
+ɕ	+	−	+	−	−		−	3		+	+		-2	
+ʑ	+	−	+	−	−		−	3		+	+		0	
+ʂ	+	−	+	−	−		−	4					-2	
+ʐ	+	−	+	−	−		−	4					0	
+ç	+	−	+	−	−		−	5		+	+		-2	
+ʝ	+	−	+	−	−		−	5					0	
+x	+	−	+	−	−		−		+	−	+		-2	
+ɣ	+	−	+	−	−		−		+	−	+		0	−
+χ	+	−	+	−	−		−		+	−	0		-2	−
+ʁ	+	−	+	−	−		−		+	−	0		0	
+														
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+m	+	+	−	−	+	+	−						0	
+ɱ	+	+	−	−	+	−	−						0	
+n	+	+	−	−	+		−	2					0	
+ɳ	+	+	−	−	+		−	4					0	
+ɲ	+	+	−	−	+		−	5		+	+		0	
+ŋ	+	+	−	−	+		−		+	−	+		0	
+ŋm	+	+	−	−	+	+	−		+	−	+		0	
+ɴ	+	+	−	−	+		−		+	−	−		0	
+														
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+r	+	+	+	−	−		−	2					0	
+%ɾ	+	+	+	−	−		−	2					0	
+%ɹ	+	+	+	−	−		−	2					0	
+%ɻ	+	+	+	−	−		−	4					0	
+ɽ	+	+	+	−	−		−	4					0	
+ʀ	+	+	+	−	−		−		+	−	+		0	
+														
+l	+	+	+	+	−		−	2					0	
+ɫ	+	+	+	+	−		−	2		−	+		0	
+ɭ	+	+	+	+	−		−	4					0	
+%ɺ	+	+	+	+	−		−	4					0	
+ʎ	+	+	+	+	−		−	5		+	+		0	
+ʟ	+	+	+	+	−		−		+	−	+		0	
+														
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+i	−	+			−		−			+	+	+	0	
+y	−	+			−		+			+	+	+	0	
+ɪ	−	+			−		−			+	+	−	0	
+ʏ	−	+			−		+			+	+	−	0	
+														
+ɯ	−	+			−		−			−	+	+	0	
+u	−	+			−		+			−	+	+	0	
+ɷ	−	+			−		−			−	+	−	0	
+ʊ	−	+			−		+			−	+	−	0	
+														
+ə	−	+			−		−			0	0		0	
+ɨ	−	+			−		−			0	+		0	
+ʉ	−	+			−		+			0	+		0	
+														
+e	−	+			−		−			+	0	+	0	
+ø	−	+			−		+			+	0	+	0	
+ɛ	−	+			−		−			+	0	−	0	
+œ	−	+			−		+			+	0	−	0	
+														
+ɤ	−	+			−		−			−	0	+	0	
+o	−	+			−		+			−	0	+	0	
+ʌ	−	+			−		−			−	0	−	0	
+ɔ	−	+			−		+			−	0	−	0	
+														
+æ	−	+			−		−			+	−	+	0	
+a	−	+			−		−			+	−	−	0	
+ɶ	−	+			−		+			+	−	−	0	
+ɐ	−	+			−		−			0	−	+	0	
+ɑ	−	+			−		−			−	−	−	0	
+ɒ	−	+			−		+			−	−	−	0	
+
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+ʋ	−	+			−	−	+						0	
+j	−	+			−		−	5		+	+	+	0	
+ɥ	−	+			−		+	5		+	+	+	0	
+ɰ	−	+			−		−		+	−	+	+	0	
+ʍ	−	+			−	+	−		+	−	+	+	0	
+w	−	+			−	+	+		+	−	+	+	0	
+														
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+ħ	−	+	+	−	−		−				−	−	-2	
+ʕ	−	+	+	−	−		−				−	−	0	
+ʔ	−	+	−	−	−		−						-2	
+h	−	+	+	−	−		−						-2	
+ɦ	−	+	+	−	−		−						0	
+														
+MODIFIERS
+%	con	son	cnt	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	vot
+ʰ													-2	+
+ʱ													0	+
+ʲ										+	+			
+ʸ							+			+	+			
+ʷ							+				+			
+ʼ													2	
