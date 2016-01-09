@@ -17,9 +17,9 @@ package org.haedus.soundchange.command;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.haedus.exceptions.ParseException;
 import org.haedus.io.FileHandler;
 import org.haedus.phonetic.LexiconMap;
+import org.haedus.soundchange.SoundChangeScript;
 import org.haedus.soundchange.StandardScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,22 +35,24 @@ public class ScriptExecuteCommand implements Command {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ScriptExecuteCommand.class);
 
-	private final StandardScript sca;
+	private final String path;
+	private final FileHandler handler;
 
-	public ScriptExecuteCommand(String pathParam, FileHandler handler) {
-		File file = new File(pathParam);
-		String data;
-		try {
-			data = FileUtils.readFileToString(file, "UTF-8");
-		} catch (IOException e) {
-			throw new ParseException(e);
-		}
-		sca = new StandardScript(file.getName(), data, new LexiconMap(), handler);
+	public ScriptExecuteCommand(String pathParam, FileHandler handlerParam) {
+		path    = pathParam;
+		handler = handlerParam;
 	}
 
 	@Override
 	public void execute() {
-		sca.process();
+		String data = handler.read(path);
+		SoundChangeScript script = new StandardScript(path, data, new LexiconMap(), handler);
+		script.process();
+	}
+
+	@Override
+	public String toString() {
+		return "EXECUTE " + '\'' + path + '\'';
 	}
 
 	@Override
@@ -62,14 +64,16 @@ public class ScriptExecuteCommand implements Command {
 		}
 		ScriptExecuteCommand rhs = (ScriptExecuteCommand) obj;
 		return new EqualsBuilder()
-				.append(sca, rhs.sca)
+				.append(path, rhs.path)
+				.append(handler, rhs.handler)
 				.isEquals();
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
-				.append(sca)
+				.append(path)
+				.append(handler)
 				.append(ScriptExecuteCommand.class)
 				.toHashCode();
 	}

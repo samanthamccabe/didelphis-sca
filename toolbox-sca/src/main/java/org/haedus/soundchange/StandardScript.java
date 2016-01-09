@@ -72,9 +72,9 @@ public class StandardScript implements SoundChangeScript {
 	private static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE.pattern() + ":? *");
 	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-	private static final Pattern CLOSE_PATTERN   = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern WRITE_PATTERN   = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+(as\\s)?" + FILEPATH);
-	private static final Pattern OPEN_PATTERN    = Pattern.compile(OPEN.pattern() + "\\s+" + FILEPATH + "\\s+(as\\s)?" + FILEHANDLE);
+	private static final Pattern CLOSE_PATTERN   = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+((as|AS)\\s)?" + FILEPATH);
+	private static final Pattern WRITE_PATTERN   = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+((as|AS)\\s)?" + FILEPATH);
+	private static final Pattern OPEN_PATTERN    = Pattern.compile(OPEN.pattern() + "\\s+" + FILEPATH + "\\s+((as|AS)\\s)?" + FILEHANDLE);
 	private static final Pattern MODE_PATTERN    = Pattern.compile(MODE.pattern() + ":? *");
 	private static final Pattern EXECUTE_PATTERN = Pattern.compile(EXECUTE.pattern() + "\\s+");
 	private static final Pattern IMPORT_PATTERN  = Pattern.compile(IMPORT.pattern() + "\\s+");
@@ -108,7 +108,6 @@ public class StandardScript implements SoundChangeScript {
 
 	// Visible for testing
 	StandardScript(CharSequence script, FileHandler fileHandlerParam) {
-//		this(NEWLINE_PATTERN.split(script), fileHandlerParam); // Splits newlines and removes padding whitespace
 		this("DEFAULT", script, new LexiconMap(), fileHandlerParam);
 	}
 
@@ -231,7 +230,7 @@ public class StandardScript implements SoundChangeScript {
 		Matcher matcher = OPEN_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String path   = matcher.group(2);
-			String handle = matcher.group(4);
+			String handle = matcher.group(5);
 			commands.add(new LexiconOpenCommand(lexicons, path, handle, fileHandler, factory));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -248,7 +247,7 @@ public class StandardScript implements SoundChangeScript {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(2);
-			String path   = matcher.group(4);
+			String path   = matcher.group(5);
 			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -265,7 +264,7 @@ public class StandardScript implements SoundChangeScript {
 		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(2);
-			String path   = matcher.group(4);
+			String path   = matcher.group(5);
 			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -292,7 +291,8 @@ public class StandardScript implements SoundChangeScript {
 	 * @param command the whole command starting with 'EXECUTE'
 	 */
 	private void executeScript(CharSequence command) {
-		String path = EXECUTE_PATTERN.matcher(command).replaceAll("");
+		String input = EXECUTE_PATTERN.matcher(command).replaceAll("");
+		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		commands.add(new ScriptExecuteCommand(path, fileHandler));
 	}
 
