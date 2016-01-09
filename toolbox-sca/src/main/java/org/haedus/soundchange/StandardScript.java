@@ -292,7 +292,8 @@ public class StandardScript implements SoundChangeScript {
 	 * @param command the whole command starting with 'EXECUTE'
 	 */
 	private void executeScript(CharSequence command) {
-		String path = EXECUTE_PATTERN.matcher(command).replaceAll("");
+		String input = EXECUTE_PATTERN.matcher(command).replaceAll("");
+		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		commands.add(new ScriptExecuteCommand(path, fileHandler));
 	}
 
