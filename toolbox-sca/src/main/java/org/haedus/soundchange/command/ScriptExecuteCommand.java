@@ -45,16 +45,9 @@ public class ScriptExecuteCommand implements Command {
 
 	@Override
 	public void execute() {
-//		sca.process();
-		File file = new File(path);
-
-		try {
-			String data = FileUtils.readFileToString(file, "UTF-8");
-			SoundChangeScript script = new StandardScript(path, data, new LexiconMap(), handler);
-			script.process();
-		} catch (IOException e) {
-			LOGGER.error("Failed to read from file {}", path, e);
-		}
+		String data = handler.read(path);
+		SoundChangeScript script = new StandardScript(path, data, new LexiconMap(), handler);
+		script.process();
 	}
 
 	@Override
