@@ -17,16 +17,21 @@ package org.haedus.soundchange;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
+import org.haedus.io.FileHandler;
 import org.haedus.io.MockFileHandler;
 import org.haedus.phonetic.Lexicon;
+import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -40,9 +45,9 @@ import static org.junit.Assert.assertTrue;
  * Time: 10:34 PM
  * To change this template use File | Settings | File Templates.
  */
-public class StandardSoundChangeApplierTest {
+public class StandardScriptTest {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardSoundChangeApplierTest.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScriptTest.class);
 
 	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
 	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
@@ -52,6 +57,33 @@ public class StandardSoundChangeApplierTest {
 	@Test(expected = ParseException.class)
 	public void testBadMode() {
 		new StandardScript("testBadMode","MODE:XXX");
+	}
+
+	@Test
+	public void testExecute() throws Exception {
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		FileHandler fileHandler = new MockFileHandler(fileSystem);
+
+		String rules = getStringFromClassPath("testRuleLarge01.txt");
+		String words = getStringFromClassPath("testRuleLarge01.lex");
+		String outpt = getStringFromClassPath("testRuleLargeOut01.lex");
+
+		// Append output clause
+		rules = rules.concat("\n" +
+				"MODE COMPOSITION\n" +
+				"CLOSE LEXICON AS \'output.lex\'");
+
+		fileSystem.put("testRuleLarge01.lex", words);
+		fileSystem.put("testRuleLarge01.txt", rules);
+
+		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
+		StandardScript script = new StandardScript("testExecute", executeRule, new LexiconMap(), fileHandler);
+
+		script.process();
+
+		String received = fileSystem.get("output.lex");
+
+		assertEquals(outpt, received);
 	}
 
 	@Test
@@ -206,5 +238,19 @@ public class StandardSoundChangeApplierTest {
 		assertTrue(map.containsKey("write.lex"));
 		assertEquals(lexicon, map.get("write.lex"));
 		assertEquals(lexicon, map.get("close.lex"));
+	}
+
+	private static String getStringFromClassPath(String name) throws IOException {
+		InputStream rulesStream = StandardScriptTest.class.getClassLoader().getResourceAsStream(name);
+		Reader reader = new BufferedReader(new InputStreamReader(rulesStream));
+
+		StringBuilder sb = new StringBuilder();
+
+		int c = reader.read();
+		while (c >= 0) {
+			sb.append((char) c);
+			c = reader.read();
+		}
+		return sb.toString();
 	}
 }
