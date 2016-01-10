@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,22 +30,24 @@ public class FeatureModelLoader {
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s+(ternary|binary|unary|numeric(\\(-?\\d,\\d\\))?)");
-//	private static final Pattern FEATURES_PATTERN = Pattern.compile("(\\w+)\\s+(\\w*)\\s+(binary|unary|numeric\\(-?\\d,\\d\\))");
 
-	private static final Pattern SYMBOL_PATTERN   = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern TAB_PATTERN      = Pattern.compile("\\t");
+	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 
-	private final Map<String, Integer>      featureNames   = new HashMap<String, Integer>();
-	private final Map<String, Integer>      featureAliases = new HashMap<String, Integer>();
-	private final Map<String, List<Double>> featureMap     = new LinkedHashMap<String, List<Double>>();
-	private final Map<String, List<Double>> diacritics     = new LinkedHashMap<String, List<Double>>();
+	private final List<Type> featureTypes = new ArrayList<Type>();
+	
+	private final Map<String, Integer> featureNames   = new LinkedHashMap<String, Integer>();
+	private final Map<String, Integer> featureAliases = new LinkedHashMap<String, Integer>();
+
+	private final Map<String, List<Double>> featureMap = new LinkedHashMap<String, List<Double>>();
+	private final Map<String, List<Double>> diacritics = new LinkedHashMap<String, List<Double>>();
 
 	private final String source;
 
 	private final FormatterMode formatterMode;
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
-		source = "file:"+file.getAbsolutePath();
+		source = "file:" + file.getAbsolutePath();
 		formatterMode = modeParam;
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
@@ -157,7 +160,13 @@ public class FeatureModelLoader {
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
 				List<Double> features = new ArrayList<Double>();
-				for (String value : values) {
+				for (int i = 0; i < featureTypes.size();i++) {
+					Type type = featureTypes.get(i);
+					String value = values[i];
+					if (!type.matches(value)) {
+						LOGGER.warn("Value '{}' at position {} is not valid for {} in array: {}",
+							value, i, type, Arrays.toString(values));
+					} 
 					features.add(getDouble(value, FeatureModel.UNDEFINED_VALUE));
 				}
 				checkFeatureCollisions(symbol, features);
@@ -186,10 +195,16 @@ public class FeatureModelLoader {
 
 			if (matcher.matches()) {
 
-				String name = matcher.group(1);
+				String name  = matcher.group(1);
 				String alias = matcher.group(2);
-//				String type = matcher.group(3); // TODO: Will have to build Feature interface
-
+				String type = matcher.group(3).replaceAll("\\(.*\\)","");
+				
+				try { // catch and rethrow if type is invalid\
+					featureTypes.add(Type.valueOf(type.toUpperCase()));
+				} catch (IllegalArgumentException e) {
+					throw new ParseException("Illegal feature type " + type + " in definition: " + entry);
+				}
+				
 				featureNames.put(name, i);
 				featureAliases.put(alias, i);
 
@@ -229,6 +244,23 @@ public class FeatureModelLoader {
 
 		String value() {
 			return value;
+		}
+	}
+	
+	private enum Type {
+		UNARY("(\\+)?"),
+		BINARY("(\\+|-|−)?"),
+		TERNARY("(\\+|-|−|0)?"),
+		NUMERIC("(-?\\d+)?");
+
+		private Pattern pattern;
+
+		Type(String value) {
+			pattern = Pattern.compile(value);
+		}
+		
+		boolean matches(CharSequence value) {
+			return pattern.matcher(value).matches();
 		}
 	}
 }

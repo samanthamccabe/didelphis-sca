@@ -47,9 +47,9 @@ public class FeatureModelTest extends ModelTestBase {
 	public static FeatureModel initModel() {
 		//                                  0     2    3    4    5    6    7    8   10    11   12   13   14    16   17
 		//                                son   vot  rel  nas  lat  lab  rnd  lin  hgt   frn  bck  atr  rad   glt  len
-		Collections.addAll(G_FEATURES,    0.0, -1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GH_FEATURES,   0.0,  1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GJ_FEATURES,   0.0, -1.0, 1.0, NAN, NAN, NAN, NAN, NAN, 1.0,  1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(G_FEATURES,    0.0, -1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(GH_FEATURES,   0.0,  1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
+		Collections.addAll(GJ_FEATURES,   0.0, -1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0,  1.0, 1.0, NAN, NAN,  0.0, 0.0);
 		Collections.addAll(KWH_FEATURES,  0.0,  1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN, -2.0, 0.0);
 		Collections.addAll(KKWH_FEATURES, 0.0,  1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN, -2.0, 1.0);
 
