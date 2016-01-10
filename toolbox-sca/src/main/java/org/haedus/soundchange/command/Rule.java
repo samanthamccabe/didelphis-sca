@@ -201,7 +201,7 @@ public class Rule implements Command {
 								testIndex = -1;
 							}
 						} else if (segment.getSymbol().equals("0")) {
-							// TODO: nothing??
+							// do nothing; leaving it written this way for clarity
 						} else {
 							// It's a literal
 							testIndex = subSequence.startsWith(segment) ? testIndex + 1 : -1;
@@ -352,11 +352,6 @@ public class Rule implements Command {
 				sequence.add(captured);
 			} else {
 				throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
-//						sequence = factory.getNewSequence();
-//						// length should be guaranteed to be 1
-//						Segment captured = sequenceMap.get(reference).get(0);
-//						Segment altered = captured.alter(factory.getSegment(symbol));
-//						sequence.add(altered);
 			}
 
 		} else {
@@ -447,11 +442,10 @@ public class Rule implements Command {
 	}
 
 	/**
-	 * Once converted to features, ensure that the rule's tranform is well-formed and has an appropriate structure
+	 * Once converted to features, ensure that the rule's transform is well-formed and has an appropriate structure
 	 */
 	private void validateTransform(Sequence source, Sequence target) {
 		int j = 0;
-		//TODO: add checks for backreferences
 		for (Segment segment : target) {
 			if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE) && source.size() <= j) {
 				throw new RuleFormatException("Unmatched underspecified segment " +

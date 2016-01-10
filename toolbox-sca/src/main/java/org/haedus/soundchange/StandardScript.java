@@ -98,7 +98,7 @@ public class StandardScript implements SoundChangeScript {
 		boolean success = parse(lines);
 
 		if (!success) {
-			throw new ParseException("There were problems compiling thie script " + id + "; please see logs for details");
+			throw new ParseException("There were problems compiling the script " + id + "; please see logs for details");
 		}
 	}
 
@@ -206,7 +206,7 @@ public class StandardScript implements SoundChangeScript {
 					}
 				} catch (Exception e) {
 					success = false;
-					LOGGER.error("Script: {} Line: {} --- Compilation Error: {}", scriptId, lineNumber, e);
+					LOGGER.error("Script: {} Line: {} --- Compilation Error", scriptId, lineNumber, e);
 				}
 			}
 		}

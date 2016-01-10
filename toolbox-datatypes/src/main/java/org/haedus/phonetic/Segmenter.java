@@ -220,7 +220,7 @@ public final class Segmenter {
 				// Assume that the first symbol must be a base-character
 				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
 				if (key.isEmpty()) {
-					// TODO: error handling if word starts with diacritic?
+					// No special error handling if word starts with diacritic, but may be desirable
 					symbol.appendHead(word.charAt(i));
 				} else {
 					symbol.appendHead(key);

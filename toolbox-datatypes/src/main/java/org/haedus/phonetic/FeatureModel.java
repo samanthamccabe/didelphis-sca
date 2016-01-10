@@ -258,7 +258,7 @@ public class FeatureModel {
 				List<Double> doubles = diacritics.get(modifier);
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
-					// TODO: this will need to change if we support value modification (up or down)
+					// this will need to change if we support value modification (up or down)
 					if (!d.equals(MASKING_VALUE)) {
 						featureArray.set(i, d);
 					}
@@ -308,7 +308,7 @@ public class FeatureModel {
 				}
 			}
 		}
-		// TODO: how does changing this condition affect behavior?
+		
 		if (minimumDifference > 0.0 && minimumDifference < lastMinimum) {
 			diacriticList.add(bestDiacritic);
 			diacriticList.addAll(getBestDiacritic(featureArray, bestCompiled, minimumDifference));

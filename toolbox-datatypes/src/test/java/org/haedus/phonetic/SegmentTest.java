@@ -38,7 +38,7 @@ public class SegmentTest {
 	private static final SequenceFactory FACTORY_AT = loadArticulatorTheoryModel();
 
 	private static SequenceFactory loadArticulatorTheoryModel() {
-		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("AT.model");
+		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 		return new SequenceFactory(new FeatureModel(stream, mode), mode);
 	}
