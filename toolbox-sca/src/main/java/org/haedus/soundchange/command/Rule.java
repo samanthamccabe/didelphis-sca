@@ -352,11 +352,6 @@ public class Rule implements Command {
 				sequence.add(captured);
 			} else {
 				throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
-//						sequence = factory.getNewSequence();
-//						// length should be guaranteed to be 1
-//						Segment captured = sequenceMap.get(reference).get(0);
-//						Segment altered = captured.alter(factory.getSegment(symbol));
-//						sequence.add(altered);
 			}
 
 		} else {
@@ -451,7 +446,6 @@ public class Rule implements Command {
 	 */
 	private void validateTransform(Sequence source, Sequence target) {
 		int j = 0;
-		//TODO: add checks for backreferences [EDIT: was this completed?]
 		for (Segment segment : target) {
 			if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE) && source.size() <= j) {
 				throw new RuleFormatException("Unmatched underspecified segment " +
