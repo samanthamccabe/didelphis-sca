@@ -32,6 +32,10 @@ public class Graph {
 		map = new HashMap<String, Map<Sequence, Set<String>>>();
 	}
 
+	public Graph(Graph graph) {
+		map = new HashMap<String, Map<Sequence, Set<String>>>(graph.map);
+	}
+
 	@Override
 	public int hashCode() {
 		return map.hashCode();
@@ -47,6 +51,14 @@ public class Graph {
 
 	public Set<String> getKeys() {
 		return map.keySet();
+	}
+
+	public Map<Sequence, Set<String>> remove(String k1) {
+		return map.remove(k1);
+	}
+
+	public void clear() {
+		map.clear();
 	}
 
 	public Map<Sequence, Set<String>> get(String k1) {
@@ -79,6 +91,12 @@ public class Graph {
 	}
 
 	public void put(String k1, Sequence k2, String value) {
+		Set<String> set = new HashSet<String>();
+		set.add(value);
+		put(k1,k2,set);
+	}
+
+	public void put(String k1, Sequence k2, Set<String> values) {
 		Map<Sequence, Set<String>> innerMap;
 		if (map.containsKey(k1)) {
 			innerMap = map.get(k1);
@@ -92,7 +110,7 @@ public class Graph {
 		} else {
 			set = new HashSet<String>();
 		}
-		set.add(value);
+		set.addAll(values);
 		innerMap.put(k2, set);
 		map.put(k1, innerMap);
 	}

@@ -19,6 +19,8 @@ import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -26,15 +28,56 @@ import java.util.Collection;
  */
 public class NegativeStateMachine implements Machine {
 
-	private final Machine negativeMachine;
-	private final Machine positiveMachine;
+	private final SequenceFactory factory;
 
-	public static Machine create(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+	private final String      machineId;
+	private final String      startStateId;
+
+	private final StateMachine negativeMachine;
+	private final StateMachine positiveMachine;
+
+	public static Machine create(String id, String expression, SequenceFactory factory, ParseDirection direction) {
 		// Create the actual branch, the one we don't want to match
-		Machine negative = StateMachine.create(id + 'N', expression, factoryParam, direction);
-		Machine positive = parsePositiveBranch(id + 'P', expression, factoryParam, direction);
+		StateMachine negative = StateMachine.create(id + 'N', expression, factory, direction);
+		StateMachine positive = StateMachine.create(id + 'P', expression, factory, direction);
 
-		return new NegativeStateMachine(negative, positive);
+		// This is less elagant that I'd prefer, but bear with me:
+		// We will extract the graph and id-machine map
+		// and then the graph for *each* machine recursively.
+		// We do this in order to replace each literal terminal
+		// symbol with the literal dot (.) character
+		buildPositiveBranch(factory, positive);
+
+		return new NegativeStateMachine(id, negative, positive, factory);
+	}
+
+	private static void buildPositiveBranch(SequenceFactory factory, StateMachine positive) {
+		Graph graph = positive.getGraph();
+		Graph copy  = new Graph(graph);
+
+		graph.clear();
+		for (String key : copy.getKeys()) {
+			for (Map.Entry<Sequence, Set<String>> entry : copy.get(key).entrySet()) {
+				Sequence sequence = entry.getKey();
+				Set<String> value = entry.getValue();
+				// lambda / epsilon transition
+				if(sequence == Sequence.EMPTY_SEQUENCE || sequence.equals(factory.getBorderSequence())) {
+					graph.put(key, sequence, value);
+				} else {
+					graph.put(key, factory.getDotSequence(), value);
+				}
+			}
+		}
+
+		for (Machine machine : positive.getMachinesMap().values()) {
+			if (machine instanceof StateMachine) {
+				buildPositiveBranch(factory, (StateMachine) machine);
+			} else if (machine instanceof NegativeStateMachine) {
+				// Unclear if this is allowed to happen
+				// or if this is the desired behavior
+				buildPositiveBranch(factory, ((NegativeStateMachine) machine).negativeMachine);
+			}
+		}
 	}
 
 	private static Machine parsePositiveBranch(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
@@ -42,7 +85,12 @@ public class NegativeStateMachine implements Machine {
 		return null;
 	}
 
-	NegativeStateMachine(Machine negative, Machine positive) {
+	NegativeStateMachine(String id, StateMachine negative, StateMachine positive, SequenceFactory factoryParam) {
+		//
+		factory = factoryParam;
+		machineId = id;
+		startStateId = machineId + ":S";
+
 		positiveMachine = positive;
 		negativeMachine = negative;
 	}
@@ -57,5 +105,13 @@ public class NegativeStateMachine implements Machine {
 		positiveIndices.removeAll(negativeIndices);
 
 		return positiveIndices;
+	}
+
+	@Override
+	public String toString() {
+		return "NegativeStateMachine{" +
+				"negativeMachine=" + negativeMachine +
+				", positiveMachine=" + positiveMachine +
+				'}';
 	}
 }

@@ -16,7 +16,6 @@
 
 package org.haedus.machines;
 
-import com.sun.org.apache.xpath.internal.operations.Neg;
 import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Sequence;
@@ -54,12 +53,12 @@ public class StateMachine implements Machine {
 	private final String      startStateId;
 	private final Set<String> acceptingStates;
 	private final Set<String> nodes;
-	
+
 	private final Map<String, Machine> machinesMap;
 
 	private final Graph graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
 
-	public static Machine create(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+	public static StateMachine create(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StateMachine stateMachine = new StateMachine(id, factoryParam);
 
 		if (ILLEGAL_PATTERN.matcher(expression).find()) {
@@ -74,7 +73,7 @@ public class StateMachine implements Machine {
 		return stateMachine;
 	}
 
-	private static Machine createParallel(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+	private static StateMachine createParallel(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StateMachine stateMachine = new StateMachine(id, factoryParam);
 		int i = 65; // A
 		for (String subExpression : parseSubExpressions(expression)) {
@@ -194,6 +193,19 @@ public class StateMachine implements Machine {
 			"nodes: " + nodes.size() + ", " +
 			"machines: " + machinesMap.size() +
 			'}';
+	}
+
+	// package only access
+	Graph getGraph() {
+		return graph;
+	}
+
+	// package only access
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
+	Map<String, Machine> getMachinesMap() {
+		// this needs to mutable:
+		// see NegativeStateMachine.create(..)
+		return machinesMap;
 	}
 
 	private void parseExpression(String branchPrefix, List<Expression> expressions, ParseDirection direction) {

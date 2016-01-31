@@ -72,11 +72,41 @@ public class StateMachineTest {
 	public void testNegativeStateMachine01() {
 		Machine machine = getStateMachine("!a");
 		fail(machine, "a");
+		fail(machine, "aa");
 
 		test(machine, "b");
 		test(machine, "c");
 	}
-	
+
+	@Test
+	public void testNegativeStateMachineGroup01() {
+		Machine machine = getStateMachine("!(ab)");
+		fail(machine, "ab");
+
+		test(machine, "aa");
+		test(machine, "ac");
+		test(machine, "aab");
+
+		// These are too short
+		fail(machine, "a");
+		fail(machine, "b");
+		fail(machine, "c");
+	}
+
+
+	@Test
+	public void testNegativeStateMachineSet01() {
+		Machine machine = getStateMachine("!{a b c}");
+		fail(machine, "a");
+		fail(machine, "b");
+		fail(machine, "c");
+
+		test(machine, "x");
+		test(machine, "y");
+		test(machine, "z");
+
+	}
+
 	@Test
 	public void testBasicStateMachine01() {
 		Machine machine = getStateMachine("a");
