@@ -35,6 +35,10 @@ public class Expression {
 	public String getExpression() {
 		return expression;
 	}
+	
+	public boolean isEmpty() {
+		return expression.isEmpty();
+	}
 
 	public void setExpression(String expParam) {
 		expression = expParam;

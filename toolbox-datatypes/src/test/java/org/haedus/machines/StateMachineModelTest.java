@@ -47,67 +47,67 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testDot() {
-		StateMachine stateMachine = getMachine(".");
+		Machine machine = getMachine(".");
 
-		test(stateMachine, "a");
-		test(stateMachine, "b");
-		test(stateMachine, "c");
+		test(machine, "a");
+		test(machine, "b");
+		test(machine, "c");
 
-		fail(stateMachine, "");
+		fail(machine, "");
 	}
 
 	@Test
 	public void testBasicStateMachine01() {
-		StateMachine stateMachine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
+		Machine machine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
 
-		test(stateMachine, "a");
-		test(stateMachine, "aa");
+		test(machine, "a");
+		test(machine, "aa");
 
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
 	public void testBasicStateMachine03() {
-		StateMachine stateMachine  = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		Machine machine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
 
-		fail(stateMachine, "a");
-		test(stateMachine, "aa");
-		test(stateMachine, "aaa");
-		test(stateMachine, "aa̤");
-		test(stateMachine, "aa̤a");
+		fail(machine, "a");
+		test(machine, "aa");
+		test(machine, "aaa");
+		test(machine, "aa̤");
+		test(machine, "aa̤a");
 
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
 	public void testBasicStateMachine02() {
-		StateMachine stateMachine = getMachine("aaa");
+		Machine machine = getMachine("aaa");
 
-		test(stateMachine, "aaa");
+		test(machine, "aaa");
 
-		fail(stateMachine, "a");
-		fail(stateMachine, "aa");
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "a");
+		fail(machine, "aa");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
 	public void testStateMachineStar() {
-		StateMachine stateMachine = getMachine("aa*");
+		Machine machine = getMachine("aa*");
 
-		test(stateMachine, "a");
-		test(stateMachine, "aa");
-		test(stateMachine, "aaa");
-		test(stateMachine, "aaaa");
-		test(stateMachine, "aaaaa");
-		test(stateMachine, "aaaaaa");
+		test(machine, "a");
+		test(machine, "aa");
+		test(machine, "aaa");
+		test(machine, "aaaa");
+		test(machine, "aaaaa");
+		test(machine, "aaaaaa");
 	}
 
 	@Test
 	public void testComplex02() {
-		StateMachine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "āḱʰus");
 		test(machine, "rāḱʰus");
@@ -144,7 +144,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testComplex03() {
-		StateMachine machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "pʰus");
 		test(machine, "tʰus");
@@ -155,7 +155,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testComplex04() {
-		StateMachine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");
@@ -195,7 +195,7 @@ public class StateMachineModelTest {
 
 	@Test
 	public void testComplex05() {
-		StateMachine machine = getMachine("[son:3 glt:0][son:0 glt:-3 rel:1 +vot]us");
+		Machine machine = getMachine("[son:3 glt:0][son:0 glt:-3 rel:1 +vot]us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");
@@ -254,8 +254,8 @@ public class StateMachineModelTest {
 	}
 
 
-	private static StateMachine getMachine(String expression) {
-		return StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
+	private static Machine getMachine(String expression) {
+		return StateMachine.create("M0", expression, FACTORY, ParseDirection.FORWARD);
 	}
 
 	private static Collection<Integer> testMachine(Machine stateMachine, String target) {

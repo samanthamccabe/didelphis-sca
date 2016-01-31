@@ -75,9 +75,7 @@ public final class Segmenter {
 					buffer = updateBuffer(list, buffer);
 					buffer.setNegative(true);
 				} else {
-					if (!buffer.getExpression().isEmpty()) {
-						buffer = updateBuffer(list, buffer);
-					}
+					buffer = updateBuffer(list, buffer);
 					buffer.setExpression(symbol);
 				}
 			}
@@ -89,8 +87,13 @@ public final class Segmenter {
 	}
 
 	private static Expression updateBuffer(Collection<Expression> list, Expression buffer) {
-		list.add(buffer);
-		return new Expression();
+		// Add the contents of buffer if not empty
+		if (!buffer.isEmpty()) {
+			list.add(buffer);
+			return new Expression();
+		} else {
+			return buffer;
+		}
 	}
 
 	public static Segment getSegment(String string, FeatureModel model, FormatterMode formatterMode) {
