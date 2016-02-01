@@ -54,11 +54,11 @@ public class Condition {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_");
 			if (conditions.length == 1) {
-				preCondition  = StateMachine.createStandardMachine("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				preCondition  = StateMachine.create("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
 				postCondition = StateMachine.EMPTY_MACHINE;
 			} else if (conditions.length == 2) {
-				preCondition  = StateMachine.createStandardMachine("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
-				postCondition = StateMachine.createStandardMachine("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
+				preCondition  = StateMachine.create("X", conditions[0], factoryParam, ParseDirection.BACKWARD);
+				postCondition = StateMachine.create("Y", conditions[1], factoryParam, ParseDirection.FORWARD);
 			} else if (conditions.length == 0) {
 				preCondition  = StateMachine.EMPTY_MACHINE;
 				postCondition = StateMachine.EMPTY_MACHINE;

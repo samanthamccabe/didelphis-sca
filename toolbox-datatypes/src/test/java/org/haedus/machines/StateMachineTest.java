@@ -14,203 +14,204 @@
 
 package org.haedus.machines;
 
-import org.apache.commons.io.FileUtils;
-import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 3/14/2015
  */
-public class StateMachineTest {
+public class StateMachineTest extends MachineTestBase{
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachineTest.class);
 
-	private static final SequenceFactory FACTORY = SequenceFactory.getEmptyFactory();
+	@BeforeClass
+	public static void setFactory() {
+		FACTORY = SequenceFactory.getEmptyFactory();
+	}
 
 	@Test(expected = ParseException.class)
 	public void testIllegalBoundary01() {
-		getStateMachine("a#?");
+		getMachine("a#?");
 	}
 
 	@Test(expected = ParseException.class)
 	public void testIllegalBoundary02() {
-		getStateMachine("a#+");
+		getMachine("a#+");
 	}
 
 	@Test(expected = ParseException.class)
 	public void testIllegalBoundary03() {
-		getStateMachine("a#*");
+		getMachine("a#*");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testIllegalBoundary04() {
+		getMachine("#*a");
 	}
 
 	@Test
-	public void testBasicStateMachine01() {
-		StateMachine stateMachine = getStateMachine("a");
+	public void testBasic01() {
+		Machine machine = getMachine("a");
 
-		test(stateMachine, "a");
-		test(stateMachine, "aa");
+		test(machine, "a");
+		test(machine, "aa");
 
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
-	public void testBasicStateMachine02() {
-		StateMachine stateMachine = getStateMachine("aaa");
+	public void testBasic02() {
+		Machine machine = getMachine("aaa");
 
-		test(stateMachine, "aaa");
+		test(machine, "aaa");
 
-		fail(stateMachine, "a");
-		fail(stateMachine, "aa");
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "a");
+		fail(machine, "aa");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
-	public void testBasicStateMachine03() throws IOException {
-		StateMachine stateMachine = getStateMachine("aaa?");
+	public void testBasic03() throws IOException {
+		Machine machine = getMachine("aaa?");
 
-		test(stateMachine, "aa");
-		test(stateMachine, "aaa");
+		test(machine, "aa");
+		test(machine, "aaa");
 
-		fail(stateMachine, "a");
-		fail(stateMachine, "b");
-		fail(stateMachine, "c");
+		fail(machine, "a");
+		fail(machine, "b");
+		fail(machine, "c");
 	}
 
 	@Test
-	public void testBasicStateMachine04() throws IOException {
-		StateMachine stateMachine = getStateMachine("ab*cd?ab");
+	public void testBasic04() throws IOException {
+		Machine machine = getMachine("ab*cd?ab");
 
-		test(stateMachine, "acab");
-		test(stateMachine, "abcab");
-		test(stateMachine, "abbcab");
-		test(stateMachine, "abbbcab");
+		test(machine, "acab");
+		test(machine, "abcab");
+		test(machine, "abbcab");
+		test(machine, "abbbcab");
 
-		test(stateMachine, "acdab");
-		test(stateMachine, "abcdab");
-		test(stateMachine, "abbcdab");
-		test(stateMachine, "abbbcdab");
+		test(machine, "acdab");
+		test(machine, "abcdab");
+		test(machine, "abbcdab");
+		test(machine, "abbbcdab");
 
-		fail(stateMachine, "acddab");
-		fail(stateMachine, "abcddab");
-		fail(stateMachine, "abbcddab");
-		fail(stateMachine, "abbbcddab");
+		fail(machine, "acddab");
+		fail(machine, "abcddab");
+		fail(machine, "abbcddab");
+		fail(machine, "abbbcddab");
 	}
 
 	@Test
-	public void testStateMachineStar() throws IOException {
-		StateMachine stateMachine = getStateMachine("aa*");
+	public void testStar() throws IOException {
+		Machine machine = getMachine("aa*");
 
-		test(stateMachine, "a");
-		test(stateMachine, "aa");
-		test(stateMachine, "aaa");
-		test(stateMachine, "aaaa");
-		test(stateMachine, "aaaaa");
-		test(stateMachine, "aaaaaa");
+		test(machine, "a");
+		test(machine, "aa");
+		test(machine, "aaa");
+		test(machine, "aaaa");
+		test(machine, "aaaaa");
+		test(machine, "aaaaaa");
 	}
 
 	@Test
 	public void testStateMachinePlus() throws IOException {
-		StateMachine stateMachine = getStateMachine("a+");
+		Machine machine = getMachine("a+");
 
-		test(stateMachine, "a");
-		test(stateMachine, "aa");
-		test(stateMachine, "aaa");
-		test(stateMachine, "aaaa");
-		test(stateMachine, "aaaaa");
-		test(stateMachine, "aaaaaa");
+		test(machine, "a");
+		test(machine, "aa");
+		test(machine, "aaa");
+		test(machine, "aaaa");
+		test(machine, "aaaaa");
+		test(machine, "aaaaaa");
 
-		test(stateMachine, "ab");
+		test(machine, "ab");
 	}
 
 	@Test
 	public void testGroups() {
-		StateMachine stateMachine = getStateMachine("(ab)(cd)(ef)");
+		Machine machine = getMachine("(ab)(cd)(ef)");
 
-		test(stateMachine, "abcdef");
-		fail(stateMachine, "abcd");
-		fail(stateMachine, "ab");
-		fail(stateMachine, "bcdef");
+		test(machine, "abcdef");
+		fail(machine, "abcd");
+		fail(machine, "ab");
+		fail(machine, "bcdef");
 	}
 
 	@Test
 	public void testGroupStar01() {
-		StateMachine stateMachine = getStateMachine("(ab)*(cd)(ef)");
+		Machine machine = getMachine("(ab)*(cd)(ef)");
 
-		test(stateMachine, "abababcdef");
-		test(stateMachine, "ababcdef");
-		test(stateMachine, "abcdef");
-		test(stateMachine, "cdef");
+		test(machine, "abababcdef");
+		test(machine, "ababcdef");
+		test(machine, "abcdef");
+		test(machine, "cdef");
 
-		fail(stateMachine, "abcd");
-		fail(stateMachine, "ab");
-		fail(stateMachine, "bcdef");
-		fail(stateMachine, "abbcdef");
+		fail(machine, "abcd");
+		fail(machine, "ab");
+		fail(machine, "bcdef");
+		fail(machine, "abbcdef");
 	}
 
 	@Test
 	public void testGroupStar02() throws IOException {
-		StateMachine stateMachine = getStateMachine("d(eo*)*b");
+		Machine machine = getMachine("d(eo*)*b");
 
-		test(stateMachine, "db");
-		test(stateMachine, "deb");
-		test(stateMachine, "deeb");
-		test(stateMachine, "deob");
-		test(stateMachine, "deoob");
-		test(stateMachine, "deoeob");
-		test(stateMachine, "deoeoob");
+		test(machine, "db");
+		test(machine, "deb");
+		test(machine, "deeb");
+		test(machine, "deob");
+		test(machine, "deoob");
+		test(machine, "deoeob");
+		test(machine, "deoeoob");
 
-		fail(stateMachine, "abcd");
-		fail(stateMachine, "ab");
-		fail(stateMachine, "bcdef");
-		fail(stateMachine, "abbcdef");
+		fail(machine, "abcd");
+		fail(machine, "ab");
+		fail(machine, "bcdef");
+		fail(machine, "abbcdef");
 	}
 
 	@Test
 	public void testGroupOptional01() throws IOException {
-		StateMachine stateMachine = getStateMachine("(ab)?(cd)(ef)");
+		Machine machine = getMachine("(ab)?(cd)(ef)");
 
-		test(stateMachine, "abcdef");
-		test(stateMachine, "cdef");
+		test(machine, "abcdef");
+		test(machine, "cdef");
 	}
 
 	
 	@Test
 	public void testSets01() throws IOException {
-		StateMachine stateMachine = getStateMachine("{ x ɣ }");
+		Machine machine = getMachine("{ x ɣ }");
 
-		test(stateMachine, "x");
-		test(stateMachine, "ɣ");
-		fail(stateMachine, " ");
+		test(machine, "x");
+		test(machine, "ɣ");
+		fail(machine, " ");
 	}
 
 	@Test
 	public void testSets02() throws IOException {
-		StateMachine stateMachine = getStateMachine("{ab {cd xy} ef}tr");
+		Machine machine = getMachine("{ab {cd xy} ef}tr");
 
-		test(stateMachine, "abtr");
-		test(stateMachine, "cdtr");
-		test(stateMachine, "xytr");
-		test(stateMachine, "eftr");
-		fail(stateMachine, " ");
+		test(machine, "abtr");
+		test(machine, "cdtr");
+		test(machine, "xytr");
+		test(machine, "eftr");
+		fail(machine, " ");
 	}
 
 	@Test
 	public void testSetsExtraSpace01() {
-		StateMachine machine = getStateMachine("{cʰ  c  ɟ}");
+		Machine machine = getMachine("{cʰ  c  ɟ}");
 
 		test(machine, "cʰ");
 		test(machine, "c");
@@ -219,7 +220,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testGroupPlus01() throws IOException {
-		StateMachine machine = getStateMachine("(ab)+");
+		Machine machine = getMachine("(ab)+");
 
 		test(machine, "ab");
 		test(machine, "abab");
@@ -229,21 +230,21 @@ public class StateMachineTest {
 
 	@Test
 	public void testComplexGroups01() throws IOException {
-		StateMachine machine = getStateMachine("(a+l(ham+b)*ra)+");
+		Machine machine = getMachine("(a+l(ham+b)*ra)+");
 
 		test(machine, "alhambra");
 	}
 
 	@Test
 	public void testComplex02() {
-		StateMachine machine = getStateMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "āḱʰus");
 	}
 
 	@Test
 	public void testComplex03() {
-		StateMachine machine = getStateMachine("a?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "pʰus");
 		test(machine, "tʰus");
@@ -254,7 +255,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testComplex04() {
-		StateMachine machine = getStateMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");
@@ -264,7 +265,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testComplex01() throws IOException {
-		StateMachine machine = getStateMachine("a?(b?c?)d?b");
+		Machine machine = getMachine("a?(b?c?)d?b");
 
 		test(machine, "b");
 		test(machine, "db");
@@ -277,7 +278,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testComplex05() {
-		StateMachine machine = getStateMachine("{ab* (cd?)+ ((ae)*f)+}tr");
+		Machine machine = getMachine("{ab* (cd?)+ ((ae)*f)+}tr");
 
 		test(machine, "abtr");
 		test(machine, "cdtr");
@@ -297,7 +298,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testDot01() throws IOException {
-		StateMachine machine = getStateMachine("..");
+		Machine machine = getMachine("..");
 
 		test(machine, "ab");
 		test(machine, "db");
@@ -317,7 +318,7 @@ public class StateMachineTest {
 
 	@Test
 	public void testDot02() throws IOException {
-		StateMachine machine = getStateMachine("a..");
+		Machine machine = getMachine("a..");
 
 		test(machine, "abb");
 		test(machine, "acdb");
@@ -338,63 +339,43 @@ public class StateMachineTest {
 
 	@Test
 	public void testGroupsDot() {
-		StateMachine stateMachine = getStateMachine(".*(cd)(ef)");
+		Machine machine = getMachine(".*(cd)(ef)");
 
-		test(stateMachine, "cdef");
-		test(stateMachine, "bcdef");
-		test(stateMachine, "abcdef");
-		test(stateMachine, "xabcdef");
-		test(stateMachine, "xyabcdef");
+		test(machine, "cdef");
+		test(machine, "bcdef");
+		test(machine, "abcdef");
+		test(machine, "xabcdef");
+		test(machine, "xyabcdef");
 
-		fail(stateMachine, "abcd");
-		fail(stateMachine, "ab");
+		fail(machine, "abcd");
+		fail(machine, "ab");
 	}
 
 	@Test
 	public void testGroupsDotPlus() {
-		StateMachine stateMachine = getStateMachine(".+(cd)(ef)");
+		Machine machine = getMachine(".+(cd)(ef)");
 
-		test(stateMachine, "bcdef");
-		test(stateMachine, "abcdef");
-		test(stateMachine, "xabcdef");
-		test(stateMachine, "xyabcdef");
+		test(machine, "bcdef");
+		test(machine, "abcdef");
+		test(machine, "xabcdef");
+		test(machine, "xyabcdef");
 
-		fail(stateMachine, "cdef");
-		fail(stateMachine, "abcd");
-		fail(stateMachine, "ab");
+		fail(machine, "cdef");
+		fail(machine, "abcd");
+		fail(machine, "ab");
 	}
 
 	@Test
 	public void testGroupsDotStar() {
-		StateMachine stateMachine = getStateMachine("(a.)*cd#");
+		Machine machine = getMachine("(a.)*cd#");
 
-		test(stateMachine, "cd");
-		test(stateMachine, "aXcd");
-		test(stateMachine, "aXaYcd");
-		test(stateMachine, "aXaYaZcd");
+		test(machine, "cd");
+		test(machine, "aXcd");
+		test(machine, "aXaYcd");
+		test(machine, "aXaYaZcd");
 
-		fail(stateMachine, "cdef");
-		fail(stateMachine, "bcd");
-		fail(stateMachine, "acd");
+		fail(machine, "cdef");
+		fail(machine, "bcd");
+		fail(machine, "acd");
 	}
-
-	private static StateMachine getStateMachine(String expression) {
-		return StateMachine.createStandardMachine("M0", expression, FACTORY, ParseDirection.FORWARD);
-	}
-
-	private static void test(Machine stateMachine, String target) {
-		Collection<Integer> matchIndices = testMachine(stateMachine, target);
-		assertFalse("Machine failed to accept input", matchIndices.isEmpty());
-	}
-
-	private static void fail(Machine stateMachine, String target) {
-		Collection<Integer> matchIndices = testMachine(stateMachine, target);
-		assertTrue("Machine accepted input it should not have", matchIndices.isEmpty());
-	}
-
-	private static Collection<Integer> testMachine(Machine stateMachine, String target) {
-		Sequence sequence = FACTORY.getSequence(target);
-		return stateMachine.getMatchIndices(0, sequence);
-	}
-
 }

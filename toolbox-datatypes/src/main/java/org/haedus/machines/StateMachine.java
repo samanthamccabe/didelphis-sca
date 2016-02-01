@@ -20,7 +20,6 @@ import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -40,19 +40,48 @@ import java.util.Set;
  */
 public class StateMachine implements Machine {
 
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
+
 	public static final StateMachine EMPTY_MACHINE = new StateMachine();
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachine.class);
+	private static final Pattern ILLEGAL_PATTERN  = Pattern.compile("#(\\*|\\+|\\?)");
 
 	private final SequenceFactory factory;
 
-	private final String                    machineId;
-	private final String                    startStateId;
-	private final Set<String>               acceptingStates;
-	private final Set<String>               nodes;
-	private final Map<String, StateMachine> machinesMap;
+	private final String      machineId;
+	private final String      startStateId;
+	private final Set<String> acceptingStates;
+	private final Set<String> nodes;
 
-	private final TwoKeyMap graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
+	private final Map<String, Machine> machinesMap;
+
+	private final Graph graph; // String (Node ID), Sequence (Arc) --> String (Node ID)
+
+	public static StateMachine create(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+		StateMachine stateMachine = new StateMachine(id, factoryParam);
+
+		if (ILLEGAL_PATTERN.matcher(expression).find()) {
+			throw new ParseException("Illegal modification of boundary characters in expression " + expression);
+		}
+
+		List<Expression> expressions = factoryParam.getExpressions(expression);
+		stateMachine.parseExpression("", expressions, direction);
+		return stateMachine;
+	}
+
+	private static StateMachine createParallel(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
+		StateMachine stateMachine = new StateMachine(id, factoryParam);
+		int i = 65; // A
+		for (String subExpression : parseSubExpressions(expression)) {
+			List<Expression> expressions = factoryParam.getExpressions(subExpression);
+			String prefix = String.valueOf((char) i);
+			// Machine is built to have one shared start-state and one
+			// end-state for *each* individual branch
+			stateMachine.parseExpression(prefix, expressions, direction);
+			i++;
+		}
+		return stateMachine;
+	}
 
 	private StateMachine() {
 		this("E", SequenceFactory.getEmptyFactory());
@@ -63,35 +92,12 @@ public class StateMachine implements Machine {
 		machineId = id;
 		startStateId = machineId + ":S";
 
-		machinesMap = new HashMap<String, StateMachine>();
+		machinesMap = new HashMap<String, Machine 	>();
 		acceptingStates = new HashSet<String>();
 		nodes = new HashSet<String>();
-		graph = new TwoKeyMap();
+		graph = new Graph();
 	}
-
-	public static StateMachine createStandardMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		StateMachine stateMachine = new StateMachine(id, factoryParam);
-
-		List<Expression> expressions = factoryParam.getExpressions(expression);
-		stateMachine.parseExpression("", expressions, direction);
-		return stateMachine;
-	}
-
-	public static StateMachine createParallelMachine(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-		StateMachine stateMachine = new StateMachine(id, factoryParam);
-		int i = 65; // A
-		for (String subExpression : parseSubExpressions(expression)) {
-			List<Expression> expressions = factoryParam.getExpressions(subExpression);
-			char c = (char) i;
-			String prefix = String.valueOf(c);
-			stateMachine.parseExpression(prefix, expressions, direction);
-			i++;
-		}
-		return stateMachine;
-	}
-
-
-
+	
 	public SequenceFactory getFactory() {
 		return factory;
 	}
@@ -144,15 +150,12 @@ public class StateMachine implements Machine {
 		}
 		return indices;
 	}
-	
-	public Map<String, Map<Sequence, Set<String>>> getMap() {
-		return graph.getMap();
-	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
 
 		StateMachine that = (StateMachine) obj;
 		boolean isEqualAccepting = acceptingStates.equals(that.acceptingStates);
@@ -188,7 +191,75 @@ public class StateMachine implements Machine {
 			'}';
 	}
 
-	protected String constructRecursiveNode(String nextNode, String previousNode, String machineNode, String meta) {
+	// package only access
+	Graph getGraph() {
+		return graph;
+	}
+
+	// package only access
+	@SuppressWarnings("ReturnOfCollectionOrArrayField")
+	Map<String, Machine> getMachinesMap() {
+		// this needs to mutable:
+		// see NegativeStateMachine.create(..)
+		return machinesMap;
+	}
+
+	private void parseExpression(String branchPrefix, List<Expression> expressions, ParseDirection direction) {
+		nodes.add(startStateId);
+
+		if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
+
+		int nodeId = 0;
+		String previousNode = startStateId;
+
+		for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
+			Expression expression = it.next();
+
+			nodeId++;
+
+			String expr = expression.getExpression();
+			String meta = expression.getMetacharacter();
+
+			boolean negative = expression.isNegative();
+
+			String currentNode = machineId + ':' + branchPrefix + nodeId;
+
+			nodes.add(currentNode);
+
+			if (negative) {
+				Machine machine = NegativeStateMachine.create(currentNode, expr, factory, direction);
+				machinesMap.put(currentNode, machine);
+				String nextNode = currentNode + 'X';
+				nodes.add(nextNode);
+				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
+			} else {
+				if (expr.startsWith("(")) {
+					String substring = expr.substring(1, expr.length() - 1);
+					Machine machine = create(currentNode, substring, factory, direction);
+					machinesMap.put(currentNode, machine);
+
+					String nextNode = currentNode + 'X';
+					nodes.add(nextNode);
+					previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
+				} else if (expr.startsWith("{")) {
+					String substring = expr.substring(1, expr.length() - 1); // Remove braces
+					Machine machine = createParallel(currentNode, substring, factory, direction);
+					machinesMap.put(currentNode, machine);
+
+					String nextNode = currentNode + 'X';
+					nodes.add(nextNode);
+					previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
+				} else {
+					previousNode = constructTerminalNode(previousNode, currentNode, expr, meta);
+				}
+			}
+			if (!it.hasNext()) {
+				acceptingStates.add(previousNode);
+			}
+		}
+	}
+
+	private String constructRecursiveNode(String nextNode, String previousNode, String machineNode, String meta) {
 
 		if /****/ (meta.equals("?")) {
 			graph.put(previousNode, Sequence.EMPTY_SEQUENCE, machineNode);
@@ -209,7 +280,7 @@ public class StateMachine implements Machine {
 		return nextNode;
 	}
 
-	protected String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
+	private String constructTerminalNode(String previousNode, String currentNode, String exp, String meta) {
 		String referenceNode;
 
 		Sequence sequence = factory.getSequence(exp);
@@ -266,11 +337,11 @@ public class StateMachine implements Machine {
 		int count = 1;
 		int endIndex = -1;
 
-		boolean matched = false;
-		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
+		boolean matched = true;
+		for (int i = startIndex + 1; i <= string.length() && matched; i++) {
 			char ch = string.charAt(i);
 			if (ch == right && count == 1) {
-				matched = true;
+				matched = false;
 				endIndex = i;
 			} else if (ch == right) {
 				count++;
@@ -312,66 +383,6 @@ public class StateMachine implements Machine {
 		return states;
 	}
 
-	private void parseExpression(String branchPrefix, List<Expression> expressions, ParseDirection direction) {
-		nodes.add(startStateId);
-
-		if (direction == ParseDirection.BACKWARD) { Collections.reverse(expressions); }
-
-		validateExpressions(expressions);
-
-		int nodeId = 0;
-		String previousNode = startStateId;
-
-		for (Iterator<Expression> it = expressions.iterator(); it.hasNext(); ) {
-			Expression expression = it.next();
-
-			nodeId++;
-
-			String expr = expression.getExpression();
-			String meta = expression.getMetacharacter();
-
-			String currentNode = machineId + ':' + branchPrefix + nodeId;
-
-			nodes.add(currentNode);
-
-			if (expr.startsWith("(")) {
-				String substring = expr.substring(1, expr.length() - 1);
-				StateMachine machine = createStandardMachine(currentNode, substring, factory, direction);
-				machinesMap.put(currentNode, machine);
-
-				String nextNode = currentNode + 'X';
-				nodes.add(nextNode);
-				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
-			} else if (expr.startsWith("{")) {
-				String substring = expr.substring(1, expr.length() - 1);
-				StateMachine machine = createParallelMachine(currentNode, substring, factory, direction);
-				machinesMap.put(currentNode, machine);
-
-				String nextNode = currentNode + 'X';
-				nodes.add(nextNode);
-				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
-			} else {
-				previousNode = constructTerminalNode(previousNode, currentNode, expr, meta);
-			}
-			if (!it.hasNext()) {
-				acceptingStates.add(previousNode);
-			}
-		}
-	}
-
-	private static void validateExpressions(List<Expression> expressions) {
-		if (!expressions.isEmpty()) {
-			int lastIndex = expressions.size() - 1;
-			Expression lastExpression = expressions.get(lastIndex);
-			String expr = lastExpression.getExpression();
-			String meta = lastExpression.getMetacharacter();
-			if (expr.equals("#") && !meta.isEmpty()) {
-				throw new ParseException("The boundary characer # may not be " +
-						"modified by a metacharacter: " + expr + meta);
-			}
-		}
-	}
-
 	private  static final class MatchState {
 
 		private final int    index; // Where in the sequence the cursor is
@@ -408,83 +419,6 @@ public class StateMachine implements Machine {
 			MatchState other = (MatchState) obj;
 			return index == other.index &&
 				node.equals(other.node);
-		}
-	}
-
-	private static final class TwoKeyMap {
-		private final Map<String, Map<Sequence, Set<String>>> map;
-
-		private TwoKeyMap() {
-			map = new HashMap<String, Map<Sequence, Set<String>>>();
-		}
-
-		@Override
-		public int hashCode() {
-			return map.hashCode();
-		}
-
-		public Map<String, Map<Sequence, Set<String>>> getMap() {
-			return map;
-		}
-
-		private boolean isEmpty() {
-			return map.isEmpty();
-		}
-
-		private Set<String> getKeys() {
-			return map.keySet();
-		}
-
-		private Map<Sequence, Set<String>> get(String k1) {
-			return map.get(k1);
-		}
-
-		private Set<String> get(String k1, Sequence k2) {
-			return map.get(k1).get(k2);
-		}
-
-		private boolean contains(String k1) {
-			return map.containsKey(k1);
-		}
-
-		private Set<Map.Entry<Sequence, Set<String>>> getEntries(String k1) {
-			return map.get(k1).entrySet();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) { return true; }
-			if (null == obj) { return false; }
-			if (getClass() != obj.getClass()) { return false; }
-			TwoKeyMap other = (TwoKeyMap) obj;
-			return map.equals(other.getMap());
-		}
-
-		private Set<Sequence> getKeys(String k1) {
-			return map.get(k1).keySet();
-		}
-
-		private void put(String k1, Sequence k2, String value) {
-			Map<Sequence, Set<String>> innerMap;
-			if (map.containsKey(k1)) {
-				innerMap = map.get(k1);
-			} else {
-				innerMap = new HashMap<Sequence, Set<String>>();
-			}
-
-			Set<String> set;
-			if (innerMap.containsKey(k2)) {
-				set = innerMap.get(k2);
-			} else {
-				set = new HashSet<String>();
-			}
-			set.add(value);
-			innerMap.put(k2, set);
-			map.put(k1, innerMap);
-		}
-
-		private boolean contains(String k1, Sequence k2) {
-			return map.containsKey(k1) && map.get(k1).containsKey(k2);
 		}
 	}
 }
