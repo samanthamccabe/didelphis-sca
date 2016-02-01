@@ -20,6 +20,7 @@ import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +35,19 @@ import static org.junit.Assert.assertTrue;
  * Samantha Fiona Morrigan McCabe
  * Created: 2/28/2015
  */
-public class StateMachineModelTest {
+public class StateMachineModelTest extends MachineTestBase{
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StateMachineModelTest.class);
 
-	private static final SequenceFactory FACTORY = loadModel();
+	@BeforeClass
+	public static void loadModel() {
+		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("features.model");
+
+		FormatterMode mode = FormatterMode.INTELLIGENT;
+		FeatureModel model = new FeatureModel(stream, mode);
+
+		FACTORY = new SequenceFactory(model, mode);
+	}
 
 	@Test(expected = ParseException.class)
 	public void testBasicStateMachine00() {
@@ -241,34 +250,5 @@ public class StateMachineModelTest {
 		fail(machine, "a̤tʰus");
 		fail(machine, "a̤kʰus");
 		fail(machine, "a̤ḱʰus");
-	}
-
-	private static void test(Machine stateMachine, String target) {
-		Collection<Integer> matchIndices = testMachine(stateMachine, target);
-		assertFalse("Machine failed to accept input", matchIndices.isEmpty());
-	}
-
-	private static void fail(Machine stateMachine, String target) {
-		Collection<Integer> matchIndices = testMachine(stateMachine, target);
-		assertTrue("Machine accepted input it should not have", matchIndices.isEmpty());
-	}
-
-
-	private static Machine getMachine(String expression) {
-		return StateMachine.create("M0", expression, FACTORY, ParseDirection.FORWARD);
-	}
-
-	private static Collection<Integer> testMachine(Machine stateMachine, String target) {
-		Sequence sequence = FACTORY.getSequence(target);
-		return stateMachine.getMatchIndices(0, sequence);
-	}
-
-	private static SequenceFactory loadModel() {
-		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("features.model");
-		
-		FormatterMode mode = FormatterMode.INTELLIGENT;
-		FeatureModel model = new FeatureModel(stream, mode);
-
-		return new SequenceFactory(model, mode);
 	}
 }

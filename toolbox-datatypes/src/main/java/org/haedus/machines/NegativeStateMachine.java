@@ -28,11 +28,6 @@ import java.util.Set;
  */
 public class NegativeStateMachine implements Machine {
 
-	private final SequenceFactory factory;
-
-	private final String      machineId;
-	private final String      startStateId;
-
 	private final StateMachine negativeMachine;
 	private final StateMachine positiveMachine;
 
@@ -41,14 +36,14 @@ public class NegativeStateMachine implements Machine {
 		StateMachine negative = StateMachine.create(id + 'N', expression, factory, direction);
 		StateMachine positive = StateMachine.create(id + 'P', expression, factory, direction);
 
-		// This is less elagant that I'd prefer, but bear with me:
+		// This is less elegant that I'd prefer, but bear with me:
 		// We will extract the graph and id-machine map
 		// and then the graph for *each* machine recursively.
 		// We do this in order to replace each literal terminal
 		// symbol with the literal dot (.) character
 		buildPositiveBranch(factory, positive);
 
-		return new NegativeStateMachine(id, negative, positive, factory);
+		return new NegativeStateMachine(negative, positive);
 	}
 
 	private static void buildPositiveBranch(SequenceFactory factory, StateMachine positive) {
@@ -80,17 +75,7 @@ public class NegativeStateMachine implements Machine {
 		}
 	}
 
-	private static Machine parsePositiveBranch(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
-
-		return null;
-	}
-
-	NegativeStateMachine(String id, StateMachine negative, StateMachine positive, SequenceFactory factoryParam) {
-		//
-		factory = factoryParam;
-		machineId = id;
-		startStateId = machineId + ":S";
-
+	NegativeStateMachine(StateMachine negative, StateMachine positive) {
 		positiveMachine = positive;
 		negativeMachine = negative;
 	}
