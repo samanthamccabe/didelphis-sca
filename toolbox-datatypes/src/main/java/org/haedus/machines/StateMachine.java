@@ -44,7 +44,6 @@ public class StateMachine implements Machine {
 
 	public static final StateMachine EMPTY_MACHINE = new StateMachine();
 
-	private static final Pattern BOUNDARY_PATTERN = Pattern.compile("#?[^#]+#?");
 	private static final Pattern ILLEGAL_PATTERN  = Pattern.compile("#(\\*|\\+|\\?)");
 
 	private final SequenceFactory factory;
@@ -63,9 +62,6 @@ public class StateMachine implements Machine {
 
 		if (ILLEGAL_PATTERN.matcher(expression).find()) {
 			throw new ParseException("Illegal modification of boundary characters in expression " + expression);
-		}
-		if (!BOUNDARY_PATTERN.matcher(expression).matches()) {
-			throw new ParseException("Illegal placement of boundary characters in expression " + expression);
 		}
 
 		List<Expression> expressions = factoryParam.getExpressions(expression);

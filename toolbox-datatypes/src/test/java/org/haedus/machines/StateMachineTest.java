@@ -56,16 +56,6 @@ public class StateMachineTest extends MachineTestBase{
 		getMachine("#*a");
 	}
 
-	@Test(expected = ParseException.class)
-	public void testIllegalBoundary05() {
-		getMachine("a#a");
-	}
-
-	@Test(expected = ParseException.class)
-	public void testIllegalBoundary06() {
-		getMachine("a(#a)a");
-	}
-
 	@Test
 	public void testBasic01() {
 		Machine machine = getMachine("a");
