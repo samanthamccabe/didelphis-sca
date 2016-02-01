@@ -40,8 +40,8 @@ public class Condition {
 	private static final Pattern OPEN_BRACE_PATTERN  = Pattern.compile("([\\[\\{\\(]) ");
 	private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile(" ([\\]\\}\\)])");
 
-	private final String         conditionText;
-	private final Machine  preCondition;
+	private final String  conditionText;
+	private final Machine preCondition;
 	private final Machine postCondition;
 
 	// package-private: testing only

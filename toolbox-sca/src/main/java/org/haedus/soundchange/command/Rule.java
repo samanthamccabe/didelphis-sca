@@ -97,6 +97,10 @@ public class Rule implements Command {
 				sb.append(" OR ");
 			}
 		}
+		for (Condition exception : exceptions) {
+			sb.append(" NOT ");
+			sb.append(exception);
+		}
 		return sb.toString();
 	}
 
@@ -253,7 +257,8 @@ public class Rule implements Command {
 
 				Matcher notMatcher = NOT_KEYWORD.matcher(conditionString);
 				if (notMatcher.lookingAt()) {
-					// Starts with NOT
+					// if there is no regular condition
+					// Takes the first one off, and splits on the rest
 					String[] split = NOT_KEYWORD.split(notMatcher.replaceFirst(""));
 
 					for (String clause : split) {
@@ -261,8 +266,8 @@ public class Rule implements Command {
 					}
 
 				} else if (notMatcher.find()) {
-					String[] split = NOT_PATTERN.split(conditionString);
-					if (split.length == 2) {
+					// Does this code ever get called?
+					String[] split = NOT_PATTERN.split(conditionString, 2);
 						String conditionClauses = split[0];
 						String exceptionClauses = split[1];
 
@@ -270,12 +275,9 @@ public class Rule implements Command {
 							conditions.add(new Condition(con, factory));
 						}
 
-						for (String exc : OR_PATTERN.split(exceptionClauses)) {
+						for (String exc : NOT_PATTERN.split(exceptionClauses)) {
 							exceptions.add(new Condition(exc, factory));
 						}
-					} else {
-						throw new RuleFormatException("Illegal NOT expression in " + ruleText);
-					}
 				} else {
 					for (String s : OR_PATTERN.split(conditionString)) {
 						conditions.add(new Condition(s, factory));
