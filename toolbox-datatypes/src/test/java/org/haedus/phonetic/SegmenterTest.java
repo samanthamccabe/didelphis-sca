@@ -30,7 +30,7 @@ public class SegmenterTest {
 	private static FeatureModel model;
 
 	@BeforeClass
-	public static void init() throws IOException {
+	public static void init() {
 		InputStream stream = SegmenterTest.class.getClassLoader().getResourceAsStream("features.model");
 
 		model = new FeatureModel(stream, FormatterMode.NONE);
@@ -73,6 +73,12 @@ public class SegmenterTest {
 		Sequence sequence = getSequence("aː");
 
 		assertTrue(!sequence.isEmpty());
+	}
+
+	@Test
+	public void testUnmatchedParentheses() {
+		Sequence sequence = getSequence("a(sequence");
+		assertTrue(sequence.size() == 10);
 	}
 
 	private static Sequence getSequence(String word) {

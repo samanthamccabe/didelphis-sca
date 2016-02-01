@@ -279,10 +279,10 @@ public final class Segmenter {
 
 	private static int getIndex(CharSequence string, char left, char right, int startIndex) {
 		int count = 1;
-		int endIndex = -1;
+		int endIndex = startIndex;
 
 		boolean matched = false;
-		for (int i = startIndex + 1; i <= string.length() && !matched; i++) {
+		for (int i = startIndex + 1; i < string.length() && !matched; i++) {
 			char ch = string.charAt(i);
 			if (ch == right && count == 1) {
 				matched = true;
@@ -292,6 +292,9 @@ public final class Segmenter {
 			} else if (ch == left) {
 				count--;
 			}
+		}
+		if (!matched) {
+			LOGGER.warn("Unmatched " + left + " in " + string);
 		}
 		return endIndex;
 	}
