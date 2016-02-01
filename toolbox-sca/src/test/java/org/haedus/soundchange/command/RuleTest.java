@@ -415,6 +415,42 @@ public class RuleTest {
 		testRule(rule, factory, "a",   "b");
 	}
 
+	@Test
+	public void testCompound05() {
+		VariableStore store = new VariableStore();
+
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+
+		Rule rule = new Rule("a > b / not x_ not _y", factory);
+
+		testRule(rule, factory, "xaa", "xab");
+		testRule(rule, factory, "axa", "bxa");
+		testRule(rule, factory, "aya", "ayb");
+		testRule(rule, factory, "aza", "bzb");
+		testRule(rule, factory, "a",   "b");
+	}
+
+	@Test(expected = RuleFormatException.class)
+	public void testCompound06() {
+		VariableStore store = new VariableStore();
+
+		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		Rule rule = new Rule("a > b / not x_ or _y", factory);
+	}
+
+	@Test
+	public void testCompound07() {
+		Rule rule = new Rule("a > b / x_ OR _y NOT _a NOT b_", FACTORY);
+
+		testRule(rule, FACTORY, "axa", "axb");
+		testRule(rule, FACTORY, "aya", "bya");
+		testRule(rule, FACTORY, "ayxa", "byxb");
+		testRule(rule, FACTORY, "axya", "axya");
+
+		testRule(rule, FACTORY, "axbay", "axbay");
+		testRule(rule, FACTORY, "bayay", "bayby");
+		testRule(rule, FACTORY, "ayxaa", "byxaa");
+	}
 
 	/*======================================================================+
 	 | Exception Tests                                                      |

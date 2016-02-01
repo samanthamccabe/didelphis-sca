@@ -550,7 +550,6 @@ public class ConditionTest {
 		testTrue(sequenceFactory, condition,  "abatʰkʰ", 2);
 	}
 
-	@Ignore
 	@Test
 	public void testNegative00() {
 		Condition condition = new Condition("_!a#");
@@ -563,7 +562,6 @@ public class ConditionTest {
 		testFalse(condition, "za", 0); // Good
 	}
 
-	@Ignore
 	@Test
 	public void testNegative01() {
 		Condition condition = new Condition("_!(abc)#");
@@ -579,7 +577,6 @@ public class ConditionTest {
 		testTrue(condition,  "zaaa", 0);
 	}
 
-	@Ignore
 	@Test
 	public void testNegative02() {
 		Condition condition = new Condition("_!{a b c}#");
