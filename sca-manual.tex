@@ -13,7 +13,8 @@
   % 
 	\vspace{1em}
 	\refstepcounter{excounter}
-	\noindent\makebox[3em][l]{[\arabic{excounter}\label{#1}]}
+	% 〈〉
+	\noindent\makebox[3em][l]{(\arabic{excounter}\label{#1})}
 	\minipage{\textwidth}
 	\verbatim
 }{
@@ -22,12 +23,11 @@
 	\vspace{1em}
 }
 
-
-\title{Haedus Toolbox SCA, Manual (v0.6.0)}
+\title{Haedus Toolbox SCA, Manual (v0.7.0)}
 \author{Samantha Fiona Morrígan McCabe}
 \date{\today}
 
-\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
+%\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
 %\setsansfont{Linux Biolinum O}
 \setmonofont[Scale=0.9]{DejaVu Sans Mono}
 
@@ -41,7 +41,7 @@ The Haedus Toolbox SCA is a powerful, script-driven sound-change applier program
 
 The Haedus SCA supports capabilities like multiple rule conditions, regular expressions, metathesis, unrestricted variable naming, and scripting but also allows novice users to ignore advanced functionality they do not need.
 
-This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and it's capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users.
+This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and its capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users.
 
 % section: introduction (end)
 % -----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ One of the first things you will want to do when writing rules is to load a lexi
 open 'pie_lexicon.txt' as LEXICON
 \end{vex}
 
-You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory. It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following:
+You can use \texttt{close} or \texttt{write} to write the lexicon's state to disk; \texttt{close} is the same as \texttt{write}, but also removes the file handle and lexicon from memory.\footnote{This should improve performance; each rule in a script is applied to each word in each lexion open at the time of the rule's execution. Additionally, it should prevent you from accidentally writing to a lexicon you did not intend to have open.} It may be good practice to write the output commands as soon as you open a lexicon, to ensure you don't forget later. Both these commands use a similar, if reversed, syntax to loading lexicons, with the file-handle first, then the output path. You might start writing a rules file like the following:
 
 \begin{vex}{ex:closelexicon}
 open 'pie_lexicon.txt' as LEXICON
@@ -338,7 +338,7 @@ VS > VL / _H{C # {I U W}?V}
 \end{vex}
 
 \noindent
-There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally written as follows:
+There are two things here worth taking special note of: first, that you can place a word-boundary \texttt{\#} inside a set; second, that you can also place a \emph{set} within an element of a set. In fact, this rule was originally developed as two separate rules:
 
 \begin{vex}{ex:lenthening_old}
 VS > VL / _H{C #}
@@ -346,7 +346,7 @@ VS > VL / _H{I U W}?V
 \end{vex}
 
 \noindent
-This may actually be slightly clearer in it's intent, without having to be unpacked. Both both simply express that the ``source'' should be followed by \texttt{H}, itself followed by one of several other expressions (\texttt{C}, \texttt{\#}, or \texttt{{I U W}?V}); this intent is matched by the semantics of sets and the fact that one of the other expressions also contains a set is not relevant.
+This may actually be slightly clearer in its intent, without having to be unpacked. Both both simply express that the ``source'' should be followed by \texttt{H}, itself followed by one of several other expressions (\texttt{C}, \texttt{\#}, or \texttt{{I U W}?V}); this intent is matched by the semantics of sets and the fact that one of the other expressions also contains a set is not relevant.
 
 Apart from the familiar quantifiers, two more standard elements of regular expressions is also supported here: the dot character \texttt{.} which will match any single symbol\footnote{Note that this does not say \emph{character}; if you are using normalization, or have reserved strings, ``character'' and ``symbol'' will not have a one-to-one correspondence.} and groups enclosed by parentheses \texttt{()}. Both can be combined with the quantifiers, of course. Groups are mainly used if you wish to make a sequence of expressions repeatable, or optional and are especially useful for writing syllabification rules, or accent patters.
 
@@ -408,7 +408,7 @@ open "language.lex" as LANGUAGE
 \noindent
 Lexicons are referenced by a file-handle, \texttt{LANGUAGE} in ex. \ref{ex:open}. The handle name must begin with a capital letter an can only contain capital letters, numbers, or the underscore.
 
-The difference between \texttt{write} and \texttt{close} is that the former will write the lexicon, in it's current state, to the specified location, but the handle will still be available and future changes will be applied; \texttt{close} will also write the lexicon to disk but remove the it from memory, making the file-handle unavailable. These commands have the same syntax, simply substituting \texttt{write} for \texttt{close} in the following:
+The difference between \texttt{write} and \texttt{close} is that the former will write the lexicon, in its current state, to the specified location, but the handle will still be available and future changes will be applied; \texttt{close} will also write the lexicon to disk but remove the it from memory, making the file-handle unavailable. These commands have the same syntax, simply substituting \texttt{write} for \texttt{close} in the following:
 
 \begin{vex}{ex:close}
 close LANGUAGE as "new_language.lex"
@@ -422,7 +422,7 @@ Lexicons are not automatically written closed when the script completes, so if y
 
 \subsubsection{Import \& Execute Commands}
 \label{ssub:import_and_execute_commands}
-It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert it's contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all these commands in the file immediately. The syntax is simple and is as follows:
+It is possible to use other script files using the \texttt{import} and \texttt{execute} commands. Using \texttt{import} will read the contents of another rule file, and insert its contents into that position in the script and compiles them. Using \texttt{execute} will compile and run all these commands in the file immediately. The syntax is simple and is as follows:
 
 \begin{vex}{ex:commands}
 execute "other1.rule"
@@ -632,6 +632,17 @@ The most substantial deviation from common regular expression implementations is
 \noindent
 will match any one of the expressions \texttt{E₁}, \texttt{E₂}, or \texttt{E₃}. The expression in \ref{ex:sets} is equivalent to \texttt{(E₁|E₂|E₃)} in standard regular expressions. Sets can be used with quantifier metacharacters, just as groups can.
 
+\subsubsection{Negation}
+\label{ssub:negation}
+It is also possible to \emph{negate} an expression by prepending the exclamation-mark character \texttt{!} to it. It indicates that the expression will accept any inputs except for those accepted by the original machine (but only inputs of the same length as the original).
+A simple expression \texttt{!a} will accept any single character except for the literal \emph{a}. A negated group \texttt{!(abc)} will accept any input of length = 3 which is not \emph{abc}. A negated set \texttt{!\{a b c\}} will accept any inputs of length = 1 which is not \emph{a}, not \emph{b}, and not \emph{c}.
+
+More formally, if a state machine \texttt{E} accepts a set of inputs \texttt{I} 
+%(traditionally this is called the \emph{language} accepted by \texttt{E})
+	and \texttt{L} is the set of \emph{lengths} of the inputs in \texttt{I}, then the machine \texttt{!E} will accept \emph{all possible inputs} that have lengths \texttt{L} and are not in \texttt{I}.
+
+The user is cautioned to use negation judiciously; the intent may often be more clear using an un-negated condition, paired with a exception (\texttt{not}) block, which is described in the following section.
+
 % subsection: conditions
 % -----------------------------------------------------------------------------
 
@@ -644,12 +655,13 @@ H > 0 / _{C #} or C_
 \end{vex}
 
 \noindent
-Using multiple clauses can sometimes render rules more difficult to read, so using this capability is not always ideal, from a user's point of view.
-
-It is also possible to specify condition clauses under which the rule should \emph{not} apply even though the conditions might otherwise be satisfied. This is done using the \texttt{not} keyword.	The exception clauses must always occur after the main clauses, though the main clauses are allowed to be empty. All of the following are valid uses of exception clauses:
+Using multipe clauses can sometimes render rules more difficult to read, so using this capability is not always ideal, from a user's point of view.
+It i
+s also possible to specify condition clauses under which the rule should \emph{not} apply even though the conditions might otherwise be satisfied. This is done using the \texttt{not} keyword.	The exception clauses must always occur after the main clauses, though the main clauses are allowed to be empty. All of the following are valid uses of exception clauses:
 
 \begin{vex}{ex:exception_clauses}
 a > b / not _y
+a > b / not _y not x_
 a > b / C_ not x_
 a > b / C_ or _C not x_
 a > b / C_ or _C not x_ not _y
@@ -658,8 +670,60 @@ a > b / C_ or _C not x_ not _y
 % subsubsection condition_chaining (end)
 % -----------------------------------------------------------------------------
 
-%\subsection{Phonetic Features} 
-%\label{sub:phonetic_features}
+\subsection{Phonetic Features} 
+\label{sub:phonetic_features}
+In addition to many othe useful capabilities, this sound change applier is fundamentally built to support rules based on phonetic features while not requiring their use. This section will describe the features model, and the use of features in rules files.
+
+\subsubsection{Loading a Feature Model}
+\label{ssub:loading_a_feature_model}
+A model is loaded into a rules file using the \texttt{LOAD} command, followed by the model path; the paths are handled just as they are in for opening lexicons or importing scripts.
+
+A feature model is included with this distribution, \texttt{"features.model"}; the details of this model are described in the appendix (\ref{sub:mafm}). To load this model into a script, use the following command:
+
+\begin{vex}{ex:load_feature_model}
+LOAD "feature.model"
+\end{vex}
+
+\subsubsection{Using Features}
+\label{ssub:using_features}
+With a feature model loaded, every segment can be referenced not just by its explicit symbol, but also by an array of feature specifications. If you look at the feature model file, you will see a block which defines the features themselves (name, alias, and type), and blocks defining symbols. The following example shows three feature defintions:
+
+\begin{vex}{ex:feature_definitions}
+consonantal con binary
+sonorant    son binary
+continuant  cnt binary
+\end{vex}
+
+\noindent
+The definitions contain a feature name, alias, and type. The name and alias can both be used to reference the feature when used in a rule or variable. The type just restricts which range of values a feature can take, and prevents invalid lookups or assignments. The format of the model definitions is given in section \ref{ssub:feature_model_specification}.
+
+In a rules script, features are used to reference a set of sounds organically, just as a variable is a reference that has been pre-defined. Rather than defining a variable for all plosives, they can be selected using the following:
+
+\begin{vex}{ex:feature_selection}
+[+consonantal, -sonorant]
+% OR
+[+con, -son]
+\end{vex}
+
+\noindent
+Any segments matching the array will be selected; that is, any segments having the same values as the array. The current implementation does not support alpha-place or similar, so any assimilation needs to be done explicitely. A rule which changes voiceless plosives to voiced before another voiced consonant could be written like this:
+
+\begin{vex}{ex:voicing_assimilation}
+[+con, -son, -voice] > [+voice] / _[+con, +voice]
+\end{vex}
+
+When a symbol is changed in this way, the symbol which originally represented it can no longer apply. The selection of a new symbol is performed automatically: if the exact sound given by the feature array is present in the model, then its symbol is used; if it is not, the nearest symbol is selected, and an appropraite modifier will be added so that the symbol-plus-modifier represents the feature array correctly. In the event of a conflict (two symbols or modifiers representing the same feature array), precendence is given to the one defined first.
+
+\subsubsection{Feature Model Specification}
+\label{ssub:feature_model_specification}
+The definition of a feature model has three parts: the feature inventory, symbols block, and the modifier block. Comments work the same way as they do as in rules: anything following the \texttt{\%} character will be ignored.
+
+The feature definition block is started by the keyword \texttt{FEATURES}. Each defined feature will have a name, alias, and type, separated by whitespace. The types maybe be \texttt{binary}, \texttt{ternary}, or \texttt{numeric}. 
+
+%Features which are \texttt{binary} can take values \texttt{+} or \texttt{-}; \texttt{ternary} can take values \texttt{+}, \texttt{-}, or \texttt{0}; \texttt{numeric} can take any integer value.
+
+The \texttt{SYMBOL} and \texttt{MODIFIER} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or set of characters, followed by whitespace, followed by a value for each feature, separated by tabs (in this case, it must be tab-delimited, since . In the symbol block, each of these represents a sound; in the modifiers block, most feautures are not given a value, since most modifiers and diactrics only affect one or two features.
+
 % subsection phonetic_features (end)
 % -----------------------------------------------------------------------------
 
@@ -694,6 +758,57 @@ Once the list of compiled strings is complete, each \texttt{segment} is added to
 %\subsection{Recursive Nondeterministic Finite-State Automata}
 %\label{sub:rndfa}
 
-%\subsection{Multivalue Articulatory Feature-Model}
-%\label{sub:mafm}
+\subsection{Phonetic Articulatory Feature-Model}
+\label{sub:mafm}
+In order to carry out a research program which makes us of this sound-change applier, it was necessary to develop a feature model. Unlike phonemic feature models intended to explain phenomena within a single language, the new model must be \emph{phonetic}, in order to compare across languages, or over time.
+
+The new model was based partly on Darin Flynn's \emph{Articulator Theory}, a system which combines binary and unary features. However, \emph{Articulator Theory} is still intended to describe synchronic phenomena in a single language, and does not provide the level of granularity needed in the research program. It also inherits a number of flaws from \emph{Sound Pattern of English}, such as conflating breathy-voice and aspiration, and using an explicitely lingual feature like \texttt{[distributed]} to contrast labial and labio-dental consonants.
+
+The new model would need to address the shortcomings of \emph{Articulator Theory} and improve granularity.
+
+\subsubsection{[Consonantal]}
+\label{ssub:feature_consonantal}
+
+\subsubsection{[Sonorant]}
+\label{ssub:feature_sonorant}
+
+\subsubsection{[Continuant]}
+\label{ssub:feature_continuant}
+
+\subsubsection{[Lateral]}
+\label{ssub:feature_lateral}
+
+\subsubsection{[Nasal]}
+\label{ssub:feature_nasal}
+
+\subsubsection{[Labial]}
+\label{ssub:feature_labial}
+
+\subsubsection{[Round]}
+\label{ssub:feature_round}
+
+\subsubsection{[Coronal]}
+\label{ssub:feature_coronal}
+
+\subsubsection{[Dorsal]}
+\label{ssub:feature_dorsal}
+
+\subsubsection{[Front]}
+\label{ssub:feature_front}
+
+\subsubsection{[High]}
+\label{ssub:feature_high}
+
+\subsubsection{[ATR]}
+\label{ssub:feature_atr}
+
+\subsubsection{[Voice]}
+\label{ssub:feature_voice}
+
+\subsubsection{[Tense]}
+\label{ssub:feature_tense}
+
+\subsubsection{[VOT]}
+\label{ssub:feature_vot}
+
 \end{document}
