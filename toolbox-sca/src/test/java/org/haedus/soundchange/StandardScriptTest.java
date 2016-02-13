@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -60,6 +62,77 @@ public class StandardScriptTest {
 	}
 
 	@Test
+	public void testImportVariables() throws Exception {
+		String script1 = "" +
+			"C = p t k\n" +
+			"V = a i u\n";
+
+		String script2 = "" +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"IMPORT \"script1\"\n" +
+			"a i u > 0 / VC_CV\n" +
+			"CLOSE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apaka\n" +
+			"paku\n" +
+			"atuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"apka\n" +
+			"paku\n" +
+			"atku";
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testImportReserve() throws Exception {
+		String script1 = "RESERVE ph th kh\n";
+
+		String script2 = "" +
+			"IMPORT \"script1\"\n" +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"p   t k  > b d g\n" +
+			"ph th kh > f θ x\n" +
+			"CLOSE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apakha\n" +
+			"phaku\n" +
+			"athuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"abaxa\n" +
+			"fagu\n" +
+			"aθugu";
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testImportModel() throws Exception {
+		// TODO:
+	}
+
+	@Test
+	public void testImportFormatter() throws Exception {
+		// TODO:
+	}
+
+	@Test
 	public void testExecute() throws Exception {
 		Map<String, String> fileSystem = new HashMap<String, String>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
@@ -69,9 +142,9 @@ public class StandardScriptTest {
 		String outpt = getStringFromClassPath("testRuleLargeOut01.lex");
 
 		// Append output clause
-		rules = rules.concat("\n" +
-				"MODE COMPOSITION\n" +
-				"CLOSE LEXICON AS \'output.lex\'");
+		rules = rules + "\n" +
+			"MODE COMPOSITION\n" +
+			"CLOSE LEXICON AS \'output.lex\'";
 
 		fileSystem.put("testRuleLarge01.lex", words);
 		fileSystem.put("testRuleLarge01.txt", rules);
@@ -157,21 +230,20 @@ public class StandardScriptTest {
 		new StandardScript(commands);
 	}
 
-//	@Test
-//	public void reserveTest() {
-//		String[] commands = {
-//				"SEGMENTATION: FALSE",
-//				"RESERVE ph th kh"
-//		};
-//		StandardScript sca = new StandardScript(commands);
-//		sca.process();
-//		Collection<String> received = sca.getReservedSymbols();
-//		Collection<String> expected = new HashSet<String>();
-//		expected.add("ph");
-//		expected.add("th");
-//		expected.add("kh");
-//		assertEquals(expected, received);
-//	}
+	@Test
+	public void reserveTest() {
+		String[] commands = {
+				"RESERVE ph th kh"
+		};
+		StandardScript sca = new StandardScript(commands);
+		sca.process();
+		Collection<String> received = sca.getReservedSymbols();
+		Collection<String> expected = new HashSet<String>();
+		expected.add("ph");
+		expected.add("th");
+		expected.add("kh");
+		assertEquals(expected, received);
+	}
 
 	@Test
 	public void testOpen01() {

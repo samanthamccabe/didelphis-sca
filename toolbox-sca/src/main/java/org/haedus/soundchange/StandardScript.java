@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -85,12 +86,19 @@ public class StandardScript implements SoundChangeScript {
 	private final FileHandler    fileHandler;
 	private final Queue<Command> commands;
 	private final LexiconMap     lexicons;
+	private final VariableStore  variables;
+	private final Set<String>    reserved;
+
+	private FormatterMode formatterMode = FormatterMode.NONE;
+	private FeatureModel  featureModel  = FeatureModel.EMPTY_MODEL;
 
 	public StandardScript(String id, String[] script, LexiconMap lexMap, FileHandler handler) {
-		scriptId = id;
+		scriptId    = id;
 		fileHandler = handler;
-		commands = new ArrayDeque<Command>();
-		lexicons = lexMap;
+		lexicons    = lexMap;
+		commands    = new ArrayDeque<Command>();
+		variables   = new VariableStore();
+		reserved    = new LinkedHashSet<String>();
 
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, script);
@@ -148,12 +156,11 @@ public class StandardScript implements SoundChangeScript {
 		}
 	}
 
-	private boolean parse(Iterable<String> strings) {
+	public Collection<String> getReservedSymbols() {
+		return reserved;
+	}
 
-		FormatterMode formatterMode = FormatterMode.NONE;
-		FeatureModel featureModel = FeatureModel.EMPTY_MODEL;
-		VariableStore variables = new VariableStore();
-		Set<String> reserved = new LinkedHashSet<String>();
+	private boolean parse(Iterable<String> strings) {
 
 		// For error reporting
 		int lineNumber = 1;
@@ -172,7 +179,7 @@ public class StandardScript implements SoundChangeScript {
 					} else if (OPEN.matcher(command).lookingAt()) {
 						SequenceFactory factory = new SequenceFactory(
 							featureModel,
-							new VariableStore(variables),         // Be sure to defensively copy
+							new VariableStore(variables),  // Be sure to defensively copy
 							new HashSet<String>(reserved), // Be sure to defensively copy
 							formatterMode
 						);
@@ -222,7 +229,8 @@ public class StandardScript implements SoundChangeScript {
 	}
 
 	/**
-	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that file into a lexicon stored against the file-handle;
+	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that file into a lexicon
+	 * stored against the file-handle;
 	 *
 	 * @param command the whole command staring from OPEN, specifying the path and file-handle
 	 */
@@ -255,7 +263,8 @@ public class StandardScript implements SoundChangeScript {
 	}
 
 	/**
-	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified file, but leave the handle open
+	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified file,
+	 * but leave the handle open
 	 *
 	 * @param command the whole command starting from WRITE, specifying the file-handle and path
 	 * @throws ParseException
@@ -281,8 +290,14 @@ public class StandardScript implements SoundChangeScript {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String data = fileHandler.read(path);
-		SoundChangeScript script = new StandardScript(path, data, lexicons, fileHandler);
+		StandardScript script = new StandardScript(path, data, lexicons, fileHandler);
 		commands.addAll(script.getCommands());
+		// Lexicons are altered using commands which are already imported?
+//		lexicons.addAll(script.lexicons);
+		variables.addAll(script.variables);
+		reserved.addAll(script.reserved);
+		formatterMode = script.formatterMode;
+		featureModel = script.featureModel;
 	}
 
 	/**
