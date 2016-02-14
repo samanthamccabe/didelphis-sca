@@ -89,49 +89,38 @@ public class StandardScript implements SoundChangeScript {
 	private final VariableStore  variables;
 	private final Set<String>    reserved;
 
-	private FormatterMode formatterMode = FormatterMode.NONE;
-	private FeatureModel  featureModel  = FeatureModel.EMPTY_MODEL;
+	// Need these as fields or IMPORT doesn't work correctly
+	private FormatterMode formatterMode;
+	private FeatureModel  featureModel;
 
-	public StandardScript(String id, String[] script, LexiconMap lexMap, FileHandler handler) {
-		scriptId    = id;
-		fileHandler = handler;
-		lexicons    = lexMap;
-		commands    = new ArrayDeque<Command>();
-		variables   = new VariableStore();
-		reserved    = new LinkedHashSet<String>();
+	public StandardScript(String id, CharSequence script, FileHandler handler) {
+		this(id, handler, FormatterMode.NONE, FeatureModel.EMPTY_MODEL);
 
 		Collection<String> lines = new ArrayList<String>();
-		Collections.addAll(lines, script);
+		Collections.addAll(lines, NEWLINE_PATTERN.split(script));
 
-		boolean success = parse(lines);
-
-		if (!success) {
+		boolean fail = parse(id, lines);
+		if (fail) {
 			throw new ParseException("There were problems compiling the script " + id + "; please see logs for details");
 		}
 	}
 
-	public StandardScript(String id, CharSequence script, LexiconMap lexMap, FileHandler handler) {
-		this(id, NEWLINE_PATTERN.split(script), lexMap, handler);
+	private StandardScript(String id, FileHandler handler, FormatterMode mode, FeatureModel model) {
+		scriptId    = id;
+		fileHandler = handler;
+
+		lexicons  = new LexiconMap();
+		commands  = new ArrayDeque<Command>();
+		variables = new VariableStore();
+		reserved  = new LinkedHashSet<String>();
+
+		formatterMode = mode;
+		featureModel  = model;
 	}
 
 	// Visible for testing
 	StandardScript(CharSequence script, FileHandler fileHandlerParam) {
-		this("DEFAULT", script, new LexiconMap(), fileHandlerParam);
-	}
-
-	// Visible for testing
-	StandardScript(String[] array) {
-		this("DEFAULT", array, new LexiconMap(), NullFileHandler.INSTANCE);
-	}
-
-	// Visible for testing
-	StandardScript(String[] array, FileHandler fileHandlerParam) {
-		this("DEFAULT", array, new LexiconMap(), fileHandlerParam);
-	}
-
-	// Visible for Testing
-	StandardScript(String id, CharSequence script) {
-		this(id, script, new LexiconMap(), NullFileHandler.INSTANCE);
+		this("DEFAULT", script, fileHandlerParam);
 	}
 
 	@Override
@@ -160,11 +149,11 @@ public class StandardScript implements SoundChangeScript {
 		return reserved;
 	}
 
-	private boolean parse(Iterable<String> strings) {
+	private boolean parse(String id, Iterable<String> strings) {
 
 		// For error reporting
 		int lineNumber = 1;
-		boolean success = true;
+		boolean fail = false;
 
 		for (String string : strings) {
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
@@ -206,18 +195,17 @@ public class StandardScript implements SoundChangeScript {
 						String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
 						Collections.addAll(reserved, WHITESPACE_PATTERN.split(reserve));
 					} else if (BREAK.matcher(command).lookingAt()) {
-						// Stop parsing commands
-						break;
+						break; // Stop parsing commands
 					} else {
 						LOGGER.warn("Unrecognized Command: {}", string);
 					}
 				} catch (Exception e) {
-					success = false;
-					LOGGER.error("Script: {} Line: {} --- Compilation Error", scriptId, lineNumber, e);
+					fail = true;
+					LOGGER.error("Script: {} Line: {} --- Compilation Error", id, lineNumber, e);
 				}
 			}
 		}
-		return success;
+		return fail;
 	}
 
 	private static FeatureModel loadModel(CharSequence command, FileHandler handler, FormatterMode mode) {
@@ -290,14 +278,15 @@ public class StandardScript implements SoundChangeScript {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String data = fileHandler.read(path);
-		StandardScript script = new StandardScript(path, data, lexicons, fileHandler);
-		commands.addAll(script.getCommands());
-		// Lexicons are altered using commands which are already imported?
-//		lexicons.addAll(script.lexicons);
-		variables.addAll(script.variables);
-		reserved.addAll(script.reserved);
-		formatterMode = script.formatterMode;
-		featureModel = script.featureModel;
+		Collection<String> lines = new ArrayList<String>();
+		Collections.addAll(lines, NEWLINE_PATTERN.split(data));
+		parse(path, lines);
+//		StandardScript script = new StandardScript(path, data, fileHandler);
+//		commands.addAll(script.getCommands());
+//		variables.addAll(script.variables);
+//		reserved.addAll(script.reserved);
+//		if (script.formatterMode != null) { formatterMode = script.formatterMode; }
+//		if (script.featureModel  != null) { featureModel  = script.featureModel;  }
 	}
 
 	/**

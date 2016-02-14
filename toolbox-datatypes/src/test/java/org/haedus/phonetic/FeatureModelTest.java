@@ -91,10 +91,6 @@ public class FeatureModelTest extends ModelTestBase {
 		Segment received = MODEL.getSegmentFromFeatures("[sonorance:0,release:1,labial:1,glottalstate:-3,length:0]");
 		assertEquals(expected.getFeatures(), received.getFeatures());
 	}
-	
-	private static void testNaN(double v) {
-		assertTrue("Value was " + v + " not NaN", Double.isNaN(v));
-	}
 
 	@Test
 	public void testConstructor01() {
@@ -132,5 +128,9 @@ public class FeatureModelTest extends ModelTestBase {
 	public void testGetStringFromFeatures05()  {
 		String bestSymbol = MODEL.getBestSymbol(KKWH_FEATURES);
 		assertEquals("kːʷʰ", bestSymbol);
+	}
+
+	private static void testNaN(double v) {
+		assertTrue("Value was " + v + " not NaN", Double.isNaN(v));
 	}
 }

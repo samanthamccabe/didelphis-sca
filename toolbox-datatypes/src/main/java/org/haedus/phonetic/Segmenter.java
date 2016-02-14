@@ -328,14 +328,14 @@ public final class Segmenter {
 
 	private static boolean isSuperscriptAsciiDigit(char value) {
 		// int literals are decimal char values
-		return value == SUPERSCRIPT_TWO ||
-				value == SUPERSCRIPT_THREE ||
-				value == SUPERSCRIPT_ONE;
+		return value == SUPERSCRIPT_TWO   ||
+			   value == SUPERSCRIPT_THREE ||
+			   value == SUPERSCRIPT_ONE;
 	}
 
 	private static boolean isMathematicalSubOrSuper(char value) {
 		// int literals are decimal char values
-		return SUPERSCRIPT_ZERO >= value && value >= SUBSCRIPT_SMALL_T;
+		return SUPERSCRIPT_ZERO <= value && value <= SUBSCRIPT_SMALL_T;
 	}
 
 	private static boolean isCombiningClass(char ch) {
@@ -343,7 +343,7 @@ public final class Segmenter {
 		
 		return type == Character.MODIFIER_LETTER     || // LM
 			type == Character.MODIFIER_SYMBOL        || // SK
-//			type == Character.COMBINING_SPACING_MARK || // MC this is only used in Brahmic scripts
+			type == Character.COMBINING_SPACING_MARK || // MC -- this is only used in Brahmic scripts
 			type == Character.NON_SPACING_MARK;         // MN
 	}
 
