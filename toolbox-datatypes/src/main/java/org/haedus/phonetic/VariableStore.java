@@ -100,6 +100,10 @@ public class VariableStore {
 		}
 	}
 
+	public void addAll(VariableStore variableStore) {
+		variables.putAll(variableStore.variables);
+	}
+
 	private Collection<String> expandVariables(String element) {
 		List<List<String>> list = new ArrayList<List<String>>();
 		List<List<String>> swap = new ArrayList<List<String>>();

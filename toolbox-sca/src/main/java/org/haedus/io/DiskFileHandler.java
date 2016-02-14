@@ -40,11 +40,7 @@ public class DiskFileHandler implements FileHandler {
 	public static DiskFileHandler getDefaultInstance() {
 		return DEFAULT_INSTANCE;
 	}
-	
-	public DiskFileHandler() {
-		this(DEFAULT_ENCODING);
-	}
-	
+
 	public DiskFileHandler(String encodingParam) {
 		encoding = encodingParam;
 	}

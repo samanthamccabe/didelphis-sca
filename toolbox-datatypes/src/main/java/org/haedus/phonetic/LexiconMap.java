@@ -34,6 +34,10 @@ public class LexiconMap {
 		map.put(handle, words);
 	}
 
+	public void addAll(LexiconMap m) {
+		map.putAll(m.map);
+	}
+
 	public Lexicon get(String handle) {
 		return map.get(handle);
 	}

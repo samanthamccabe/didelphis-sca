@@ -46,7 +46,7 @@ public class ScriptExecuteCommand implements Command {
 	@Override
 	public void execute() {
 		String data = handler.read(path);
-		SoundChangeScript script = new StandardScript(path, data, new LexiconMap(), handler);
+		SoundChangeScript script = new StandardScript(path, data, handler);
 		script.process();
 	}
 

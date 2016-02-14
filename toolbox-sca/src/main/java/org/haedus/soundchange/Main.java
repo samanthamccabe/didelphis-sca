@@ -52,7 +52,6 @@ public class Main {
 				SoundChangeScript script = new StandardScript(
 					file.getName(),
 					rules,
-					new LexiconMap(),
 					DiskFileHandler.getDefaultInstance()
 				);
 				script.process();

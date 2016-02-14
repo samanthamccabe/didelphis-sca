@@ -19,7 +19,10 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -42,5 +45,32 @@ public class SequenceFactoryTest {
 
 		Sequence sequence = factory.getSequence(word);
 		assertTrue(!sequence.isEmpty());
+	}
+
+	@Test
+	public void testReserved() {
+		Set<String> reserved = new HashSet<String>();
+		reserved.add("ph");
+		reserved.add("th");
+		reserved.add("kh");
+
+		SequenceFactory factory = new SequenceFactory(
+			FeatureModel.EMPTY_MODEL,
+			new VariableStore(),
+			reserved,
+			FormatterMode.NONE);
+
+		Sequence expected = factory.getSequence("");
+		expected.add(factory.getSegment("a"));
+		expected.add(factory.getSegment("ph"));
+		expected.add(factory.getSegment("a"));
+		expected.add(factory.getSegment("th"));
+		expected.add(factory.getSegment("a"));
+		expected.add(factory.getSegment("kh"));
+		expected.add(factory.getSegment("a"));
+
+		Sequence received = factory.getSequence("aphathakha");
+
+		assertEquals(expected, received);
 	}
 }
