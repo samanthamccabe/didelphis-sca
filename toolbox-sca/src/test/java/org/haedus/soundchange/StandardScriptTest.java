@@ -232,22 +232,6 @@ public class StandardScriptTest {
 		assertEquals(expected, received);
 	}
 
-	@Test
-	public void testRuleLargeWithModel() throws Exception {
-		String[] output = getStringFromClassPath("testRuleLargeOut01.lex").split("\n");
-
-		String script = "" +
-			"LOAD 'AT_hybrid.model'\n" +
-			"IMPORT 'testRuleLarge01.txt'";
-
-		SoundChangeScript sca = new StandardScript(script, CLASSPATH_HANDLER);
-		sca.process();
-
-		Lexicon received = sca.getLexicon("LEXICON");
-		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(output);
-		assertEquals(expected, received);
-	}
-
 	@Test(timeout = 2000)
 	public void testLoop() {
 		String commands =
