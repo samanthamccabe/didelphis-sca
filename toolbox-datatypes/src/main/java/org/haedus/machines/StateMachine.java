@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -103,8 +104,8 @@ public class StateMachine implements Machine {
 	}
 
 	@Override
-	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
-		Collection<Integer> indices = new HashSet<Integer>();
+	public TreeSet<Integer> getMatchIndices(int startIndex, Sequence target) {
+		TreeSet<Integer> indices = new TreeSet<Integer>();
 
 		if (graph.isEmpty()) {
 			indices.add(0);
@@ -134,7 +135,7 @@ public class StateMachine implements Machine {
 					matchIndices.add(index);
 				}
 
-				if (acceptingStates.contains(currentNode)/* || !graph.contains(currentNode)*/) {
+				if (acceptingStates.contains(currentNode)) {
 					indices.addAll(matchIndices);
 				}
 
@@ -371,8 +372,7 @@ public class StateMachine implements Machine {
 				} else if (key.equals(factory.getDotSequence())) {
 					if (!tail.startsWith(factory.getBorderSegment())) {
 						states.add(new MatchState(index + key.size(), nextNode));
-					}
-					// Else: . cannot match #
+					} // Else: . cannot match #
 				} else if (tail.startsWith(key)) {
 					// Should work for both cases which have the same behavior
 					states.add(new MatchState(index + key.size(), nextNode));
