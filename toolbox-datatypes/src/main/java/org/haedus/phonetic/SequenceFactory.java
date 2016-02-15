@@ -66,11 +66,11 @@ public class SequenceFactory {
 		this(modelParam, new VariableStore(), new HashSet<String>(), modeParam);
 	}
 
-	public SequenceFactory(FeatureModel modelParam, VariableStore storeParam, Set<String> reservedParam, FormatterMode modeParam) {
-		featureModel = modelParam;
-		variableStore = storeParam;
-		reservedStrings = reservedParam;
-		formatterMode = modeParam;
+	public SequenceFactory(FeatureModel model, VariableStore store, Set<String> reserved, FormatterMode mode) {
+		featureModel    = model;
+		variableStore   = store;
+		reservedStrings = reserved;
+		formatterMode   = mode;
 
 		List<Double> featureArray = Collections.unmodifiableList(featureModel.getBlankArray());
 
