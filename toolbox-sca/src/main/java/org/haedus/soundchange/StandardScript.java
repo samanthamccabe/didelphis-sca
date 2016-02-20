@@ -95,7 +95,7 @@ public class StandardScript implements SoundChangeScript {
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, script);
 
-		boolean success = parse(lines);
+		boolean success = parse(id, lines);
 
 		if (!success) {
 			throw new ParseException("There were problems compiling the script " + id + "; please see logs for details");
@@ -148,7 +148,7 @@ public class StandardScript implements SoundChangeScript {
 		}
 	}
 
-	private boolean parse(Iterable<String> strings) {
+	private boolean parse(String id, Iterable<String> strings) {
 
 		FormatterMode formatterMode = FormatterMode.NONE;
 		FeatureModel featureModel = FeatureModel.EMPTY_MODEL;
@@ -206,7 +206,7 @@ public class StandardScript implements SoundChangeScript {
 					}
 				} catch (Exception e) {
 					success = false;
-					LOGGER.error("Script: {} Line: {} --- Compilation Error", scriptId, lineNumber, e);
+					LOGGER.error("Script: {} Line: {} --- Compilation Error", id, lineNumber, e);
 				}
 			}
 		}
@@ -281,8 +281,13 @@ public class StandardScript implements SoundChangeScript {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String data = fileHandler.read(path);
-		SoundChangeScript script = new StandardScript(path, data, lexicons, fileHandler);
-		commands.addAll(script.getCommands());
+
+		Collection<String> lines = new ArrayList<String>();
+		Collections.addAll(lines, data);
+
+		parse(path, lines);
+//		SoundChangeScript script = new StandardScript(path, data, lexicons, fileHandler);
+//		commands.addAll(script.getCommands());
 	}
 
 	/**
