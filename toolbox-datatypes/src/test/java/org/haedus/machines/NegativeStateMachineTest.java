@@ -14,9 +14,15 @@
 
 package org.haedus.machines;
 
+import org.haedus.enums.FormatterMode;
+import org.haedus.enums.ParseDirection;
+import org.haedus.phonetic.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.VariableStore;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.HashSet;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -202,5 +208,82 @@ public class NegativeStateMachineTest extends MachineTestBase {
 		test(machine, "xxy");
 		test(machine, "yyz");
 		test(machine, "zzx");
+	}
+
+	@Test
+	public void testVariables01() {
+
+		VariableStore store = new VariableStore();
+		store.add("C = p t k");
+
+		String expression = "!C";
+
+		StateMachine machine = getStateMachine(store, expression);
+
+		test(machine, "a");
+		test(machine, "b");
+		test(machine, "c");
+
+		fail(machine, "p");
+		fail(machine, "t");
+		fail(machine, "k");
+	}
+
+	@Test
+	public void testVariables02() {
+
+		VariableStore store = new VariableStore();
+		store.add("C = ph th kh");
+
+		String expression = "!C";
+
+		StateMachine machine = getStateMachine(store, expression);
+
+		test(machine, "pp");
+		test(machine, "tt");
+		test(machine, "kk");
+
+		// These are too short
+		fail(machine, "p");
+		fail(machine, "t");
+		fail(machine, "k");
+
+		fail(machine, "ph");
+		fail(machine, "th");
+		fail(machine, "kh");
+	}
+
+	@Test
+	public void testVariables03() {
+
+		VariableStore store = new VariableStore();
+		store.add("C = ph th kh kwh");
+
+		String expression = "!C";
+
+		StateMachine machine = getStateMachine(store, expression);
+
+		test(machine, "pp");
+		test(machine, "tt");
+		test(machine, "kk");
+		test(machine, "kw");
+		test(machine, "kkw");
+
+		// These are too short
+		fail(machine, "p");
+		fail(machine, "t");
+		fail(machine, "k");
+
+		fail(machine, "ph");
+		fail(machine, "th");
+		fail(machine, "kh");
+
+		fail(machine, "kwh");
+	}
+
+	private static StateMachine getStateMachine(VariableStore store, String expression) {
+		SequenceFactory factory = new SequenceFactory(
+			FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.NONE);
+		return StateMachine.create("M0", expression, factory, ParseDirection.FORWARD);
 	}
 }

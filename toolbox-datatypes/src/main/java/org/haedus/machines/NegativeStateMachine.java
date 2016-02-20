@@ -15,12 +15,17 @@
 package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
+import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -58,6 +63,15 @@ public class NegativeStateMachine implements Machine {
 				// lambda / epsilon transition
 				if(sequence == Sequence.EMPTY_SEQUENCE || sequence.equals(factory.getBorderSequence())) {
 					graph.put(key, sequence, value);
+				} else if (factory.hasVariable(sequence.toString())) {
+					Collection<Integer> lengths = new HashSet<Integer>();
+					for (Sequence segments : factory.getVariableValues(sequence.toString())) {
+						lengths.add(segments.size());
+					}
+					Sequence dot = factory.getDotSequence();
+					for (Integer length : lengths) {
+						buildDotChain(graph, key, value, length, dot);
+					}
 				} else {
 					graph.put(key, factory.getDotSequence(), value);
 				}
@@ -83,13 +97,27 @@ public class NegativeStateMachine implements Machine {
 	@Override
 	public Collection<Integer> getMatchIndices(int startIndex, Sequence target) {
 
-		Collection<Integer> positiveIndices = positiveMachine.getMatchIndices(startIndex, target);
-		Collection<Integer> negativeIndices = negativeMachine.getMatchIndices(startIndex, target);
+		TreeSet<Integer> positiveIndices = positiveMachine.getMatchIndices(startIndex, target);
+		TreeSet<Integer> negativeIndices = negativeMachine.getMatchIndices(startIndex, target);
+
+		if (!negativeIndices.isEmpty()) {
+			int positive = positiveIndices.last();
+			int negative = negativeIndices.last();
+			return positive != negative ? positiveIndices : new HashSet<Integer>();
+		} else if (!positiveIndices.isEmpty()) {
+			return positiveIndices;
+		} else {
+			return new HashSet<Integer>();
+		}
+
+		/* This is left here as reference; not used because this method
+		 * is not greedy
 
 		// Complement --- remove negatives from positives
 		positiveIndices.removeAll(negativeIndices);
-
 		return positiveIndices;
+
+		*/
 	}
 
 	@Override
@@ -98,5 +126,15 @@ public class NegativeStateMachine implements Machine {
 				"negativeMachine=" + negativeMachine +
 				", positiveMachine=" + positiveMachine +
 				'}';
+	}
+
+	private static void buildDotChain(Graph graph, String key, Set<String> endValues, int length, Sequence dot) {
+		String thisState = key;
+		for (int i = 0; i < length - 1; i++) {
+			String nextState = key + '-' + i;
+			graph.put(thisState, dot, nextState);
+			thisState = nextState;
+		}
+		graph.put(thisState, dot, endValues);
 	}
 }

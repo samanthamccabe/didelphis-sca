@@ -19,6 +19,7 @@ import org.haedus.exceptions.ParseException;
 import org.haedus.io.ClassPathFileHandler;
 import org.haedus.io.FileHandler;
 import org.haedus.io.MockFileHandler;
+import org.haedus.io.NullFileHandler;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
@@ -31,7 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -56,7 +59,136 @@ public class StandardScriptTest {
 
 	@Test(expected = ParseException.class)
 	public void testBadMode() {
-		new StandardScript("testBadMode","MODE:XXX");
+		new StandardScript("MODE:XXX", NullFileHandler.INSTANCE);
+	}
+
+	@Test
+	public void testImportVariables() throws Exception {
+		String script1 = "" +
+			"C = p t k\n" +
+			"V = a i u\n";
+
+		String script2 = "" +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"IMPORT \"script1\"\n" +
+			"a i u > 0 / VC_CV\n" +
+			"CLOSE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apaka\n" +
+			"paku\n" +
+			"atuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"apka\n" +
+			"paku\n" +
+			"atku";
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testImportReserve() throws Exception {
+		String script1 = "RESERVE ph th kh\n";
+
+		String script2 = "" +
+			"IMPORT \"script1\"\n" +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"p   t k  > b d g\n" +
+			"ph th kh > f θ x\n" +
+			"CLOSE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apakha\n" +
+			"phaku\n" +
+			"athuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"abaxa\n" +
+			"fagu\n" +
+			"aθugu";
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testImportModelAndFormat() throws Exception {
+		String model = new ClassPathFileHandler("UTF-8").read("AT_hybrid.model");
+
+		String script1 = "LOAD \"model\"\n" +
+			"MODE " + FormatterMode.INTELLIGENT;
+
+		String script2 = "" +
+			"IMPORT \"script1\"\n" +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"[-voice, -son, -vot] > [+voice]\n"+
+			"[-voice, -son, +vot] > [+cnt, -vot]\n"+
+			"WRITE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apakʰa\n" +
+			"pʰaku\n" +
+			"atʰuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("model",   model);
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"abaxa\n" +
+			"fagu\n" +
+			"asugu";
+
+		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testImportFormatter() throws Exception {
+		String script1 = "" +
+			"C = p t k\n" +
+			"V = a i u\n";
+		// In this case the import is in the main script;
+		// the test ensures it is not overwritten
+		String script2 = "MODE " + FormatterMode.INTELLIGENT + '\n' +
+			"OPEN \"lexicon\" as LEXICON\n" +
+			"IMPORT \"script1\"\n" +
+			"p  t  k  > b d g\n" +
+			"pʰ tʰ kʰ > f θ x\n" +
+			"CLOSE LEXICON as \"newlex\"";
+
+		String lexicon = "" +
+			"apakʰa\n" +
+			"pʰaku\n" +
+			"atʰuku\n";
+
+		Map<String, String> fileSystem = new HashMap<String, String>();
+		fileSystem.put("script1", script1);
+		fileSystem.put("lexicon", lexicon);
+
+		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+
+		String received = fileSystem.get("newlex");
+		String expected = "" +
+			"abaxa\n" +
+			"fagu\n" +
+			"aθugu";
+		assertEquals(expected, received);
 	}
 
 	@Test
@@ -69,15 +201,15 @@ public class StandardScriptTest {
 		String outpt = getStringFromClassPath("testRuleLargeOut01.lex");
 
 		// Append output clause
-		rules = rules.concat("\n" +
-				"MODE COMPOSITION\n" +
-				"CLOSE LEXICON AS \'output.lex\'");
+		rules = rules + "\n" +
+			"MODE COMPOSITION\n" +
+			"CLOSE LEXICON AS \'output.lex\'";
 
 		fileSystem.put("testRuleLarge01.lex", words);
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript script = new StandardScript("testExecute", executeRule, new LexiconMap(), fileHandler);
+		StandardScript script = new StandardScript("testExecute", executeRule, fileHandler);
 
 		script.process();
 
@@ -88,90 +220,44 @@ public class StandardScriptTest {
 
 	@Test
 	public void testRuleLarge01() throws Exception {
+		String[] output = getStringFromClassPath("testRuleLargeOut01.lex").split("\n");
 
-		String[] exWords = {
-				"xocri", "pʰacā",
-				"tʰilā", "ɟentrī",
-				"ərɟicwon", "əwetʰə",
-				"ccū", "ccemen",
-				"cʰesəlccomtʰə", "byôuyom",
-				"tusciyos", "tə̄rwe",
-				"tou", "telə",
-				"somoɟəyos", "sēm",
-				"ôwes", "blan"
-		};
+		String script = "IMPORT 'testRuleLarge01.txt'";
 
-		SoundChangeScript sca = new StandardScript("IMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER);
+		SoundChangeScript sca = new StandardScript(script, CLASSPATH_HANDLER);
 		sca.process();
+
 		Lexicon received = sca.getLexicon("LEXICON");
-		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(exWords);
+		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(output);
 		assertEquals(expected, received);
-	}
-
-	@Test
-	public void testRuleLargeWithModel() throws Exception {
-
-		String[] exWords = {
-			"xocri", "pʰacā",
-			"tʰilā", "ɟentrī",
-			"ərɟicwon", "əwetʰə",
-			"ccū", "ccemen",
-			"cʰesəlccomtʰə", "byôuyom",
-			"tusciyos", "tə̄rwe",
-			"tou", "telə",
-			"somoɟəyos", "sēm",
-			"ôwes", "blan"
-		};
-
-		SoundChangeScript sca = new StandardScript(
-			"LOAD 'features.model'\nIMPORT 'testRuleLarge01.txt'", CLASSPATH_HANDLER
-		);
-		sca.process();
-		Lexicon received = sca.getLexicon("LEXICON");
-		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(exWords);
-		assertEquals(expected, received);
-	}
-
-	@Test
-	public void testNakh() throws Exception {
-		SoundChangeScript sca = new StandardScript(
-			"LOAD 'reduced.model'\nIMPORT 'nakh.rules'", CLASSPATH_HANDLER
-		);
-		sca.process();
-		Lexicon received = sca.getLexicon("PROTO");
-		assertTrue(true);
 	}
 
 	@Test(timeout = 2000)
-	public void testLoop01() {
-		String[] commands = {
-				"P = pw p t k",
-				"B = bw b d g",
-				"V = a o",
-				"P > B / V_V",
-				"P = p t k",
-				"B = b d g",
-				"B > 0 / #_c"
-		};
+	public void testLoop() {
+		String commands =
+				"P = pw p t k" + '\n' +
+				"B = bw b d g" + '\n' +
+				"V = a o"      + '\n' +
+				"P > B / V_V"  + '\n' +
+				"P = p t k"    + '\n' +
+				"B = b d g"    + '\n' +
+				"B > 0 / #_c";
 
-		new StandardScript(commands);
+		new StandardScript(commands, NullFileHandler.INSTANCE);
 	}
 
-//	@Test
-//	public void reserveTest() {
-//		String[] commands = {
-//				"SEGMENTATION: FALSE",
-//				"RESERVE ph th kh"
-//		};
-//		StandardScript sca = new StandardScript(commands);
-//		sca.process();
-//		Collection<String> received = sca.getReservedSymbols();
-//		Collection<String> expected = new HashSet<String>();
-//		expected.add("ph");
-//		expected.add("th");
-//		expected.add("kh");
-//		assertEquals(expected, received);
-//	}
+	@Test
+	public void reserveTest() {
+		String commands = "RESERVE ph th kh";
+		StandardScript sca = new StandardScript(commands, NullFileHandler.INSTANCE);
+		sca.process();
+		Collection<String> received = sca.getReservedSymbols();
+		Collection<String> expected = new HashSet<String>();
+		expected.add("ph");
+		expected.add("th");
+		expected.add("kh");
+		assertEquals(expected, received);
+	}
 
 	@Test
 	public void testOpen01() {
@@ -224,11 +310,10 @@ public class StandardScriptTest {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("test.lex", lexicon);
 
-		String[] commands = {
-				"OPEN 'test.lex' as TEST",
-				"WRITE TEST as 'write.lex'",
-				"CLOSE TEST as 'close.lex'"
-		};
+		String commands =
+				"OPEN 'test.lex' as TEST\n" +
+				"WRITE TEST as 'write.lex'\n" +
+				"CLOSE TEST as 'close.lex'";
 
 		SoundChangeScript sca = new StandardScript(commands, new MockFileHandler(map));
 		sca.process();
