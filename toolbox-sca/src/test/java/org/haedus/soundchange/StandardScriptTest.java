@@ -152,7 +152,7 @@ public class StandardScriptTest {
 		String received = fileSystem.get("newlex");
 		String expected = "" +
 			"abaxa\n" +
-			"fagu\n" +
+			"ɸagu\n" +
 			"asugu";
 
 		assertEquals(expected, received);
