@@ -175,6 +175,22 @@ public class FeatureModel {
 		return formatterMode.normalize(bestSymbol + sb);
 	}
 
+	// Return a list of all segments g such that matches.matches(input) is true
+	public Collection<Segment> getMatchingSegments(Segment input) {
+		Collection<Segment> collection = new ArrayList<Segment>();
+
+		List<Double> features = input.getFeatures();
+
+		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
+			// This implementation will work but wastes a lot of time on object allocation
+			if (Segment.matchesFeatures(features, entry.getValue())) {
+				collection.add(new Segment(entry.getKey(), entry.getValue(), this));
+			}
+		}
+
+		return collection;
+	}
+
 	public Set<String> getSymbols() {
 		return Collections.unmodifiableSet(featureMap.keySet());
 	}
@@ -240,6 +256,7 @@ public class FeatureModel {
 		return blankArray;
 	}
 
+	// Visible for testing ?
 	List<Double> getUnderspecifiedArray() {
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
@@ -320,6 +337,17 @@ public class FeatureModel {
 
 	private Collection getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
+	}
+
+	// TODO: maybe should go in FeatureModel
+	public static String formatFeatures(List<Double> features) {
+		StringBuilder sb = new StringBuilder(5 * features.size());
+		for (double feature : features) {
+			sb.append((int) feature);
+			sb.append('\t');
+		}
+
+		return sb.toString();
 	}
 
 	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
