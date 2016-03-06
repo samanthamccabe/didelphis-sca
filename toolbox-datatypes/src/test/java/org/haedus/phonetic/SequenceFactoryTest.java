@@ -35,7 +35,7 @@ public class SequenceFactoryTest {
 
 	@Test
 	public void testGetSequence01() throws IOException {
-		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("features.model");
+		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode formatterMode = FormatterMode.INTELLIGENT;
 		
 		FeatureModel model = new FeatureModel(stream, formatterMode);

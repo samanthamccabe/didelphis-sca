@@ -38,7 +38,7 @@ public class StateMachineModelTest extends MachineTestBase{
 
 	@BeforeClass
 	public static void loadModel() {
-		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("features.model");
+		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 		FeatureModel model = new FeatureModel(stream, mode);
@@ -64,7 +64,7 @@ public class StateMachineModelTest extends MachineTestBase{
 
 	@Test
 	public void testBasicStateMachine01() {
-		Machine machine = getMachine("[son:3, +con, hgt:-1, +frn, -bck, -atr, glt:0]");
+		Machine machine = getMachine("[-con, +son, -hgh, +frn, -atr, +voice]");
 
 		test(machine, "a");
 		test(machine, "aa");
@@ -75,7 +75,7 @@ public class StateMachineModelTest extends MachineTestBase{
 
 	@Test
 	public void testBasicStateMachine03() {
-		Machine machine = getMachine("a[son:3, +con, hgt:-1, +frn, -bck, -atr]+");
+		Machine machine = getMachine("a[-con, +son, -hgh, +frn]+");
 
 		fail(machine, "a");
 		test(machine, "aa");
@@ -201,7 +201,7 @@ public class StateMachineModelTest extends MachineTestBase{
 
 	@Test
 	public void testComplex05() {
-		Machine machine = getMachine("[son:3 glt:0][son:0 glt:-3 rel:1 +vot]us");
+		Machine machine = getMachine("[-con, +voice, -tense][-son, -voice, +vot]us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");

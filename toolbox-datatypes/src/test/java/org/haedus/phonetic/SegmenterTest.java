@@ -27,13 +27,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SegmenterTest {
-	private static FeatureModel model;
+	private static final FeatureModel MODEL = init();
+	
+	private static FeatureModel init() {
+		InputStream stream = SegmenterTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
-	@BeforeClass
-	public static void init() {
-		InputStream stream = SegmenterTest.class.getClassLoader().getResourceAsStream("features.model");
-
-		model = new FeatureModel(stream, FormatterMode.NONE);
+		return new FeatureModel(stream, FormatterMode.NONE);
 	}
 
 	@Test
@@ -82,6 +81,6 @@ public class SegmenterTest {
 	}
 
 	private static Sequence getSequence(String word) {
-		return Segmenter.getSequence(word, model, new ArrayList<String>(), FormatterMode.INTELLIGENT);
+		return Segmenter.getSequence(word, MODEL, new ArrayList<String>(), FormatterMode.INTELLIGENT);
 	}
 }

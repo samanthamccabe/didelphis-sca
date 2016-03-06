@@ -15,9 +15,7 @@
 package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.SegmentTest;
 import org.haedus.phonetic.SequenceFactory;
-import org.haedus.phonetic.model.FeatureModel;
 
 import java.io.InputStream;
 

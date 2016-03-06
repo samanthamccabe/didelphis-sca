@@ -17,7 +17,6 @@ package org.haedus.phonetic.model;
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Segmenter;
-import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

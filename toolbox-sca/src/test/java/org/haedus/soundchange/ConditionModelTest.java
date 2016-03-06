@@ -38,7 +38,7 @@ public class ConditionModelTest {
 	
 	@Test
 	public void testBasicStateMachine01() {
-		Condition condition = new Condition("_a[son:3, +con, hgt:-1, +frn, -bck, -atr]+", FACTORY);
+		Condition condition = new Condition("_a[+son, -hgh, +frn, -atr]+", FACTORY);
 
 		fail(condition, "xa");
 		test(condition, "xaa");
@@ -55,7 +55,7 @@ public class ConditionModelTest {
 
 	@Test
 	public void testComplex01() {
-		Condition condition = new Condition("_[son:3 glt:0][son:0 glt:-3 rel:1 +vot]us", FACTORY);
+		Condition condition = new Condition("_[-con, +voice, -tense][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -105,7 +105,7 @@ public class ConditionModelTest {
 
 	@Test
 	public void testComplex02() {
-		Condition condition = new Condition("_[son:3][son:0]us#", FACTORY);
+		Condition condition = new Condition("_[-con][-son]us#", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -152,8 +152,8 @@ public class ConditionModelTest {
 	}
 
 	private static SequenceFactory loadModel() {
-		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("features.model");
-		FeatureModel model = new FeatureModel(stream,FormatterMode.INTELLIGENT);
-		return new SequenceFactory(model, FormatterMode.INTELLIGENT);
+		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
+		FormatterMode mode = FormatterMode.INTELLIGENT;
+		return new SequenceFactory(new FeatureModel(stream, mode),mode);
 	}
 }

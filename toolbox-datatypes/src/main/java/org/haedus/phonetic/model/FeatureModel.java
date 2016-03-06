@@ -63,6 +63,10 @@ public class FeatureModel {
 
 	private final List<Double> blankArray;
 
+	public FormatterMode getFormatterMode() {
+		return formatterMode;
+	}
+
 	private final FormatterMode formatterMode;
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field

@@ -23,6 +23,7 @@ import org.haedus.io.NullFileHandler;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

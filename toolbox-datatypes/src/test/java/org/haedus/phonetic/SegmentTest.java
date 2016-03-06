@@ -35,65 +35,38 @@ public class SegmentTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceTest.class);
 
-	private static final SequenceFactory FACTORY_NF = loadNumericalFeatureModel();
-	private static final SequenceFactory FACTORY_AT = loadArticulatorTheoryModel();
+	private static final SequenceFactory FACTORY = loadArticulatorTheoryModel();
 
 	private static SequenceFactory loadArticulatorTheoryModel() {
 		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 		return new SequenceFactory(new FeatureModel(stream, mode), mode);
 	}
-
-	private static SequenceFactory loadNumericalFeatureModel() {
-		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("features.model");
-		FormatterMode mode = FormatterMode.INTELLIGENT;
-		return new SequenceFactory(new FeatureModel(stream, mode), mode);
-	}
-
+	
 	@Test
 	public void testUnderspecifiedSegment01() {
 		String string = "[-continuant, release:1]";
-		Segment received = FACTORY_NF.getSegment(string);
-		FeatureModel model = FACTORY_NF.getFeatureModel();
+		Segment received = FACTORY.getSegment(string);
+		FeatureModel model = FACTORY.getFeatureModel();
 
 		List<Double> array = model.getUnderspecifiedArray();
 		array.set(1, -1.0);
 		array.set(3, 1.0);
 
-		Segment expected = FACTORY_NF.getSegment("[-continuant, release:1]");
-
-		assertEquals(expected, received);
-	}
-
-	@Test
-	public void testUnderspecifiedSegment02() {
-		String string = "[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]";
-		Segment received = FACTORY_NF.getSegment(string);
-		FeatureModel model = FACTORY_NF.getFeatureModel();
-
-		List<Double> array = model.getUnderspecifiedArray();
-		array.set(0, 3.0);
-		array.set(1, 1.0);
-		array.set(10, -1.0);
-		array.set(11, 1.0);
-		array.set(12, -1.0);
-		array.set(13, -1.0);
-		array.set(16, 0.0);
-
-		Segment expected = new Segment(string, array, model);
+		Segment expected = FACTORY.getSegment("[-continuant, release:1]");
 
 		assertEquals(expected, received);
 	}
 
 	@Test
 	public void testMatch01() {
-		Segment segmentA = FACTORY_NF.getSegment("a");
+		Segment segmentA = FACTORY.getSegment("a");
 
-		Segment segmentP = FACTORY_NF.getSegment("p");
-		Segment segmentT = FACTORY_NF.getSegment("t");
-		Segment segmentK = FACTORY_NF.getSegment("k");
+		Segment segmentP = FACTORY.getSegment("p");
+		Segment segmentT = FACTORY.getSegment("t");
+		Segment segmentK = FACTORY.getSegment("k");
 
-		Segment received = FACTORY_NF.getSegment("[-continuant, release:1]");
+		Segment received = FACTORY.getSegment("[-continuant, -son]");
 
 		assertTrue(segmentP.matches(received));
 		assertTrue(segmentT.matches(received));
@@ -109,8 +82,8 @@ public class SegmentTest {
 
 	@Test
 	public void testMatch02() {
-		Segment a = FACTORY_NF.getSegment("a");
-		Segment n = FACTORY_NF.getSegment("n");
+		Segment a = FACTORY.getSegment("a");
+		Segment n = FACTORY.getSegment("n");
 
 		assertFalse("a matches n", a.matches(n));
 		assertFalse("n matches a", n.matches(a));
@@ -118,9 +91,9 @@ public class SegmentTest {
 
 	@Test
 	public void testMatch03() {
-		Segment segment = FACTORY_NF.getSegment("[son:3, +con, hgt:-1,+frn,-bck,-atr,glt:0]");
+		Segment segment = FACTORY.getSegment("[-con, -hgh, +frn, -atr, +voice]");
 
-		Segment a = FACTORY_NF.getSegment("a");
+		Segment a = FACTORY.getSegment("a");
 
 		assertTrue(a.matches(segment));
 		assertTrue(segment.matches(a));
@@ -128,17 +101,17 @@ public class SegmentTest {
 
 	@Test
 	public void testMatch04() {
-		Segment x = FACTORY_NF.getSegment("x");
-		Segment e = FACTORY_NF.getSegment("e");
+		Segment x = FACTORY.getSegment("x");
+		Segment e = FACTORY.getSegment("e");
 
 		assertFalse(e.matches(x));
 		assertFalse(x.matches(e));
 	}
 
 	@Test
-	public void testCompareTo01() {
-		Segment p = FACTORY_NF.getSegment("p");
-		Segment b = FACTORY_NF.getSegment("b");
+	public void testOrdering01() {
+		Segment p = FACTORY.getSegment("p");
+		Segment b = FACTORY.getSegment("b");
 
 		// These differ only by voicing, where p is -2 and b is 0
 		LOGGER.info("{} {}", p, p.getFeatures());
@@ -148,9 +121,9 @@ public class SegmentTest {
 	}
 
 	@Test
-	public void testCompareTo02() {
-		Segment p = FACTORY_NF.getSegment("p");
-		Segment t = FACTORY_NF.getSegment("t");
+	public void testOrdering02() {
+		Segment p = FACTORY.getSegment("p");
+		Segment t = FACTORY.getSegment("t");
 
 		LOGGER.info("{} {}", p, p.getFeatures());
 		LOGGER.info("{} {}", t, t.getFeatures());
