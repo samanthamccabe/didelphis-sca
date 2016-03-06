@@ -32,13 +32,13 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	
 	@Test
 	public void testWriteOutTEMP() {
-		String selector = "[+tense]";
+		String selector = "[+con; -cnt]";
 		Segment segment = MODEL.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
 		for (Segment g : segments) {
-			System.out.print(g + " ");
+			System.out.print(FormatterMode.COMPOSITION.normalize(g.toString()) + ' ');
 		}
 	}
 
