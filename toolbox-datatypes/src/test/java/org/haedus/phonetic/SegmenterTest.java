@@ -15,10 +15,10 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

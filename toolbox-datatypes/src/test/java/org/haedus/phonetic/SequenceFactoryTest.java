@@ -15,6 +15,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 
 import java.io.IOException;

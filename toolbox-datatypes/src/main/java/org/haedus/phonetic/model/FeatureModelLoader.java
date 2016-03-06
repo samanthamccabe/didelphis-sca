@@ -1,4 +1,18 @@
-package org.haedus.phonetic;
+/******************************************************************************
+ * Copyright (c) 2016. Samantha Fiona McCabe                                  *
+ *                                                                            *
+ * Licensed under the Apache License, Version 2.0 (the "License");            *
+ * you may not use this file except in compliance with the License.           *
+ * You may obtain a copy of the License at                                    *
+ *     http://www.apache.org/licenses/LICENSE-2.0                             *
+ * Unless required by applicable law or agreed to in writing, software        *
+ * distributed under the License is distributed on an "AS IS" BASIS,          *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   *
+ * See the License for the specific language governing permissions and        *
+ * limitations under the License.                                             *
+ ******************************************************************************/
+
+package org.haedus.phonetic.model;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -34,7 +48,7 @@ public class FeatureModelLoader {
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 
 	private final List<Type> featureTypes  = new ArrayList<Type>();
-	private final List<String> constraints = new ArrayList<String>();
+	private final List<Constraint> constraints = new ArrayList<Constraint>();
 	
 	private final Map<String, Integer> featureNames   = new LinkedHashMap<String, Integer>();
 	private final Map<String, Integer> featureAliases = new LinkedHashMap<String, Integer>();
@@ -99,7 +113,7 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public List<String> getConstraints() {
+	public List<Constraint> getConstraints() {
 		return constraints;
 	}
 
@@ -147,8 +161,18 @@ public class FeatureModelLoader {
 		populateModifiers(modifierZone);
 	}
 
-	private void populateConstraints(Collection<String> constraintZone) {
-		constraints.addAll(constraintZone);
+	private void populateConstraints(Iterable<String> constraintZone) {
+		for (String entry : constraintZone) {
+			String[] split = entry.split("\\s*>\\s*");
+
+			String source = split[0];
+			String target = split[1];
+
+			Map<Integer, Double> sMap = FeatureModel.getValueMap(source, featureAliases, featureNames);
+			Map<Integer, Double> tMap = FeatureModel.getValueMap(target, featureAliases, featureNames);
+
+			constraints.add(new Constraint(sMap, tMap));
+		}
 	}
 
 	private void populateModifiers(Iterable<String> modifierZone) {

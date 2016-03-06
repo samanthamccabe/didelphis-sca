@@ -15,7 +15,7 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;

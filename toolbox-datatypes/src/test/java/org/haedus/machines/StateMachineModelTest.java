@@ -15,10 +15,8 @@
 package org.haedus.machines;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.enums.ParseDirection;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.FeatureModel;
-import org.haedus.phonetic.Sequence;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.Collection;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

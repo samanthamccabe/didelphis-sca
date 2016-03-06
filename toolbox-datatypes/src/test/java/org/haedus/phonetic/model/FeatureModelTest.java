@@ -12,9 +12,12 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.haedus.phonetic;
+package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.Segmenter;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +48,14 @@ public class FeatureModelTest extends ModelTestBase {
 	private static final FeatureModel MODEL = initModel();
 
 	public static FeatureModel initModel() {
-		//                                  0     2    3    4    5    6    7    8   10    11   12   13   14    16   17
-		//                                son   vot  rel  nas  lat  lab  rnd  lin  hgt   frn  bck  atr  rad   glt  len
-		Collections.addAll(G_FEATURES,    0.0, -1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GH_FEATURES,   0.0,  1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(GJ_FEATURES,   0.0, -1.0, 1.0, NAN, NAN, NAN,-1.0, NAN, 1.0,  1.0, 1.0, NAN, NAN,  0.0, 0.0);
-		Collections.addAll(KWH_FEATURES,  0.0,  1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN, -2.0, 0.0);
-		Collections.addAll(KKWH_FEATURES, 0.0,  1.0, 1.0, NAN, NAN, NAN, 1.0, NAN, 1.0, -1.0, 1.0, NAN, NAN, -2.0, 1.0);
 
-		return loadModel("reduced.model", FormatterMode.INTELLIGENT);
+		Collections.addAll(G_FEATURES,    1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0,  0.0,  1.0, -1.0, -1.0, -1.0, -1.0);
+		Collections.addAll(GH_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0,  0.0,  1.0, -1.0,  1.0, -1.0, -1.0);
+		Collections.addAll(GJ_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0,  1.0,  1.0,  0.0,  1.0, -1.0, -1.0, -1.0, -1.0);
+		Collections.addAll(KWH_FEATURES,  1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0,  0.0, -1.0, -1.0,  1.0, -1.0, -1.0);
+		Collections.addAll(KKWH_FEATURES, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0,  0.0, -1.0, -1.0,  1.0, -1.0,  1.0);
+
+		return  loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
 	}
 
 	@Test
@@ -68,30 +70,7 @@ public class FeatureModelTest extends ModelTestBase {
 		FeatureModel model = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
 		assertTrue(model.getNumberOfFeatures() > 0);
 	}
-
-	@Test
-	public void testFeatureParse01() {
-		List<Double> ex = new ArrayList<Double>();
-		//                     son  vot  rel  nas  lat  lab  rnd  lin  hgt  frn  bck  atr  rad  glt  len
-		// 					p  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
-		Collections.addAll(ex, 0.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
-		Segment expected = new Segment("p", ex, MODEL);
-		Segment received = MODEL.getSegmentFromFeatures("[son:0,rel:1,lab:1,glt:-3,len:0]");
-		assertEquals(expected.getFeatures(), received.getFeatures());
-	}
-
-	@Test
-	public void testFeatureParse02() {
-		List<Double> ex = new ArrayList<Double>();
-		//                     son  vot  rel  nas  lat  lab  rnd  lin  hgt  frn  bck  atr  rad  glt  len
-		// 					p  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___  ___
-		Collections.addAll(ex, 0.0, INF, 1.0, INF, INF, 1.0, INF, INF, INF, INF, INF, INF, INF,-3.0, 0.0);
-
-		Segment expected = new Segment("p", ex, MODEL);
-		Segment received = MODEL.getSegmentFromFeatures("[sonorance:0,release:1,labial:1,glottalstate:-3,length:0]");
-		assertEquals(expected.getFeatures(), received.getFeatures());
-	}
-
+	
 	@Test
 	public void testConstructor01() {
 		Segment received = Segmenter.getSegment("g", MODEL, FormatterMode.INTELLIGENT);
