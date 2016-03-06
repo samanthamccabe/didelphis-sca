@@ -76,26 +76,22 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	 */
 	public Segment alter(Segment other) {
 		validateModelOrFail(other);
+
+		Collection<Integer> alteredIndices = new ArrayList<Integer>();
+
 		List<Double> otherFeatures = new ArrayList<Double>(features);
 		for (int j = 0; j < otherFeatures.size(); j++) {
 			double value = other.getFeatureValue(j);
 			if (!FeatureModel.MASKING_VALUE.equals(value)) {
 				otherFeatures.set(j, value);
+				alteredIndices.add(j);
 			}
 		}
 		
 		// For each altered index, check if the constraints apply 
-		for (Constraint constraint : model.getConstraints()) {
-			Map<Integer, Double> source = constraint.getSource();
-			boolean match = true;
-			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
-				match &= otherFeatures.get(entry.getKey()).equals(entry.getValue());
-			}
-
-			if (match) {
-				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
-					otherFeatures.set(entry.getKey(), entry.getValue());
-				}
+		for (int index : alteredIndices) {
+			for (Constraint constraint : model.getConstraints()) {
+				applyConstraint(index,otherFeatures, constraint);
 			}
 		}
 
@@ -198,18 +194,22 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	public void setFeatureValue(int index, double value) {
 		features.set(index, value);
 		for (Constraint constraint : model.getConstraints()) {
-			Map<Integer, Double> source = constraint.getSource();
-			if (source.containsKey(index)) {
+			applyConstraint(index, features, constraint);
+		}
+	}
 
-				boolean match = true;
-				for (Map.Entry<Integer, Double> entry : source.entrySet()) {
-					match &= features.get(entry.getKey()).equals(entry.getValue());
-				}
+	private static void applyConstraint(int index, List<Double> features, Constraint constraint) {
+		Map<Integer, Double> source = constraint.getSource();
+		if (source.containsKey(index)) {
 
-				if (match) {
-					for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
-						features.set(entry.getKey(), entry.getValue());
-					}
+			boolean match = true;
+			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
+				match &= features.get(entry.getKey()).equals(entry.getValue());
+			}
+
+			if (match) {
+				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
+					features.set(entry.getKey(), entry.getValue());
 				}
 			}
 		}

@@ -1,25 +1,25 @@
 %	Feature	Model
 
 FEATURES
-consonantal	con	binary
-sonorant	son	binary
-continuant	cnt	binary
-ejective	eje	binary
-release		rel	binary
-lateral		lat	binary
-nasal		nas	binary
-labial		lab	binary
-round		rnd	binary
-coronal		cor	numeric
-dorsal		dor	binary
-front		frn	ternary
-high		hgh	ternary
-atr			atr	ternary
-voice		vce	binary
-tense		ten	binary
-vot			vot	binary
-distributed	dst	binary
-long		lng	binary
+consonantal	con	binary  %  0
+sonorant	son	binary  %  1
+continuant	cnt	binary  %  2
+ejective	eje	binary  %  3
+release		rel	binary  %  4
+lateral		lat	binary  %  5
+nasal		nas	binary  %  6
+labial		lab	binary  %  7
+round		rnd	binary  %  8
+coronal		cor	numeric %  9
+dorsal		dor	binary  % 10
+front		frn	ternary % 11
+high		hgh	ternary % 12
+atr			atr	ternary % 13
+voice		vce	binary  % 14
+tense		ten	binary  % 15
+vot			vot	binary  % 16
+distributed	dst	binary  % 17
+long		lng	binary  % 18
 
 CONSTRAINTS
 % [+nas] and [+lat] cannot co-occur

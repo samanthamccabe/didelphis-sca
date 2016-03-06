@@ -130,4 +130,79 @@ public class SegmentTest {
 
 		assertTrue(p.compareTo(t) == 1);
 	}
+
+	@Test
+	public void testConstraintLateralToNasal01() {
+		Segment segment = FACTORY.getSegment("l");
+
+		segment.setFeatureValue(6, 1.0);
+
+		assertEquals(segment.getFeatureValue(5), -1.0, 0.00001);
+	}
+
+	@Test
+	public void testConstraintLateralToNasal02() {
+		Segment segment = FACTORY.getSegment("l");
+
+		Segment pNas = FACTORY.getSegment("[+nas]");
+		Segment nLat = FACTORY.getSegment("[-lat]");
+
+		assertMatch(segment, pNas, nLat);
+	}
+
+	@Test
+	public void testConstraintNasalToLateral01() {
+		Segment segment = FACTORY.getSegment("n");
+
+		segment.setFeatureValue(5, 1.0);
+
+		assertEquals(segment.getFeatureValue(6), -1.0, 0.00001);
+	}
+
+	@Test
+	public void testConstraintNasalToLateral02() {
+		Segment segment = FACTORY.getSegment("n");
+
+		Segment pLat = FACTORY.getSegment("[+lat]"); // i = 5
+		Segment nNas = FACTORY.getSegment("[-nas]"); // i = 6
+
+		assertMatch(segment, pLat, nNas);
+	}
+
+	@Test
+	public void testConstaintSonorant() {
+		Segment segment = FACTORY.getSegment("i");
+
+		Segment nSon = FACTORY.getSegment("[-son]"); // i = 1
+		Segment pCon = FACTORY.getSegment("[+con]"); // i = 0
+
+		assertMatch(segment, nSon, pCon);
+	}
+
+	@Test
+	public void testConstaintConsonant() {
+		Segment segment = FACTORY.getSegment("s");
+
+		Segment nCon = FACTORY.getSegment("[-con]"); // i = 0
+		Segment pSon = FACTORY.getSegment("[+son]"); // i = 1
+
+		assertMatch(segment, nCon, pSon);
+	}
+
+	private static void assertMatch(Segment segment, Segment modifier, Segment matching) {
+		Segment alter = segment.alter(modifier);
+
+		String message = "\n"+
+				segment.getFeatures() +
+				"\naltered by\n" +
+				modifier.getFeatures() +
+				"\nproduces\n" +
+				alter.getFeatures() +
+				"\nwhich does not match\n" +
+				modifier.getFeatures();
+		message = message
+				.replaceAll("(-|\\+)?Infinity", "____")
+				.replaceAll("([^\\-])(\\d\\.\\d)","$1 $2");
+		assertTrue(message, alter.matches(matching));
+	}
 }
