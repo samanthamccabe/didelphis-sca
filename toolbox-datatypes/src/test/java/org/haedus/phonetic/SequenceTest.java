@@ -15,6 +15,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,13 +84,13 @@ public class SequenceTest {
 	public void testMatches03() throws IOException {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 
-		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("features.model");
+		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
 		FeatureModel model = new FeatureModel(stream, mode);
 
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
-		Sequence sequence = factory.getSequence("a[-continuant, release:1]");
+		Sequence sequence = factory.getSequence("a[-continuant, -son]");
 
 		assertMatches(sequence, factory.getSequence("ap"));
 		assertMatches(sequence, factory.getSequence("at"));
@@ -102,12 +103,12 @@ public class SequenceTest {
 	public void testMatches04() throws IOException {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 
-		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("features.model");
+		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
 		FeatureModel model = new FeatureModel(stream, mode);
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
-		Sequence sequence = factory.getSequence("a[-continuant, release:2, glt:-3]");
+		Sequence sequence = factory.getSequence("a[-continuant, +rel, -voice]");
 
 		assertMatches(sequence, factory.getSequence("apf"));
 		assertMatches(sequence, factory.getSequence("ats"));

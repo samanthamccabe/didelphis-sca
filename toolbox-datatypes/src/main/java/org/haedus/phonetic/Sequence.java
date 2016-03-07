@@ -14,6 +14,7 @@
 
 package org.haedus.phonetic;
 
+import org.haedus.phonetic.model.FeatureModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

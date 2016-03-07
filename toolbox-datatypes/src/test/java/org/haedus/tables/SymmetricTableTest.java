@@ -33,11 +33,5 @@ public class SymmetricTableTest {
 	public static void init() {
 		indexedList = new SymmetricTable<String>("", 6);
 	}
-
-	@Test
-	public void testGet01() {
-		String prettyTable = indexedList.getPrettyTable();
-
-		LOGGER.info("\n{}", prettyTable);
-	}
+	
 }

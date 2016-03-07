@@ -22,10 +22,10 @@ package org.haedus.phonetic;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.machines.Expression;
+import org.haedus.phonetic.model.FeatureModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

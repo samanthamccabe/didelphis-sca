@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2015. Samantha Fiona McCabe                                  *
+ * Copyright (c) 2016. Samantha Fiona McCabe                                  *
  *                                                                            *
  * Licensed under the Apache License, Version 2.0 (the "License");            *
  * you may not use this file except in compliance with the License.           *
@@ -12,19 +12,24 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.phonetic;
+package org.haedus.phonetic.model;
 
-import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.SequenceFactory;
+
+import java.io.InputStream;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 1/21/2015
+ * Created by samantha on 10/10/15.
  */
-public interface ModelBearer {
+public class ModelTestBase {
 
-	/**
-	 * Returns the model used by this ModelBearer
-	 * @return the FeatureModel; must never be null
-	 */
-	FeatureModel getModel();
+	protected static SequenceFactory loadFactory(String resourceName, FormatterMode mode) {
+		return new SequenceFactory(loadModel(resourceName, mode), mode);
+	}
+
+	protected static FeatureModel loadModel(String resourceName, FormatterMode mode) {
+		InputStream stream = ModelTestBase.class.getClassLoader().getResourceAsStream(resourceName);
+		return new FeatureModel(stream, mode);
+	}
 }

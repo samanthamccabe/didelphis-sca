@@ -4,6 +4,10 @@
 \usepackage{xunicode}
 % Ok apparently you should never load xunicode before fontspec
 
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
 \usepackage{verbatim}
 \usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
 
@@ -27,9 +31,11 @@
 \author{Samantha Fiona Morrígan McCabe}
 \date{\today}
 
+%TODO: should define a custom style for symbols to be rendered in gentium
 %\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
+\setmainfont[Ligatures=Common]{Linux Libertine O}
 %\setsansfont{Linux Biolinum O}
-\setmonofont[Scale=0.9]{DejaVu Sans Mono}
+\setmonofont[Scale=0.85]{DejaVu Sans Mono}
 
 \begin{document}
 \maketitle
@@ -678,7 +684,7 @@ In addition to many othe useful capabilities, this sound change applier is funda
 \label{ssub:loading_a_feature_model}
 A model is loaded into a rules file using the \texttt{LOAD} command, followed by the model path; the paths are handled just as they are in for opening lexicons or importing scripts.
 
-A feature model is included with this distribution, \texttt{"features.model"}; the details of this model are described in the appendix (\ref{sub:mafm}). To load this model into a script, use the following command:
+A feature model is included with this distribution, \texttt{"features.model"}; the details of this model are described in the appendix (\ref{sub:ATHM}). To load this model into a script, use the following command:
 
 \begin{vex}{ex:load_feature_model}
 LOAD "feature.model"
@@ -720,9 +726,13 @@ The definition of a feature model has three parts: the feature inventory, symbol
 
 The feature definition block is started by the keyword \texttt{FEATURES}. Each defined feature will have a name, alias, and type, separated by whitespace. The types maybe be \texttt{binary}, \texttt{ternary}, or \texttt{numeric}. 
 
-%Features which are \texttt{binary} can take values \texttt{+} or \texttt{-}; \texttt{ternary} can take values \texttt{+}, \texttt{-}, or \texttt{0}; \texttt{numeric} can take any integer value.
+The \texttt{SYMBOL} and \texttt{MODIFIER} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or sequence of characters (whatever represents a single sound), followed by a single \emph{tab character}, followed by a value for each feature, separated by tabs.
 
-The \texttt{SYMBOL} and \texttt{MODIFIER} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or set of characters, followed by whitespace, followed by a value for each feature, separated by tabs (in this case, it must be tab-delimited, since . In the symbol block, each of these represents a sound; in the modifiers block, most feautures are not given a value, since most modifiers and diactrics only affect one or two features.
+In the symbol block, blank values are not allowed. In the modifier block, they are expected; adding a modifier to a symbol such as \emph{a̰} will take the feature array for \emph{a} and overwrite them with for any value definited in the modifer block for \emph{◌̰}.
+
+In the symbol and modifier block, feature values are limited and checked based on the type defined in the features block: \texttt{binary} can take values \texttt{+} or \texttt{-}; \texttt{ternary} can take values \texttt{+}, \texttt{-}, or \texttt{0}; \texttt{numeric} can take any integer value.
+
+An example file is provided with the software and can be found at \texttt{example/ATH.model}.
 
 % subsection phonetic_features (end)
 % -----------------------------------------------------------------------------
@@ -755,60 +765,183 @@ One type of diacritic is given special treatment, and that is the double-width o
 
 Once the list of compiled strings is complete, each \texttt{segment} is added to a \texttt{sequence} object which will represent the original input.
 
-%\subsection{Recursive Nondeterministic Finite-State Automata}
-%\label{sub:rndfa}
+\subsection{Nondeterministic Finite-State Automata}
+\label{sub:rndfa}
 
-\subsection{Phonetic Articulatory Feature-Model}
-\label{sub:mafm}
+Inside the sound-change applier's rule code, conditions are parsed into nondeterministic finite-state automata (NFA). Unlike traditional NFA implementations, this one can match sequences of both literal symbols and also segments represented as feature arrays. To the NFA (as to the rest of the sound-change system) these are one and the same, sequences of segment objects, which represent speech sounds.
+
+This appendix describes some of the implementational details of the automata
+
+\begin{figure}\label{fig:machine_optional}
+\caption{State machine for \texttt{E?}}
+
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% ------------------------------------------------------------
+  \node[initial,state]    (A)              {$q_0$};
+  \node[state, rectangle] (B) [right of=A] {$E$};
+  \node[state, accepting] (C) [right of=B] {$q_1$};
+% ------------------------------------------------------------
+  \path (A) edge [below]            node {$\oslash$} (B)
+        (B) edge [below]            node {$\oslash$} (C)
+        (A) edge [bend left, above] node {$\oslash$} (C);
+% ------------------------------------------------------------
+\end{tikzpicture}
+\end{figure}
+
+%
+%
+%
+
+\begin{figure}\label{fig:machine_star}
+\caption{State machine for \texttt{E*}}
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% ------------------------------------------------------------
+  \node[initial,state]    (A)              {$q_0$};
+  \node[state, rectangle] (B) [right of=A] {$E$};
+  \node[state, accepting] (C) [right of=B] {$q_1$};
+% ------------------------------------------------------------
+  \path (A) edge [below]             node {$\oslash$} (B)
+        (B) edge [bend right, above] node {$\oslash$} (A)
+        (A) edge [bend right, below] node {$\oslash$} (C);
+% ------------------------------------------------------------
+\end{tikzpicture}
+\end{figure}
+
+%
+%
+%
+
+\begin{figure}\label{fig:machine_plus}
+\caption{State machine for \texttt{E+}}
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% ------------------------------------------------------------
+  \node[initial,state]    (A)              {$q_0$};
+  \node[state, rectangle] (B) [right of=A] {$E$};
+  \node[state, accepting] (C) [right of=B] {$q_1$};
+% ------------------------------------------------------------
+  \path (A) edge [below]             node {$\oslash$} (B)
+        (B) edge [below]             node {$\oslash$} (C)
+        (C) edge [bend right, above] node {$\oslash$} (A);
+% ------------------------------------------------------------
+\end{tikzpicture}
+\end{figure}
+
+%
+%
+%
+
+\begin{figure}\label{fig:machine_set}
+\caption{State machine for \texttt{\{E\textsubscript{1} E\textsubscript{2} E\textsubscript{3}\}}}
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% ------------------------------------------------------------
+  \node[initial,state]    (A)                           {$q_0$};
+  \node[state, rectangle] (C) [right of = A]            {$E_2$};
+  \node[state, rectangle] (B) [above=0.25cm of C]       {$E_1$};
+  \node[state, rectangle] (D) [below=0.25cm of C]       {$E_3$};
+  \node[state, accepting] (X) [right of=C]              {$q_1$};
+% ------------------------------------------------------------
+  \path (A) edge [bend left, above]  node {$\oslash$} (B)
+        (A) edge [above]             node {$\oslash$} (C)
+        (A) edge [bend right, below] node {$\oslash$} (D)
+
+        (B) edge [bend left, above]  node {$\oslash$} (X)
+        (C) edge [above]             node {$\oslash$} (X)
+        (D) edge [bend right, below] node {$\oslash$} (X);
+% ------------------------------------------------------------
+\end{tikzpicture}
+\end{figure}
+
+\subsection{Articulator Theory Hybrid Model}
+\label{sub:ATHM}
 In order to carry out a research program which makes us of this sound-change applier, it was necessary to develop a feature model. Unlike phonemic feature models intended to explain phenomena within a single language, the new model must be \emph{phonetic}, in order to compare across languages, or over time.
 
 The new model was based partly on Darin Flynn's \emph{Articulator Theory}, a system which combines binary and unary features. However, \emph{Articulator Theory} is still intended to describe synchronic phenomena in a single language, and does not provide the level of granularity needed in the research program. It also inherits a number of flaws from \emph{Sound Pattern of English}, such as conflating breathy-voice and aspiration, and using an explicitely lingual feature like \texttt{[distributed]} to contrast labial and labio-dental consonants.
 
 The new model would need to address the shortcomings of \emph{Articulator Theory} and improve granularity.
 
-\subsubsection{[Consonantal]}
+\subsubsection{[consonantal]}
 \label{ssub:feature_consonantal}
+\textbf{binary} — Following Flynn's work, \texttt{[consonantal]} is one of the most important features, dividing vowels (\texttt{−[consonantal]}) and semivowels from the consonants proper.
 
-\subsubsection{[Sonorant]}
+\subsubsection{[sonorant]}
 \label{ssub:feature_sonorant}
+\textbf{binary} — Easily another of the most important features, dividing the sonorants from obstruants. Flynn groups laryngeal as glides, and thus \texttt{[+sonorant]}; to reduce potential confusion for users familiar with Sound Pattern of English or similar models, laryngeals are \texttt{[−sonorant]} here.
 
-\subsubsection{[Continuant]}
+\subsubsection{[continuant]}
 \label{ssub:feature_continuant}
+\textbf{binary} — This feature is primarily used to distinguish plositves from fricatives. Flynn uses it excusively for that purpose, so that it only applies to obstruents. This model treats all non-stops (sonorants and fricatives) as \texttt{[+continuant]}; it might be entirely reasonable to invert the values for this features and call it \texttt{[stop]}.
 
-\subsubsection{[Lateral]}
+\subsubsection{[release]}
+\label{ssub:feature_release}
+\textbf{binary} — This is the first feature not present in Flynn's work. It was present in ``Sound Pattern of English'' and was re-introduced to unambiguously contrast plosives from affricates. The name is shorthand for ``delayed release'' and can only apply meaningfully to plosives. And sounds which are \texttt{[+release]} will be affricates
+
+\subsubsection{[lateral]}
 \label{ssub:feature_lateral}
+\textbf{binary} — This feature is quite simple and should probably be familiar. Lateral sounds are produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides (\emph{i.e.} laterally, which has some distinctive acoustic effects. Note that the airflow is through the oral cavity by necessity, such that any sound which is \texttt{[+lateral]} must be \texttt{[−nasal]}.
 
-\subsubsection{[Nasal]}
+\subsubsection{[nasal]}
 \label{ssub:feature_nasal}
+\textbf{binary} — Like \texttt{[lateral]}, this feature should probably be quite familiar. Sounds which are \texttt{[+nasal]} are made with a lowered velum, allowing airflow throuh the nasal cavity. As mentioned in the previous section, sounds which are nasal cannot be lateral.
 
-\subsubsection{[Labial]}
+\subsubsection{[labial]}
 \label{ssub:feature_labial}
+\textbf{binary} — The first major place feature, \texttt{[labial]} represents sounds which are articulated using the lips. Unlike Flynn's model, this one does not contrast between labiodental and bilabial consonants (though one could in principal use \texttt{[+round]} for bilabial and \texttt{[+round]} for labiodental, imprecise as this is).
 
-\subsubsection{[Round]}
+\subsubsection{[round]}
 \label{ssub:feature_round}
+\textbf{binary} — This is the only other feature associated with the lips. It represents both rounding contrasts in vowels, but also secondary articulation on plosives.
 
-\subsubsection{[Coronal]}
+\subsubsection{[coronal]}	
 \label{ssub:feature_coronal}
+\textbf{numeric} — This is the first and only numeric feature currently included in the system; at earlier stages there were more, but these were replaced by binary features for clarity. The coronal sounds have been left this way because they share a single articulator making contact at different points along a continuum, from dental, to alveolar, back to palatal.
 
-\subsubsection{[Dorsal]}
+\begin{itemize}
+  \item \texttt{[coronal:0]} — Not coronal; neutral position, articulator not engaged.
+  \item \texttt{[coronal:1]} — Dental or interdental; tongue tip is against or between teeth.
+  \item \texttt{[coronal:2]} — Alveolar; tongue tip raised against the alveolar ridge.
+  \item \texttt{[coronal:3]} — Post-Alveolar; tongue tip raised to between the alveolar ridge and soft palate.
+  \item \texttt{[coronal:4]} — Retroflex; tongue tip curled back towards the soft palate.
+  \item \texttt{[coronal:5]} — Palatal; tongue body raised to the soft palate
+\end{itemize}
+
+Two immediate critisims of this arrangement  are that dental (and especially interdental) sounds are produced with a movement in the opposite direction of the others; it might instead be assigned a value \texttt{-1}, and alveolar sounds \texttt{1} rather than \texttt{2}. A second is that from dental to retroflex, a smooth continuum of articulation can be produced by pulling the tip of the tongue along the roof of the mouth. However, palatal sounds are articulated in a different way, with a different part of the tongue.
+
+These facts may have very little bearing on their practical use in a rule system, but are worth considering.
+
+\subsubsection{[dorsal]}
 \label{ssub:feature_dorsal}
+\textbf{binary} — 
 
-\subsubsection{[Front]}
+\subsubsection{[front]}
 \label{ssub:feature_front}
+\textbf{ternary} — 
 
-\subsubsection{[High]}
+\subsubsection{[high]}
 \label{ssub:feature_high}
+\textbf{ternary} — 
 
 \subsubsection{[ATR]}
 \label{ssub:feature_atr}
+\textbf{ternary} — 
 
-\subsubsection{[Voice]}
+\subsubsection{[voice]}
 \label{ssub:feature_voice}
+\textbf{binary} — 
 
-\subsubsection{[Tense]}
+\subsubsection{[tense]}
 \label{ssub:feature_tense}
+\textbf{binary} — 
 
 \subsubsection{[VOT]}
 \label{ssub:feature_vot}
+\textbf{binary} — 
+
+\subsubsection{[ejective]}
+\label{ssub:feature_ejective}
+\textbf{binary} — 
 
 \end{document}
