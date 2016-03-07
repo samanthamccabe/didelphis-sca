@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,7 +36,9 @@ public class SegmentTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceTest.class);
 
-	private static final SequenceFactory FACTORY = loadArticulatorTheoryModel();
+	private static final SequenceFactory FACTORY          = loadArticulatorTheoryModel();
+	private static final Pattern         INFINITY_PATTERN = Pattern.compile("(-|\\+)?Infinity");
+	private static final Pattern         DECIMAL_PATTERN  = Pattern.compile("([^\\-])(\\d\\.\\d)");
 
 	private static SequenceFactory loadArticulatorTheoryModel() {
 		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
@@ -180,13 +183,53 @@ public class SegmentTest {
 	}
 
 	@Test
-	public void testConstaintConsonant() {
+	public void testConstraintConsonant() {
 		Segment segment = FACTORY.getSegment("s");
 
 		Segment nCon = FACTORY.getSegment("[-con]"); // i = 0
 		Segment pSon = FACTORY.getSegment("[+son]"); // i = 1
 
 		assertMatch(segment, nCon, pSon);
+	}
+
+	@Test
+	public void testConstraintConsonantalRelease() {
+		Segment segment = FACTORY.getSegment("kx");
+
+		Segment nCon = FACTORY.getSegment("[-con]"); // i = 0
+		Segment nRel = FACTORY.getSegment("[-rel]"); // i = 1
+
+		assertMatch(segment, nCon, nRel);
+	}
+
+	@Test
+	public void testConstraintContinuantRelease() {
+		Segment segment = FACTORY.getSegment("kx");
+
+		Segment nCnt = FACTORY.getSegment("[+cnt]"); // i = 0
+		Segment nRel = FACTORY.getSegment("[-rel]"); // i = 1
+
+		assertMatch(segment, nCnt, nRel);
+	}
+
+	@Test
+	public void testConstraintSonorantRelease() {
+		Segment segment = FACTORY.getSegment("ts");
+
+		Segment nCnt = FACTORY.getSegment("[+son]"); // i = 0
+		Segment nRel = FACTORY.getSegment("[-rel]"); // i = 1
+
+		assertMatch(segment, nCnt, nRel);
+	}
+
+	@Test
+	public void testConstraintReleaseConsonantal() {
+		Segment segment = FACTORY.getSegment("r");
+
+		Segment pRel = FACTORY.getSegment("[+rel]"); // i = 0
+		Segment pCon = FACTORY.getSegment("[+con]"); // i = 1
+
+		assertMatch(segment, pRel, pCon);
 	}
 
 	private static void assertMatch(Segment segment, Segment modifier, Segment matching) {
@@ -200,9 +243,9 @@ public class SegmentTest {
 				alter.getFeatures() +
 				"\nwhich does not match\n" +
 				modifier.getFeatures();
-		message = message
-				.replaceAll("(-|\\+)?Infinity", "____")
-				.replaceAll("([^\\-])(\\d\\.\\d)","$1 $2");
-		assertTrue(message, alter.matches(matching));
+		
+		message = INFINITY_PATTERN.matcher(message).replaceAll("____");
+		message = DECIMAL_PATTERN.matcher(message).replaceAll("$1 $2");
+		assertTrue(message,  alter.matches(matching));
 	}
 }
