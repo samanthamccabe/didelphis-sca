@@ -15,13 +15,14 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.ModelTestBase;
 import org.junit.Test;
 
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by samantha on 2/21/16.
@@ -56,13 +57,13 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 
 	@Test
 	public void testConsonantal() {
-		String selector = "[-consonantal]";
+		String selector = "[+consonantal]";
 		Segment segment = MODEL.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
 		assertFalse(segments.isEmpty());
-		assertEquals(75,segments.size());
+		assertEquals(81,segments.size());
 	}
 
 	@Test
@@ -84,7 +85,7 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
 		assertFalse(segments.isEmpty());
-		assertEquals(59, segments.size());
+		assertEquals(65, segments.size());
 	}
 
 	@Test

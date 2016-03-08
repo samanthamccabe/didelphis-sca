@@ -43,13 +43,12 @@ import java.util.regex.Pattern;
  * @author Samantha Fiona Morrigan McCabe
  */
 public class FeatureModel {
-	
+
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
 	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
-	
-	public static final Double UNDEFINED_VALUE = Double.NaN;
-	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
+	public static final Double       UNDEFINED_VALUE = Double.NaN;
+	public static final Double       MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 	
 	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)",   Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
@@ -61,12 +60,7 @@ public class FeatureModel {
 	private final Map<String, List<Double>> diacritics;
 	private final List<Constraint>          constraints;
 
-	private final List<Double> blankArray;
-
-	public FormatterMode getFormatterMode() {
-		return formatterMode;
-	}
-
+	private final List<Double>  blankArray;
 	private final FormatterMode formatterMode;
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
@@ -129,6 +123,20 @@ public class FeatureModel {
 			}
 		}
 		return map;
+	}
+
+	public static String formatFeatures(List<Double> features) {
+		StringBuilder sb = new StringBuilder(5 * features.size());
+		for (double feature : features) {
+			sb.append((int) feature);
+			sb.append('\t');
+		}
+
+		return sb.toString();
+	}
+
+	public FormatterMode getFormatterMode() {
+		return formatterMode;
 	}
 
 	public Segment getSegmentFromFeatures(String features) {
@@ -261,7 +269,6 @@ public class FeatureModel {
 	}
 
 	// Visible for testing ?
-	List<Double> getUnderspecifiedArray() {
 	public List<Double> getUnderspecifiedArray() {
 		List<Double> list = new ArrayList<Double>();
 		for (int i = 0; i < getNumberOfFeatures(); i++) {
@@ -385,55 +392,5 @@ public class FeatureModel {
 
 	private Collection getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
-	}
-
-	// TODO: maybe should go in FeatureModel
-	public static String formatFeatures(List<Double> features) {
-		StringBuilder sb = new StringBuilder(5 * features.size());
-		for (double feature : features) {
-			sb.append((int) feature);
-			sb.append('\t');
-		}
-
-		return sb.toString();
-	}
-
-	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
-		List<Double> list = new ArrayList<Double>();
-		if (left.size() == right.size()) {
-			for (int i = 0; i < left.size(); i++) {
-				Double l = left.get(i);
-				Double r = right.get(i);
-				list.add(Math.abs(getDifference(l, r)));
-			}
-		} else {
-			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
-		}
-		return list;
-	}
-
-	private static double getDifferenceValue(List<Double> left, List<Double> right) {
-		double sum = 0.0;
-		List<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.isEmpty()) {
-			sum = Double.NaN;
-		} else {
-			for (Double value : differenceArray) {
-				sum += value;
-			}
-		}
-		return sum;
-	}
-
-	private static Double getDifference(Double a, Double b) {
-		if (a.equals(b)) {
-			return 0.0;
-		} else if (a.isNaN()) {
-			return b;
-		} else if (b.isNaN()) {
-			return a;
-		} else {
-			return Math.abs(a - b);
-		}
 	}
 }
