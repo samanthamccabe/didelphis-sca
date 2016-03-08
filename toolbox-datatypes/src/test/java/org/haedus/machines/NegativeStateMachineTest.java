@@ -16,7 +16,7 @@ package org.haedus.machines;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.enums.ParseDirection;
-import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
 import org.junit.BeforeClass;

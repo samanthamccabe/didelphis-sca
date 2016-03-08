@@ -17,7 +17,7 @@ package org.haedus.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.Segment;

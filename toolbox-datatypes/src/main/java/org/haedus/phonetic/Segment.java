@@ -19,12 +19,17 @@
 
 package org.haedus.phonetic;
 
+import org.haedus.phonetic.model.Constraint;
+import org.haedus.phonetic.model.FeatureModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -71,13 +76,25 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	 */
 	public Segment alter(Segment other) {
 		validateModelOrFail(other);
-		List<Double> otherFeatures = new ArrayList<Double>(getFeatures());
+
+		Collection<Integer> alteredIndices = new ArrayList<Integer>();
+
+		List<Double> otherFeatures = new ArrayList<Double>(features);
 		for (int j = 0; j < otherFeatures.size(); j++) {
 			double value = other.getFeatureValue(j);
 			if (!FeatureModel.MASKING_VALUE.equals(value)) {
 				otherFeatures.set(j, value);
+				alteredIndices.add(j);
 			}
 		}
+		
+		// For each altered index, check if the constraints apply 
+		for (int index : alteredIndices) {
+			for (Constraint constraint : model.getConstraints()) {
+				applyConstraint(index,otherFeatures, constraint);
+			}
+		}
+
 		String newSymbol = model.getBestSymbol(otherFeatures);
 		return new Segment(newSymbol, otherFeatures, model);
 	}
@@ -184,6 +201,26 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	public void setFeatureValue(int index, double value) {
 		features.set(index, value);
+		for (Constraint constraint : model.getConstraints()) {
+			applyConstraint(index, features, constraint);
+		}
+	}
+
+	private static void applyConstraint(int index, List<Double> features, Constraint constraint) {
+		Map<Integer, Double> source = constraint.getSource();
+		if (source.containsKey(index)) {
+
+			boolean match = true;
+			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
+				match &= features.get(entry.getKey()).equals(entry.getValue());
+			}
+
+			if (match) {
+				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
+					features.set(entry.getKey(), entry.getValue());
+				}
+			}
+		}
 	}
 
 	public boolean isUndefined() {

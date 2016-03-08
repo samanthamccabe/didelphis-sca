@@ -15,7 +15,7 @@
 package org.haedus.soundchange.command;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.FeatureModel;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,18 +47,22 @@ public class RuleModelTest {
 
 	@Test(expected = RuleFormatException.class)
 	public void testFeatureTransformOutOfRange() {
-		new Rule("a > g[hgt:1]", FACTORY);
+		new Rule("a > g[+hgh]", FACTORY);
 	}
 
 	@Test
 	public void testFeatureTransform01() {
-		Rule rule = new Rule("[son:4, hgt:-1, +frn, -bck, -atr, glt:0] > [hgt:1, +atr]", FACTORY);
+		Rule rule = new Rule("[-con, +son, -hgh, +frn, -atr] > [+hgh, +atr]", FACTORY);
 		testRule(rule, "a", "i");
+
+		testRule(rule, "ɐ", "ɐ");
+		testRule(rule, "æ", "æ");
+		testRule(rule, "e", "e");
 	}
 
 	@Test
 	public void testFeatureTransform02() {
-		Rule rule = new Rule("[son:0, rel:1 glt:-2] > [rel:2]", FACTORY);
+		Rule rule = new Rule("[+con, -son, -rel, -voice] > [+rel]", FACTORY);
 		testRule(rule, "t", "ts");
 		testRule(rule, "p", "pɸ");
 		testRule(rule, "tʰ", "tsʰ");
@@ -70,7 +73,7 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeatureTransform03() {
-		Rule rule = new Rule("[son:0, glt:0] > [glt:-2] / _[son:0, glt:-2]", FACTORY);
+		Rule rule = new Rule("[+con, -son, +voice] > [-voice] / _[+con, -son, -voice]", FACTORY);
 		testRule(rule, "dt", "tt");
 		testRule(rule, "bt", "pt");
 
@@ -81,14 +84,13 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeaturesIndexing01() {
-		Rule rule = new Rule("c[son:4, glt:0] > $1k", FACTORY);
+		Rule rule = new Rule("c[-con, +son, +voice] > $1k", FACTORY);
 		testRule(rule, "ca", "ak");
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testFeaturesIndexing02() {
-		Rule rule = new Rule("c[son:4, glt:0] > $[hgt:1]1k", FACTORY);
-		testRule(rule, "ca", "ɪk");
+		new Rule("c[-con, +son, +voice] > $[+hgh]1k", FACTORY);
 	}
 
 	@Test
@@ -259,10 +261,10 @@ public class RuleModelTest {
 
 	@Test
 	public void testConditional07() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", FACTORY);
+		Rule rule = new Rule("pʰ tʰ kʰ kʲʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ kʲʰ}", FACTORY);
 
-		testRule(rule, FACTORY, "pʰaḱʰus", "baḱʰus");
-		testRule(rule, FACTORY, "pʰaːḱʰus", "pʰaːḱʰus");
+		testRule(rule, FACTORY, "pʰakʲʰus", "bakʲʰus");
+		testRule(rule, FACTORY, "pʰaːkʲʰus", "pʰaːkʲʰus");
 	}
 
 	@Test
@@ -415,7 +417,7 @@ public class RuleModelTest {
 	}
 
 	private static FeatureModel loadModel() {
-		InputStream stream = RuleModelTest.class.getClassLoader().getResourceAsStream("reduced.model");
+		InputStream stream = RuleModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		return new FeatureModel(stream, FormatterMode.INTELLIGENT);
 	}
 }

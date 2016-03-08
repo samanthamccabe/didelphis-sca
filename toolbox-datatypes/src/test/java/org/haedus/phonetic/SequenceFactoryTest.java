@@ -15,6 +15,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
+import org.haedus.phonetic.model.FeatureModel;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class SequenceFactoryTest {
 
 	@Test
 	public void testGetSequence01() throws IOException {
-		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("features.model");
+		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode formatterMode = FormatterMode.INTELLIGENT;
 		
 		FeatureModel model = new FeatureModel(stream, formatterMode);
