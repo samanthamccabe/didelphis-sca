@@ -12,11 +12,10 @@
  * limitations under the License.                                             *
  ******************************************************************************/
 
-package org.haedus.phonetic;
+package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.model.FeatureModel;
-import org.haedus.phonetic.model.ModelTestBase;
+import org.haedus.phonetic.Segment;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -33,7 +32,7 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	
 	@Test
 	public void testWriteOutTEMP() {
-		String selector = "[+con; -cnt]";
+		String selector = "[atr:0]";
 		Segment segment = MODEL.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);

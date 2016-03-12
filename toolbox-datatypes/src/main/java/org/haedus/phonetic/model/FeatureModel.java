@@ -50,9 +50,16 @@ public class FeatureModel {
 	public static final Double       UNDEFINED_VALUE = Double.NaN;
 	public static final Double       MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 	
-	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)",   Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s?|\\s");
+	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
+	private static final String NAME   = "(\\S+)";
+	private static final String ASSIGN = "([:><])";
+
+	private static final Pattern VALUE_PATTERN = Pattern.compile(NAME + ASSIGN + VALUE, Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern OTHER_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME, Pattern.UNICODE_CHARACTER_CLASS);
+	
+	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME, Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
+	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
 
 	private final Map<String, Integer>      featureNames;
 	private final Map<String, Integer>      featureAliases;
@@ -100,7 +107,8 @@ public class FeatureModel {
 	@NotNull
 	public static Map<Integer, Double> getValueMap(String features, Map<String, Integer> aliases, Map<String, Integer> names) {
 		int size = features.length();
-		String[] array = FEATURE_PATTERN.split(features.substring(1, size - 1));
+		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
+		String[] array = FEATURE_PATTERN.split(substring);
 
 		Map<Integer, Double> map = new HashMap<Integer, Double>();
 		for (String element : array) {
