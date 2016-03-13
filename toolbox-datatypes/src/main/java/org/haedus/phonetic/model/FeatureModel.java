@@ -65,11 +65,12 @@ public class FeatureModel {
 
 	private final int numberOfFeatures;
 
+	private final Map<String, Map<Integer, Double>> aliases;
+
 	private final Map<String, Integer>      featureIndices;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
-	private final Map<String, Map<String,Integer>> aliases;
-	
+
 	private final List<String>              featureNames;
 	private final List<Constraint>          constraints;
 
@@ -83,7 +84,7 @@ public class FeatureModel {
 		featureIndices = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, List<Double>>();
 		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new LinkedHashMap<String, Map<String,Integer>>();
+		aliases        = new LinkedHashMap<String, Map<Integer, Double>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
 		featureNames   = new ArrayList<String>();
@@ -120,7 +121,9 @@ public class FeatureModel {
 	}
 
 	@NotNull
-	public static Map<Integer, Double> getValueMap(String features, Map<String, Integer> names, Map<String, Map<String,Integer>> aliases) {
+	public static Map<Integer, Double> getValueMap(String features,
+												   Map<String, Integer> names,
+												   Map<String, Map<Integer, Double>> aliases) {
 		int size = features.length();
 		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
 		String[] array = FEATURE_PATTERN.split(substring);
@@ -135,19 +138,21 @@ public class FeatureModel {
 				String featureName  = valueMatcher.group(1);
 				String assignment   = valueMatcher.group(2); 
 				String featureValue = valueMatcher.group(3);
-				Integer integer = retrieveIndex(featureName, features, names, aliases);
+				Integer integer = retrieveIndex(featureName, features, names);
 				map.put(integer, Double.valueOf(featureValue));
 			} else if (otherMatcher.matches()) {
 				String featureName  = otherMatcher.group(3);
 				String assignment   = otherMatcher.group(2);
 				String featureValue = otherMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, names, aliases);
+				Integer integer = retrieveIndex(featureName, features, names);
 				map.put(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
-				String featureName  = binaryMatcher.group(2);
+				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, names, aliases);
+				Integer integer = retrieveIndex(featureName, features, names);
 				map.put(integer, featureValue.equals("+") ? 1.0 : -1.0);
+			} else if (aliases.containsKey(element)) {
+				map.putAll(aliases.get(element));
 			} else {
 				// invalid format?
 				throw new ParseException("Unrecognized feature \"" + element + "\" in definition " + features);
@@ -291,8 +296,8 @@ public class FeatureModel {
 		}
 	}
 
-	public Set<String> getFeatureNames() {
-		return featureNames.keySet();
+	public List<String> getFeatureNames() {
+		return Collections.unmodifiableList(featureNames);
 	}
 
 	public List<Double> getBlankArray() {

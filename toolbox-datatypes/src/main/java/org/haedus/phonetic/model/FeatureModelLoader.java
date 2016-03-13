@@ -72,7 +72,7 @@ public class FeatureModelLoader {
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
 	
-	private final Map<String, Map<String,Integer>> aliases;
+	private final Map<String, Map<Integer, Double>> aliases;
 	
 	private final String sourcePath;
 
@@ -90,8 +90,7 @@ public class FeatureModelLoader {
 		featureAliases = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, List<Double>>();
 		diacritics     = new LinkedHashMap<String, List<Double>>();
-		
-		aliases        = new LinkedHashMap<String, Map<String,Integer>>();
+		aliases        = new HashMap<String, Map<Integer, Double>>();
 	}
 	
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
@@ -143,7 +142,7 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, Map<String,Integer>> getAliases() {
+	public Map<String, Map<Integer, Double>> getAliases() {
 		return aliases;
 	}
 
@@ -193,6 +192,7 @@ public class FeatureModelLoader {
 		}
 		// Now parse each of the lists
 		populateFeatures(featureZone);
+		populateConstraints(constraintZone);
 		populateAliases(aliasZone);
 		populateSymbols(symbolZone);
 		populateModifiers(modifierZone);
@@ -209,12 +209,12 @@ public class FeatureModelLoader {
 			String alias = split[0].replaceAll("\\[|\\]", "");
 			String value = split[1];
 
-			List<Double> array = getUnderspecifiedArray();
+//			List<Double> array = getUnderspecifiedArray();
 			Map<Integer, Double> values = FeatureModel.getValueMap(value, map, aliases);
-			for (Map.Entry<Integer, Double> entry : values.entrySet()) {
-				array.set(entry.getKey(), entry.getValue());
-			}
-			aliases.put(alias, array);
+//			for (Map.Entry<Integer, Double> entry : values.entrySet()) {
+//				array.set(entry.getKey(), entry.getValue());
+//			}
+			aliases.put(alias, values);
 		}
 	}
 
