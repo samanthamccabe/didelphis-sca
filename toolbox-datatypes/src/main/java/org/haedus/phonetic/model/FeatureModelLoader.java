@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class FeatureModelLoader {
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
 	
-	private final Map<String, List<Double>> aliases;
+	private final Map<String, Map<String,Integer>> aliases;
 	
 	private final String sourcePath;
 
@@ -89,7 +90,8 @@ public class FeatureModelLoader {
 		featureAliases = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, List<Double>>();
 		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new LinkedHashMap<String, List<Double>>();
+		
+		aliases        = new LinkedHashMap<String, Map<String,Integer>>();
 	}
 	
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
@@ -141,7 +143,7 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, List<Double>> getAliases() {
+	public Map<String, Map<String,Integer>> getAliases() {
 		return aliases;
 	}
 
@@ -191,13 +193,16 @@ public class FeatureModelLoader {
 		}
 		// Now parse each of the lists
 		populateFeatures(featureZone);
-		populateConstraints(constraintZone);
 		populateAliases(aliasZone);
 		populateSymbols(symbolZone);
 		populateModifiers(modifierZone);
 	}
 
 	private void populateAliases(Collection<String> strings) {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		map.putAll(featureNames);
+		map.putAll(featureAliases);
+		
 		for (String string : strings) {
 			String[] split = string.split("\\s*=\\s*", 2);
 			
@@ -205,8 +210,8 @@ public class FeatureModelLoader {
 			String value = split[1];
 
 			List<Double> array = getUnderspecifiedArray();
-			Map<Integer, Double> map = FeatureModel.getValueMap(value, featureAliases, featureNames);
-			for (Map.Entry<Integer, Double> entry : map.entrySet()) {
+			Map<Integer, Double> values = FeatureModel.getValueMap(value, map, aliases);
+			for (Map.Entry<Integer, Double> entry : values.entrySet()) {
 				array.set(entry.getKey(), entry.getValue());
 			}
 			aliases.put(alias, array);
@@ -214,14 +219,18 @@ public class FeatureModelLoader {
 	}
 
 	private void populateConstraints(Iterable<String> constraintZone) {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		map.putAll(featureNames);
+		map.putAll(featureAliases);
+		
 		for (String entry : constraintZone) {
 			String[] split = entry.split("\\s*>\\s*", 2);
 
 			String source = split[0];
 			String target = split[1];
 
-			Map<Integer, Double> sMap = FeatureModel.getValueMap(source, featureAliases, featureNames);
-			Map<Integer, Double> tMap = FeatureModel.getValueMap(target, featureAliases, featureNames);
+			Map<Integer, Double> sMap = FeatureModel.getValueMap(source, map, null);
+			Map<Integer, Double> tMap = FeatureModel.getValueMap(target, map, null);
 
 			constraints.add(new Constraint(sMap, tMap));
 		}

@@ -64,12 +64,13 @@ public class FeatureModel {
 	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
 
 	private final int numberOfFeatures;
-	
-	private final Map<String, Integer>      featureNames;
-	private final Map<String, Integer>      featureAliases;
+
+	private final Map<String, Integer>      featureIndices;
 	private final Map<String, List<Double>> featureMap;
 	private final Map<String, List<Double>> diacritics;
-	private final Map<String, List<Double>> aliases;
+	private final Map<String, Map<String,Integer>> aliases;
+	
+	private final List<String>              featureNames;
 	private final List<Constraint>          constraints;
 
 	private final List<Double>  blankArray;
@@ -79,13 +80,13 @@ public class FeatureModel {
 	private FeatureModel() {
 		numberOfFeatures = 0;
 		
-		featureNames   = new LinkedHashMap<String, Integer>();
-		featureAliases = new LinkedHashMap<String, Integer>();
+		featureIndices = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, List<Double>>();
 		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new LinkedHashMap<String, List<Double>>();
+		aliases        = new LinkedHashMap<String, Map<String,Integer>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
+		featureNames   = new ArrayList<String>();
 		formatterMode  = FormatterMode.NONE;
 	}
 
@@ -99,13 +100,16 @@ public class FeatureModel {
 
 	public FeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
 		numberOfFeatures = loader.getNumberOfFeatures();
-		
-		featureNames   = loader.getFeatureNames();
-		featureAliases = loader.getFeatureAliases();
+
+		featureIndices = new LinkedHashMap<String, Integer>();
+		featureIndices.putAll(loader.getFeatureNames());
+		featureIndices.putAll(loader.getFeatureAliases());
+
 		featureMap     = loader.getFeatureMap();
 		diacritics     = loader.getDiacritics();
 		aliases        = loader.getAliases();
 		constraints    = loader.getConstraints();
+		featureNames   = new ArrayList<String>(loader.getFeatureNames().keySet());
 
 		formatterMode = modeParam;
 
@@ -116,7 +120,7 @@ public class FeatureModel {
 	}
 
 	@NotNull
-	public static Map<Integer, Double> getValueMap(String features, Map<String, Integer> aliases, Map<String, Integer> names) {
+	public static Map<Integer, Double> getValueMap(String features, Map<String, Integer> names, Map<String, Map<String,Integer>> aliases) {
 		int size = features.length();
 		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
 		String[] array = FEATURE_PATTERN.split(substring);
@@ -131,18 +135,18 @@ public class FeatureModel {
 				String featureName  = valueMatcher.group(1);
 				String assignment   = valueMatcher.group(2); 
 				String featureValue = valueMatcher.group(3);
-				Integer integer = retrieveIndex(featureName, features, aliases, names);
+				Integer integer = retrieveIndex(featureName, features, names, aliases);
 				map.put(integer, Double.valueOf(featureValue));
 			} else if (otherMatcher.matches()) {
 				String featureName  = otherMatcher.group(3);
 				String assignment   = otherMatcher.group(2);
 				String featureValue = otherMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, aliases, names);
+				Integer integer = retrieveIndex(featureName, features, names, aliases);
 				map.put(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName  = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, aliases, names);
+				Integer integer = retrieveIndex(featureName, features, names, aliases);
 				map.put(integer, featureValue.equals("+") ? 1.0 : -1.0);
 			} else {
 				// invalid format?
@@ -173,7 +177,7 @@ public class FeatureModel {
 			featureArray.add(MASKING_VALUE);
 		}
 
-		Map<Integer, Double> map = getValueMap(features, featureAliases, featureNames);
+		Map<Integer, Double> map = getValueMap(features, featureIndices, aliases);
 		for (Map.Entry<Integer, Double> entry : map.entrySet()) {
 			featureArray.set(entry.getKey(), entry.getValue());
 		}
@@ -262,8 +266,8 @@ public class FeatureModel {
 
 		boolean diacriticsEquals = diacritics.equals(other.diacritics);
 		boolean featureEquals    = featureMap.equals(other.getFeatureMap());
-		boolean namesEquals      = featureNames.equals(other.featureNames);
-		boolean aliasesEquals    = featureAliases.equals(other.featureAliases);
+		boolean namesEquals      = featureIndices.equals(other.featureIndices);
+		boolean aliasesEquals    = aliases.equals(other.aliases);
 		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals;
 	}
 
@@ -315,10 +319,7 @@ public class FeatureModel {
 		return new Segment(sb.toString(), featureArray, this);
 	}
 
-	private static Integer retrieveIndex(String label, String features, Map<String, Integer> aliases, Map<String, Integer> names) {
-		if (aliases.containsKey(label)) {
-			return aliases.get(label);
-		}
+	private static Integer retrieveIndex(String label, String features, Map<String, Integer> names) {
 		if (names.containsKey(label)) {
 			return names.get(label);
 		}
