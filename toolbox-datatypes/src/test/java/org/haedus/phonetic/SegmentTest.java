@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -52,13 +53,25 @@ public class SegmentTest {
 		Segment received = FACTORY.getSegment(string);
 		FeatureModel model = FACTORY.getFeatureModel();
 
-		List<Double> array = model.getUnderspecifiedArray();
+		List<Double> array = new ArrayList<Double>();
+		for (int i = 0; i < model.getNumberOfFeatures(); i++) {
+			array.add(FeatureModel.MASKING_VALUE);
+		}
+		
 		array.set(1, -1.0);
 		array.set(3, 1.0);
 
 		Segment expected = FACTORY.getSegment("[-continuant, release:1]");
 
 		assertEquals(expected, received);
+	}
+	
+	@Test
+	public void testSelectorAliasHigh() {
+		Segment alias   = FACTORY.getSegment("[high]");
+		Segment segment = FACTORY.getSegment("[0:front]");
+		
+		assertEquals(alias,segment);
 	}
 
 	@Test

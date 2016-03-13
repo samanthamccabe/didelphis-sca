@@ -47,12 +47,12 @@ public class FeatureModelTest extends ModelTestBase {
 	private static final FeatureModel MODEL = initModel();
 
 	public static FeatureModel initModel() {
-
-		Collections.addAll(G_FEATURES,    1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0,  0.0,  1.0, -1.0, -1.0, -1.0, -1.0);
-		Collections.addAll(GH_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0,  0.0,  1.0, -1.0,  1.0, -1.0, -1.0);
-		Collections.addAll(GJ_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0,  1.0,  1.0,  0.0,  1.0, -1.0, -1.0, -1.0, -1.0);
-		Collections.addAll(KWH_FEATURES,  1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0,  0.0, -1.0, -1.0,  1.0, -1.0, -1.0);
-		Collections.addAll(KKWH_FEATURES, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0,  0.0, -1.0, -1.0,  1.0, -1.0,  1.0);
+		//                                con   son   cnt   eje   rel   lat   nas   lab   rnd   cor   dor   frn   hgt   atr   vce   ten   vot   dst   lng
+		Collections.addAll(G_FEATURES,    1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0, -1.0, -1.0, -1.0);
+		Collections.addAll(GH_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0, -1.0);
+		Collections.addAll(GJ_FEATURES,   1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  1.0,  1.0,  1.0, -1.0,  1.0, -1.0, -1.0, -1.0, -1.0);
+		Collections.addAll(KWH_FEATURES,  1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0, -1.0, -1.0, -1.0,  1.0, -1.0, -1.0);
+		Collections.addAll(KKWH_FEATURES, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0, -1.0,  1.0, -1.0, -1.0, -1.0,  1.0, -1.0,  1.0);
 
 		return  loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
 	}

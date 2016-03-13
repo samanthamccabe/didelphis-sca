@@ -44,7 +44,7 @@ ALIASES
 [low]     = [-high]
 
 [front]   = [+front]
-[central] = [front]
+[central] = [0:front]
 [back]    = [-front]
 
 [dental]       = [coronal:1]
