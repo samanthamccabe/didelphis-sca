@@ -1,3 +1,5 @@
+%FEATURE_MODELv0.7
+
 %	Feature	Model
 
 FEATURES
@@ -30,13 +32,29 @@ CONSTRAINTS
 [-sonorant]    > [+consonantal]
 [-consonantal] > [+sonorant]
 
-% Segment can only be [+rel] if it is also [+con]
+% [continuant] only applies to [+consonantal]
+[-continuant]  > [+consonantal]
+[-consonantal] > [+continuant]
+
+% Segment can only be [+rel] if it is also [+consonantal, -continuant]
+[+release]     > [+consonantal]
+[+release]     > [-sonorant]
+
 [-consonantal] > [-release]
 [+continuant]  > [-release]
 [+sonorant]    > [-release]
-[+release]     > [+consonantal]
 
-[-son] > [-atr]
+% Only obstruents (stops?) can be ejectives
+[+ejective] > [+consonantal, -sonorant, -continuant, -voice]
+
+[+sonorant]    > [-ejective]
+[-consonantal] > [-ejective]
+[+continuant]  > [-ejective]
+[+voice]       > [-ejective]
+
+% Obstruents default to ATR for no strong reason
+[-sonorant] > [-atr]
+[+atr] > [+sonorant]
 
 ALIASES
 [high]    = [+high]
@@ -47,11 +65,12 @@ ALIASES
 [central] = [0:front]
 [back]    = [-front]
 
-[dental]       = [coronal:1]
-[alveolar]     = [coronal:2]
-[postalveolar] = [coronal:3]
-[retroflex]    = [coronal:4, -distributed]
-[palatal]      = [coronal:4, +distributed]
+%[-coronal]     = [0:coronal]
+[dental]       = [1:coronal]
+[alveolar]     = [2:coronal]
+[postalveolar] = [3:coronal]
+[retroflex]    = [4:coronal, -distributed]
+[palatal]      = [4:coronal, +distributed]
 
 SYMBOLS
 %	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
