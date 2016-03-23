@@ -1283,7 +1283,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 %\end{itemize}
 
 \begin{description}
-\item[Descritpion] contrasts sounds in which the vocal cords are in a modal position (voiced) from one in which they are open (voiceless)
+\item[Descritpion] contrasts sounds in which the vocal cords are in a neutral position (voiced) from one in which they are open (voiceless)
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
@@ -1304,23 +1304,24 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \label{ssub:feature_tense}
 
 \begin{description}
-\item[Descritpion] %an \emph{ad-hoc} feature designed to contrast voiceless from breathy, and voiced from creaky phonation under the rationalizatin that breathy and creaky voice both have more restricted glottal configurations than voiceless and voiced respectively.
+\item[Descritpion] contrasts phonation types, specifically breathy, creaky, and modal voice. Note that \texttt{[neutral]} in this case is used for both voiceless and modal voice.
 
-% TODO: this won't work --- breathy and creaky both pattern with voices sounds, so representing breathy as [+tense, -voice] is wrong
-% TODO: we cold make VOT breathy again or something;spread glottis.
-\item[Type] \emph{binary}
+\item[Type] \emph{ternary}
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{[+tense]}\\
-    ...
-    \item \texttt{[-tense]}\\
-    ...
+    \item \texttt{[creaky]}\\
+    b̰ d̰ g̰ a̰ ḭ ṵ \emph{etc.}
+    \item \texttt{[neutral]}\\
+    p t k ḁ i̥ u̥ b d g a i u \emph{etc.}
+    \item \texttt{[breathy]}\\
+    b̤ d̤ g̤ a̤ i̤ ṳ \emph{etc.}
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item
+    \item Any segment which is \texttt{[creaky]} must also be \texttt{[+voice]}
+    \item Any segment which is \texttt{[breathy]} must also be \texttt{[+voice]}
   \end{enumerate}
-\item[Resctrictions]
+\item[Resctrictions] Only segments which are \texttt{[+voice]} can be marked with the feature \texttt{[tense]}; any sounds which are \texttt{[-voice]} are necesarily also \texttt{[neutral]} 
 \end{description}
 % =============================================================================
 
@@ -1328,14 +1329,14 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \label{ssub:feature_vot}
 
 \begin{description}
-\item[Descritpion]
+\item[Descritpion] represents differences in voice-onset-time, contrasting tenuis from aspirated stops; does not account for negative VOT, which
 \item[Type]
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{...}\\
-    ...
-    \item \texttt{...}\\
-    ...
+    \item \texttt{[+vot]}\\
+    pʰ tʰ kʰ tːʰ\emph{etc.}
+%    \item \texttt{...}\\
+%    ...
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
@@ -1353,10 +1354,10 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize} 
-    \item \texttt{[+distributed]}\\
-    ... %TODO:
-    \item \texttt{[-distributed]}\\
-    ... %TODO:
+    \item \texttt{[+distributed, +consonantal]}\\
+    p̪ b̪ t d c ɟ pf bv tθ dð ts dz tɬ dɮ tʃ dʒ tɕ dʑ cç ɟʝ ɸ β θ ð s z ɬ ɮ ʃ ʒ ɕ ʑ ç ʝ ɱ n ɲ r ɽ l ɫ ʎ 
+    \item \texttt{[-distributed, +consonantal]}\\
+    p b ʈ ɖ k g kp gb q ɢ pɸ bβ ʈʂ ɖʐ kx gɣ qχ ɢʁ f v ʂ ʐ x ɣ χ ʁ m ɳ ŋ ŋm ɴ ʀ ɭ ʟ ħ ʕ ʔ h ɦ 
   \end{itemize}
 \item[Constraints] \emph{none}
 \item[Resctrictions]  %TODO: unclear if constraints can start with multi-key selectors; the restriction would need to be [-labial, 0:coronal] > [-distributed]
@@ -1372,7 +1373,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+long]}\\
-    ...
+    pː tː kː sː tsː tʃː iː eː æː \emph{etc.}
 %    \item \texttt{...}\\
 %    ...
   \end{itemize}

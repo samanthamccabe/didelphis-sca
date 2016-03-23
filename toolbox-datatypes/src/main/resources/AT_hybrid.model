@@ -1,6 +1,6 @@
-%FEATURE_MODELv0.7
+%FEATURE_MODEL
 
-%	Feature	Model
+%	Feature	Model v0.7
 
 FEATURES
 consonantal	con	binary  %  0
@@ -18,10 +18,30 @@ front		frn	ternary % 11
 high		hgh	ternary % 12
 atr			atr	binary  % 13
 voice		vce	binary  % 14
-tense		ten	binary  % 15
+tense		ten	ternary % 15
 vot			vot	binary  % 16
 distributed	dst	binary  % 17
 long		lng	binary  % 18
+
+ALIASES
+[high]    = [+high]
+[mid]     = [0:high]
+[low]     = [-high]
+
+[front]   = [+front]
+[central] = [0:front]
+[back]    = [-front]
+
+[noncoronal]   = [0:coronal]
+[dental]       = [1:coronal]
+[alveolar]     = [2:coronal]
+[postalveolar] = [3:coronal]
+[retroflex]    = [4:coronal, -distributed]
+[palatal]      = [4:coronal, +distributed]
+
+[creaky]  = [+tense]
+[modal]   = [0:tense]
+[breathy] = [-tense]
 
 CONSTRAINTS
 % [+nas] and [+lat] cannot co-occur
@@ -52,25 +72,19 @@ CONSTRAINTS
 [+continuant]  > [-ejective]
 [+voice]       > [-ejective]
 
+% Distrubuted requires a closure or near closure
+[+distributed] > [+consonantal]
+[-consonantal] > [-distributed]
+
 % Obstruents default to ATR for no strong reason
 [-sonorant] > [-atr]
 [+atr] > [+sonorant]
 
-ALIASES
-[high]    = [+high]
-[mid]     = [0:high]
-[low]     = [-high]
-
-[front]   = [+front]
-[central] = [0:front]
-[back]    = [-front]
-
-%[-coronal]     = [0:coronal]
-[dental]       = [1:coronal]
-[alveolar]     = [2:coronal]
-[postalveolar] = [3:coronal]
-[retroflex]    = [4:coronal, -distributed]
-[palatal]      = [4:coronal, +distributed]
+% Phonation
+[-voice] > [0:tense]
+[+tense] > [+voice]
+[-tense] > [+voice]
+% TODO: transitivity may be a problem here??
 
 SYMBOLS
 %	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
@@ -225,7 +239,7 @@ MODIFIERS
 ʾ				-															
 ˁ													-	-					
 ʿ													-	-					
-̤															-	+			
+̤															+	-			
 ̰															+	+			
 ̥															-	-			
 ̘														+					
