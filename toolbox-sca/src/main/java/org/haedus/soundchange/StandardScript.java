@@ -210,7 +210,7 @@ public class StandardScript implements SoundChangeScript {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 
-		FeatureModelLoader loader = new FeatureModelLoader(handler.readLines(path), mode);
+		FeatureModelLoader loader = new FeatureModelLoader(path, handler.readLines(path), mode);
 		return new FeatureModel(loader, mode);
 	}
 

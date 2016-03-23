@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -52,13 +53,57 @@ public class SegmentTest {
 		Segment received = FACTORY.getSegment(string);
 		FeatureModel model = FACTORY.getFeatureModel();
 
-		List<Double> array = model.getUnderspecifiedArray();
+		List<Double> array = new ArrayList<Double>();
+		for (int i = 0; i < model.getNumberOfFeatures(); i++) {
+			array.add(FeatureModel.MASKING_VALUE);
+		}
+		
 		array.set(1, -1.0);
-		array.set(3, 1.0);
+		array.set(3,  1.0);
 
 		Segment expected = FACTORY.getSegment("[-continuant, release:1]");
 
 		assertEquals(expected, received);
+	}
+	
+	@Test
+	public void testSelectorAliasHigh() {
+		Segment alias   = FACTORY.getSegment("[high]");
+		Segment segment = FACTORY.getSegment("[+high]");
+		
+		assertTrue(alias.matches(segment));
+	}
+
+	@Test
+	public void testSelectorAliasMid() {
+		Segment alias   = FACTORY.getSegment("[mid]");
+		Segment segment = FACTORY.getSegment("[0:high]");
+
+		assertTrue(alias.matches(segment));
+	}
+
+	@Test
+	public void testSelectorAliasLow() {
+		Segment alias   = FACTORY.getSegment("[low]");
+		Segment segment = FACTORY.getSegment("[-high]");
+
+		assertTrue(alias.matches(segment));
+	}
+
+	@Test
+	public void testSelectorAliasRetroflex() {
+		Segment alias   = FACTORY.getSegment("[retroflex]");
+		Segment segment = FACTORY.getSegment("[coronal:4, -distributed]");
+
+		assertTrue(alias.matches(segment));
+	}
+
+	@Test
+	public void testSelectorAliasPalatal() {
+		Segment alias   = FACTORY.getSegment("[palatal]");
+		Segment segment = FACTORY.getSegment("[coronal:4, +distributed]");
+
+		assertTrue(alias.matches(segment));
 	}
 
 	@Test
@@ -116,10 +161,6 @@ public class SegmentTest {
 		Segment p = FACTORY.getSegment("p");
 		Segment b = FACTORY.getSegment("b");
 
-		// These differ only by voicing, where p is -2 and b is 0
-		LOGGER.info("{} {}", p, p.getFeatures());
-		LOGGER.info("{} {}", b, b.getFeatures());
-
 		assertTrue(p.compareTo(b) == -1);
 	}
 
@@ -127,9 +168,6 @@ public class SegmentTest {
 	public void testOrdering02() {
 		Segment p = FACTORY.getSegment("p");
 		Segment t = FACTORY.getSegment("t");
-
-		LOGGER.info("{} {}", p, p.getFeatures());
-		LOGGER.info("{} {}", t, t.getFeatures());
 
 		assertTrue(p.compareTo(t) == 1);
 	}
@@ -140,7 +178,10 @@ public class SegmentTest {
 
 		segment.setFeatureValue(6, 1.0);
 
-		assertEquals(segment.getFeatureValue(5), -1.0, 0.00001);
+		double received = segment.getFeatureValue(5);
+		double expected = -1.0;
+
+		assertEquals(expected, received, 0.00001);
 	}
 
 	@Test
@@ -159,7 +200,10 @@ public class SegmentTest {
 
 		segment.setFeatureValue(5, 1.0);
 
-		assertEquals(segment.getFeatureValue(6), -1.0, 0.00001);
+		double expected = -1.0;
+		double received = segment.getFeatureValue(6);
+
+		assertEquals(expected, received, 0.00001);
 	}
 
 	@Test
@@ -242,7 +286,7 @@ public class SegmentTest {
 				"\nproduces\n" +
 				alter.getFeatures() +
 				"\nwhich does not match\n" +
-				modifier.getFeatures();
+				matching.getFeatures();
 		
 		message = INFINITY_PATTERN.matcher(message).replaceAll("____");
 		message = DECIMAL_PATTERN.matcher(message).replaceAll("$1 $2");
