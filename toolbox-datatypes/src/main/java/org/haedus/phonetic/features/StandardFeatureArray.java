@@ -14,17 +14,28 @@
 
 package org.haedus.phonetic.features;
 
+import org.haedus.phonetic.model.FeatureModel;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 3/26/2016
  */
-public class StandardFeatureArray<T extends Comparable<T>> implements FeatureArray<T> {
+public class StandardFeatureArray<T extends Number & Comparable<T>>
+		implements FeatureArray<T> {
 	
 	private final List<T> features;
-	
+
+	public StandardFeatureArray(int size) {
+		features = new ArrayList<T>(size);
+		for (int i = 0; i < size; i++) {
+			features.add(null);
+		}
+	}
+
 	public StandardFeatureArray(List<T> list) {
 		features = new ArrayList<T>(list);
 	}
@@ -32,7 +43,20 @@ public class StandardFeatureArray<T extends Comparable<T>> implements FeatureArr
 	public StandardFeatureArray(StandardFeatureArray<T> array) {
 		features = new ArrayList<T>(array.features);
 	}
-	
+
+	public StandardFeatureArray(FeatureArray<T> array) {
+		int size = array.size();
+		features = new ArrayList<T>(size);
+		for (int i = 0; i < size; i++) {
+			features.add(array.get(i));
+		}
+	}
+
+	@Override
+	public int size() {
+		return features.size();
+	}
+
 	@Override
 	public void set(int index, T value) {
 		features.set(index, value);
@@ -45,14 +69,47 @@ public class StandardFeatureArray<T extends Comparable<T>> implements FeatureArr
 
 	@Override
 	public boolean matches(FeatureArray<T> array) {
-		return false; // TODO:
+		if (size() != array.size()) {
+			throw new IllegalArgumentException(
+					"Attempting to compare arrays of different lengths");
+		}
+
+		for (int i = 0; i < size(); i++) {
+			if (!matches(array, i) && !array.matches(this, i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean matches(FeatureArray<T> array, int index) {
+		T a = this.get(index);
+		T b = array.get(index);
+		return  a == null ||
+				b == null ||
+				a.equals(FeatureModel.MASKING_VALUE) ||
+				b.equals(FeatureModel.MASKING_VALUE) ||
+				a.equals(b);
 	}
 
 	@Override
 	public FeatureArray<T> alter(FeatureArray<T> array) {
-		return null; // TODO:
+		FeatureArray<T> featureArray = new StandardFeatureArray<T>(this);
+		for (int i = 0; i < features.size(); i++) {
+			T t = array.get(i);
+			if (t != null) {
+				featureArray.set(i, t);
+			}
+		}
+		return featureArray;
 	}
-	
+
+	@Override
+	public boolean contains(T value) {
+		return features.contains(value);
+	}
+
 	@Override
 	public int compareTo(FeatureArray<T> o) {
 		StandardFeatureArray<T> array = (StandardFeatureArray<T>) o;
@@ -69,5 +126,30 @@ public class StandardFeatureArray<T extends Comparable<T>> implements FeatureArr
 		}
 		// If we get to the end, then all values must be equal
 		return 0;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+
+		StandardFeatureArray<?> that = (StandardFeatureArray<?>) obj;
+
+		return features.equals(that.features);
+	}
+
+	@Override
+	public int hashCode() {
+		return features.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return features.toString();
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		return features.iterator();
 	}
 }

@@ -18,6 +18,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ import java.util.regex.Pattern;
  */
 public class FeatureModelLoader {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelLoader.class);
+	private static final transient Logger LOG = LoggerFactory.getLogger(FeatureModelLoader.class);
 
 	private static final Pattern ZONE_PATTERN     = Pattern.compile("FEATURES|SYMBOLS|MODIFIERS|WEIGHTS|CONSTRAINTS");
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
@@ -53,8 +55,8 @@ public class FeatureModelLoader {
 	private final Map<String, Integer> featureNames   = new LinkedHashMap<String, Integer>();
 	private final Map<String, Integer> featureAliases = new LinkedHashMap<String, Integer>();
 
-	private final Map<String, List<Double>> featureMap = new LinkedHashMap<String, List<Double>>();
-	private final Map<String, List<Double>> diacritics = new LinkedHashMap<String, List<Double>>();
+	private final Map<String, FeatureArray<Double>> featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
+	private final Map<String, FeatureArray<Double>> diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
 
 	private final String source;
 
@@ -66,7 +68,7 @@ public class FeatureModelLoader {
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
-			LOGGER.error("Failed to read from file {}", file, e);
+			LOG.error("Failed to read from file {}", file, e);
 		}
 	}
 
@@ -83,7 +85,7 @@ public class FeatureModelLoader {
 		try {
 			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"));
 		} catch (IOException e) {
-			LOGGER.error("Problem while reading from stream {}", stream, e);
+			LOG.error("Problem while reading from stream {}", stream, e);
 		}
 	}
 
@@ -103,12 +105,12 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, List<Double>> getFeatureMap() {
+	public Map<String, FeatureArray<Double>> getFeatureMap() {
 		return featureMap;
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, List<Double>> getDiacritics() {
+	public Map<String, FeatureArray<Double>> getDiacritics() {
 		return diacritics;
 	}
 
@@ -183,13 +185,17 @@ public class FeatureModelLoader {
 				String symbol = matcher.group(1);
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				List<Double> features = new ArrayList<Double>();
+				int size = getNumberOfFeatures();
+
+				FeatureArray<Double> array = new StandardFeatureArray<Double>(size);
+				int i = 0;
 				for (String value : values) {
-					features.add(getDouble(value, FeatureModel.MASKING_VALUE));
+					array.set(i, getDouble(value, FeatureModel.MASKING_VALUE));
+					i++;
 				}
-				diacritics.put(symbol, features);
+				diacritics.put(symbol, array);
 			} else {
-				LOGGER.error("Unrecognized diacritic definition {}", entry);
+				LOG.error("Unrecognized diacritic definition {}", entry);
 			}
 		}
 	}
@@ -202,30 +208,36 @@ public class FeatureModelLoader {
 				String symbol = formatterMode.normalize(matcher.group(1));
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				List<Double> features = new ArrayList<Double>();
+				int size = getNumberOfFeatures();
+
+				FeatureArray<Double> features = new StandardFeatureArray<Double>(size);
 				for (int i = 0; i < featureTypes.size();i++) {
 					Type type = featureTypes.get(i);
 					String value = values[i];
 					if (!type.matches(value)) {
-						LOGGER.warn("Value '{}' at position {} is not valid for {} in array: {}",
+						LOG.warn("Value '{}' at position {} is not valid for {} in array: {}",
 							value, i, type, Arrays.toString(values));
 					} 
-					features.add(getDouble(value, FeatureModel.UNDEFINED_VALUE));
+					features.set(i, getDouble(value, FeatureModel.UNDEFINED_VALUE));
 				}
 				checkFeatureCollisions(symbol, features);
 				featureMap.put(symbol, features);
 			} else {
-				LOGGER.error("Unrecognized symbol definition {}", entry);
+				LOG.error("Unrecognized symbol definition {}", entry);
 			}
 		}
 	}
 
-	private void checkFeatureCollisions(String symbol, List<Double> features) {
+	private int getNumberOfFeatures() {
+		return featureNames.size();
+	}
+
+	private void checkFeatureCollisions(String symbol, FeatureArray<Double> features) {
 		if (featureMap.containsValue(features)) {
-			for (Map.Entry<String, List<Double>> e : featureMap.entrySet()) {
+			for (Map.Entry<String, FeatureArray<Double>> e : featureMap.entrySet()) {
 				if (features.equals(e.getValue())) {
-					LOGGER.warn("Collision between features {} and {} --- both have value {}",
-							symbol, e.getKey(), features);
+					LOG.warn("Collision between features {} and {} --- " +
+							"both have value {}", symbol, e.getKey(), features);
 				}
 			}
 		}
@@ -252,14 +264,14 @@ public class FeatureModelLoader {
 				featureAliases.put(alias, i);
 
 			} else {
-				LOGGER.error("Unrecognized command in FEATURE block: {}", entry);
+				LOG.error("Unrecognized command in FEATURE block: {}", entry);
 				throw new ParseException("Unrecognized command in FEATURE block: " + entry);
 			}
 			i++;
 		}
 	}
 
-	private static double getDouble(String cell, double defaultValue) {
+	private static double getDouble(String cell, Double defaultValue) {
 		double featureValue;
 		if (cell.isEmpty()) {
 			featureValue = defaultValue;

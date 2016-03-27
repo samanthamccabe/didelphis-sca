@@ -17,6 +17,8 @@ package org.haedus.phonetic.model;
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Segmenter;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,38 +75,43 @@ public class FeatureModelTest extends ModelTestBase {
 	@Test
 	public void testConstructor01() {
 		Segment received = Segmenter.getSegment("g", MODEL, FormatterMode.INTELLIGENT);
-		Segment expected = new Segment("g", G_FEATURES, MODEL);
-
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES);
+		Segment expected = new Segment("g", array, MODEL);
 		assertEquals(expected, received);
 	}
 
 	@Test
 	public void testGetStringFromFeatures01()  {
-		String bestSymbol = MODEL.getBestSymbol(G_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES);
+		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("g", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures02()  {
-		String bestSymbol = MODEL.getBestSymbol(GH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(GH_FEATURES);
+		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("gʱ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures03()  {
-		String bestSymbol = MODEL.getBestSymbol(GJ_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(GJ_FEATURES);
+		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("gʲ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures04()  {
-		String bestSymbol = MODEL.getBestSymbol(KWH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(KWH_FEATURES);
+		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("kʷʰ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures05()  {
-		String bestSymbol = MODEL.getBestSymbol(KKWH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(KKWH_FEATURES);
+		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("kːʷʰ", bestSymbol);
 	}
 

@@ -22,6 +22,8 @@ package org.haedus.phonetic.model;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +57,11 @@ public class FeatureModel {
 	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s?|\\s");
 
-	private final Map<String, Integer>      featureNames;
-	private final Map<String, Integer>      featureAliases;
-	private final Map<String, List<Double>> featureMap;
-	private final Map<String, List<Double>> diacritics;
-	private final List<Constraint>          constraints;
+	private final Map<String, Integer>              featureNames;
+	private final Map<String, Integer>              featureAliases;
+	private final Map<String, FeatureArray<Double>> featureMap;
+	private final Map<String, FeatureArray<Double>> diacritics;
+	private final List<Constraint>                  constraints;
 
 	private final List<Double> blankArray;
 
@@ -73,8 +75,8 @@ public class FeatureModel {
 	private FeatureModel() {
 		featureNames   = new LinkedHashMap<String, Integer>();
 		featureAliases = new LinkedHashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
+		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
 		formatterMode  = FormatterMode.NONE;
@@ -132,10 +134,12 @@ public class FeatureModel {
 	}
 
 	public Segment getSegmentFromFeatures(String features) {
-		List<Double> featureArray = new ArrayList<Double>();
 
-		for (int i = 0; i < featureNames.size(); i++) {
-			featureArray.add(MASKING_VALUE);
+		int size = getNumberOfFeatures();
+		FeatureArray<Double> featureArray = new StandardFeatureArray<Double>(size);
+
+		for (int i = 0; i < size; i++) {
+			featureArray.set(i, MASKING_VALUE);
 		}
 
 		Map<Integer, Double> map = getValueMap(features, featureAliases, featureNames);
@@ -149,14 +153,14 @@ public class FeatureModel {
 		return Collections.unmodifiableList(constraints);
 	}
 
-	public String getBestSymbol(List<Double> featureArray) {
+	public String getBestSymbol(FeatureArray<Double> featureArray) {
 
-		List<Double> bestFeatures = new ArrayList<Double>();
+		FeatureArray<Double> bestFeatures = null;
 		String bestSymbol = "";
 		double minimum = Double.MAX_VALUE;
 
-		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
-			List<Double> features = entry.getValue();
+		for (Map.Entry<String, FeatureArray<Double>> entry : featureMap.entrySet()) {
+			FeatureArray<Double> features = entry.getValue();
 
 			double difference = getDifferenceValue(featureArray, features);
 			if (difference < minimum) {
@@ -224,15 +228,15 @@ public class FeatureModel {
 		return featureNames.size();
 	}
 
-	public Map<String, List<Double>> getFeatureMap() {
+	public Map<String, FeatureArray<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
-	public List<Double> getValue(String key) {
+	public FeatureArray<Double> getValue(String key) {
 		if (featureMap.containsKey(key)) {
-			return new ArrayList<Double>(featureMap.get(key));
+			return new StandardFeatureArray<Double>(featureMap.get(key));
 		} else {
-			return new ArrayList<Double>(blankArray);
+			return new StandardFeatureArray<Double>(blankArray);
 		}
 	}
 
@@ -254,12 +258,12 @@ public class FeatureModel {
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
-		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
+		FeatureArray<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 		StringBuilder sb = new StringBuilder(head);
 		for (String modifier : modifiers) {
 			sb.append(modifier);
 			if (diacritics.containsKey(modifier)) {
-				List<Double> doubles = diacritics.get(modifier);
+				FeatureArray<Double> doubles = diacritics.get(modifier);
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// this will need to change if we support value modification (up or down)
@@ -282,7 +286,7 @@ public class FeatureModel {
 		throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
 	}
 
-	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
+	private static FeatureArray<Double> getDifferenceArray(FeatureArray<Double> left, FeatureArray<Double> right) {
 		List<Double> list = new ArrayList<Double>();
 		if (left.size() == right.size()) {
 			for (int i = 0; i < left.size(); i++) {
@@ -293,13 +297,13 @@ public class FeatureModel {
 		} else {
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
 		}
-		return list;
+		return new StandardFeatureArray<Double>(list);
 	}
 
-	private static double getDifferenceValue(List<Double> left, List<Double> right) {
+	private static double getDifferenceValue(FeatureArray<Double> left, FeatureArray<Double> right) {
 		double sum = 0.0;
-		List<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.isEmpty()) {
+		FeatureArray<Double> differenceArray = getDifferenceArray(left, right);
+		if (differenceArray.size() == 0) {
 			sum = Double.NaN;
 		} else {
 			for (Double value : differenceArray) {
@@ -321,51 +325,59 @@ public class FeatureModel {
 		}
 	}
 
-	private Collection<String> getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
+	private Collection<String> getBestDiacritic(
+			FeatureArray<Double> featureArray,
+			FeatureArray<Double> bestFeatures,
+			double lastMinimum) {
+
+		int size = getNumberOfFeatures();
+
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-		List<Double> bestCompiled = new ArrayList<Double>();
+		FeatureArray<Double> best = new StandardFeatureArray<Double>(size);
 
 		Collection<String> diacriticList = new ArrayList<String>();
 
-		for (Map.Entry<String, List<Double>> entry : diacritics.entrySet()) {
-			List<Double> diacriticFeatures = entry.getValue();
-			List<Double> compiledFeatures = new ArrayList<Double>();
-			if (diacriticFeatures.size() == bestFeatures.size()) {
-				for (int i = 0; i < diacriticFeatures.size(); i++) {
-					Double left = diacriticFeatures.get(i);
+		for (Map.Entry<String, FeatureArray<Double>> entry : diacritics.entrySet()) {
+			FeatureArray<Double> diacriticFeatures = entry.getValue();
+			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(size);
+//			if (diacriticFeatures.size() == bestFeatures.size()) {
+				for (int i = 0; i < size; i++) {
+					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
 					if (left.equals(MASKING_VALUE)) {
-						compiledFeatures.add(right);
+						compiledFeatures.set(i, right);
 					} else {
-						compiledFeatures.add(left);
+						compiledFeatures.set(i, left);
 					}
 				}
-			} else {
-				LOGGER.error("Difference in array sizes: {} vs  {}", diacriticFeatures, bestFeatures);
-			}
+//			} else {
+//				LOGGER.error("Difference in array sizes: {} vs  {}", diacriticFeatures, bestFeatures);
+//			}
 
 			if (!compiledFeatures.equals(bestFeatures)) {
 				double difference = getDifferenceValue(compiledFeatures, featureArray);
 				if (difference < minimumDifference) {
 					minimumDifference = difference;
 					bestDiacritic = entry.getKey();
-					bestCompiled = compiledFeatures;
+					best = compiledFeatures;
 				}
 			}
 		}
 
 		if (minimumDifference > 0.0 && minimumDifference < lastMinimum) {
 			diacriticList.add(bestDiacritic);
-			diacriticList.addAll(getBestDiacritic(featureArray, bestCompiled, minimumDifference));
+			diacriticList.addAll(getBestDiacritic(featureArray, best, minimumDifference));
 		} else {
 			diacriticList.add(bestDiacritic);
 		}
 		return diacriticList;
 	}
 
-	private Collection getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
+	private Collection getBestDiacritic(
+			FeatureArray<Double> featureArray,
+			FeatureArray<Double> bestFeatures) {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 }

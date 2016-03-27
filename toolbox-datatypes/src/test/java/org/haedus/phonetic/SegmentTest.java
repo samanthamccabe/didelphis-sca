@@ -242,7 +242,7 @@ public class SegmentTest {
 				"\nproduces\n" +
 				alter.getFeatures() +
 				"\nwhich does not match\n" +
-				modifier.getFeatures();
+				alter.getFeatures();
 		
 		message = INFINITY_PATTERN.matcher(message).replaceAll("____");
 		message = DECIMAL_PATTERN.matcher(message).replaceAll("$1 $2");

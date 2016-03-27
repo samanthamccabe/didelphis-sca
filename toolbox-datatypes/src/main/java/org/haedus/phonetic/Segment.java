@@ -19,6 +19,8 @@
 
 package org.haedus.phonetic;
 
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.Constraint;
 import org.haedus.phonetic.model.FeatureModel;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +42,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	private final FeatureModel model;
 	private final String       symbol;
-	private final List<Double> features;
+	private final FeatureArray<Double> features;
 
 	// Copy-constructor
 	public Segment(Segment segment) {
@@ -56,17 +58,17 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		features = model.getValue(s);
 	}
 
-	public Segment(String s, List<Double> featureArray, FeatureModel modelParam) {
+	public Segment(String s, FeatureArray<Double> featureArray, FeatureModel modelParam) {
 		symbol = s;
 		model = modelParam;
-		features = new ArrayList<Double>(featureArray);
+		features = new StandardFeatureArray<Double>(featureArray);
 	}
 
 	// Used to create the empty segment
 	private Segment(String string) {
 		symbol = string;
 		model = FeatureModel.EMPTY_MODEL;
-		features = new ArrayList<Double>();
+		features = new StandardFeatureArray<Double>(0);
 	}
 
 	/**
@@ -79,7 +81,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 		Collection<Integer> alteredIndices = new ArrayList<Integer>();
 
-		List<Double> otherFeatures = new ArrayList<Double>(features);
+		FeatureArray<Double> otherFeatures = new StandardFeatureArray<Double>(features);
 		for (int j = 0; j < otherFeatures.size(); j++) {
 			double value = other.getFeatureValue(j);
 			if (!FeatureModel.MASKING_VALUE.equals(value)) {
@@ -91,7 +93,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		// For each altered index, check if the constraints apply 
 		for (int index : alteredIndices) {
 			for (Constraint constraint : model.getConstraints()) {
-				applyConstraint(index,otherFeatures, constraint);
+				applyConstraint(index, otherFeatures, constraint);
 			}
 		}
 
@@ -113,18 +115,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		if (isUndefined() && other.isUndefined()) {
 			return symbol.equals(other.symbol);
 		} else if (size > 0) {
-			List<Double> otherFeatures = other.getFeatures();
-			for (int i = 0; i < size; i++) {
-				Double a = features.get(i);
-				Double b = otherFeatures.get(i);
-				// Two-way comparison? I'm not certain this is the most desirable semantics.
-				if (!a.equals(b) &&
-					!b.equals(FeatureModel.MASKING_VALUE) &&
-					!a.equals(FeatureModel.MASKING_VALUE)) {
-					return false;
-				}
-			}
-			return true;
+			return features.matches(other.getFeatures());
 		} else {
 			return equals(other);
 		}
@@ -165,8 +156,8 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		return symbol;
 	}
 
-	public List<Double> getFeatures() {
-		return Collections.unmodifiableList(features);
+	public FeatureArray<Double> getFeatures() {
+		return features;
 	}
 
 	public double getFeatureValue(int i) {
@@ -198,7 +189,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		}
 	}
 
-	private static void applyConstraint(int index, List<Double> features, Constraint constraint) {
+	private static void applyConstraint(int index, FeatureArray<Double> features, Constraint constraint) {
 		Map<Integer, Double> source = constraint.getSource();
 		if (source.containsKey(index)) {
 
@@ -228,25 +219,13 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		if (equals(o)) {
 			return 0;
 		} else {
-			validateModelOrFail(o);
-			List<Double> oFeatures = o.getFeatures();
-			for (int i = 0; i < features.size(); i++) {
-				Double a = features.get(i);
-				Double b = oFeatures.get(i);
-				
-				if (a > b) {
-					return 1;
-				} else if (a < b) {
-					return -1;
-				} else if (b.isNaN() && !a.isNaN() || b.isInfinite() && !a.isInfinite()) {
-					return 1;
-				} else if (a.isNaN() && !b.isNaN() || a.isInfinite() && !b.isInfinite()) {
-					return -1;
-				}
-				// Else, do nothing; the loop will check the next value
+//			validateModelOrFail(o);
+			int value = features.compareTo(o.getFeatures());
+			if (value == 0) {
+				// If we get here, there is either no features, or feature arrays are equal
+				return symbol.compareTo(o.getSymbol()); // so just compare the symbols
 			}
-			// If we get here, there is either no features, or feature arrays are equal
-			return symbol.compareTo(o.getSymbol()); // so just compare the symbols
+			return value;
 		}
 	}
 

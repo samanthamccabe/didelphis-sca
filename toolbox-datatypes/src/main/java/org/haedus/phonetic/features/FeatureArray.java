@@ -18,13 +18,41 @@ package org.haedus.phonetic.features;
  * Samantha Fiona Morrigan McCabe
  * Created: 3/26/2016
  */
-public interface FeatureArray<T> extends Comparable<FeatureArray<T>> {
-	
+public interface FeatureArray<T extends Number & Comparable<T>>
+		extends Comparable<FeatureArray<T>>, Iterable<T> {
+
+	/**
+	 * Returns the number of elements in this list.
+	 * @return the number of elements in this object
+	 */
+	int size();
+
+	/**
+	 * Replaces the element at the specified position in this list with the specified element.
+	 * @param index index of the element to replace
+	 * @param value element to be stored at the specified position
+	 * @throws IndexOutOfBoundsException - if the index is out of range (index < 0 || index >= size())
+	 * @throws ClassCastException - if the class of the specified element prevents it from being added to this list
+	 * @throws NullPointerException - if the specified element is null and this list does not permit null elements
+	 */
 	void set(int index, T value);
-	
+
+	/**
+	 * Returns the element at the specified position in this object.
+	 * @param index  index of the element to return
+	 * @return the element at the specified position in this list; if there element, return null.
+	 * @throws IndexOutOfBoundsException - if the index is out of range (index < 0 || index >= size())
+	 */
 	T get(int index);
-	
+
+	//TODO: this is non-trivial and needs to be explained
 	boolean matches(FeatureArray<T> array);
-	
+
+	//TODO: this is going to warrant some *extra* explanation
+	boolean matches(FeatureArray<T> array, int index);
+
+	//TODO: this is non-trivial and needs to be explained
 	FeatureArray<T> alter(FeatureArray<T> array);
+
+	boolean contains(T value);
 }
