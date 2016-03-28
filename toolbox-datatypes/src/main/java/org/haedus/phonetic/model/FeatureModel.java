@@ -55,8 +55,8 @@ public class FeatureModel {
 	@Deprecated
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 	
-	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)",   Pattern.UNICODE_CHARACTER_CLASS);
-	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)");
+	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)");
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s?|\\s");
 
 	private final Map<String, Integer>              featureNames;
