@@ -17,6 +17,7 @@ package org.haedus.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.exceptions.ParseException;
+import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
@@ -449,7 +450,9 @@ public class Rule implements Command {
 	private void validateTransform(Sequence source, Sequence target) {
 		int j = 0;
 		for (Segment segment : target) {
-			if (segment.getFeatures().contains(FeatureModel.MASKING_VALUE) && source.size() <= j) {
+			FeatureArray<Double> features = segment.getFeatures();
+			if (features.contains(FeatureModel.MASKING_VALUE) ||
+				features.contains(null)&&source.size() <= j) {
 				throw new RuleFormatException("Unmatched underspecified segment " +
 						segment + " in target of rule " + ruleText);
 			}

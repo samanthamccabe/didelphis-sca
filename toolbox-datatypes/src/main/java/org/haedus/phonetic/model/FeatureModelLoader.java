@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,12 +59,12 @@ public class FeatureModelLoader {
 	private final Map<String, FeatureArray<Double>> featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
 	private final Map<String, FeatureArray<Double>> diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
 
-	private final String source;
+	private final String modelSource;
 
 	private final FormatterMode formatterMode;
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
-		source = "file:" + file.getAbsolutePath();
+		modelSource = "file:" + file.getAbsolutePath();
 		formatterMode = modeParam;
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
@@ -73,13 +74,13 @@ public class FeatureModelLoader {
 	}
 
 	public FeatureModelLoader(Iterable<String> file, FormatterMode modeParam) {
-		source = file.toString();
+		modelSource = file.toString();
 		formatterMode = modeParam;
 		readModelFromFileNewFormat(file);
 	}
 
 	public FeatureModelLoader(InputStream stream, FormatterMode modeParam) {
-		source = stream.toString();
+		modelSource = stream.toString();
 		formatterMode = modeParam;
 
 		try {
@@ -91,7 +92,7 @@ public class FeatureModelLoader {
 
 	@Override
 	public String toString() {
-		return "FeatureModelLoader{" + source + '}';
+		return "FeatureModelLoader{" + modelSource + '}';
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -170,10 +171,17 @@ public class FeatureModelLoader {
 			String source = split[0];
 			String target = split[1];
 
-			Map<Integer, Double> sMap = FeatureModel.getValueMap(source, featureAliases, featureNames);
-			Map<Integer, Double> tMap = FeatureModel.getValueMap(target, featureAliases, featureNames);
-
-			constraints.add(new Constraint(sMap, tMap));
+			SparseFeatureArray<Double> sMap = FeatureModel.getValueMap(
+					source,
+					featureAliases,
+					featureNames
+			);
+			SparseFeatureArray<Double> tMap = FeatureModel.getValueMap(
+					target,
+					featureAliases,
+					featureNames
+			);
+			constraints.add(new Constraint(entry, sMap, tMap));
 		}
 	}
 
@@ -187,10 +195,12 @@ public class FeatureModelLoader {
 
 				int size = getNumberOfFeatures();
 
-				FeatureArray<Double> array = new StandardFeatureArray<Double>(size);
+				FeatureArray<Double> array = new SparseFeatureArray<Double>(size);
 				int i = 0;
 				for (String value : values) {
-					array.set(i, getDouble(value, FeatureModel.MASKING_VALUE));
+					if (!value.isEmpty()) {
+						array.set(i, getDouble(value, FeatureModel.MASKING_VALUE));
+					}
 					i++;
 				}
 				diacritics.put(symbol, array);
@@ -257,7 +267,8 @@ public class FeatureModelLoader {
 				try { // catch and rethrow if type is invalid\
 					featureTypes.add(Type.valueOf(type.toUpperCase()));
 				} catch (IllegalArgumentException e) {
-					throw new ParseException("Illegal feature type " + type + " in definition: " + entry);
+					throw new ParseException("Illegal feature type " + type
+							+" in definition: " + entry, e);
 				}
 				
 				featureNames.put(name, i);
@@ -265,7 +276,8 @@ public class FeatureModelLoader {
 
 			} else {
 				LOG.error("Unrecognized command in FEATURE block: {}", entry);
-				throw new ParseException("Unrecognized command in FEATURE block: " + entry);
+				throw new ParseException("Unrecognized command in FEATURE block"
+						+ ' ' + entry);
 			}
 			i++;
 		}

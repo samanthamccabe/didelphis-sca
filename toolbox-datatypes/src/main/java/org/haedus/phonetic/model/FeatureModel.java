@@ -23,6 +23,7 @@ import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public class FeatureModel {
 	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
 	
 	public static final Double UNDEFINED_VALUE = Double.NaN;
+	@Deprecated
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 	
 	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)",   Pattern.UNICODE_CHARACTER_CLASS);
@@ -106,11 +108,17 @@ public class FeatureModel {
 	}
 
 	@NotNull
-	public static Map<Integer, Double> getValueMap(String features, Map<String, Integer> aliases, Map<String, Integer> names) {
-		int size = features.length();
-		String[] array = FEATURE_PATTERN.split(features.substring(1, size - 1));
+	public static SparseFeatureArray<Double> getValueMap(
+			String features,
+			Map<String, Integer> aliases,
+			Map<String, Integer> names) {
 
-		Map<Integer, Double> map = new HashMap<Integer, Double>();
+		String substring = features.substring(1, features.length() - 1);
+		String[] array = FEATURE_PATTERN.split(substring);
+
+		SparseFeatureArray<Double> arr =
+				new SparseFeatureArray<Double>(names.size());
+
 		for (String element : array) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
@@ -118,35 +126,27 @@ public class FeatureModel {
 			if (valueMatcher.matches()) {
 				String featureName  = valueMatcher.group(1);
 				String featureValue = valueMatcher.group(2);
-				Integer integer = validate(featureName, features, aliases, names);
-				map.put(integer, Double.valueOf(featureValue));
+				Integer value = validate(featureName, features, aliases, names);
+				arr.set(value, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName  = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer integer = validate(featureName, features, aliases, names);
-				map.put(integer, featureValue.equals("+") ? 1.0 : -1.0);
+				Integer value = validate(featureName, features, aliases, names);
+				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
 			} else {
-				// invalid format?
-				throw new ParseException("Unrecognized feature \"" + element + "\" in definition " + features);
+				throw new ParseException("Unrecognized feature \"" + element
+						+ "\" in definition " + features);
 			}
 		}
-		return map;
+		return arr;
 	}
 
 	public Segment getSegmentFromFeatures(String features) {
 
-		int size = getNumberOfFeatures();
-		FeatureArray<Double> featureArray = new StandardFeatureArray<Double>(size);
+		FeatureArray<Double> map =
+				getValueMap(features, featureAliases, featureNames);
 
-		for (int i = 0; i < size; i++) {
-			featureArray.set(i, MASKING_VALUE);
-		}
-
-		Map<Integer, Double> map = getValueMap(features, featureAliases, featureNames);
-		for (Map.Entry<Integer, Double> entry : map.entrySet()) {
-			featureArray.set(entry.getKey(), entry.getValue());
-		}
-		return new Segment(features, featureArray, this);
+		return new Segment(features, map, this);
 	}
 
 	public List<Constraint> getConstraints() {
@@ -161,7 +161,6 @@ public class FeatureModel {
 
 		for (Map.Entry<String, FeatureArray<Double>> entry : featureMap.entrySet()) {
 			FeatureArray<Double> features = entry.getValue();
-
 			double difference = getDifferenceValue(featureArray, features);
 			if (difference < minimum) {
 				bestSymbol = entry.getKey();
@@ -267,7 +266,7 @@ public class FeatureModel {
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// this will need to change if we support value modification (up or down)
-					if (!d.equals(MASKING_VALUE)) {
+					if (d != null &&!d.equals(MASKING_VALUE)) {
 						featureArray.set(i, d);
 					}
 				}
@@ -346,7 +345,7 @@ public class FeatureModel {
 					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
-					if (left.equals(MASKING_VALUE)) {
+					if (left == null || left.equals(MASKING_VALUE)) {
 						compiledFeatures.set(i, right);
 					} else {
 						compiledFeatures.set(i, left);

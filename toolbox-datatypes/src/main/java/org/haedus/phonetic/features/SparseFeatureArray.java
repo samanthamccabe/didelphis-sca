@@ -16,54 +16,51 @@ package org.haedus.phonetic.features;
 
 import org.haedus.phonetic.model.FeatureModel;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 3/26/2016
+ * Created by samantha on 3/27/16.
  */
-public final class StandardFeatureArray<T extends Number & Comparable<T>>
+public final class SparseFeatureArray<T extends Number & Comparable<T>>
 		implements FeatureArray<T> {
-	
-	private final List<T> features;
 
-	public StandardFeatureArray(int size) {
-		features = new ArrayList<T>(size);
+	private final int size;
+	private final Map<Integer, T> features;
+
+	public SparseFeatureArray(int size) {
+		this.size = size;
+		features = new HashMap<Integer, T>();
+	}
+
+	public SparseFeatureArray(List<T> list) {
+		this(list.size());
 		for (int i = 0; i < size; i++) {
-			features.add(null);
+			features.put(i, list.get(i));
 		}
 	}
 
-	public StandardFeatureArray(List<T> list) {
-		features = new ArrayList<T>(list);
-	}
-	
-	public StandardFeatureArray(StandardFeatureArray<T> array) {
-		features = new ArrayList<T>(array.features);
-	}
-
-	public StandardFeatureArray(FeatureArray<T> array) {
-		int size = array.size();
-		features = new ArrayList<T>(size);
-		for (int i = 0; i < size; i++) {
-			features.add(array.get(i));
-		}
+	public SparseFeatureArray(SparseFeatureArray<T> array) {
+		size = array.size;
+		features = new HashMap<Integer, T>(array.features);
 	}
 
 	@Override
 	public int size() {
-		return features.size();
+		return size;
 	}
 
 	@Override
 	public void set(int index, T value) {
-		features.set(index, value);
+		indexCheck(index);
+		features.put(index, value);
 	}
 
 	@Override
 	public T get(int index) {
+		indexCheck(index);
 		return features.get(index);
 	}
 
@@ -74,16 +71,10 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 					"Attempting to compare arrays of different lengths");
 		}
 
-		for (int i = 0; i < size(); i++) {
-			T a = this.get(i);
-			T b = array.get(i);
-			boolean matches =
-					a == null ||
-					b == null ||
-					a.equals(FeatureModel.MASKING_VALUE) ||
-					b.equals(FeatureModel.MASKING_VALUE) ||
-					a.equals(b);
-			if (!matches) {
+		for (Map.Entry<Integer, T> entry : features.entrySet()) {
+			T a = entry.getValue();
+			T b = array.get(entry.getKey());
+			if (!(b == null || a.equals(b))) {
 				return false;
 			}
 		}
@@ -100,14 +91,14 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 		for (int i = 0; i < features.size(); i++) {
 			T t = array.get(i);
 			if (t != null && !t.equals(FeatureModel.MASKING_VALUE)) {
-				features.set(i, t);
+				features.put(i, t);
 			}
 		}
 	}
 
 	@Override
 	public boolean contains(T value) {
-		return features.contains(value);
+		return features.containsValue(value);
 	}
 
 	@Override
@@ -117,11 +108,12 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 					"Attempting to compare arrays of different lengths");
 		}
 
-		for (int i = 0; i < size(); i++) {
+		// There should be a better way to do this than checking
+		// every index, since usually only one value will be defined
+		for (int i = 0; i < size; i++) {
 			T a = get(i);
 			T b = o.get(i);
 			int comparison;
-
 			if (a == null && b == null) {
 				comparison = 0;
 			} else if (a == null) {
@@ -141,27 +133,40 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
-
-		StandardFeatureArray<?> that = (StandardFeatureArray<?>) obj;
-
-		return features.equals(that.features);
-	}
-
-	@Override
-	public int hashCode() {
-		return features.hashCode();
+	public Iterator<T> iterator() {
+		return features.values().iterator();
 	}
 
 	@Override
 	public String toString() {
-		return features.toString();
+		return "SparseFeatureArray{" +
+				"size=" + size +
+				", features=" + features +
+				'}';
 	}
 
 	@Override
-	public Iterator<T> iterator() {
-		return features.iterator();
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SparseFeatureArray<?> that = (SparseFeatureArray<?>) o;
+
+		return size == that.size &&
+				features.equals(that.features);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = size;
+		result = 31 * result + features.hashCode();
+		return result;
+	}
+
+	private void indexCheck(int index) {
+		if (index >= size) {
+			throw new IndexOutOfBoundsException("Provided index " + index +
+					" is larger than defined size for object " + size);
+		}
 	}
 }

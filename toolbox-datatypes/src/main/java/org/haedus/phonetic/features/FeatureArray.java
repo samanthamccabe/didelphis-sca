@@ -48,11 +48,8 @@ public interface FeatureArray<T extends Number & Comparable<T>>
 	//TODO: this is non-trivial and needs to be explained
 	boolean matches(FeatureArray<T> array);
 
-	//TODO: this is going to warrant some *extra* explanation
-	boolean matches(FeatureArray<T> array, int index);
-
 	//TODO: this is non-trivial and needs to be explained
-	FeatureArray<T> alter(FeatureArray<T> array);
+	void alter(FeatureArray<T> array);
 
 	boolean contains(T value);
 }

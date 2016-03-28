@@ -161,7 +161,8 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	}
 
 	public double getFeatureValue(int i) {
-		return features.get(i);
+		Double value = features.get(i);
+		return value != null ? value : FeatureModel.MASKING_VALUE;
 	}
 
 	public String toStringLong() {
@@ -189,29 +190,37 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		}
 	}
 
-	private static void applyConstraint(int index, FeatureArray<Double> features, Constraint constraint) {
-		Map<Integer, Double> source = constraint.getSource();
-		if (source.containsKey(index)) {
+	private static void applyConstraint(
+			int index,
+			FeatureArray<Double> features,
+			Constraint constraint) {
 
-			boolean match = true;
-			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
-				match &= features.get(entry.getKey()).equals(entry.getValue());
-			}
 
-			if (match) {
-				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
-					features.set(entry.getKey(), entry.getValue());
-				}
+		FeatureArray<Double> source = constraint.getSource();
+		if (source.get(index) != null) {
+//			boolean match = true;
+//			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
+//				match &= features.get(entry.getKey()).equals(entry.getValue());
+//			}
+
+			if (source.matches(features)) {
+//				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
+//					features.set(entry.getKey(), entry.getValue());
+//				}
+				features.alter(constraint.getTarget());
 			}
 		}
 	}
 
+	@Deprecated
 	public boolean isUndefined() {
 		return model.getBlankArray().equals(features);
 	}
-	
+
+	@Deprecated
 	public boolean isUnderspecified() {
-		return features.contains(FeatureModel.MASKING_VALUE);
+		return features.contains(null)||
+		       features.contains(FeatureModel.MASKING_VALUE);
 	}
 
 	@Override
