@@ -11,20 +11,23 @@
 \usepackage{verbatim}
 \usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
 
+\newfontface\fontIPA{Gentium Plus Italic}
+\newcommand\textIPA[1]{{\fontIPA #1}}
+
 \newcounter{excounter}
 % verbatim example
 \newenvironment{vex}[1]{
   % 
-	\vspace{1em}
-	\refstepcounter{excounter}
-	% 〈〉
-	\noindent\makebox[3em][l]{(\arabic{excounter}\label{#1})}
-	\minipage{\textwidth}
-	\verbatim
+  \vspace{1em}
+  \refstepcounter{excounter}
+  % 〈〉
+  \noindent\makebox[3em][l]{(\arabic{excounter}\label{#1})}
+  \minipage{\textwidth}
+  \verbatim
 }{
-	\endverbatim
-	\endminipage
-	\vspace{1em}
+  \endverbatim
+  \endminipage
+  \vspace{1em}
 }
 
 \title{Haedus Toolbox SCA, Manual (v0.7.0)}
@@ -133,9 +136,9 @@ The first two perform canonical decomposition, canonical decomposition followed 
 
 % ◌
 
-The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \emph{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
+The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \textIPA{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
 
-The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \emph{k} will not trigger on \emph{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
+The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \textIPA{k} will not trigger on \textIPA{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
 
 % subsection using_normalization (end)
 %------------------------------------------------------------------------------
@@ -161,14 +164,14 @@ close LEXICON as 'pkk_lexicon.txt'
 \noindent
 Writing intermediate lexicons can be a useful way of debugging during development, and ensuring that your outputs look correct at intermediate stages.
 
-Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. If you were to change modes \emph{after} loading a lexicon, it could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled prior to writing any rules, a rule containing \texttt{pʰ} will not trigger on a word containing \texttt{pʰ} because it will have been loaded as two separate characters \texttt{p} and \texttt{ʰ}. 
+Finally when opening a lexicon from disk, it will be read into memory and normalized using whatever mode was last defined. If you were to change modes \emph{after} loading a lexicon, it could lead to unexpected behavior. For example, if no mode is set when a lexicon is loaded, but intelligent segmentation is enabled prior to writing any rules, a rule containing \textIPA{pʰ} will not trigger on a word containing \textIPA{pʰ} because it will have been loaded as two separate characters \textIPA{p} and \textIPA{ʰ}. 
 
 % subsection loading_lexicons (end)
 %------------------------------------------------------------------------------
 
 \subsubsection{Reserving Characters} 
 \label{ssub:reserving_characters}
-Though there are no uses of reserving characters in the Kuma-Koban examples, it can be useful to do, especially when you are not using intelligent segmentation (see section \ref{ssub:using_normalization}), or where your orthographic conventions may conflict in some way with it (such as if your language uses pre-aspirated stop, which you represent \emph{ʰt}).
+Though there are no uses of reserving characters in the Kuma-Koban examples, it can be useful to do, especially when you are not using intelligent segmentation (see section \ref{ssub:using_normalization}), or where your orthographic conventions may conflict in some way with it (such as if your language uses pre-aspirated stop, which you represent \textIPA{ʰt}).
 
 You can use the \texttt{reserve} keyword to indicate which sequences of characters which are intended to represent single sounds. Following the keyword, simply list the string you wish to be treated this way, separated by whitespace:
 
@@ -177,7 +180,7 @@ reserve ph th kh kw kwh
 \end{vex}
 
 \noindent
-This will ensure that a rule intended to target \emph{p} will not affect \emph{ph} and a rule intended to target \emph{kw} will not affect \emph{kwh}. Be mindful when writing rules; carelessly reserving sequences could lead to unexpected behavior in your outputs.
+This will ensure that a rule intended to target \textIPA{p} will not affect \textIPA{ph} and a rule intended to target \textIPA{kw} will not affect \textIPA{kwh}. Be mindful when writing rules; carelessly reserving sequences could lead to unexpected behavior in your outputs.
 
 % section: reserving_characters (end)
 % -----------------------------------------------------------------------------
@@ -221,7 +224,7 @@ y w > i u
 \end{vex}
 
 \noindent
-The intention is to change every \emph{y} to an \emph{i} and every \emph{w} to a \emph{u}, regardless of context. The first set of rules in the Kuma-Koban example are like this; simple rules for making orthographic corrections in the raw data.
+The intention is to change every \textIPA{y} to an \textIPA{i} and every \textIPA{w} to a \textIPA{u}, regardless of context. The first set of rules in the Kuma-Koban example are like this; simple rules for making orthographic corrections in the raw data.
 
 Though it is used less often, deletion is a useful feature of rules. The following example shows how to do this:
 
@@ -252,14 +255,14 @@ Q > P
 \end{vex}
 
 \noindent
-This will change \emph{kʷʰ} to \emph{pʰ}, \emph{kʷ} to \emph{p}, and \emph{gʷ} to \emph{b}. It is also possible to write rules like:
+This will change \textIPA{kʷʰ} to \textIPA{pʰ}, \textIPA{kʷ} to \textIPA{p}, and \textIPA{gʷ} to \textIPA{b}. It is also possible to write rules like:
 
 \begin{vex}{ex:variabletransform2}
 iH uH > ī ū
 \end{vex}
 
 \noindent
-which will change any sequence of \emph{i} and any element of \texttt{H} to \emph{ī}, and do the same for \emph{u}. Changing a variable to a literal will change every element matched by the variable into that literal sequence.
+which will change any sequence of \textIPA{i} and any element of \texttt{H} to \textIPA{ī}, and do the same for \textIPA{u}. Changing a variable to a literal will change every element matched by the variable into that literal sequence.
 
 % section: writing_simple_rules (end)
 % -----------------------------------------------------------------------------
@@ -278,9 +281,9 @@ If you are familiar with the standard formalisms for discussing sound change aca
 
 %Good conditions are where an SCA's real power lies. In this rule language, there is a lot to know about writing conditions, and that is detailed in section \ref{sub:conditions}; however, we will discuss these in a more organic fashion, as they appear in the Kuma-Koban example, for the benefit of new users.
 
-There is a very common rule in Indo-European languages where \emph{*e} is changed to \emph{*a} in the environment of \emph{*h₂} and possibly \emph{*h₄} if there ever was such a thing\footnote{where distinguishing between these is not possible, \emph{*hₐ} is used, at least in those sources which admit a \emph{*h₄}}. For convenience, these are simply converted to consonants \emph{x} and \emph{ʕ}.
+There is a very common rule in Indo-European languages where \textIPA{*e} is changed to \textIPA{*a} in the environment of \textIPA{*h₂} and possibly \textIPA{*h₄} if there ever was such a thing\footnote{where distinguishing between these is not possible, \textIPA{*hₐ} is used, at least in those sources which admit a \textIPA{*h₄}}. For convenience, these are simply converted to consonants \textIPA{x} and \textIPA{ʕ}.
 
-Expressed verbally, we might say ``\emph{e} changes to \emph{a} before or after \emph{x} or \emph{ʕ}''. One way to write this is with four rules:
+Expressed verbally, we might say ``\textIPA{e} changes to \textIPA{a} before or after \textIPA{x} or \textIPA{ʕ}''. One way to write this is with four rules:
 
 \begin{vex}{ex:fourlaryngealrule}
 E > A / _x
@@ -484,7 +487,7 @@ The definitions in example \ref{ex:variables} illustrate several things: using w
 Note that each item bound to a variable must be a sequence of literals, or a single variable, \emph{not} combinations of both. Assuming the definitions in example \ref{ex:variables} are already in place, a definition like \texttt{X = DW} or \texttt{TH = Tʰ} is not permitted.
 
 There are no formal restrictions placed on variable labels, beyond requiring that they not use characters reserved by the SCA. You will notice in ex. \ref{ex:variables} that both \texttt{TH} and \texttt{T} are defined. This is possible because when SCA parses a rule or variable definition, it searches for variables by finding the \emph{longest} matching label first. If you have variables \texttt{T}, \texttt{H}, and \texttt{TH}, a rule containing the string \texttt{TH} will always be understood by the SCA to represent the variable \texttt{TH}, and not \texttt{T} followed by \texttt{H}. The best way to avoid this situation is to name variable carefully
-	\footnote{Though I do not see this as a problem in need of a resolution, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{ssub:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
+  \footnote{Though I do not see this as a problem in need of a resolution, I will note that this conflict, should it arise at all, is most likely to do so in a rule condition. In that context, it is possible to simply use the regular expression language (see section \ref{ssub:expressions}) to your advantage by wrapping one or both variables in parentheses to avoid the conflict: \texttt{(T)(H)}}
 
 It is possible to re-assign variables at any point in the script. This includes appending or prepending values to an existing variable, or redefining it entirely:
 
@@ -569,7 +572,7 @@ CN > $2$G1
 \end{vex}
 
 \noindent
-which does the same as the above, but also replaces any element of \texttt{C} with the corresponding element of \texttt{G}. So, if a word is \emph{atna}, the rule will change it to \emph{anda}.
+which does the same as the above, but also replaces any element of \texttt{C} with the corresponding element of \texttt{G}. So, if a word is \textIPA{atna}, the rule will change it to \textIPA{anda}.
 
 This can also be used for some kinds of assimilation and dissimilation, such as simplifying clusters of plosives by changing the second to be the same as the first:
 
@@ -579,7 +582,7 @@ CC > $1$1
 \end{vex}
 
 \noindent
-This will change a word like \emph{akpa} to \emph{akka}. To assimilate in the other direction, you can simply use \texttt{\$2\$2}
+This will change a word like \textIPA{akpa} to \textIPA{akka}. To assimilate in the other direction, you can simply use \texttt{\$2\$2}
 
 % subsubsection: indices_and_backreferences (end)
 % -----------------------------------------------------------------------------
@@ -594,7 +597,7 @@ Eₐ_Eₚ
 \end{vex}
 
 where \texttt{Eₐ} represents an expression to be matched before the source segment, and \texttt{Eₚ} represents an expression to be matched after the source segment.
-	\footnote{At the implementation-level, this is done by searching a word, start to end, for a symbol from the transform. If it is found, the symbols before and after it are checked against the condition. If both match, the changes are applied.}
+  \footnote{At the implementation-level, this is done by searching a word, start to end, for a symbol from the transform. If it is found, the symbols before and after it are checked against the condition. If both match, the changes are applied.}
 
 Many common conditions are relatively simple, representing things like ``between consonants'', ``before nasal consonants'', or ``word-initially'', as in the following example:
 
@@ -625,7 +628,7 @@ Grouping with parentheses allow application of the quantifying metacharacters to
 \end{vex}
 
 \noindent
-which will match the expression \texttt{ab?c} one or more times, and thus any of the following strings \emph{ac}, \emph{abc}, \emph{acac}, \emph{abcac}, \emph{abcacacabac} and so on.\footnote{As a product of the syntax of groups, it is possibly to nest them to any depth, so that \texttt{(a)} will match the same set of strings as \texttt{(((a)))} for example, but doing this has no benefit and unnecessary nesting merely generates more complicated machines which require more time to evaluate.}
+which will match the expression \texttt{ab?c} one or more times, and thus any of the following strings \textIPA{ac}, \textIPA{abc}, \textIPA{acac}, \textIPA{abcac}, \emph{abcacacabac} and so on.\footnote{As a product of the syntax of groups, it is possibly to nest them to any depth, so that \texttt{(a)} will match the same set of strings as \texttt{(((a)))} for example, but doing this has no benefit and unnecessary nesting merely generates more complicated machines which require more time to evaluate.}
 
 %As in other regular expression languages, a single symbol is an expression, as is a sequence of expressions, or a group or set.
 
@@ -641,11 +644,11 @@ will match any one of the expressions \texttt{E₁}, \texttt{E₂}, or \texttt{E
 \subsubsection{Negation}
 \label{ssub:negation}
 It is also possible to \emph{negate} an expression by prepending the exclamation-mark character \texttt{!} to it. It indicates that the expression will accept any inputs except for those accepted by the original machine (but only inputs of the same length as the original).
-A simple expression \texttt{!a} will accept any single character except for the literal \emph{a}. A negated group \texttt{!(abc)} will accept any input of length = 3 which is not \emph{abc}. A negated set \texttt{!\{a b c\}} will accept any inputs of length = 1 which is not \emph{a}, not \emph{b}, and not \emph{c}.
+A simple expression \texttt{!a} will accept any single character except for the literal \textIPA{a}. A negated group \texttt{!(abc)} will accept any input of length = 3 which is not \emph{abc}. A negated set \texttt{!\{a b c\}} will accept any inputs of length = 1 which is not \textIPA{a}, not \textIPA{b}, and not \textIPA{c}.
 
 More formally, if a state machine \texttt{E} accepts a set of inputs \texttt{I} 
 %(traditionally this is called the \emph{language} accepted by \texttt{E})
-	and \texttt{L} is the set of \emph{lengths} of the inputs in \texttt{I}, then the machine \texttt{!E} will accept \emph{all possible inputs} that have lengths \texttt{L} and are not in \texttt{I}.
+and \texttt{L} is the set of \emph{lengths} of the inputs in \texttt{I}, then the machine \texttt{!E} will accept \emph{all possible inputs} that have lengths \texttt{L} and are not in \texttt{I}.
 
 The user is cautioned to use negation judiciously; the intent may often be more clear using an un-negated condition, paired with a exception (\texttt{not}) block, which is described in the following section.
 
@@ -663,7 +666,7 @@ H > 0 / _{C #} or C_
 \noindent
 Using multipe clauses can sometimes render rules more difficult to read, so using this capability is not always ideal, from a user's point of view.
 It i
-s also possible to specify condition clauses under which the rule should \emph{not} apply even though the conditions might otherwise be satisfied. This is done using the \texttt{not} keyword.	The exception clauses must always occur after the main clauses, though the main clauses are allowed to be empty. All of the following are valid uses of exception clauses:
+s also possible to specify condition clauses under which the rule should \emph{not} apply even though the conditions might otherwise be satisfied. This is done using the \texttt{not} keyword.  The exception clauses must always occur after the main clauses, though the main clauses are allowed to be empty. All of the following are valid uses of exception clauses:
 
 \begin{vex}{ex:exception_clauses}
 a > b / not _y
@@ -728,7 +731,7 @@ The feature definition block is started by the keyword \texttt{FEATURES}. Each d
 
 The \texttt{SYMBOL} and \texttt{MODIFIER} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or sequence of characters (whatever represents a single sound), followed by a single \emph{tab character}, followed by a value for each feature, separated by tabs.
 
-In the symbol block, blank values are not allowed. In the modifier block, they are expected; adding a modifier to a symbol such as \emph{a̰} will take the feature array for \emph{a} and overwrite them with for any value definited in the modifer block for \emph{◌̰}.
+In the symbol block, blank values are not allowed. In the modifier block, they are expected; adding a modifier to a symbol such as \textIPA{a̰} will take the feature array for \textIPA{a} and overwrite them with for any value definited in the modifer block for \textIPA{◌̰}.
 
 In the symbol and modifier block, feature values are limited and checked based on the type defined in the features block: \texttt{binary} can take values \texttt{+} or \texttt{-}; \texttt{ternary} can take values \texttt{+}, \texttt{-}, or \texttt{0}; \texttt{numeric} can take any integer value.
 
@@ -859,89 +862,524 @@ This appendix describes some of the implementational details of the automata
 \label{sub:ATHM}
 In order to carry out a research program which makes us of this sound-change applier, it was necessary to develop a feature model. Unlike phonemic feature models intended to explain phenomena within a single language, the new model must be \emph{phonetic}, in order to compare across languages, or over time.
 
-The new model was based partly on Darin Flynn's \emph{Articulator Theory}, a system which combines binary and unary features. However, \emph{Articulator Theory} is still intended to describe synchronic phenomena in a single language, and does not provide the level of granularity needed in the research program. It also inherits a number of flaws from \emph{Sound Pattern of English}, such as conflating breathy-voice and aspiration, and using an explicitely lingual feature like \texttt{[distributed]} to contrast labial and labio-dental consonants.
+The new model was based partly on Darin Flynn's \emph{Articulator Theory} (2006), a system which combines binary and unary features. However, \emph{Articulator Theory} is still intended to describe synchronic phenomena in a single language, and does not provide the level of granularity needed in the research program. It also inherits a number of flaws from \emph{Sound Pattern of English}, such as conflating breathy-voice and aspiration, and using an explicitely lingual feature like \texttt{[distributed]} to contrast labial and labio-dental consonants.
 
 The new model would need to address the shortcomings of \emph{Articulator Theory} and improve granularity.
 
 \subsubsection{[consonantal]}
 \label{ssub:feature_consonantal}
-\textbf{binary} — Following Flynn's work, \texttt{[consonantal]} is one of the most important features, dividing vowels (\texttt{−[consonantal]}) and semivowels from the consonants proper.
+
+\begin{description}
+\item[Descritpion] Separates consonants from vowels and semivowels
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+consonantal]}\\
+    p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ ħ ʕ ʔ h ɦ 
+    \item \texttt{[−consonantal]}\\
+    i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w 
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment that is \texttt{[−consonantal]} must be \texttt{[+sonorant]}
+%    \item Any segment that is \texttt{[−sonorant]} must be \texttt{[+consonantal]}
+
+%    \item Any segment that is \texttt{[−continuant]} must be \texttt{[+consonantal]}
+    \item Any segment that is \texttt{[−consonantal]} must be \texttt{[+continuant]}
+
+    \item Any segment that is \texttt{[−consonantal]} must be \texttt{[−release]}
+%    \item Any segment that is \texttt{[+release]} must be \texttt{[+consonantal]}
+  \end{enumerate}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
 
 \subsubsection{[sonorant]}
 \label{ssub:feature_sonorant}
-\textbf{binary} — Easily another of the most important features, dividing the sonorants from obstruants. Flynn groups laryngeal as glides, and thus \texttt{[+sonorant]}; to reduce potential confusion for users familiar with Sound Pattern of English or similar models, laryngeals are \texttt{[−sonorant]} here.
+%\textbf{binary} — Easily another of the most important features, dividing the sonorants from obstruants. Flynn groups laryngeal as glides, and thus \texttt{[+sonorant]}; to reduce potential confusion for users familiar with Sound Pattern of English or similar models, laryngeals are \texttt{[−sonorant]} here.
+
+%\begin{itemize}
+%\item \texttt{[+sonorant]} m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w 
+%\item \texttt{[−sonorant]} p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ ħ ʕ ʔ h ɦ 
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] Contrasts between sonorants and obstruents
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+sonorant]}\\
+    m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w 
+    \item \texttt{[−sonorant]}\\
+     p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ ħ ʕ ʔ h ɦ
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment that is \texttt{[−sonorant]} must be \texttt{[+consonantal]}
+    \item Any segment that is \texttt{[+sonorant]} must be \texttt{[−release]}
+    \item Any segment that is \texttt{[+sonorant]} must be \texttt{[−ejective]}
+    \item Any segment that is \texttt{[−sonorant]} must be \texttt{[−atr]}
+  \end{enumerate}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
 
 \subsubsection{[continuant]}
 \label{ssub:feature_continuant}
-\textbf{binary} — This feature is primarily used to distinguish plositves from fricatives. Flynn uses it excusively for that purpose, so that it only applies to obstruents. This model treats all non-stops (sonorants and fricatives) as \texttt{[+continuant]}; it might be entirely reasonable to invert the values for this features and call it \texttt{[stop]}.
+%\textbf{binary} — This feature is primarily used to distinguish plositves from fricatives. Flynn uses it excusively for that purpose, so that it only applies to obstruents. This model treats all non-stops (sonorants and fricatives) as \texttt{[+continuant]}; it might be entirely reasonable to invert the values for this features and call it \texttt{[stop]}.
 
-\subsubsection{[release]}
-\label{ssub:feature_release}
-\textbf{binary} — This is the first feature not present in Flynn's work. It was present in ``Sound Pattern of English'' and was re-introduced to unambiguously contrast plosives from affricates. The name is shorthand for ``delayed release'' and can only apply meaningfully to plosives. And sounds which are \texttt{[+release]} will be affricates
+%\begin{itemize}
+%\item \texttt{[+continuant]} ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ħ ʕ h ɦ 
+%\item \texttt{[continuant]} p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ m ɱ n ɳ ɲ ŋ ŋm ɴ ʔ 
+%\end{itemize}
 
-\subsubsection{[lateral]}
-\label{ssub:feature_lateral}
-\textbf{binary} — This feature is quite simple and should probably be familiar. Lateral sounds are produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides (\emph{i.e.} laterally, which has some distinctive acoustic effects. Note that the airflow is through the oral cavity by necessity, such that any sound which is \texttt{[+lateral]} must be \texttt{[−nasal]}.
-
-\subsubsection{[nasal]}
-\label{ssub:feature_nasal}
-\textbf{binary} — Like \texttt{[lateral]}, this feature should probably be quite familiar. Sounds which are \texttt{[+nasal]} are made with a lowered velum, allowing airflow throuh the nasal cavity. As mentioned in the previous section, sounds which are nasal cannot be lateral.
-
-\subsubsection{[labial]}
-\label{ssub:feature_labial}
-\textbf{binary} — The first major place feature, \texttt{[labial]} represents sounds which are articulated using the lips. Unlike Flynn's model, this one does not contrast between labiodental and bilabial consonants (though one could in principal use \texttt{[+round]} for bilabial and \texttt{[+round]} for labiodental, imprecise as this is).
-
-\subsubsection{[round]}
-\label{ssub:feature_round}
-\textbf{binary} — This is the only other feature associated with the lips. It represents both rounding contrasts in vowels, but also secondary articulation on plosives.
-
-\subsubsection{[coronal]}	
-\label{ssub:feature_coronal}
-\textbf{numeric} — This is the first and only numeric feature currently included in the system; at earlier stages there were more, but these were replaced by binary features for clarity. The coronal sounds have been left this way because they share a single articulator making contact at different points along a continuum, from dental, to alveolar, back to palatal.
-
-\begin{itemize}
-  \item \texttt{[coronal:0]} — Not coronal; neutral position, articulator not engaged.
-  \item \texttt{[coronal:1]} — Dental or interdental; tongue tip is against or between teeth.
-  \item \texttt{[coronal:2]} — Alveolar; tongue tip raised against the alveolar ridge.
-  \item \texttt{[coronal:3]} — Post-Alveolar; tongue tip raised to between the alveolar ridge and soft palate.
-  \item \texttt{[coronal:4]} — Retroflex; tongue tip curled back towards the soft palate.
-  \item \texttt{[coronal:5]} — Palatal; tongue body raised to the soft palate
-\end{itemize}
-
-Two immediate critisims of this arrangement  are that dental (and especially interdental) sounds are produced with a movement in the opposite direction of the others; it might instead be assigned a value \texttt{-1}, and alveolar sounds \texttt{1} rather than \texttt{2}. A second is that from dental to retroflex, a smooth continuum of articulation can be produced by pulling the tip of the tongue along the roof of the mouth. However, palatal sounds are articulated in a different way, with a different part of the tongue.
-
-These facts may have very little bearing on their practical use in a rule system, but are worth considering.
-
-\subsubsection{[dorsal]}
-\label{ssub:feature_dorsal}
-\textbf{binary} — 
-
-\subsubsection{[front]}
-\label{ssub:feature_front}
-\textbf{ternary} — 
-
-\subsubsection{[high]}
-\label{ssub:feature_high}
-\textbf{ternary} — 
-
-\subsubsection{[ATR]}
-\label{ssub:feature_atr}
-\textbf{ternary} — 
-
-\subsubsection{[voice]}
-\label{ssub:feature_voice}
-\textbf{binary} — 
-
-\subsubsection{[tense]}
-\label{ssub:feature_tense}
-\textbf{binary} — 
-
-\subsubsection{[VOT]}
-\label{ssub:feature_vot}
-\textbf{binary} — 
+\begin{description}
+\item[Descritpion] Distinguishes plosives from fricates; technically, it contrasts a complete closure (\texttt{[−continuant]}) from near-complete closure (\texttt{[+continuant]}) of the oral tract specifically, so nasal consonants are \texttt{[−continuant]} (Flynn, 2006).
+%TODO: does this only apply to obstruents?? check flynn, then delete this note
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+continuant]}\\
+    ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ħ ʕ h ɦ 
+    \item \texttt{[−continuant]}\\
+     p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ m ɱ n ɳ ɲ ŋ ŋm ɴ ʔ 
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment that is \texttt{[−continuant]} must be \texttt{+consonantal}
+    \item Any segment that is \texttt{[+continuant]} must be \texttt{[−release]}
+  \end{enumerate}
+\item[Resctrictions] Only applies to consonants; vowels and semivowels are \texttt{[+continuant]} by default.
+\end{description}
+% =============================================================================
 
 \subsubsection{[ejective]}
 \label{ssub:feature_ejective}
-\textbf{binary} — 
+
+\begin{description}
+\item[Descritpion] Distinguishes ejective from pulmonic stops and affricates.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+ejective]}\\
+    p̪ʼ pʼ tʼ ʈʼ cʼ kʼ kpʼ qʼ ɢʼ pfʼ tsʼ tɬʼ tʃʼ tɕʼ ʈʂʼ cçʼ kxʼ
+    \item \texttt{[−ejective}\\
+    \emph{everything else}
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment that is \texttt{[+ejective]} must be \texttt{[+consonantal, −sonorant, −continuant, −voice]}
+  \end{enumerate}
+  \item[Resctrictions] only applies to stops and affricates; all other sounds are \texttt{[−ejective]} by default
+\end{description}
+% =============================================================================
+
+\subsubsection{[release]}
+\label{ssub:feature_release}
+%\textbf{binary} — This is the first feature not present in Flynn's work. It was present in ``Sound Pattern of English'' and was re-introduced to unambiguously contrast plosives from affricates. The name is shorthand for ``delayed release'' and can only apply meaningfully to plosives. And sounds which are \texttt{[+release]} will be affricates
+
+\begin{description}
+\item[Descritpion] Distinguishes plosives from affricate counterparts
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+relsease]}
+    pf bv pɸ bβ tθ dð ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ qχ ɢʁ
+%    \item \texttt{[−release]}\\
+%    ...
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment that is \texttt{[+release]} must be \texttt{[+consonanatl]}
+    \item Any segment that is \texttt{[+release]} must be \texttt{[−consonanatl]}
+    \item Any segment that is \texttt{[+release]} must be \texttt{[−continuant]}
+  \end{enumerate}
+\item[Resctrictions] Only meaningful for \texttt{[+consonantal,−sonorant, −continuant]}
+\end{description}
+% =============================================================================
+
+\subsubsection{[lateral]}
+\label{ssub:feature_lateral}
+%\textbf{binary} — This feature is quite simple and should probably be familiar. Lateral sounds are produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides (\emph{i.e.} laterally, which has some distinctive acoustic effects. Note that the airflow is through the oral cavity by necessity, such that any sound which is \texttt{[+lateral]} must be \texttt{[−nasal]}.
+
+%\begin{itemize}
+%\item \texttt{[+lateral]} tɬ dɮ ɬ ɮ l ɫ ɭ ʎ ʟ 
+%\item \texttt{[−lateral]}
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+lateral]}\\
+    tɬ dɮ ɬ ɮ l ɫ ɭ ʎ ʟ
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment which is \texttt{[+lateral]} must be \texttt{[-nasal]}
+  \end{enumerate}
+\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[-nasal]} simultaneously
+\end{description}
+% =============================================================================
+
+\subsubsection{[nasal]}
+\label{ssub:feature_nasal}
+%\textbf{binary} — Like \texttt{[lateral]}, this feature should probably be quite familiar. Sounds which are \texttt{[+nasal]} are made with a lowered velum, allowing airflow throuh the nasal cavity. As mentioned in the previous section, sounds which are nasal cannot be lateral.
+
+%\begin{itemize}
+%\item \texttt{[+nasal]} m ɱ n ɳ ɲ ŋ ŋm ɴ 
+%\item \texttt{[−nasal]}
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] produced with a lowered velum, allowing airflow throuh the nasal cavity.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+binary]}\\
+    m ɱ n ɳ ɲ ŋ ŋm ɴ 
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segmentw which is \texttt{[+nasal]} must also be \texttt{[-lateral]}
+  \end{enumerate}
+\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[-nasal]} simultaneously
+\end{description}
+% =============================================================================
+
+\subsubsection{[labial]}
+\label{ssub:feature_labial}
+%\textbf{binary} — The first major place feature, \texttt{[labial]} represents sounds which are articulated using the lips. Unlike Flynn's model, this one does not contrast between labiodental and bilabial consonants (though one could in principal use \texttt{[+round]} for bilabial and \texttt{[+round]} for labiodental, imprecise as this is).
+
+%\begin{itemize}
+%\item \texttt{[+labial]} p̪ b̪ p b kp gb pf bv ɸ β f v m ɱ ŋm ʋ ʍ w 
+%\item \texttt{[−labial]}
+%\end{itemize}
+
+%\subsubsection{[round]}
+%\label{ssub:feature_round}
+%\textbf{binary} — This is the only other feature associated with the lips. It represents both rounding contrasts in vowels, but also secondary articulation on plosives.
+
+%\begin{itemize}
+%\item \texttt{[+round]} p b ɸ β m y ʏ u ʊ ʉ ø œ o ɔ ɶ ɒ ʋ ɥ w 
+%\item \texttt{[−round]}
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] contrasts sounds with produced with the lips from those without.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+labial]}\\
+    p̪ b̪ p b kp gb pf bv ɸ β f v m ɱ ŋm ʋ ʍ w
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[round]}
+\label{ssub:feature_round}
+
+\begin{description}
+\item[Descritpion] indicates sounds produced with a secondary rounding of the lips
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[-consonantal, +round]}\\
+    y ʏ u ʊ ʉ ø œ o ɔ ɶ ɒ ʋ ɥ w 
+    \item \texttt{[-consonantal, -round]}\\
+    i ɪ ɯ ɷ ə ɨ e ɛ ɤ ʌ æ a ɐ ɑ j ɰ ʍ 
+    \item \texttt{[-consonantal, -round]}\\
+    tʷ dʷ sʷ kʷ gʷ xʷ \emph{etc.}
+    \item \texttt{[+consonantal, -round]}\\
+    \emph{everything else}
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[coronal]}
+\label{ssub:feature_coronal}
+%\textbf{numeric} — This is the first and only numeric feature currently included in the system; at earlier stages there were more, but these were replaced by binary features for clarity. The coronal sounds have been left this way because they share a single articulator making contact at different points along a continuum, from dental, to alveolar, back to palatal.
+
+%\begin{itemize}
+%  \item \texttt{[coronal:0]} — Not coronal; neutral position, articulator not engaged.
+%  \item \texttt{[coronal:1]} — Dental or interdental: θ ð 
+%  \item \texttt{[coronal:2]} — Alveolar: t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
+%  \item \texttt{[coronal:3]} — Post-Alveolar: tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
+%  \item \texttt{[coronal:4]} — Retroflex: ʈ ɖ ʈʂ ɖʐ ʂ ʐ ɳ ɽ ɭ 
+%  \item \texttt{[coronal:5]} — Palatal: c ɟ cç ɟʝ ç ʝ ɲ ʎ j ɥ
+%\end{itemize}
+
+%Two immediate critisims of this arrangement  are that dental (and especially interdental) sounds are produced with a movement in the opposite direction of the others; it might instead be assigned a value \texttt{-1}, and alveolar sounds \texttt{1} rather than \texttt{2}. A second is that from dental to retroflex, a smooth continuum of articulation can be produced by pulling the tip of the tongue along the roof of the mouth. However, palatal sounds are articulated in a different way, with a different part of the tongue.
+
+%These facts may have very little bearing on their practical use in a rule system, but are worth considering.
+
+\begin{description}
+\item[Descritpion] indicates the place of articulation for sounds with coronal articulation, from the teeth to the soft palette
+\item[Type] \emph{numeric}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[coronal:0]}\\
+      \emph{All non-coronal sounds}
+    \item \texttt{[dental]}\\
+      θ ð 
+    \item \texttt{[alveolar]}\\
+      t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
+    \item \texttt{[postalveolar]}\\
+      tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
+    \item \texttt{[retroflex]}\\
+      ʈ ɖ ʈʂ ɖʐ ʂ ʐ ɳ ɽ ɭ 
+    \item \texttt{[palatal]}\\
+      c ɟ cç ɟʝ ç ʝ ɲ ʎ j ɥ
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[dorsal]}
+\label{ssub:feature_dorsal}
+%\textbf{binary} — 
+
+%\begin{itemize}
+%\item \texttt{[+dorsal; +consonantal]} — k g kp gb q ɢ kx gɣ x ɣ χ ʁ ŋ ŋm ɴ ʀ ʟ
+%\item \texttt{[−dorsal; +consonantal]} — p̪ b̪ p b t d ʈ ɖ c ɟ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ m ɱ n ɳ ɲ r ɽ l ɫ ɭ ʎ ħ ʕ ʔ h ɦ
+%\item \texttt{[+dorsal; −consonantal]} — ɰ ʍ w 
+%\item \texttt{[−dorsal; −consonantal]} — i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] Indicates sounds whose primary articular is the tongue body, name velar and uvular consonants.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+dorsal]}\\
+    k g kp gb q ɢ kx gɣ qχ ɢʁ x ɣ χ ʁ ŋ ŋm ɴ ʀ ʟ ɰ ʍ w 
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[front]}
+\label{ssub:feature_front}
+%\textbf{ternary} — 
+
+%Consonants
+%\begin{itemize}
+%\item \texttt{[+front]} — c ɟ tɕ dʑ cç ɕ ʑ ç ɲ ʎ
+%\item \texttt{[front:0]} — 
+%\item \texttt{[−front]} — 
+%\end{itemize}
+
+%Vowels
+%\begin{itemize}
+%\item \texttt{[+front]} — 
+%\item \texttt{[front:0]} — 
+%\item \texttt{[−front]} — 
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] Indicates the relative forward or backward positioning of the tong body in the mouth, specifically for contrasting front, central, and back vowels, as well as their associated secondary articulations.
+\item[Type] \emph{ternary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+consonantal]}
+    \begin{itemize}
+      \item \texttt{[front]}\\
+      c ɟ tɕ dʑ cç ɕ ʑ ç ɲ ʎ 
+      \item \texttt{[central]}\\
+      p̪ b̪ p b t d ʈ ɖ pf bv pɸ bβ tθ dð ts dz tɬ dɮ tʃ dʒ ʈʂ ɖʐ ɟʝ ɸ β f v θ ð s z ɬ ɮ ʃ ʒ ʂ ʐ ʝ m ɱ n ɳ r ɽ l ɭ ħ ʕ ʔ h ɦ 
+      \item \texttt{[back]}\\
+      k g kp gb q ɢ kx gɣ qχ ɢʁ x ɣ χ ʁ ŋ ŋm ɴ ʀ ɫ ʟ 
+    \end{itemize}
+    \item  \texttt{[-consonantal]}
+    \begin{itemize}
+      \item \texttt{[front]}\\
+      i y ɪ ʏ e ø ɛ œ æ a ɶ j ɥ 
+      \item \texttt{[central]}\\
+      ə ɨ ʉ ɐ ʋ 
+      \item \texttt{[back]}\\
+      ɯ u ɷ ʊ ɤ o ʌ ɔ ɑ ɒ ɰ ʍ w 
+    \end{itemize}
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions]
+\end{description} \emph{none}
+% =============================================================================
+
+\subsubsection{[high]}
+\label{ssub:feature_high}
+
+\begin{description}
+\item[Descritpion] Indicates the relative height of the tongue body, raised or lowered from the neutral position.
+\item[Type] \emph{ternary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+consonantal]}
+    \begin{itemize}
+      \item \texttt{[high]}\\
+      c ɟ k g kp gb tɕ dʑ cç kx gɣ ɕ ʑ ç x ɣ ɲ ŋ ŋm ʀ ɫ ʎ ʟ 
+      \item \texttt{[mid]}\\
+      p̪ b̪ p b t d ʈ ɖ pf bv pɸ bβ tθ dð ts dz tɬ dɮ tʃ dʒ ʈʂ ɖʐ ɟʝ qχ ɢʁ ɸ β f v θ ð s z ɬ ɮ ʃ ʒ ʂ ʐ ʝ χ ʁ m ɱ n ɳ r ɽ l ɭ ʔ h ɦ 
+      \item \texttt{[low]}\\
+      q ɢ ɴ ħ ʕ 
+    \end{itemize}
+    \item  \texttt{[-consonantal]}
+    \begin{itemize}
+      \item \texttt{[high]}\\
+      i y ɪ ʏ ɯ u ɷ ʊ ɨ ʉ j ɥ ɰ ʍ w 
+      \item \texttt{[mid]}\\
+      ə e ø ɛ œ ɤ o ʌ ɔ ʋ 
+      \item \texttt{[low]}\\
+      æ a ɶ ɐ ɑ ɒ 
+    \end{itemize}
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[ATR]}
+\label{ssub:feature_atr}
+
+\begin{description}
+\item[Descritpion] indicates whether the base of the tongue is in an advanced or retracted position; maps loosely to a tense-lax distinction.
+\item[Type]
+\item[Examples]\ 
+  \begin{itemize}
+    \item \texttt{[-consonantal, +atr]}\\
+    i y ɯ u e ø ɤ o æ ɐ ʋ j ɥ ɰ ʍ w 
+    \item \texttt{[-consonantal, -atr}\\
+    ɪ ʏ ɷ ʊ ə ɨ ʉ ɛ œ ʌ ɔ a ɶ ɑ ɒ
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment which is \texttt{[+atr]} must also be \texttt{[+sonorant]}
+  \end{enumerate}
+\item[Resctrictions] Obstruents are \texttt{[-atr]} by default; this is not a hard restriction but it is not clear what \texttt{[+atr]} would mean for obstruent\\
+\end{description}
+% =============================================================================
+
+\subsubsection{[voice]}
+\label{ssub:feature_voice}
+%\textbf{binary} — 
+
+%\begin{itemize}
+%\item \texttt{[+voice]} — b̪ b d ɖ ɟ g gb ɢ bv dz dɮ dʒ dʑ ɖʐ ɟʝ gɣ β v ð ɮ z ʒ ʑ ʐ ʝ ɣ ʁ m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ʕ ɦ 
+%\item \texttt{[−voice]} — p̪ p t ʈ c k kp q pf ts tɬ tʃ tɕ ʈʂ cç kx ɸ f θ ɬ s ʃ ɕ ʂ ç x χ ħ ʔ h 
+%\end{itemize}
+
+\begin{description}
+\item[Descritpion] contrasts sounds in which the vocal cords are in a neutral position (voiced) from one in which they are open (voiceless)
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+voice]}\\
+    b̪ b d ɖ ɟ g gb ɢ bv bβ dð dz dɮ dʒ dʑ ɖʐ ɟʝ gɣ ɢʁ β v ð z ɮ ʒ ʑ ʐ ʝ ɣ ʁ m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ʕ ɦ 
+    \item \texttt{[-voice]}\\
+    p̪ p t ʈ c k kp q pf pɸ tθ ts tɬ tʃ tɕ ʈʂ cç kx qχ ɸ f θ s ɬ ʃ ɕ ʂ ç x χ ħ ʔ h 
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment which is \texttt{[+voice]} must be \texttt{[-ejective]}
+  \end{enumerate} 
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
+
+\subsubsection{[tense]}
+\label{ssub:feature_tense}
+
+\begin{description}
+\item[Descritpion] contrasts phonation types, specifically breathy, creaky, and modal voice. Note that \texttt{[neutral]} in this case is used for both voiceless and modal voice.
+
+\item[Type] \emph{ternary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[creaky]}\\
+    b̰ d̰ g̰ a̰ ḭ ṵ \emph{etc.}
+    \item \texttt{[neutral]}\\
+    p t k ḁ i̥ u̥ b d g a i u \emph{etc.}
+    \item \texttt{[breathy]}\\
+    b̤ d̤ g̤ a̤ i̤ ṳ \emph{etc.}
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item Any segment which is \texttt{[creaky]} must also be \texttt{[+voice]}
+    \item Any segment which is \texttt{[breathy]} must also be \texttt{[+voice]}
+  \end{enumerate}
+\item[Resctrictions] Only segments which are \texttt{[+voice]} can be marked with the feature \texttt{[tense]}; any sounds which are \texttt{[-voice]} are necesarily also \texttt{[neutral]} 
+\end{description}
+% =============================================================================
+
+\subsubsection{[VOT]}
+\label{ssub:feature_vot}
+
+\begin{description}
+\item[Descritpion] represents differences in voice-onset-time, contrasting tenuis from aspirated stops; does not account for negative VOT, which
+\item[Type]
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+vot]}\\
+    pʰ tʰ kʰ tːʰ\emph{etc.}
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints]\
+  \begin{enumerate}
+    \item
+  \end{enumerate}
+\item[Resctrictions]
+\end{description}
+% =============================================================================
+
+\subsubsection{[distributed]}
+\label{ssub:feature_distributed}
+
+\begin{description}
+\item[Descritpion] used to represent both the apical-laminal contrast of lingual consonants as well as the labiodenal-bilabial contrast of labial consonants.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize} 
+    \item \texttt{[+distributed, +consonantal]}\\
+    p̪ b̪ t d c ɟ pf bv tθ dð ts dz tɬ dɮ tʃ dʒ tɕ dʑ cç ɟʝ ɸ β θ ð s z ɬ ɮ ʃ ʒ ɕ ʑ ç ʝ ɱ n ɲ r ɽ l ɫ ʎ 
+    \item \texttt{[-distributed, +consonantal]}\\
+    p b ʈ ɖ k g kp gb q ɢ pɸ bβ ʈʂ ɖʐ kx gɣ qχ ɢʁ f v ʂ ʐ x ɣ χ ʁ m ɳ ŋ ŋm ɴ ʀ ɭ ʟ ħ ʕ ʔ h ɦ 
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions]  %TODO: unclear if constraints can start with multi-key selectors; the restriction would need to be [-labial, 0:coronal] > [-distributed]
+\end{description}
+% =============================================================================
+
+\subsubsection{[long]}
+\label{ssub:feature_long}
+
+\begin{description}
+\item[Descritpion] allows for contrasting long and short vowels, or geminate and non-geminate consonsants.\footnode{The feature is problematic in that it treats length as a quality of the sound, and not as a separate quantity, but this is a convenient compromise to make until the SCA supports more sophisticated handling of supersegmentals.}
+\item[Type] \emph{binaru}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+long]}\\
+    pː tː kː sː tsː tʃː iː eː æː \emph{etc.}
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+% =============================================================================
 
 \end{document}

@@ -103,7 +103,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	/**
 	 * Determines if a segment is consistent with this segment.
-	 * Two segments are consistent if each other if all corresponding features are equal OR if one is NaN
+	 * Two segments are consistent with each other if all corresponding features are equal OR if one is NaN
 	 *
 	 * @param other another segment to compare to this one
 	 * @return true if all specified (non NaN) features in either segment are equal
@@ -119,6 +119,25 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		} else {
 			return equals(other);
 		}
+	}
+
+	public static boolean matchesFeatures(List<Double> features1, List<Double> features2) {
+		if (features1.size()!= features2.size()) {return false;}
+		if (features1 == features2) {return true;}
+		if (features1.equals(features2)) {return true;}
+
+		int size = features1.size();
+		for (int i = 0; i < size; i++) {
+			Double a = features1.get(i);
+			Double b = features2.get(i);
+			// Two-way comparison? I'm not certain this is the most desirable semantics.
+			if (!a.equals(b) &&
+			    !b.equals(FeatureModel.MASKING_VALUE) &&
+			    !a.equals(FeatureModel.MASKING_VALUE)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override

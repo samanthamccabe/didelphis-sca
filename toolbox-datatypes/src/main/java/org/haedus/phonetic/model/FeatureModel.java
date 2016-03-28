@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2015. Samantha Fiona McCabe
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * @author Samantha Fiona Morrigan McCabe
  */
 public class FeatureModel {
-	
+
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
 	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
@@ -54,15 +54,27 @@ public class FeatureModel {
 	public static final Double UNDEFINED_VALUE = Double.NaN;
 	@Deprecated
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
-	
-	private static final Pattern VALUE_PATTERN   = Pattern.compile("(\\S+):(-?\\d)");
-	private static final Pattern BINARY_PATTERN  = Pattern.compile("([\\+\\-])(\\S+)");
-	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s?|\\s");
 
-	private final Map<String, Integer>              featureNames;
-	private final Map<String, Integer>              featureAliases;
+	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
+	private static final String NAME   = "(\\S+)";
+	private static final String ASSIGN = "([=:><])";
+
+	private static final Pattern VALUE_PATTERN = Pattern.compile(NAME + ASSIGN + VALUE);
+	private static final Pattern OTHER_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME);
+
+	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME);
+	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
+	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
+
+	private final int numberOfFeatures;
+
+	private final Map<String, Map<Integer, Double>> aliases;
+
+	private final Map<String, Integer>              featureIndices;
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> diacritics;
+
+	private final List<String>              featureNames;
 	private final List<Constraint>                  constraints;
 
 	private final List<Double> blankArray;
@@ -75,12 +87,15 @@ public class FeatureModel {
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
-		featureNames   = new LinkedHashMap<String, Integer>();
+		numberOfFeatures = 0;
+
+		featureIndices   = new LinkedHashMap<String, Integer>();
 		featureAliases = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
 		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
+		featureNames   = new ArrayList<String>();
 		formatterMode  = FormatterMode.NONE;
 	}
 
@@ -93,16 +108,22 @@ public class FeatureModel {
 	}
 
 	public FeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
-		featureNames   = loader.getFeatureNames();
-		featureAliases = loader.getFeatureAliases();
+		numberOfFeatures = loader.getNumberOfFeatures();
+
+		featureIndices = new LinkedHashMap<String, Integer>();
+		featureIndices.putAll(loader.getFeatureNames());
+		featureIndices.putAll(loader.getFeatureAliases());
+
 		featureMap     = loader.getFeatureMap();
 		diacritics     = loader.getDiacritics();
+		aliases        = loader.getAliases();
 		constraints    = loader.getConstraints();
+		featureNames   = new ArrayList<String>(loader.getFeatureNames().keySet());
 
 		formatterMode = modeParam;
 
 		blankArray = new ArrayList<Double>();
-		for (int i = 0; i < featureNames.size(); i++) {
+		for (int i = 0; i < numberOfFeatures; i++) {
 			blankArray.add(UNDEFINED_VALUE);
 		}
 	}
@@ -113,7 +134,8 @@ public class FeatureModel {
 			Map<String, Integer> aliases,
 			Map<String, Integer> names) {
 
-		String substring = features.substring(1, features.length() - 1);
+		int size = features.length();
+		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
 		String[] array = FEATURE_PATTERN.split(substring);
 
 		SparseFeatureArray<Double> arr =
@@ -121,24 +143,48 @@ public class FeatureModel {
 
 		for (String element : array) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
+			Matcher otherMatcher  = OTHER_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
 
 			if (valueMatcher.matches()) {
 				String featureName  = valueMatcher.group(1);
-				String featureValue = valueMatcher.group(2);
+				String assignment   = valueMatcher.group(2);
+				String featureValue = valueMatcher.group(3);
 				Integer value = validate(featureName, features, aliases, names);
 				arr.set(value, Double.valueOf(featureValue));
+			} else if (otherMatcher.matches()) {
+				String featureName  = otherMatcher.group(3);
+				String assignment   = otherMatcher.group(2);
+				String featureValue = otherMatcher.group(1);
+				Integer integer = retrieveIndex(featureName, features, names);
+				map.put(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
-				String featureName  = binaryMatcher.group(2);
+				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
 				Integer value = validate(featureName, features, aliases, names);
 				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
+			} else if (aliases.containsKey(element)) {
+				map.putAll(aliases.get(element));
 			} else {
 				throw new ParseException("Unrecognized feature \"" + element
 						+ "\" in definition " + features);
 			}
 		}
 		return arr;
+	}
+
+	public static String formatFeatures(List<Double> features) {
+		StringBuilder sb = new StringBuilder(5 * features.size());
+		for (double feature : features) {
+			sb.append((int) feature);
+			sb.append('\t');
+		}
+
+		return sb.toString();
+	}
+
+	public FormatterMode getFormatterMode() {
+		return formatterMode;
 	}
 
 	public Segment getSegmentFromFeatures(String features) {
@@ -182,6 +228,22 @@ public class FeatureModel {
 		return formatterMode.normalize(bestSymbol + sb);
 	}
 
+	// Return a list of all segments g such that matches.matches(input) is true
+	public Collection<Segment> getMatchingSegments(Segment input) {
+		Collection<Segment> collection = new ArrayList<Segment>();
+
+		List<Double> features = input.getFeatures();
+
+		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
+			// This implementation will work but wastes a lot of time on object allocation
+			if (Segment.matchesFeatures(features, entry.getValue())) {
+				collection.add(new Segment(entry.getKey(), entry.getValue(), this));
+			}
+		}
+
+		return collection;
+	}
+
 	public Set<String> getSymbols() {
 		return Collections.unmodifiableSet(featureMap.keySet());
 	}
@@ -214,8 +276,8 @@ public class FeatureModel {
 
 		boolean diacriticsEquals = diacritics.equals(other.diacritics);
 		boolean featureEquals    = featureMap.equals(other.getFeatureMap());
-		boolean namesEquals      = featureNames.equals(other.featureNames);
-		boolean aliasesEquals    = featureAliases.equals(other.featureAliases);
+		boolean namesEquals      = featureIndices.equals(other.featureIndices);
+		boolean aliasesEquals    = aliases.equals(other.aliases);
 		return namesEquals && aliasesEquals && featureEquals && diacriticsEquals;
 	}
 
@@ -224,7 +286,7 @@ public class FeatureModel {
 	}
 
 	public int getNumberOfFeatures() {
-		return featureNames.size();
+		return numberOfFeatures;
 	}
 
 	public Map<String, FeatureArray<Double>> getFeatureMap() {
@@ -239,20 +301,12 @@ public class FeatureModel {
 		}
 	}
 
-	public Set<String> getFeatureNames() {
-		return featureNames.keySet();
+	public List<String> getFeatureNames() {
+		return Collections.unmodifiableList(featureNames);
 	}
 
 	public List<Double> getBlankArray() {
 		return blankArray;
-	}
-
-	public List<Double> getUnderspecifiedArray() {
-		List<Double> list = new ArrayList<Double>();
-		for (int i = 0; i < getNumberOfFeatures(); i++) {
-			list.add(MASKING_VALUE);
-		}
-		return list;
 	}
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
@@ -275,10 +329,7 @@ public class FeatureModel {
 		return new Segment(sb.toString(), featureArray, this);
 	}
 
-	private static Integer validate(String label, String features, Map<String, Integer> aliases, Map<String, Integer> names) {
-		if (aliases.containsKey(label)) {
-			return aliases.get(label);
-		}
+	private static Integer retrieveIndex(String label, String features, Map<String, Integer> names) {
 		if (names.containsKey(label)) {
 			return names.get(label);
 		}
@@ -340,7 +391,6 @@ public class FeatureModel {
 		for (Map.Entry<String, FeatureArray<Double>> entry : diacritics.entrySet()) {
 			FeatureArray<Double> diacriticFeatures = entry.getValue();
 			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(size);
-//			if (diacriticFeatures.size() == bestFeatures.size()) {
 				for (int i = 0; i < size; i++) {
 					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
@@ -351,9 +401,6 @@ public class FeatureModel {
 						compiledFeatures.set(i, left);
 					}
 				}
-//			} else {
-//				LOGGER.error("Difference in array sizes: {} vs  {}", diacriticFeatures, bestFeatures);
-//			}
 
 			if (!compiledFeatures.equals(bestFeatures)) {
 				double difference = getDifferenceValue(compiledFeatures, featureArray);
