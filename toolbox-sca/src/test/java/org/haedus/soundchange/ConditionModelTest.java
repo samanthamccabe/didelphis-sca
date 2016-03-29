@@ -97,10 +97,10 @@ public class ConditionModelTest {
 		fail(condition, "xōkus");
 		fail(condition, "xōḱus");
 
-		fail(condition, "xa̤pʰus");
-		fail(condition, "xa̤tʰus");
-		fail(condition, "xa̤kʰus");
-		fail(condition, "xa̤ḱʰus");
+		fail(condition, "xa̰pʰus");
+		fail(condition, "xa̰tʰus");
+		fail(condition, "xa̰kʰus");
+		fail(condition, "xa̰ḱʰus");
 	}
 
 	@Test

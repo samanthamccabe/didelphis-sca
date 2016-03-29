@@ -121,7 +121,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		}
 	}
 
-	public static boolean matchesFeatures(List<Double> features1, List<Double> features2) {
+	public static boolean matchesFeatures(FeatureArray<Double> features1, FeatureArray<Double> features2) {
 		if (features1.size()!= features2.size()) {return false;}
 		if (features1 == features2) {return true;}
 		if (features1.equals(features2)) {return true;}

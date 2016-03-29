@@ -16,6 +16,7 @@ package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -28,8 +29,9 @@ import static org.junit.Assert.assertFalse;
  */
 public class FeatureModelSelectorTest extends ModelTestBase {
 
-	public static final FeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
-	
+	private static final FeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
+
+	@Ignore
 	@Test
 	public void testWriteOutTEMP() {
 		String selector = "[atr:0]";
@@ -42,6 +44,7 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void testWritexOutTEMP2() {
 		String selector = "[-consonantal]";

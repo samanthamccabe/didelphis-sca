@@ -68,14 +68,13 @@ public class FeatureModel {
 
 	private final int numberOfFeatures;
 
-	private final Map<String, Map<Integer, Double>> aliases;
-
 	private final Map<String, Integer>              featureIndices;
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> aliases;
 
-	private final List<String>              featureNames;
-	private final List<Constraint>                  constraints;
+	private final List<String>     featureNames;
+	private final List<Constraint> constraints;
 
 	private final List<Double> blankArray;
 
@@ -89,10 +88,10 @@ public class FeatureModel {
 	private FeatureModel() {
 		numberOfFeatures = 0;
 
-		featureIndices   = new LinkedHashMap<String, Integer>();
-		featureAliases = new LinkedHashMap<String, Integer>();
+		featureIndices = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
 		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
+		aliases        = new LinkedHashMap<String, FeatureArray<Double>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
 		featureNames   = new ArrayList<String>();
@@ -131,17 +130,17 @@ public class FeatureModel {
 	@NotNull
 	public static SparseFeatureArray<Double> getValueMap(
 			String features,
-			Map<String, Integer> aliases,
-			Map<String, Integer> names) {
+			int size,
+			Map<String, Integer> names,
+			Map<String, FeatureArray<Double>> aliases) {
 
-		int size = features.length();
-		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
-		String[] array = FEATURE_PATTERN.split(substring);
+		String string = FANCY_PATTERN
+				.matcher(features.substring(1, features.length() - 1))
+				.replaceAll(Matcher.quoteReplacement("-"));
 
-		SparseFeatureArray<Double> arr =
-				new SparseFeatureArray<Double>(names.size());
+		SparseFeatureArray<Double> arr = new SparseFeatureArray<Double>(size);
 
-		for (String element : array) {
+		for (String element : FEATURE_PATTERN.split(string)) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
 			Matcher otherMatcher  = OTHER_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
@@ -150,21 +149,21 @@ public class FeatureModel {
 				String featureName  = valueMatcher.group(1);
 				String assignment   = valueMatcher.group(2);
 				String featureValue = valueMatcher.group(3);
-				Integer value = validate(featureName, features, aliases, names);
+				Integer value = retrieveIndex(featureName, features, names);
 				arr.set(value, Double.valueOf(featureValue));
 			} else if (otherMatcher.matches()) {
 				String featureName  = otherMatcher.group(3);
 				String assignment   = otherMatcher.group(2);
 				String featureValue = otherMatcher.group(1);
 				Integer integer = retrieveIndex(featureName, features, names);
-				map.put(integer, Double.valueOf(featureValue));
+				arr.set(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer value = validate(featureName, features, aliases, names);
+				Integer value = retrieveIndex(featureName, features, names);
 				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
 			} else if (aliases.containsKey(element)) {
-				map.putAll(aliases.get(element));
+				arr.alter(aliases.get(element));
 			} else {
 				throw new ParseException("Unrecognized feature \"" + element
 						+ "\" in definition " + features);
@@ -173,26 +172,19 @@ public class FeatureModel {
 		return arr;
 	}
 
-	public static String formatFeatures(List<Double> features) {
+	public static String formatFeatures(FeatureArray<Double> features) {
 		StringBuilder sb = new StringBuilder(5 * features.size());
-		for (double feature : features) {
-			sb.append((int) feature);
+		for (Double feature : features) {
+			sb.append(feature);
 			sb.append('\t');
 		}
-
 		return sb.toString();
 	}
 
-	public FormatterMode getFormatterMode() {
-		return formatterMode;
-	}
-
-	public Segment getSegmentFromFeatures(String features) {
-
+	public Segment getSegmentFromFeatures(String string) {
 		FeatureArray<Double> map =
-				getValueMap(features, featureAliases, featureNames);
-
-		return new Segment(features, map, this);
+				getValueMap(string, numberOfFeatures, featureIndices, aliases);
+		return new Segment(string, map, this);
 	}
 
 	public List<Constraint> getConstraints() {
@@ -232,12 +224,13 @@ public class FeatureModel {
 	public Collection<Segment> getMatchingSegments(Segment input) {
 		Collection<Segment> collection = new ArrayList<Segment>();
 
-		List<Double> features = input.getFeatures();
+		FeatureArray<Double> features = input.getFeatures();
 
-		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
+		for (Map.Entry<String, FeatureArray<Double>> entry : featureMap.entrySet()) {
 			// This implementation will work but wastes a lot of time on object allocation
-			if (Segment.matchesFeatures(features, entry.getValue())) {
-				collection.add(new Segment(entry.getKey(), entry.getValue(), this));
+			FeatureArray<Double> value = entry.getValue();
+			if (value.matches(features)) {
+				collection.add(new Segment(entry.getKey(), value, this));
 			}
 		}
 

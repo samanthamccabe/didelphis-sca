@@ -57,7 +57,9 @@ public class FeatureModelLoader {
 		CONSTRAINTS + '|' +
 		ALIASES;
 
-	private static final String FEATURES_STRING = "(\\w+)\\s+(\\w*)\\s+(ternary|binary|numeric(\\(-?\\d,\\d\\))?)";
+	private static final String FEATURE_TYPES = "ternary|binary|numeric";
+	
+	private static final String FEATURES_STRING ="(\\w+)\\s+(\\w*)\\s+("+FEATURE_TYPES+"(\\(-?\\d,\\d\\))?)";
 
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern ZONE_PATTERN     = Pattern.compile(ZONE_STRING);
@@ -66,23 +68,21 @@ public class FeatureModelLoader {
 	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)");
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 
+	private int numberOfFeatures;
+
+	private final String        sourcePath;
+	private final FormatterMode formatterMode;
+	
 	private final List<Type>       featureTypes;
 	private final List<Constraint> constraints;
 	
 	private final Map<String, Integer> featureNames;
 	private final Map<String, Integer> featureAliases;
 
-	private final Map<String, FeatureArray<Double>> featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
-	private final Map<String, FeatureArray<Double>> diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
-
-	private final Map<String, Map<Integer, Double>> aliases;
-
-	private final String sourcePath;
-
-	private final FormatterMode formatterMode;
-
-	private int numberOfFeatures;
-
+	private final Map<String, FeatureArray<Double>> featureMap;
+	private final Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> aliases;
+	
 	private FeatureModelLoader(String path, FormatterMode modeParam) {
 		sourcePath = path;
 		formatterMode = modeParam;
@@ -91,9 +91,9 @@ public class FeatureModelLoader {
 		constraints    = new ArrayList<Constraint>();
 		featureNames   = new LinkedHashMap<String, Integer>();
 		featureAliases = new LinkedHashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new HashMap<String, Map<Integer, Double>>();
+		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
+		aliases        = new HashMap<String, FeatureArray<Double>>();
 	}
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
@@ -125,10 +125,6 @@ public class FeatureModelLoader {
 		return "FeatureModelLoader{" + sourcePath + '}';
 	}
 
-	public int getNumberOfFeatures() {
-		return numberOfFeatures;
-	}
-
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, Integer> getFeatureNames() {
 		return featureNames;
@@ -145,7 +141,7 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, Map<Integer, Double>> getAliases() {
+	public Map<String, FeatureArray<Double>> getAliases() {
 		return aliases;
 	}
 
@@ -212,12 +208,7 @@ public class FeatureModelLoader {
 			String alias = split[0].replaceAll("\\[|\\]", "");
 			String value = split[1];
 
-//			List<Double> array = getUnderspecifiedArray();
-			Map<Integer, Double> values = FeatureModel.getValueMap(value, map, aliases);
-//			for (Map.Entry<Integer, Double> entry : values.entrySet()) {
-//				array.set(entry.getKey(), entry.getValue());
-//			}
-			aliases.put(alias, values);
+			aliases.put(alias,   FeatureModel.getValueMap(value, numberOfFeatures, map, aliases));
 		}
 	}
 
@@ -232,16 +223,8 @@ public class FeatureModelLoader {
 			String source = split[0];
 			String target = split[1];
 
-			SparseFeatureArray<Double> sMap = FeatureModel.getValueMap(
-					source,
-					featureAliases,
-					featureNames
-			);
-			SparseFeatureArray<Double> tMap = FeatureModel.getValueMap(
-					target,
-					featureAliases,
-					featureNames
-			);
+			FeatureArray<Double> sMap = FeatureModel.getValueMap(source, numberOfFeatures, map, aliases);
+			FeatureArray<Double> tMap = FeatureModel.getValueMap(target, numberOfFeatures, map, aliases);
 			constraints.add(new Constraint(entry, sMap, tMap));
 		}
 	}
@@ -254,7 +237,7 @@ public class FeatureModelLoader {
 				String symbol = matcher.group(1);
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				int size = getNumberOfFeatures();
+				int size = numberOfFeatures;
 
 				FeatureArray<Double> array = new SparseFeatureArray<Double>(size);
 				int i = 0;
@@ -279,7 +262,7 @@ public class FeatureModelLoader {
 				String symbol = formatterMode.normalize(matcher.group(1));
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				int size = getNumberOfFeatures();
+				int size = numberOfFeatures;
 
 				FeatureArray<Double> features = new StandardFeatureArray<Double>(size);
 				for (int i = 0; i < featureTypes.size();i++) {
@@ -299,7 +282,7 @@ public class FeatureModelLoader {
 		}
 	}
 
-	private int getNumberOfFeatures() {
+	public int getNumberOfFeatures() {
 		return featureNames.size();
 	}
 

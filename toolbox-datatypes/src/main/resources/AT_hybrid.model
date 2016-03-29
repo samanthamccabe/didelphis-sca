@@ -81,9 +81,9 @@ CONSTRAINTS
 [+atr] > [+sonorant]
 
 % Phonation
-[-voice] > [0:tense]
-[+tense] > [+voice]
-[-tense] > [+voice]
+%[-voice] > [0:tense]
+%[+tense] > [+voice]
+%[-tense] > [+voice]
 % TODO: transitivity may be a problem here??
 
 SYMBOLS
