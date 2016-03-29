@@ -18,6 +18,8 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.machines.Expression;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.FeatureModel;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -73,7 +75,8 @@ public class SequenceFactory {
 		reservedStrings = reserved;
 		formatterMode   = mode;
 
-		List<Double> featureArray = Collections.unmodifiableList(featureModel.getBlankArray());
+//		List<Double> featureArray = Collections.unmodifiableList(featureModel.getBlankArray());
+		FeatureArray<Double> featureArray = new StandardFeatureArray<Double>(featureModel.getBlankArray());
 
 		dotSegment    = new Segment(".", featureArray, featureModel);
 		borderSegment = new Segment("#", featureArray, featureModel);

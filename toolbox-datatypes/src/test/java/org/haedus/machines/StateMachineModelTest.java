@@ -243,9 +243,9 @@ public class StateMachineModelTest extends MachineTestBase{
 		fail(machine, "ōkus");
 		fail(machine, "ōḱus");
 
-		fail(machine, "a̤pʰus");
-		fail(machine, "a̤tʰus");
-		fail(machine, "a̤kʰus");
-		fail(machine, "a̤ḱʰus");
+		fail(machine, "a̰pʰus");
+		fail(machine, "a̰tʰus");
+		fail(machine, "a̰kʰus");
+		fail(machine, "a̰ḱʰus");
 	}
 }

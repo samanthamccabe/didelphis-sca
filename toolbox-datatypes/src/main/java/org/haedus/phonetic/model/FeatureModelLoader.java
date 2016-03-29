@@ -18,6 +18,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,46 +42,46 @@ import java.util.regex.Pattern;
  */
 public class FeatureModelLoader {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModelLoader.class);
+	private static final transient Logger LOG = LoggerFactory.getLogger(FeatureModelLoader.class);
 
 	private static final String FEATURES    = "FEATURES";
 	private static final String SYMBOLS     = "SYMBOLS";
 	private static final String MODIFIERS   = "MODIFIERS";
 	private static final String CONSTRAINTS = "CONSTRAINTS";
 	private static final String ALIASES     = "ALIASES";
-	
-	private static final String ZONE_STRING = 
+
+	private static final String ZONE_STRING =
 		FEATURES    + '|' +
 		SYMBOLS     + '|' +
 		MODIFIERS   + '|' +
 		CONSTRAINTS + '|' +
 		ALIASES;
+
+	private static final String FEATURE_TYPES = "ternary|binary|numeric";
 	
-	private static final String FEATURES_STRING = "(\\w+)\\s+(\\w*)\\s+(ternary|binary|numeric(\\(-?\\d,\\d\\))?)";
+	private static final String FEATURES_STRING ="(\\w+)\\s+(\\w*)\\s+("+FEATURE_TYPES+"(\\(-?\\d,\\d\\))?)";
 
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern ZONE_PATTERN     = Pattern.compile(ZONE_STRING);
 	private static final Pattern FEATURES_PATTERN = Pattern.compile(FEATURES_STRING, Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)");
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 
+	private int numberOfFeatures;
+
+	private final String        sourcePath;
+	private final FormatterMode formatterMode;
+	
 	private final List<Type>       featureTypes;
 	private final List<Constraint> constraints;
 	
 	private final Map<String, Integer> featureNames;
 	private final Map<String, Integer> featureAliases;
 
-	private final Map<String, List<Double>> featureMap;
-	private final Map<String, List<Double>> diacritics;
-	
-	private final Map<String, Map<Integer, Double>> aliases;
-	
-	private final String sourcePath;
-
-	private final FormatterMode formatterMode;
-	
-	private int numberOfFeatures;
+	private final Map<String, FeatureArray<Double>> featureMap;
+	private final Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> aliases;
 	
 	private FeatureModelLoader(String path, FormatterMode modeParam) {
 		sourcePath = path;
@@ -88,17 +91,17 @@ public class FeatureModelLoader {
 		constraints    = new ArrayList<Constraint>();
 		featureNames   = new LinkedHashMap<String, Integer>();
 		featureAliases = new LinkedHashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new HashMap<String, Map<Integer, Double>>();
+		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
+		aliases        = new HashMap<String, FeatureArray<Double>>();
 	}
-	
+
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
 		this("file:" + file.getAbsolutePath(), modeParam);
 		try {
 			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
 		} catch (IOException e) {
-			LOGGER.error("Failed to read from file {}", file, e);
+			LOG.error("Failed to read from file {}", file, e);
 		}
 	}
 
@@ -113,7 +116,7 @@ public class FeatureModelLoader {
 		try {
 			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"));
 		} catch (IOException e) {
-			LOGGER.error("Problem while reading from stream {}", stream, e);
+			LOG.error("Problem while reading from stream {}", stream, e);
 		}
 	}
 
@@ -122,10 +125,6 @@ public class FeatureModelLoader {
 		return "FeatureModelLoader{" + sourcePath + '}';
 	}
 
-	public int getNumberOfFeatures() {
-		return numberOfFeatures;
-	}
-	
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
 	public Map<String, Integer> getFeatureNames() {
 		return featureNames;
@@ -137,17 +136,17 @@ public class FeatureModelLoader {
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, List<Double>> getFeatureMap() {
+	public Map<String, FeatureArray<Double>> getFeatureMap() {
 		return featureMap;
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, Map<Integer, Double>> getAliases() {
+	public Map<String, FeatureArray<Double>> getAliases() {
 		return aliases;
 	}
 
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Map<String, List<Double>> getDiacritics() {
+	public Map<String, FeatureArray<Double>> getDiacritics() {
 		return diacritics;
 	}
 
@@ -202,19 +201,14 @@ public class FeatureModelLoader {
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		map.putAll(featureNames);
 		map.putAll(featureAliases);
-		
+
 		for (String string : strings) {
 			String[] split = string.split("\\s*=\\s*", 2);
-			
+
 			String alias = split[0].replaceAll("\\[|\\]", "");
 			String value = split[1];
 
-//			List<Double> array = getUnderspecifiedArray();
-			Map<Integer, Double> values = FeatureModel.getValueMap(value, map, aliases);
-//			for (Map.Entry<Integer, Double> entry : values.entrySet()) {
-//				array.set(entry.getKey(), entry.getValue());
-//			}
-			aliases.put(alias, values);
+			aliases.put(alias,   FeatureModel.getValueMap(value, numberOfFeatures, map, aliases));
 		}
 	}
 
@@ -222,17 +216,16 @@ public class FeatureModelLoader {
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		map.putAll(featureNames);
 		map.putAll(featureAliases);
-		
+
 		for (String entry : constraintZone) {
 			String[] split = entry.split("\\s*>\\s*", 2);
 
 			String source = split[0];
 			String target = split[1];
 
-			Map<Integer, Double> sMap = FeatureModel.getValueMap(source, map, null);
-			Map<Integer, Double> tMap = FeatureModel.getValueMap(target, map, null);
-
-			constraints.add(new Constraint(sMap, tMap));
+			FeatureArray<Double> sMap = FeatureModel.getValueMap(source, numberOfFeatures, map, aliases);
+			FeatureArray<Double> tMap = FeatureModel.getValueMap(target, numberOfFeatures, map, aliases);
+			constraints.add(new Constraint(entry, sMap, tMap));
 		}
 	}
 
@@ -244,13 +237,19 @@ public class FeatureModelLoader {
 				String symbol = matcher.group(1);
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				List<Double> features = new ArrayList<Double>();
+				int size = numberOfFeatures;
+
+				FeatureArray<Double> array = new SparseFeatureArray<Double>(size);
+				int i = 0;
 				for (String value : values) {
-					features.add(getDouble(value, FeatureModel.MASKING_VALUE));
+					if (!value.isEmpty()) {
+						array.set(i, getDouble(value, FeatureModel.MASKING_VALUE));
+					}
+					i++;
 				}
-				diacritics.put(symbol, features);
+				diacritics.put(symbol, array);
 			} else {
-				LOGGER.error("Unrecognized diacritic definition {}", entry);
+				LOG.error("Unrecognized diacritic definition {}", entry);
 			}
 		}
 	}
@@ -263,30 +262,36 @@ public class FeatureModelLoader {
 				String symbol = formatterMode.normalize(matcher.group(1));
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				List<Double> features = new ArrayList<Double>();
+				int size = numberOfFeatures;
+
+				FeatureArray<Double> features = new StandardFeatureArray<Double>(size);
 				for (int i = 0; i < featureTypes.size();i++) {
 					Type type = featureTypes.get(i);
 					String value = values[i];
 					if (!type.matches(value)) {
-						LOGGER.warn("Value '{}' at position {} is not valid for {} in array: {}",
+						LOG.warn("Value '{}' at position {} is not valid for {} in array: {}",
 							value, i, type, Arrays.toString(values));
 					} 
-					features.add(getDouble(value, FeatureModel.UNDEFINED_VALUE));
+					features.set(i, getDouble(value, FeatureModel.UNDEFINED_VALUE));
 				}
 				checkFeatureCollisions(symbol, features);
 				featureMap.put(symbol, features);
 			} else {
-				LOGGER.error("Unrecognized symbol definition {}", entry);
+				LOG.error("Unrecognized symbol definition {}", entry);
 			}
 		}
 	}
 
-	private void checkFeatureCollisions(String symbol, List<Double> features) {
+	public int getNumberOfFeatures() {
+		return featureNames.size();
+	}
+
+	private void checkFeatureCollisions(String symbol, FeatureArray<Double> features) {
 		if (featureMap.containsValue(features)) {
-			for (Map.Entry<String, List<Double>> e : featureMap.entrySet()) {
+			for (Map.Entry<String, FeatureArray<Double>> e : featureMap.entrySet()) {
 				if (features.equals(e.getValue())) {
-					LOGGER.warn("Collision between features {} and {} --- both have value {}",
-							symbol, e.getKey(), features);
+					LOG.warn("Collision between features {} and {} --- " +
+							"both have value {}", symbol, e.getKey(), features);
 				}
 			}
 		}
@@ -306,15 +311,17 @@ public class FeatureModelLoader {
 				try { // catch and rethrow if type is invalid\
 					featureTypes.add(Type.valueOf(type.toUpperCase()));
 				} catch (IllegalArgumentException e) {
-					throw new ParseException("Illegal feature type " + type + " in definition: " + entry, e);
+					throw new ParseException("Illegal feature type " + type
+							+" in definition: " + entry, e);
 				}
 				
 				featureNames.put(name, i);
 				featureAliases.put(alias, i);
 
 			} else {
-				LOGGER.error("Unrecognized command in FEATURE block: {}", entry);
-				throw new ParseException("Unrecognized command in FEATURE block: " + entry);
+				LOG.error("Unrecognized command in FEATURE block: {}", entry);
+				throw new ParseException("Unrecognized command in FEATURE block"
+						+ ' ' + entry);
 			}
 			i++;
 		}
@@ -330,7 +337,7 @@ public class FeatureModelLoader {
 		return list;
 	}
 
-	private static double getDouble(String cell, double defaultValue) {
+	private static double getDouble(String cell, Double defaultValue) {
 		double featureValue;
 		if (cell.isEmpty()) {
 			featureValue = defaultValue;

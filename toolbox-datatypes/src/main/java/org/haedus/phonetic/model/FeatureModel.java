@@ -22,6 +22,9 @@ package org.haedus.phonetic.model;
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
+import org.haedus.phonetic.features.StandardFeatureArray;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,44 +50,48 @@ public class FeatureModel {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
 	public static final FeatureModel EMPTY_MODEL     = new FeatureModel();
-	public static final Double       UNDEFINED_VALUE = Double.NaN;
-	public static final Double       MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 	
+	public static final Double UNDEFINED_VALUE = Double.NaN;
+	@Deprecated
+	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
+
 	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
 	private static final String NAME   = "(\\S+)";
 	private static final String ASSIGN = "([=:><])";
 
-	private static final int UNICODE = Pattern.UNICODE_CHARACTER_CLASS;
-	
-	private static final Pattern VALUE_PATTERN = Pattern.compile(NAME + ASSIGN + VALUE, UNICODE);
-	private static final Pattern OTHER_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME, UNICODE);
-	
-	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME, UNICODE);
+	private static final Pattern VALUE_PATTERN = Pattern.compile(NAME + ASSIGN + VALUE);
+	private static final Pattern OTHER_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME);
+
+	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME);
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
 	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
 
 	private final int numberOfFeatures;
 
-	private final Map<String, Map<Integer, Double>> aliases;
+	private final Map<String, Integer>              featureIndices;
+	private final Map<String, FeatureArray<Double>> featureMap;
+	private final Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> aliases;
 
-	private final Map<String, Integer>      featureIndices;
-	private final Map<String, List<Double>> featureMap;
-	private final Map<String, List<Double>> diacritics;
+	private final List<String>     featureNames;
+	private final List<Constraint> constraints;
 
-	private final List<String>              featureNames;
-	private final List<Constraint>          constraints;
+	private final List<Double> blankArray;
 
-	private final List<Double>  blankArray;
+	public FormatterMode getFormatterMode() {
+		return formatterMode;
+	}
+
 	private final FormatterMode formatterMode;
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
 		numberOfFeatures = 0;
-		
+
 		featureIndices = new LinkedHashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, List<Double>>();
-		diacritics     = new LinkedHashMap<String, List<Double>>();
-		aliases        = new LinkedHashMap<String, Map<Integer, Double>>();
+		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
+		aliases        = new LinkedHashMap<String, FeatureArray<Double>>();
 		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
 		featureNames   = new ArrayList<String>();
@@ -121,87 +128,77 @@ public class FeatureModel {
 	}
 
 	@NotNull
-	public static Map<Integer, Double> getValueMap(String features,
-												   Map<String, Integer> names,
-												   Map<String, Map<Integer, Double>> aliases) {
-		int size = features.length();
-		String substring = FANCY_PATTERN.matcher(features.substring(1, size - 1)).replaceAll(Matcher.quoteReplacement("-"));
-		String[] array = FEATURE_PATTERN.split(substring);
+	public static SparseFeatureArray<Double> getValueMap(
+			String features,
+			int size,
+			Map<String, Integer> names,
+			Map<String, FeatureArray<Double>> aliases) {
 
-		Map<Integer, Double> map = new HashMap<Integer, Double>();
-		for (String element : array) {
+		String string = FANCY_PATTERN
+				.matcher(features.substring(1, features.length() - 1))
+				.replaceAll(Matcher.quoteReplacement("-"));
+
+		SparseFeatureArray<Double> arr = new SparseFeatureArray<Double>(size);
+
+		for (String element : FEATURE_PATTERN.split(string)) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
 			Matcher otherMatcher  = OTHER_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
-			
+
 			if (valueMatcher.matches()) {
 				String featureName  = valueMatcher.group(1);
-				String assignment   = valueMatcher.group(2); 
+				String assignment   = valueMatcher.group(2);
 				String featureValue = valueMatcher.group(3);
-				Integer integer = retrieveIndex(featureName, features, names);
-				map.put(integer, Double.valueOf(featureValue));
+				Integer value = retrieveIndex(featureName, features, names);
+				arr.set(value, Double.valueOf(featureValue));
 			} else if (otherMatcher.matches()) {
 				String featureName  = otherMatcher.group(3);
 				String assignment   = otherMatcher.group(2);
 				String featureValue = otherMatcher.group(1);
 				Integer integer = retrieveIndex(featureName, features, names);
-				map.put(integer, Double.valueOf(featureValue));
+				arr.set(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, names);
-				map.put(integer, featureValue.equals("+") ? 1.0 : -1.0);
+				Integer value = retrieveIndex(featureName, features, names);
+				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
 			} else if (aliases.containsKey(element)) {
-				map.putAll(aliases.get(element));
+				arr.alter(aliases.get(element));
 			} else {
-				// invalid format?
-				throw new ParseException("Unrecognized feature \"" + element + "\" in definition " + features);
+				throw new ParseException("Unrecognized feature \"" + element
+						+ "\" in definition " + features);
 			}
 		}
-		return map;
+		return arr;
 	}
 
-	public static String formatFeatures(List<Double> features) {
+	public static String formatFeatures(FeatureArray<Double> features) {
 		StringBuilder sb = new StringBuilder(5 * features.size());
-		for (double feature : features) {
-			sb.append((int) feature);
+		for (Double feature : features) {
+			sb.append(feature);
 			sb.append('\t');
 		}
-
 		return sb.toString();
 	}
 
-	public FormatterMode getFormatterMode() {
-		return formatterMode;
-	}
-
-	public Segment getSegmentFromFeatures(String features) {
-		List<Double> featureArray = new ArrayList<Double>();
-
-		for (int i = 0; i < numberOfFeatures; i++) {
-			featureArray.add(MASKING_VALUE);
-		}
-
-		Map<Integer, Double> map = getValueMap(features, featureIndices, aliases);
-		for (Map.Entry<Integer, Double> entry : map.entrySet()) {
-			featureArray.set(entry.getKey(), entry.getValue());
-		}
-		return new Segment(features, featureArray, this);
+	public Segment getSegmentFromFeatures(String string) {
+		FeatureArray<Double> map =
+				getValueMap(string, numberOfFeatures, featureIndices, aliases);
+		return new Segment(string, map, this);
 	}
 
 	public List<Constraint> getConstraints() {
 		return Collections.unmodifiableList(constraints);
 	}
 
-	public String getBestSymbol(List<Double> featureArray) {
+	public String getBestSymbol(FeatureArray<Double> featureArray) {
 
-		List<Double> bestFeatures = new ArrayList<Double>();
+		FeatureArray<Double> bestFeatures = null;
 		String bestSymbol = "";
 		double minimum = Double.MAX_VALUE;
 
-		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
-			List<Double> features = entry.getValue();
-
+		for (Map.Entry<String, FeatureArray<Double>> entry : featureMap.entrySet()) {
+			FeatureArray<Double> features = entry.getValue();
 			double difference = getDifferenceValue(featureArray, features);
 			if (difference < minimum) {
 				bestSymbol = entry.getKey();
@@ -227,12 +224,13 @@ public class FeatureModel {
 	public Collection<Segment> getMatchingSegments(Segment input) {
 		Collection<Segment> collection = new ArrayList<Segment>();
 
-		List<Double> features = input.getFeatures();
+		FeatureArray<Double> features = input.getFeatures();
 
-		for (Map.Entry<String, List<Double>> entry : featureMap.entrySet()) {
+		for (Map.Entry<String, FeatureArray<Double>> entry : featureMap.entrySet()) {
 			// This implementation will work but wastes a lot of time on object allocation
-			if (Segment.matchesFeatures(features, entry.getValue())) {
-				collection.add(new Segment(entry.getKey(), entry.getValue(), this));
+			FeatureArray<Double> value = entry.getValue();
+			if (value.matches(features)) {
+				collection.add(new Segment(entry.getKey(), value, this));
 			}
 		}
 
@@ -284,15 +282,15 @@ public class FeatureModel {
 		return numberOfFeatures;
 	}
 
-	public Map<String, List<Double>> getFeatureMap() {
+	public Map<String, FeatureArray<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
 	}
 
-	public List<Double> getValue(String key) {
+	public FeatureArray<Double> getValue(String key) {
 		if (featureMap.containsKey(key)) {
-			return new ArrayList<Double>(featureMap.get(key));
+			return new StandardFeatureArray<Double>(featureMap.get(key));
 		} else {
-			return new ArrayList<Double>(blankArray);
+			return new StandardFeatureArray<Double>(blankArray);
 		}
 	}
 
@@ -306,16 +304,16 @@ public class FeatureModel {
 
 	// This should be here because how the segment is constructed is a function of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
-		List<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
+		FeatureArray<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
 		StringBuilder sb = new StringBuilder(head);
 		for (String modifier : modifiers) {
 			sb.append(modifier);
 			if (diacritics.containsKey(modifier)) {
-				List<Double> doubles = diacritics.get(modifier);
+				FeatureArray<Double> doubles = diacritics.get(modifier);
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// this will need to change if we support value modification (up or down)
-					if (!d.equals(MASKING_VALUE)) {
+					if (d != null &&!d.equals(MASKING_VALUE)) {
 						featureArray.set(i, d);
 					}
 				}
@@ -331,7 +329,7 @@ public class FeatureModel {
 		throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
 	}
 
-	private static List<Double> getDifferenceArray(List<Double> left, List<Double> right) {
+	private static FeatureArray<Double> getDifferenceArray(FeatureArray<Double> left, FeatureArray<Double> right) {
 		List<Double> list = new ArrayList<Double>();
 		if (left.size() == right.size()) {
 			for (int i = 0; i < left.size(); i++) {
@@ -342,13 +340,13 @@ public class FeatureModel {
 		} else {
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
 		}
-		return list;
+		return new StandardFeatureArray<Double>(list);
 	}
 
-	private static double getDifferenceValue(List<Double> left, List<Double> right) {
+	private static double getDifferenceValue(FeatureArray<Double> left, FeatureArray<Double> right) {
 		double sum = 0.0;
-		List<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.isEmpty()) {
+		FeatureArray<Double> differenceArray = getDifferenceArray(left, right);
+		if (differenceArray.size() == 0) {
 			sum = Double.NaN;
 		} else {
 			for (Double value : differenceArray) {
@@ -370,51 +368,55 @@ public class FeatureModel {
 		}
 	}
 
-	private Collection<String> getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures, double lastMinimum) {
+	private Collection<String> getBestDiacritic(
+			FeatureArray<Double> featureArray,
+			FeatureArray<Double> bestFeatures,
+			double lastMinimum) {
+
+		int size = getNumberOfFeatures();
+
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-		List<Double> bestCompiled = new ArrayList<Double>();
+		FeatureArray<Double> best = new StandardFeatureArray<Double>(size);
 
 		Collection<String> diacriticList = new ArrayList<String>();
 
-		for (Map.Entry<String, List<Double>> entry : diacritics.entrySet()) {
-			List<Double> diacriticFeatures = entry.getValue();
-			List<Double> compiledFeatures = new ArrayList<Double>();
-			if (diacriticFeatures.size() == bestFeatures.size()) {
-				for (int i = 0; i < diacriticFeatures.size(); i++) {
-					Double left = diacriticFeatures.get(i);
+		for (Map.Entry<String, FeatureArray<Double>> entry : diacritics.entrySet()) {
+			FeatureArray<Double> diacriticFeatures = entry.getValue();
+			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(size);
+				for (int i = 0; i < size; i++) {
+					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
-					if (left.equals(MASKING_VALUE)) {
-						compiledFeatures.add(right);
+					if (left == null || left.equals(MASKING_VALUE)) {
+						compiledFeatures.set(i, right);
 					} else {
-						compiledFeatures.add(left);
+						compiledFeatures.set(i, left);
 					}
 				}
-			} else {
-				LOGGER.error("Difference in array sizes: {} vs  {}", diacriticFeatures, bestFeatures);
-			}
 
 			if (!compiledFeatures.equals(bestFeatures)) {
 				double difference = getDifferenceValue(compiledFeatures, featureArray);
 				if (difference < minimumDifference) {
 					minimumDifference = difference;
 					bestDiacritic = entry.getKey();
-					bestCompiled = compiledFeatures;
+					best = compiledFeatures;
 				}
 			}
 		}
 
 		if (minimumDifference > 0.0 && minimumDifference < lastMinimum) {
 			diacriticList.add(bestDiacritic);
-			diacriticList.addAll(getBestDiacritic(featureArray, bestCompiled, minimumDifference));
+			diacriticList.addAll(getBestDiacritic(featureArray, best, minimumDifference));
 		} else {
 			diacriticList.add(bestDiacritic);
 		}
 		return diacriticList;
 	}
 
-	private Collection getBestDiacritic(List<Double> featureArray, List<Double> bestFeatures) {
+	private Collection getBestDiacritic(
+			FeatureArray<Double> featureArray,
+			FeatureArray<Double> bestFeatures) {
 		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 }

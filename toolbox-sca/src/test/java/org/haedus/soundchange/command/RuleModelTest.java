@@ -62,7 +62,7 @@ public class RuleModelTest {
 
 	@Test
 	public void testFeatureTransform02() {
-		Rule rule = new Rule("[+con, -cnt, -son, -voice] > [+rel]", FACTORY);
+		Rule rule = new Rule("[+con, -son, -cnt, -rel, -voice] > [+rel]", FACTORY);
 		testRule(rule, "t", "ts");
 		testRule(rule, "p", "pɸ");
 		testRule(rule, "tʰ", "tsʰ");
