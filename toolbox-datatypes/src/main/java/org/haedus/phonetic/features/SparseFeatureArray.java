@@ -88,10 +88,14 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 					"Attempting to compare arrays of different lengths");
 		}
 
-		for (int i = 0; i < features.size(); i++) {
-			T t = array.get(i);
-			if (t != null && !t.equals(FeatureModel.MASKING_VALUE)) {
-				features.put(i, t);
+		if (array instanceof SparseFeatureArray) {
+			features.putAll(((SparseFeatureArray<T>) array).features);
+		} else{
+			for (int i = 0; i < size(); i++) {
+				T t = array.get(i);
+				if (t != null && !t.equals(FeatureModel.MASKING_VALUE)) {
+					features.put(i, t);
+				}
 			}
 		}
 	}

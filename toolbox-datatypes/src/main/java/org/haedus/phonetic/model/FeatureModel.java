@@ -56,11 +56,10 @@ public class FeatureModel {
 	public static final Double MASKING_VALUE   = Double.NEGATIVE_INFINITY;
 
 	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
-	private static final String NAME   = "(\\S+)";
+	private static final String NAME   = "(\\w+)";
 	private static final String ASSIGN = "([=:><])";
 
-	private static final Pattern VALUE_PATTERN = Pattern.compile(NAME + ASSIGN + VALUE);
-	private static final Pattern OTHER_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME);
+	private static final Pattern VALUE_PATTERN = Pattern.compile(VALUE + ASSIGN + NAME);
 
 	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME);
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
@@ -142,28 +141,21 @@ public class FeatureModel {
 
 		for (String element : FEATURE_PATTERN.split(string)) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
-			Matcher otherMatcher  = OTHER_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
 
-			if (valueMatcher.matches()) {
-				String featureName  = valueMatcher.group(1);
+			if (aliases.containsKey(element)) {
+				arr.alter(aliases.get(element));
+			} else if (valueMatcher.matches()) {
+				String featureName  = valueMatcher.group(3);
 				String assignment   = valueMatcher.group(2);
-				String featureValue = valueMatcher.group(3);
+				String featureValue = valueMatcher.group(1);
 				Integer value = retrieveIndex(featureName, features, names);
 				arr.set(value, Double.valueOf(featureValue));
-			} else if (otherMatcher.matches()) {
-				String featureName  = otherMatcher.group(3);
-				String assignment   = otherMatcher.group(2);
-				String featureValue = otherMatcher.group(1);
-				Integer integer = retrieveIndex(featureName, features, names);
-				arr.set(integer, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
 				Integer value = retrieveIndex(featureName, features, names);
 				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
-			} else if (aliases.containsKey(element)) {
-				arr.alter(aliases.get(element));
 			} else {
 				throw new ParseException("Unrecognized feature \"" + element
 						+ "\" in definition " + features);

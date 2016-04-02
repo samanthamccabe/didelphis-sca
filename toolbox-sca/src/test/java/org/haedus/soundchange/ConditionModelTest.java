@@ -55,7 +55,7 @@ public class ConditionModelTest {
 
 	@Test
 	public void testComplex01() {
-		Condition condition = new Condition("_[-con, +voice, -tense][-son, -voice, +vot]us", FACTORY);
+		Condition condition = new Condition("_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");

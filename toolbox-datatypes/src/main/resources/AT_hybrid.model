@@ -18,12 +18,15 @@ front		frn	ternary % 11
 high		hgh	ternary % 12
 atr			atr	binary  % 13
 voice		vce	binary  % 14
-tense		ten	ternary % 15
-vot			vot	binary  % 16
+creaky		crk	ternary % 15
+breathy		bth	binary  % 16
 distributed	dst	binary  % 17
 long		lng	binary  % 18
 
 ALIASES
+[+vot]    = [+breathy]
+[-vot]    = [-breathy]
+
 [high]    = [+high]
 [mid]     = [0:high]
 [low]     = [-high]
@@ -38,10 +41,6 @@ ALIASES
 [postalveolar] = [3:coronal]
 [retroflex]    = [4:coronal, -distributed]
 [palatal]      = [4:coronal, +distributed]
-
-[creaky]  = [+tense]
-[modal]   = [0:tense]
-[breathy] = [-tense]
 
 CONSTRAINTS
 % [+nas] and [+lat] cannot co-occur
@@ -80,14 +79,11 @@ CONSTRAINTS
 [-sonorant] > [-atr]
 [+atr] > [+sonorant]
 
-% Phonation
-%[-voice] > [0:tense]
-%[+tense] > [+voice]
-%[-tense] > [+voice]
-% TODO: transitivity may be a problem here??
+[+creaky]  > [-breathy, +voice]
+[+breathy] > [-creaky]
 
 SYMBOLS
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 p̪	+	-	-	-	-	-	-	+	-	0	-	0	0	-	-	-	-	+	-
 b̪	+	-	-	-	-	-	-	+	-	0	-	0	0	-	+	-	-	+	-
 p	+	-	-	-	-	-	-	+	-	0	-	0	0	-	-	-	-	-	-
@@ -105,7 +101,7 @@ gb	+	-	-	-	-	-	-	+	-	0	+	-	+	-	+	-	-	-	-
 q	+	-	-	-	-	-	-	-	-	0	+	-	-	-	-	-	-	-	-
 ɢ	+	-	-	-	-	-	-	-	-	0	+	-	-	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 pf	+	-	-	-	+	-	-	+	-	0	-	0	0	-	-	-	-	+	-
 bv	+	-	-	-	+	-	-	+	-	0	-	0	0	-	+	-	-	+	-
 pɸ	+	-	-	-	+	-	-	+	-	0	-	0	0	-	-	-	-	-	-
@@ -129,7 +125,7 @@ gɣ	+	-	-	-	+	-	-	-	-	0	+	-	+	-	+	-	-	-	-
 qχ	+	-	-	-	+	-	-	-	-	0	+	-	0	-	-	-	-	-	-
 ɢʁ	+	-	-	-	+	-	-	-	-	0	+	-	0	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 ɸ	+	-	+	-	-	-	-	+	-	0	-	0	0	-	-	-	-	+	-
 β	+	-	+	-	-	-	-	+	-	0	-	0	0	-	+	-	-	+	-
 f	+	-	+	-	-	-	-	+	-	0	-	0	0	-	-	-	-	-	-
@@ -153,7 +149,7 @@ x	+	-	+	-	-	-	-	-	-	0	+	-	+	-	-	-	-	-	-
 χ	+	-	+	-	-	-	-	-	-	0	+	-	0	-	-	-	-	-	-
 ʁ	+	-	+	-	-	-	-	-	-	0	+	-	0	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 m	+	+	-	-	-	-	+	+	-	0	-	0	0	-	+	-	-	-	-
 ɱ	+	+	-	-	-	-	+	+	-	0	-	0	0	-	+	-	-	+	-
 n	+	+	-	-	-	-	+	-	-	2	-	0	0	-	+	-	-	+	-
@@ -163,7 +159,7 @@ n	+	+	-	-	-	-	+	-	-	2	-	0	0	-	+	-	-	+	-
 ŋm	+	+	-	-	-	-	+	+	-	0	+	-	+	-	+	-	-	-	-
 ɴ	+	+	-	-	-	-	+	-	-	0	+	-	-	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 r	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	+	-
 %ɾ	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	?	-
 %ɹ	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	?	-
@@ -178,7 +174,7 @@ l	+	+	+	-	-	+	-	-	-	2	-	0	0	-	+	-	-	+	-
 ʎ	+	+	+	-	-	+	-	-	-	4	-	+	+	-	+	-	-	+	-
 ʟ	+	+	+	-	-	+	-	-	-	0	+	-	+	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 i	-	+	+	-	-	-	-	-	-	0	-	+	+	+	+	-	-	-	-
 y	-	+	+	-	-	-	-	-	+	0	-	+	+	+	+	-	-	-	-
 ɪ	-	+	+	-	-	-	-	-	-	0	-	+	+	-	+	-	-	-	-
@@ -210,7 +206,7 @@ a	-	+	+	-	-	-	-	-	-	0	-	+	-	-	+	-	-	-	-
 ɑ	-	+	+	-	-	-	-	-	-	0	-	-	-	-	+	-	-	-	-
 ɒ	-	+	+	-	-	-	-	-	+	0	-	-	-	-	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 ʋ	-	+	+	-	-	-	-	+	+	0	-	0	0	+	+	-	-	-	-
 j	-	+	+	-	-	-	-	-	-	4	-	+	+	+	+	-	-	-	-
 ɥ	-	+	+	-	-	-	-	-	+	4	-	+	+	+	+	-	-	-	-
@@ -218,7 +214,7 @@ j	-	+	+	-	-	-	-	-	-	4	-	+	+	+	+	-	-	-	-
 ʍ	-	+	+	-	-	-	-	+	-	0	+	-	+	+	+	-	-	-	-
 w	-	+	+	-	-	-	-	+	+	0	+	-	+	+	+	-	-	-	-
 
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 ħ	+	-	+	-	-	-	-	-	-	0	-	0	-	-	-	-	-	-	-
 ʕ	+	-	+	-	-	-	-	-	-	0	-	0	-	-	+	-	-	-	-
 
@@ -227,7 +223,7 @@ h	+	-	+	-	-	-	-	-	-	0	-	0	0	-	-	-	-	-	-
 ɦ	+	-	+	-	-	-	-	-	-	0	-	0	0	-	+	-	-	-	-
 
 MODIFIERS
-%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	ten	vot	dst	lng
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	crk	brt	dst	lng
 ː																			+
 ʲ												+	+						
 ʸ									+			+	+						
@@ -239,8 +235,8 @@ MODIFIERS
 ʾ				-															
 ˁ													-	-					
 ʿ													-	-					
-̤															+	-			
+̤															+		+		
 ̰															+	+			
-̥															-	-			
+̥															-				
 ̘														+					
 ̙														-					

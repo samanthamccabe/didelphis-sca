@@ -201,7 +201,7 @@ public class StateMachineModelTest extends MachineTestBase{
 
 	@Test
 	public void testComplex05() {
-		Machine machine = getMachine("[-con, +voice, -tense][-son, -voice, +vot]us");
+		Machine machine = getMachine("[-con, +voice, -creaky][-son, -voice, +vot]us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");
