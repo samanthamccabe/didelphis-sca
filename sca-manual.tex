@@ -1040,7 +1040,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+binary]}\\
-    m ɱ n ɳ ɲ ŋ ŋm ɴ 
+    m ɱ n ɳ ɲ ŋ ŋm ɴ ã ẽ ĩ\emph{etc.}
 %    \item \texttt{...}\\
 %    ...
   \end{itemize}
@@ -1198,26 +1198,26 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \begin{itemize}
     \item \texttt{[+consonantal]}
     \begin{itemize}
-      \item \texttt{[front]}\\
+      \item \texttt{[front] / [+front]}\\
       c ɟ tɕ dʑ cç ɕ ʑ ç ɲ ʎ 
-      \item \texttt{[central]}\\
+      \item \texttt{[central] / [0:front]}\\
       p̪ b̪ p b t d ʈ ɖ pf bv pɸ bβ tθ dð ts dz tɬ dɮ tʃ dʒ ʈʂ ɖʐ ɟʝ ɸ β f v θ ð s z ɬ ɮ ʃ ʒ ʂ ʐ ʝ m ɱ n ɳ r ɽ l ɭ ħ ʕ ʔ h ɦ 
-      \item \texttt{[back]}\\
+      \item \texttt{[back] / [-front]}\\
       k g kp gb q ɢ kx gɣ qχ ɢʁ x ɣ χ ʁ ŋ ŋm ɴ ʀ ɫ ʟ 
     \end{itemize}
     \item  \texttt{[-consonantal]}
     \begin{itemize}
-      \item \texttt{[front]}\\
+      \item \texttt{[front] / [+front]}\\
       i y ɪ ʏ e ø ɛ œ æ a ɶ j ɥ 
-      \item \texttt{[central]}\\
+      \item \texttt{[central] / [0:front]}\\
       ə ɨ ʉ ɐ ʋ 
-      \item \texttt{[back]}\\
+      \item \texttt{[back] / [-front]}\\
       ɯ u ɷ ʊ ɤ o ʌ ɔ ɑ ɒ ɰ ʍ w 
     \end{itemize}
   \end{itemize}
 \item[Constraints] \emph{none}
-\item[Resctrictions]
-\end{description} \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
 % =============================================================================
 
 \subsubsection{[high]}
@@ -1300,33 +1300,32 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \end{description}
 % =============================================================================
 
-\subsubsection{[tense]}
-\label{ssub:feature_tense}
+\subsubsection{[creaky]}
+\label{ssub:feature_creaky}
 
 \begin{description}
 \item[Descritpion] contrasts phonation types, specifically breathy, creaky, and modal voice. Note that \texttt{[neutral]} in this case is used for both voiceless and modal voice.
 
-\item[Type] \emph{ternary}
+\item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{[creaky]}\\
+    \item \texttt{[+creaky]}\\
     b̰ d̰ g̰ a̰ ḭ ṵ \emph{etc.}
-    \item \texttt{[neutral]}\\
-    p t k ḁ i̥ u̥ b d g a i u \emph{etc.}
-    \item \texttt{[breathy]}\\
-    b̤ d̤ g̤ a̤ i̤ ṳ \emph{etc.}
+    % \item \texttt{[neutral]}\\
+    % p t k ḁ i̥ u̥ b d g a i u \emph{etc.}
+    % \item \texttt{[breathy]}\\
+    % b̤ d̤ g̤ a̤ i̤ ṳ \emph{etc.}
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item Any segment which is \texttt{[creaky]} must also be \texttt{[+voice]}
-    \item Any segment which is \texttt{[breathy]} must also be \texttt{[+voice]}
-  \end{enumerate}
-\item[Resctrictions] Only segments which are \texttt{[+voice]} can be marked with the feature \texttt{[tense]}; any sounds which are \texttt{[-voice]} are necesarily also \texttt{[neutral]} 
+    \item Any segment which is \texttt{[+creaky]} must also be \texttt{[+voice]}
+    % \item Any segment which is \texttt{[breathy]} must also be \texttt{[+voice]}
+  \end{enumerate} \emph{none}
 \end{description}
 % =============================================================================
 
-\subsubsection{[VOT]}
-\label{ssub:feature_vot}
+\subsubsection{[breathy]}
+\label{ssub:feature_breathy}
 
 \begin{description}
 \item[Descritpion] represents differences in voice-onset-time, contrasting tenuis from aspirated stops; does not account for negative VOT, which
