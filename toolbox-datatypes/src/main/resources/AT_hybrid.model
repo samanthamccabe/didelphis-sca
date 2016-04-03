@@ -82,6 +82,14 @@ CONSTRAINTS
 [+creaky]  > [-breathy, +voice]
 [+breathy] > [-creaky]
 
+% Coronal must be high, front
+[4:coronal, +distributed] > [+front, +high]
+
+[4:coronal, +distributed, back]    > [3:coronal]
+[4:coronal, +distributed, central] > [3:coronal]
+[4:coronal, +distributed, mid]     > [3:coronal]
+[4:coronal, +distributed, low]     > [3:coronal]
+
 SYMBOLS
 %	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng
 p̪	+	-	-	-	-	-	-	+	-	0	-	0	0	-	-	-	-	+	-

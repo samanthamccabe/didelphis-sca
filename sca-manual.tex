@@ -1112,7 +1112,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 %\textbf{numeric} — This is the first and only numeric feature currently included in the system; at earlier stages there were more, but these were replaced by binary features for clarity. The coronal sounds have been left this way because they share a single articulator making contact at different points along a continuum, from dental, to alveolar, back to palatal.
 
 %\begin{itemize}
-%  \item \texttt{[coronal:0]} — Not coronal; neutral position, articulator not engaged.
+%  \item \texttt{[coronal:0]} — Not coronal; neutral posi tion, articulator not engaged.
 %  \item \texttt{[coronal:1]} — Dental or interdental: θ ð 
 %  \item \texttt{[coronal:2]} — Alveolar: t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
 %  \item \texttt{[coronal:3]} — Post-Alveolar: tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
@@ -1125,24 +1125,24 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 %These facts may have very little bearing on their practical use in a rule system, but are worth considering.
 
 \begin{description}
-\item[Descritpion] indicates the place of articulation for sounds with coronal articulation, from the teeth to the soft palette
+\item[Descritpion] indicates the place of articulation for sounds with coronal articulation, from the teeth to the soft palate
 \item[Type] \emph{numeric}
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{[coronal:0]}\\
+    \item \texttt{[0:coronal]}\\
       \emph{All non-coronal sounds}
-    \item \texttt{[dental]}\\
+    \item \texttt{[dental] / [1:coronal]}\\
       θ ð 
-    \item \texttt{[alveolar]}\\
+    \item \texttt{[alveolar] / [2:coronal]}\\
       t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
-    \item \texttt{[postalveolar]}\\
+    \item \texttt{[postalveolar] / [3:coronal]}\\
       tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
-    \item \texttt{[retroflex]}\\
+    \item \texttt{[retroflex] / [4:coronal, -distributed]}\\
       ʈ ɖ ʈʂ ɖʐ ʂ ʐ ɳ ɽ ɭ 
-    \item \texttt{[palatal]}\\
+    \item \texttt{[palatal] / [4:coronal, +distributed +front, +high]}\\
       c ɟ cç ɟʝ ç ʝ ɲ ʎ j ɥ
   \end{itemize}
-\item[Constraints] \emph{none}
+\item[Constraints] \texttt{[palatal]} is a special case since it's articulation is necessarily \texttt{[high, front]}; \texttt{[retroflex]} is not similarly resricted, but is necessarily \texttt{[+distributed]}.
 \item[Resctrictions] \emph{none}
 \end{description}
 % =============================================================================
