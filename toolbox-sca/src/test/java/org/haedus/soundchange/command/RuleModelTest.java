@@ -406,7 +406,6 @@ public class RuleModelTest {
 
 	@Test
 	public void testAliases01() {
-
 		Rule rule = new Rule("[alveolar, -continuant] > [retroflex] / r_", FACTORY);
 
 		testRule(rule, FACTORY, "arka", "arka");
@@ -419,8 +418,7 @@ public class RuleModelTest {
 
 	@Test
 	public void testAliases02() {
-
-		Rule rule = new Rule("[alveolar] > [palatal] / _y", FACTORY);
+		Rule rule = new Rule("[alveolar]y > [palatal]", FACTORY);
 
 		testRule(rule, FACTORY, "akya", "akya");
 		testRule(rule, FACTORY, "apya", "apya");

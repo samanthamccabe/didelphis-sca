@@ -49,7 +49,7 @@ public class SegmentTest {
 	
 	@Test
 	public void testUnderspecifiedSegment01() {
-		String string = "[-continuant, release:1]";
+		String string = "[-continuant, +release]";
 		Segment received = FACTORY.getSegment(string);
 		FeatureModel model = FACTORY.getFeatureModel();
 
@@ -61,7 +61,7 @@ public class SegmentTest {
 		array.set(1, -1.0);
 		array.set(3,  1.0);
 
-		Segment expected = FACTORY.getSegment("[-continuant, release:1]");
+		Segment expected = FACTORY.getSegment("[-continuant, +release]");
 
 		assertEquals(expected, received);
 	}
@@ -93,7 +93,7 @@ public class SegmentTest {
 	@Test
 	public void testSelectorAliasRetroflex() {
 		Segment alias   = FACTORY.getSegment("[retroflex]");
-		Segment segment = FACTORY.getSegment("[coronal:4, -distributed]");
+		Segment segment = FACTORY.getSegment("[4:coronal, -distributed]");
 
 		assertTrue(alias.matches(segment));
 	}
@@ -101,7 +101,7 @@ public class SegmentTest {
 	@Test
 	public void testSelectorAliasPalatal() {
 		Segment alias   = FACTORY.getSegment("[palatal]");
-		Segment segment = FACTORY.getSegment("[coronal:4, +distributed]");
+		Segment segment = FACTORY.getSegment("[4:coronal, +distributed]");
 
 		assertTrue(alias.matches(segment));
 	}

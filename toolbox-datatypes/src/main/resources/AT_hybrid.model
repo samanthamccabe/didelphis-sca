@@ -40,7 +40,7 @@ ALIASES
 [alveolar]     = [2:coronal]
 [postalveolar] = [3:coronal]
 [retroflex]    = [4:coronal, -distributed]
-[palatal]      = [4:coronal, +distributed]
+[palatal]      = [4:coronal, +distributed, +front, +high]
 
 CONSTRAINTS
 % [+nas] and [+lat] cannot co-occur

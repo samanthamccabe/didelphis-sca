@@ -167,7 +167,15 @@ public class FeatureModel {
 	public static String formatFeatures(FeatureArray<Double> features) {
 		StringBuilder sb = new StringBuilder(5 * features.size());
 		for (Double feature : features) {
-			sb.append(feature);
+
+			String value = feature.toString().replaceAll("\\.0", "");
+
+			if (!value.startsWith("-")) {
+//				value = ' ' + value;
+				sb.append(' ');
+			}
+			
+			sb.append(value);
 			sb.append('\t');
 		}
 		return sb.toString();
