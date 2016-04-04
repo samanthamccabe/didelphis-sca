@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>org.haedus.toolbox</groupId>
 			<artifactId>toolbox-datatypes</artifactId>
-			<version>0.6.1-SNAPSHOT</version>
+			<version>0.7.0</version>
 		</dependency>
 	</dependencies>
 
