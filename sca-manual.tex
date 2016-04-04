@@ -4,9 +4,9 @@
 \usepackage{xunicode}
 % Ok apparently you should never load xunicode before fontspec
 
-\usepackage{pgf}
-\usepackage{tikz}
-\usetikzlibrary{arrows,automata,positioning}
+% \usepackage{pgf}
+% \usepackage{tikz}
+% \usetikzlibrary{arrows,automata,positioning}
 
 \usepackage{verbatim}
 \usepackage[left=1.25in,right=1.25in,top=1.25in,bottom=1.25in]{geometry}
@@ -30,14 +30,16 @@
   \vspace{1em}
 }
 
+\renewcommand{\descriptionlabel}[1]{\hspace{\labelsep}\textsf{\bfseries#1}}
+
 \title{Haedus Toolbox SCA, Manual (v0.7.0)}
 \author{Samantha Fiona Morrígan McCabe}
 \date{\today}
 
 %TODO: should define a custom style for symbols to be rendered in gentium
-%\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
+\setmainfont[Ligatures=Common,ItalicFont=Gentium Plus Italic]{Linux Libertine O}
 \setmainfont[Ligatures=Common]{Linux Libertine O}
-%\setsansfont{Linux Biolinum O}
+\setsansfont{Linux Biolinum O}
 \setmonofont[Scale=0.85]{DejaVu Sans Mono}
 
 \begin{document}
@@ -46,18 +48,18 @@
 
 \section*{Introduction} 
 \label{sec:introduction}
-The Haedus Toolbox SCA is a powerful, script-driven sound-change applier program implemented in Java. It supports UTF-8 natively and has a rule syntax designed for clarity and similarity to sound change notation in linguistics.
+The Haedus Toolbox SCA is a flexible, script-driven sound-change applier implemented in Java. It supports UTF-8 natively and uses a rule syntax designed for clarity and similarity to sound change notation in linguistics.
 
-The Haedus SCA supports capabilities like multiple rule conditions, regular expressions, metathesis, unrestricted variable naming, and scripting but also allows novice users to ignore advanced functionality they do not need.
+The Haedus SCA supports capabilities like multiple rule conditions, regular expressions, metathesis, phonetic features, and scripting but also allows novice users to ignore advanced functionality they do not need.
 
-This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and its capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users.
+This manual is divided into two main parts, plus an appendix. The first part provides a walkthrough of the SCA and its capabilities using a completed example rules file included with the program; the second part is a more detailed reference to the rule language and its syntax; the appendix provides details of implementation which are only likely to be of interest to more advanced users, or those interesting in technical details.
 
 % section: introduction (end)
 % -----------------------------------------------------------------------------
 
 \section{User Guide} 
 \label{sec:user_guide}
-The following sections will guide you, as a new user, through using the SCA and create a rules script, from prerequisites and executing provided example scripts, to writing basic rules, to using some of the more powerful supported features.
+The following sections will guide you, as a new user, through using the SCA and creating a rules script, from prerequisites and executing provided example scripts, to writing basic rules, to using some of the more powerful supported capabilities.
 
 % part: user_guide (end)
 % -----------------------------------------------------------------------------
@@ -83,7 +85,7 @@ OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
 \end{vex}
 
 \noindent
-On a Windows or Mac system, you will see something a bit different (specifically, the JRE implementation), but the ``\texttt{java version}'' itself is what matters. If the \texttt{java} command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
+On a Windows or Mac system, you will see something a bit different (like the JRE implementation), but the ``\texttt{java version}'' itself is what matters. If the \texttt{java} command is not recognized, your environment variables may not be set correctly, either because your \texttt{\$JAVA\_HOME} is not set correctly, or because Java is not available on your system path.
 
 % subsection: java_runtime_environment (end)
 % -----------------------------------------------------------------------------
@@ -91,9 +93,9 @@ On a Windows or Mac system, you will see something a bit different (specifically
 \subsubsection{Running the Sound-Change Applier}
 \label{ssub:running_sca}
 
-Although a graphical interface is in early development, the Haedus SCA is currently run best through the command line. A pair of scripts have been provided to streamline the process, \texttt{toolbox.bat} or \texttt{toolbox.sh} for Windows and Unix-like systems respectively. It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
+While a graphical interface is in early development, the Haedus SCA is currently run best through the command line. A pair of scripts have been provided to streamline the process, \texttt{toolbox.bat} or \texttt{toolbox.sh} for Windows and Unix-like systems respectively. It is possible to run the \texttt{.jar} file directly, but because it include the version number, this is rather more cumbersome.
 
-Only basic knowledge of using the terminal is required, but if you are unfamiliar with it, there are ample resources provided online. If you want to avoid the terminal entirely, you should be able to (from your operating system's folder view) drag-and-drop a rule script onto the appropriate \texttt{toolbox} script. Any errors produced will be sent to \texttt{toolbox.log}
+Only basic knowledge of using the terminal is required, but if you are unfamiliar with it, there are ample resources provided online. If you want to avoid the terminal entirely, you should be able to (from your operating system's folder view) drag-and-drop a rule script onto the appropriate \texttt{toolbox} shell or batch script. Any errors produced will be sent to \texttt{toolbox.log}
 
 If you are using the terminal to run the SCA, you need to provide the paths of one or more rules files:
 
@@ -111,9 +113,9 @@ Logging is handled automatically; the same information is printed to the console
 
 \subsection{Writing Rule Scripts}
 \label{sub:writing_rule_scripts}
-All of the SCA's functionality is controlled using script files. In addition to rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into a corresponding list for Kuma-Koban; the hope is that this will be a smooth way of introducing new users to the rule syntax. At this point and for the rest of the section, some of the examples will refer to the provided \texttt{pie-pkk.rule} example file.
+All of the SCA's functionality is controlled using script files. In addition to rule and variable definitions, the scripts may also contain commands controlling the reading and writing of lexicons, setting normalization modes, loading feature models, and importing or executing commands from other script files. This section will introduce you to most of the supported features in the context of the provided example file \texttt{pie-pkk.rule}, which represents the rules for converting the provided Proto-Indo-European word list into a corresponding list for Kuma-Koban; the hope is that this will be a smooth way of introducing new users to the rule syntax. At this point and for the rest of the section, some of the examples will refer to the provided \texttt{pie-pkk.rule} example file.
 
-The Haedus rule language is generally insensitive to whitespace, and while items in lists (sets, items in rule transforms, or variable definitions) are delimited by whitespace, it is still insensitive to quantity\footnote{Specifically, lists are stripped of padding whitespace at the beginning and end, and split using the regex \texttt{\textbackslash\hspace{0pt}s+}}; this will be apparent in the examples. 
+The Haedus rule language is generally insensitive to whitespace, and while items in lists (sets, items in rule transforms, or variable definitions) are \emph{delimited} by whitespace, it is still insensitive to quantity\footnote{Specifically, lists are stripped of padding whitespace at the beginning and end, and split using the regex \texttt{\textbackslash\hspace{0pt}s+}}; this will be apparent in the examples. 
 
 Comments can always be created using the \texttt{\%} symbol, as shown below:
 
@@ -130,15 +132,15 @@ Anything following the \texttt{\%} will be ignored; there is not currently any w
 
 \subsubsection{Using Normalization} 
 \label{ssub:using_normalization}
-Though it is by no means required that you set this yourself, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{mode} keyword, followed by one of the three supported modes, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
+Though it is by no means required that you set this yourself, the SCA's support for normalization modes can be a powerful tool. Not specifying any mode will leave all inputs untouched by default. To set a mode, use the \texttt{mode} keyword, followed by one of the four supported modes: \texttt{none}, \texttt{decomposition}, \texttt{composition}, and \texttt{intelligent}.
 
-The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like ö with o+ ̈. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
+The first two perform canonical decomposition, canonical decomposition followed by canonical composition, respectively, according to the Unicode standard.\footnote{UAX 15: Unicode Normalization Forms ``http://unicode.org/reports/tr15/''} The short explanation is that that decomposition will take composed Unicode characters with diacritics, and separate the base and diacritic characters in a consistent way, replacing a single composed character like ö with o + ◌̈. Composition does this as well, but then attempts to re-assemble them, if there are any composed characters available. For a sound-change applier, decomposition may be the most reliable, as it will ensure that you can always write rules which operate on the diacritics themselves.
 
 % ◌
 
 The intelligent segmentation mode is a bit different from either of these; it is superficially similar to \texttt{composition} but rather than using pre-composed Unicode characters, it uses Unicode character classes to distinguish between base and diacritic characters, and assemble strings it can treat as if they were single characters. This allows the SCA to treat \textIPA{q̇ʷʰ}, for instance, as a single character, rather than four. In brief, when it finds a non-diacritic character followed by one or more diacritics, they will be attached to the non-diacritic.
 
-The details of this segmentation algorithm are described in section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \textIPA{k} will not trigger on \textIPA{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
+The details of this segmentation algorithm are described in appendix section \ref{sub:segmentation}, but if you develop a sense of how it works, it can make writing rules much simpler than they might otherwise be. One major advantage is that, using the \texttt{intelligent} mode, a rule which targets \textIPA{k} will not trigger on \textIPA{kʰ}. Of course, if you desire that behavior, then you can choose another normalization mode, or use none at all.
 
 % subsection using_normalization (end)
 %------------------------------------------------------------------------------
@@ -187,7 +189,7 @@ This will ensure that a rule intended to target \textIPA{p} will not affect \tex
 
 \subsubsection{Defining Variables}
 \label{ssub:defining_variables}
-A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right; values can be either literal symbols, or other variables; but not a combination of both. The following is a representative example from the Kuma-Koban data and is typical of how variables are defined:
+A common early task in the development process is defining variables you expect to use often. The assignment operator \texttt{=} binds a variable name on the left to a set of values on the right. Values can be either literal symbols, or other variables. The following is a representative example from the Kuma-Koban data and is typical of how variables are defined:
 
 \begin{vex}{ex:basicvars}
 H = x ʔ
@@ -439,7 +441,7 @@ import  "other2.rule"
 \end{vex}
 
 \noindent
-The key difference is that \texttt{execute} will run the script separately (reading and writing lexicons, applying rules, calling other resources, and so on) while \texttt{import} places the script into your current script so that any lexicons or variables specified in the other file will be usable in the current script.
+The key difference is that \texttt{execute} will run the script separately (reading and writing lexicons, applying rules, calling other resources, and so on) while \texttt{import} places the script into your current script so that any lexicons or variables specified in the other file will be usable in the current script. Another important difference is that \texttt{import} reads in the script file at compile-time while \texttt{execute} does so only when the command is reached.
 
 % section: import_and_execute_commands (end)
 % -----------------------------------------------------------------------------
@@ -501,7 +503,7 @@ C = p t ts k q
 \noindent
 This is especially helpful for variables like \texttt{C} used for consonants or plosives, because sound changes might add new consonants to the language's inventory.
 
-% Using features instead; OR using variables as aliases for feature names
+In many cases, variables are used to represent natural classes of sounds, so it might be advantageous to use features instead. This is described in section \ref{ssub:feature_model_specification}
 
 % subsection: variables (end)
 % -----------------------------------------------------------------------------
@@ -644,6 +646,7 @@ will match any one of the expressions \texttt{E₁}, \texttt{E₂}, or \texttt{E
 \subsubsection{Negation}
 \label{ssub:negation}
 It is also possible to \emph{negate} an expression by prepending the exclamation-mark character \texttt{!} to it. It indicates that the expression will accept any inputs except for those accepted by the original machine (but only inputs of the same length as the original).
+
 A simple expression \texttt{!a} will accept any single character except for the literal \textIPA{a}. A negated group \texttt{!(abc)} will accept any input of length = 3 which is not \emph{abc}. A negated set \texttt{!\{a b c\}} will accept any inputs of length = 1 which is not \textIPA{a}, not \textIPA{b}, and not \textIPA{c}.
 
 More formally, if a state machine \texttt{E} accepts a set of inputs \texttt{I} 
@@ -685,12 +688,12 @@ In addition to many othe useful capabilities, this sound change applier is funda
 
 \subsubsection{Loading a Feature Model}
 \label{ssub:loading_a_feature_model}
-A model is loaded into a rules file using the \texttt{LOAD} command, followed by the model path; the paths are handled just as they are in for opening lexicons or importing scripts.
+A model is loaded into a rules file using the \texttt{load} command, followed by the model path; the paths are handled just as they are in for opening lexicons or importing scripts.
 
-A feature model is included with this distribution, \texttt{"features.model"}; the details of this model are described in the appendix (\ref{sub:ATHM}). To load this model into a script, use the following command:
+A feature model is included with this distribution, \texttt{"AT\_hybrid.model"}; the details of this model are described in the appendix (\ref{sub:ATHM}). To load this model into a script, use the following command:
 
 \begin{vex}{ex:load_feature_model}
-LOAD "feature.model"
+LOAD "AT_hybrid.model"
 \end{vex}
 
 \subsubsection{Using Features}
@@ -727,13 +730,25 @@ When a symbol is changed in this way, the symbol which originally represented it
 \label{ssub:feature_model_specification}
 The definition of a feature model has three parts: the feature inventory, symbols block, and the modifier block. Comments work the same way as they do as in rules: anything following the \texttt{\%} character will be ignored.
 
-The feature definition block is started by the keyword \texttt{FEATURES}. Each defined feature will have a name, alias, and type, separated by whitespace. The types maybe be \texttt{binary}, \texttt{ternary}, or \texttt{numeric}. 
+The feature definition block is started by the keyword \texttt{FEATURES}. Each defined feature will have a name, alias, and type, separated by whitespace. The types maybe be \texttt{binary}, \texttt{ternary}, or \texttt{numeric}.
 
-The \texttt{SYMBOL} and \texttt{MODIFIER} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or sequence of characters (whatever represents a single sound), followed by a single \emph{tab character}, followed by a value for each feature, separated by tabs.
+The \texttt{SYMBOLS} and \texttt{MODIFIERS} blocks have the same structure but have slightly different uses. Each defined symbol or modifier starts with the a character or sequence of characters (whatever represents a single sound), followed by a single \emph{tab character}, followed by a value for each feature, separated by tabs.
+
+Only \texttt{FEATURES} and \texttt{SYMBOLS} are truly mandatory, but \texttt{MODIFIERS} is extremely useful.
 
 In the symbol block, blank values are not allowed. In the modifier block, they are expected; adding a modifier to a symbol such as \textIPA{a̰} will take the feature array for \textIPA{a} and overwrite them with for any value definited in the modifer block for \textIPA{◌̰}.
 
 In the symbol and modifier block, feature values are limited and checked based on the type defined in the features block: \texttt{binary} can take values \texttt{+} or \texttt{-}; \texttt{ternary} can take values \texttt{+}, \texttt{-}, or \texttt{0}; \texttt{numeric} can take any integer value.
+
+Two more optional blocks can be used. The \texttt{ALIASES} block allows aliases to be provided for specific features values, which can be especially useful for numeric or ternary features, such as height values \texttt{[high]}, \texttt{[mid]}, and \texttt{[low]}.
+
+The \texttt{CONSTRAINTS} block allows the model to place limits of values combinations. These are essentialy additional rules that activate whenever a relevant feature is changed. For example, if a rule has changed a sounds to be \texttt{[+nasal]} the constraint
+
+\begin{vex}{ex:constraint}
+[+nasal] > [-lateral]
+\end{vex}
+\noindent
+will activate to ensure that the resulting sound is not also \texttt{[+lateral]}.
 
 An example file is provided with the software and can be found at \texttt{example/ATH.model}.
 
@@ -768,95 +783,95 @@ One type of diacritic is given special treatment, and that is the double-width o
 
 Once the list of compiled strings is complete, each \texttt{segment} is added to a \texttt{sequence} object which will represent the original input.
 
-\subsection{Nondeterministic Finite-State Automata}
-\label{sub:rndfa}
-
-Inside the sound-change applier's rule code, conditions are parsed into nondeterministic finite-state automata (NFA). Unlike traditional NFA implementations, this one can match sequences of both literal symbols and also segments represented as feature arrays. To the NFA (as to the rest of the sound-change system) these are one and the same, sequences of segment objects, which represent speech sounds.
-
-This appendix describes some of the implementational details of the automata
-
-\begin{figure}\label{fig:machine_optional}
-\caption{State machine for \texttt{E?}}
-
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
-% ------------------------------------------------------------
-  \node[initial,state]    (A)              {$q_0$};
-  \node[state, rectangle] (B) [right of=A] {$E$};
-  \node[state, accepting] (C) [right of=B] {$q_1$};
-% ------------------------------------------------------------
-  \path (A) edge [below]            node {$\oslash$} (B)
-        (B) edge [below]            node {$\oslash$} (C)
-        (A) edge [bend left, above] node {$\oslash$} (C);
-% ------------------------------------------------------------
-\end{tikzpicture}
-\end{figure}
-
-%
-%
-%
-
-\begin{figure}\label{fig:machine_star}
-\caption{State machine for \texttt{E*}}
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
-% ------------------------------------------------------------
-  \node[initial,state]    (A)              {$q_0$};
-  \node[state, rectangle] (B) [right of=A] {$E$};
-  \node[state, accepting] (C) [right of=B] {$q_1$};
-% ------------------------------------------------------------
-  \path (A) edge [below]             node {$\oslash$} (B)
-        (B) edge [bend right, above] node {$\oslash$} (A)
-        (A) edge [bend right, below] node {$\oslash$} (C);
-% ------------------------------------------------------------
-\end{tikzpicture}
-\end{figure}
-
-%
-%
-%
-
-\begin{figure}\label{fig:machine_plus}
-\caption{State machine for \texttt{E+}}
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
-% ------------------------------------------------------------
-  \node[initial,state]    (A)              {$q_0$};
-  \node[state, rectangle] (B) [right of=A] {$E$};
-  \node[state, accepting] (C) [right of=B] {$q_1$};
-% ------------------------------------------------------------
-  \path (A) edge [below]             node {$\oslash$} (B)
-        (B) edge [below]             node {$\oslash$} (C)
-        (C) edge [bend right, above] node {$\oslash$} (A);
-% ------------------------------------------------------------
-\end{tikzpicture}
-\end{figure}
-
-%
-%
-%
-
-\begin{figure}\label{fig:machine_set}
-\caption{State machine for \texttt{\{E\textsubscript{1} E\textsubscript{2} E\textsubscript{3}\}}}
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
-% ------------------------------------------------------------
-  \node[initial,state]    (A)                           {$q_0$};
-  \node[state, rectangle] (C) [right of = A]            {$E_2$};
-  \node[state, rectangle] (B) [above=0.25cm of C]       {$E_1$};
-  \node[state, rectangle] (D) [below=0.25cm of C]       {$E_3$};
-  \node[state, accepting] (X) [right of=C]              {$q_1$};
-% ------------------------------------------------------------
-  \path (A) edge [bend left, above]  node {$\oslash$} (B)
-        (A) edge [above]             node {$\oslash$} (C)
-        (A) edge [bend right, below] node {$\oslash$} (D)
-
-        (B) edge [bend left, above]  node {$\oslash$} (X)
-        (C) edge [above]             node {$\oslash$} (X)
-        (D) edge [bend right, below] node {$\oslash$} (X);
-% ------------------------------------------------------------
-\end{tikzpicture}
-\end{figure}
+% \subsection{Nondeterministic Finite-State Automata}
+% \label{sub:rndfa}
+% 
+% Inside the sound-change applier's rule code, conditions are parsed into nondeterministic finite-state automata (NFA). Unlike traditional NFA implementations, this one can match sequences of both literal symbols and also segments represented as feature arrays. To the NFA (as to the rest of the sound-change system) these are one and the same, sequences of segment objects, which represent speech sounds.
+% 
+% This appendix describes some of the implementational details of the automata
+% 
+% \begin{figure}\label{fig:machine_optional}
+% \caption{State machine for \texttt{E?}}
+% 
+% \centering
+% \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% % ------------------------------------------------------------
+%   \node[initial,state]    (A)              {$q_0$};
+%   \node[state, rectangle] (B) [right of=A] {$E$};
+%   \node[state, accepting] (C) [right of=B] {$q_1$};
+% % ------------------------------------------------------------
+%   \path (A) edge [below]            node {$\oslash$} (B)
+%         (B) edge [below]            node {$\oslash$} (C)
+%         (A) edge [bend left, above] node {$\oslash$} (C);
+% % ------------------------------------------------------------
+% \end{tikzpicture}
+% \end{figure}
+% 
+% %
+% %
+% %
+% 
+% \begin{figure}\label{fig:machine_star}
+% \caption{State machine for \texttt{E*}}
+% \centering
+% \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% % ------------------------------------------------------------
+%   \node[initial,state]    (A)              {$q_0$};
+%   \node[state, rectangle] (B) [right of=A] {$E$};
+%   \node[state, accepting] (C) [right of=B] {$q_1$};
+% % ------------------------------------------------------------
+%   \path (A) edge [below]             node {$\oslash$} (B)
+%         (B) edge [bend right, above] node {$\oslash$} (A)
+%         (A) edge [bend right, below] node {$\oslash$} (C);
+% % ------------------------------------------------------------
+% \end{tikzpicture}
+% \end{figure}
+% 
+% %
+% %
+% %
+% 
+% \begin{figure}\label{fig:machine_plus}
+% \caption{State machine for \texttt{E+}}
+% \centering
+% \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% % ------------------------------------------------------------
+%   \node[initial,state]    (A)              {$q_0$};
+%   \node[state, rectangle] (B) [right of=A] {$E$};
+%   \node[state, accepting] (C) [right of=B] {$q_1$};
+% % ------------------------------------------------------------
+%   \path (A) edge [below]             node {$\oslash$} (B)
+%         (B) edge [below]             node {$\oslash$} (C)
+%         (C) edge [bend right, above] node {$\oslash$} (A);
+% % ------------------------------------------------------------
+% \end{tikzpicture}
+% \end{figure}
+% 
+% %
+% %
+% %
+% 
+% \begin{figure}\label{fig:machine_set}
+% \caption{State machine for \texttt{\{E\textsubscript{1} E\textsubscript{2} E\textsubscript{3}\}}}
+% \centering
+% \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,semithick]
+% % ------------------------------------------------------------
+%   \node[initial,state]    (A)                           {$q_0$};
+%   \node[state, rectangle] (C) [right of = A]            {$E_2$};
+%   \node[state, rectangle] (B) [above=0.25cm of C]       {$E_1$};
+%   \node[state, rectangle] (D) [below=0.25cm of C]       {$E_3$};
+%   \node[state, accepting] (X) [right of=C]              {$q_1$};
+% % ------------------------------------------------------------
+%   \path (A) edge [bend left, above]  node {$\oslash$} (B)
+%         (A) edge [above]             node {$\oslash$} (C)
+%         (A) edge [bend right, below] node {$\oslash$} (D)
+% 
+%         (B) edge [bend left, above]  node {$\oslash$} (X)
+%         (C) edge [above]             node {$\oslash$} (X)
+%         (D) edge [bend right, below] node {$\oslash$} (X);
+% % ------------------------------------------------------------
+% \end{tikzpicture}
+% \end{figure}
 
 \subsection{Articulator Theory Hybrid Model}
 \label{sub:ATHM}
@@ -866,10 +881,12 @@ The new model was based partly on Darin Flynn's \emph{Articulator Theory} (2006)
 
 The new model would need to address the shortcomings of \emph{Articulator Theory} and improve granularity.
 
-\subsubsection{[consonantal]}
+\subsubsection{\texttt{[consonantal]}}
 \label{ssub:feature_consonantal}
 
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Separates consonants from vowels and semivowels
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -881,29 +898,21 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
+  \itemsep1pt \parskip0pt \parsep0pt 
     \item Any segment that is \texttt{[−consonantal]} must be \texttt{[+sonorant]}
-%    \item Any segment that is \texttt{[−sonorant]} must be \texttt{[+consonantal]}
-
-%    \item Any segment that is \texttt{[−continuant]} must be \texttt{[+consonantal]}
     \item Any segment that is \texttt{[−consonantal]} must be \texttt{[+continuant]}
-
     \item Any segment that is \texttt{[−consonantal]} must be \texttt{[−release]}
-%    \item Any segment that is \texttt{[+release]} must be \texttt{[+consonantal]}
   \end{enumerate}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[sonorant]}
+\subsubsection{\texttt{[sonorant]}}
 \label{ssub:feature_sonorant}
-%\textbf{binary} — Easily another of the most important features, dividing the sonorants from obstruants. Flynn groups laryngeal as glides, and thus \texttt{[+sonorant]}; to reduce potential confusion for users familiar with Sound Pattern of English or similar models, laryngeals are \texttt{[−sonorant]} here.
-
-%\begin{itemize}
-%\item \texttt{[+sonorant]} m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w 
-%\item \texttt{[−sonorant]} p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ ħ ʕ ʔ h ɦ 
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Contrasts between sonorants and obstruents
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -915,6 +924,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
+  \itemsep1pt \parskip0pt \parsep0pt 
     \item Any segment that is \texttt{[−sonorant]} must be \texttt{[+consonantal]}
     \item Any segment that is \texttt{[+sonorant]} must be \texttt{[−release]}
     \item Any segment that is \texttt{[+sonorant]} must be \texttt{[−ejective]}
@@ -922,20 +932,15 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{enumerate}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[continuant]}
+\subsubsection{\texttt{[continuant]}}
 \label{ssub:feature_continuant}
-%\textbf{binary} — This feature is primarily used to distinguish plositves from fricatives. Flynn uses it excusively for that purpose, so that it only applies to obstruents. This model treats all non-stops (sonorants and fricatives) as \texttt{[+continuant]}; it might be entirely reasonable to invert the values for this features and call it \texttt{[stop]}.
-
-%\begin{itemize}
-%\item \texttt{[+continuant]} ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ħ ʕ h ɦ 
-%\item \texttt{[continuant]} p̪ b̪ p b t d ʈ ɖ c ɟ k g kp gb q ɢ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ kx gɣ m ɱ n ɳ ɲ ŋ ŋm ɴ ʔ 
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Distinguishes plosives from fricates; technically, it contrasts a complete closure (\texttt{[−continuant]}) from near-complete closure (\texttt{[+continuant]}) of the oral tract specifically, so nasal consonants are \texttt{[−continuant]} (Flynn, 2006).
-%TODO: does this only apply to obstruents?? check flynn, then delete this note
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
@@ -946,24 +951,27 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item Any segment that is \texttt{[−continuant]} must be \texttt{+consonantal}
+  \itemsep1pt \parskip0pt \parsep0pt 
+    \item Any segment that is \texttt{[−continuant]} must be \texttt{[+consonantal]}
     \item Any segment that is \texttt{[+continuant]} must be \texttt{[−release]}
   \end{enumerate}
 \item[Resctrictions] Only applies to consonants; vowels and semivowels are \texttt{[+continuant]} by default.
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[ejective]}
+\subsubsection{\texttt{[ejective]}}
 \label{ssub:feature_ejective}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Distinguishes ejective from pulmonic stops and affricates.
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+ejective]}\\
     p̪ʼ pʼ tʼ ʈʼ cʼ kʼ kpʼ qʼ ɢʼ pfʼ tsʼ tɬʼ tʃʼ tɕʼ ʈʂʼ cçʼ kxʼ
-    \item \texttt{[−ejective}\\
+    \item \texttt{[−ejective]}\\
     \emph{everything else}
   \end{itemize}
 \item[Constraints]\
@@ -972,13 +980,14 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{enumerate}
   \item[Resctrictions] only applies to stops and affricates; all other sounds are \texttt{[−ejective]} by default
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[release]}
+\subsubsection{\texttt{[release]}}
 \label{ssub:feature_release}
-%\textbf{binary} — This is the first feature not present in Flynn's work. It was present in ``Sound Pattern of English'' and was re-introduced to unambiguously contrast plosives from affricates. The name is shorthand for ``delayed release'' and can only apply meaningfully to plosives. And sounds which are \texttt{[+release]} will be affricates
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Distinguishes plosives from affricate counterparts
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -990,24 +999,21 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
+  \itemsep1pt \parskip0pt \parsep0pt 
     \item Any segment that is \texttt{[+release]} must be \texttt{[+consonanatl]}
     \item Any segment that is \texttt{[+release]} must be \texttt{[−consonanatl]}
     \item Any segment that is \texttt{[+release]} must be \texttt{[−continuant]}
   \end{enumerate}
 \item[Resctrictions] Only meaningful for \texttt{[+consonantal,−sonorant, −continuant]}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[lateral]}
+\subsubsection{\texttt{[lateral]}}
 \label{ssub:feature_lateral}
-%\textbf{binary} — This feature is quite simple and should probably be familiar. Lateral sounds are produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides (\emph{i.e.} laterally, which has some distinctive acoustic effects. Note that the airflow is through the oral cavity by necessity, such that any sound which is \texttt{[+lateral]} must be \texttt{[−nasal]}.
-
-%\begin{itemize}
-%\item \texttt{[+lateral]} tɬ dɮ ɬ ɮ l ɫ ɭ ʎ ʟ 
-%\item \texttt{[−lateral]}
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] produced with an obstruction at the center of oral cavity, causing the airstream to flow to the sides
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -1019,58 +1025,41 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item Any segment which is \texttt{[+lateral]} must be \texttt{[-nasal]}
+    \item Any segment which is \texttt{[+lateral]} must be \texttt{[−nasal]}
   \end{enumerate}
-\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[-nasal]} simultaneously
+\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[−nasal]} simultaneously
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[nasal]}
+\subsubsection{\texttt{[nasal]}}
 \label{ssub:feature_nasal}
-%\textbf{binary} — Like \texttt{[lateral]}, this feature should probably be quite familiar. Sounds which are \texttt{[+nasal]} are made with a lowered velum, allowing airflow throuh the nasal cavity. As mentioned in the previous section, sounds which are nasal cannot be lateral.
-
-%\begin{itemize}
-%\item \texttt{[+nasal]} m ɱ n ɳ ɲ ŋ ŋm ɴ 
-%\item \texttt{[−nasal]}
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] produced with a lowered velum, allowing airflow throuh the nasal cavity.
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+binary]}\\
-    m ɱ n ɳ ɲ ŋ ŋm ɴ ã ẽ ĩ\emph{etc.}
+    m ɱ n ɳ ɲ ŋ ŋm ɴ ã ẽ ĩ  \emph{etc.}
 %    \item \texttt{...}\\
 %    ...
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item Any segmentw which is \texttt{[+nasal]} must also be \texttt{[-lateral]}
+    \item Any segmentw which is \texttt{[+nasal]} must also be \texttt{[−lateral]}
   \end{enumerate}
-\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[-nasal]} simultaneously
+\item[Resctrictions] Segments cannot be \texttt{[+lateral]} and \texttt{[−nasal]} simultaneously
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[labial]}
+\subsubsection{\texttt{[labial]}}
 \label{ssub:feature_labial}
-%\textbf{binary} — The first major place feature, \texttt{[labial]} represents sounds which are articulated using the lips. Unlike Flynn's model, this one does not contrast between labiodental and bilabial consonants (though one could in principal use \texttt{[+round]} for bilabial and \texttt{[+round]} for labiodental, imprecise as this is).
-
-%\begin{itemize}
-%\item \texttt{[+labial]} p̪ b̪ p b kp gb pf bv ɸ β f v m ɱ ŋm ʋ ʍ w 
-%\item \texttt{[−labial]}
-%\end{itemize}
-
-%\subsubsection{[round]}
-%\label{ssub:feature_round}
-%\textbf{binary} — This is the only other feature associated with the lips. It represents both rounding contrasts in vowels, but also secondary articulation on plosives.
-
-%\begin{itemize}
-%\item \texttt{[+round]} p b ɸ β m y ʏ u ʊ ʉ ø œ o ɔ ɶ ɒ ʋ ɥ w 
-%\item \texttt{[−round]}
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] contrasts sounds with produced with the lips from those without.
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -1083,53 +1072,43 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[round]}
+\subsubsection{\texttt{[round]}}
 \label{ssub:feature_round}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] indicates sounds produced with a secondary rounding of the lips
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{[-consonantal, +round]}\\
+    \item \texttt{[−consonantal, +round]}\\
     y ʏ u ʊ ʉ ø œ o ɔ ɶ ɒ ʋ ɥ w 
-    \item \texttt{[-consonantal, -round]}\\
+    \item \texttt{[−consonantal, −round]}\\
     i ɪ ɯ ɷ ə ɨ e ɛ ɤ ʌ æ a ɐ ɑ j ɰ ʍ 
-    \item \texttt{[-consonantal, -round]}\\
+    \item \texttt{[−consonantal, −round]}\\
     tʷ dʷ sʷ kʷ gʷ xʷ \emph{etc.}
-    \item \texttt{[+consonantal, -round]}\\
+    \item \texttt{[+consonantal, −round]}\\
     \emph{everything else}
   \end{itemize}
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[coronal]}
+\subsubsection{\texttt{[coronal]}}
 \label{ssub:feature_coronal}
-%\textbf{numeric} — This is the first and only numeric feature currently included in the system; at earlier stages there were more, but these were replaced by binary features for clarity. The coronal sounds have been left this way because they share a single articulator making contact at different points along a continuum, from dental, to alveolar, back to palatal.
-
-%\begin{itemize}
-%  \item \texttt{[coronal:0]} — Not coronal; neutral posi tion, articulator not engaged.
-%  \item \texttt{[coronal:1]} — Dental or interdental: θ ð 
-%  \item \texttt{[coronal:2]} — Alveolar: t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
-%  \item \texttt{[coronal:3]} — Post-Alveolar: tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
-%  \item \texttt{[coronal:4]} — Retroflex: ʈ ɖ ʈʂ ɖʐ ʂ ʐ ɳ ɽ ɭ 
-%  \item \texttt{[coronal:5]} — Palatal: c ɟ cç ɟʝ ç ʝ ɲ ʎ j ɥ
-%\end{itemize}
-
-%Two immediate critisims of this arrangement  are that dental (and especially interdental) sounds are produced with a movement in the opposite direction of the others; it might instead be assigned a value \texttt{-1}, and alveolar sounds \texttt{1} rather than \texttt{2}. A second is that from dental to retroflex, a smooth continuum of articulation can be produced by pulling the tip of the tongue along the roof of the mouth. However, palatal sounds are articulated in a different way, with a different part of the tongue.
-
-%These facts may have very little bearing on their practical use in a rule system, but are worth considering.
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] indicates the place of articulation for sounds with coronal articulation, from the teeth to the soft palate
 \item[Type] \emph{numeric}
 \item[Examples]\
   \begin{itemize}
-    \item \texttt{[0:coronal]}\\
+    \item \texttt{[noncoronal] / [0:coronal]}\\
       \emph{All non-coronal sounds}
     \item \texttt{[dental] / [1:coronal]}\\
       θ ð 
@@ -1137,28 +1116,22 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
       t d ts dz tɬ dɮ ɬ ɮ s z n r l ɫ 
     \item \texttt{[postalveolar] / [3:coronal]}\\
       tʃ dʒ tɕ dʑ ʃ ʒ ɕ ʑ 
-    \item \texttt{[retroflex] / [4:coronal, -distributed]}\\
+    \item \texttt{[retroflex] / [4:coronal, −distributed]}\\
       ʈ ɖ ʈʂ ɖʐ ʂ ʐ ɳ ɽ ɭ 
     \item \texttt{[palatal] / [4:coronal, +distributed +front, +high]}\\
       c ɟ cç ɟʝ ç ʝ ɲ ʎ j ɥ
   \end{itemize}
-\item[Constraints] \texttt{[palatal]} is a special case since it's articulation is necessarily \texttt{[high, front]}; \texttt{[retroflex]} is not similarly resricted, but is necessarily \texttt{[+distributed]}.
+\item[Constraints] \texttt{[palatal]} is a special case since it's articulation is necessarily \texttt{[high, front]}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[dorsal]}
+\subsubsection{\texttt{[dorsal]}}
 \label{ssub:feature_dorsal}
-%\textbf{binary} — 
-
-%\begin{itemize}
-%\item \texttt{[+dorsal; +consonantal]} — k g kp gb q ɢ kx gɣ x ɣ χ ʁ ŋ ŋm ɴ ʀ ʟ
-%\item \texttt{[−dorsal; +consonantal]} — p̪ b̪ p b t d ʈ ɖ c ɟ pf bv ts dz tɬ dɮ tʃ dʒ tɕ dʑ ʈʂ ɖʐ cç ɟʝ ɸ β f v θ ð ɬ ɮ s z ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ m ɱ n ɳ ɲ r ɽ l ɫ ɭ ʎ ħ ʕ ʔ h ɦ
-%\item \texttt{[+dorsal; −consonantal]} — ɰ ʍ w 
-%\item \texttt{[−dorsal; −consonantal]} — i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Indicates sounds whose primary articular is the tongue body, name velar and uvular consonants.
 \item[Type] \emph{binary}
 \item[Examples]\
@@ -1171,27 +1144,14 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[front]}
+\subsubsection{\texttt{[front]}}
 \label{ssub:feature_front}
-%\textbf{ternary} — 
-
-%Consonants
-%\begin{itemize}
-%\item \texttt{[+front]} — c ɟ tɕ dʑ cç ɕ ʑ ç ɲ ʎ
-%\item \texttt{[front:0]} — 
-%\item \texttt{[−front]} — 
-%\end{itemize}
-
-%Vowels
-%\begin{itemize}
-%\item \texttt{[+front]} — 
-%\item \texttt{[front:0]} — 
-%\item \texttt{[−front]} — 
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Indicates the relative forward or backward positioning of the tong body in the mouth, specifically for contrasting front, central, and back vowels, as well as their associated secondary articulations.
 \item[Type] \emph{ternary}
 \item[Examples]\
@@ -1202,28 +1162,30 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
       c ɟ tɕ dʑ cç ɕ ʑ ç ɲ ʎ 
       \item \texttt{[central] / [0:front]}\\
       p̪ b̪ p b t d ʈ ɖ pf bv pɸ bβ tθ dð ts dz tɬ dɮ tʃ dʒ ʈʂ ɖʐ ɟʝ ɸ β f v θ ð s z ɬ ɮ ʃ ʒ ʂ ʐ ʝ m ɱ n ɳ r ɽ l ɭ ħ ʕ ʔ h ɦ 
-      \item \texttt{[back] / [-front]}\\
+      \item \texttt{[back] / [−front]}\\
       k g kp gb q ɢ kx gɣ qχ ɢʁ x ɣ χ ʁ ŋ ŋm ɴ ʀ ɫ ʟ 
     \end{itemize}
-    \item  \texttt{[-consonantal]}
+    \item  \texttt{[−consonantal]}
     \begin{itemize}
       \item \texttt{[front] / [+front]}\\
       i y ɪ ʏ e ø ɛ œ æ a ɶ j ɥ 
       \item \texttt{[central] / [0:front]}\\
       ə ɨ ʉ ɐ ʋ 
-      \item \texttt{[back] / [-front]}\\
+      \item \texttt{[back] / [−front]}\\
       ɯ u ɷ ʊ ɤ o ʌ ɔ ɑ ɒ ɰ ʍ w 
     \end{itemize}
   \end{itemize}
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[high]}
+\subsubsection{\texttt{[high]}}
 \label{ssub:feature_high}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] Indicates the relative height of the tongue body, raised or lowered from the neutral position.
 \item[Type] \emph{ternary}
 \item[Examples]\
@@ -1237,7 +1199,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
       \item \texttt{[low]}\\
       q ɢ ɴ ħ ʕ 
     \end{itemize}
-    \item  \texttt{[-consonantal]}
+    \item  \texttt{[−consonantal]}
     \begin{itemize}
       \item \texttt{[high]}\\
       i y ɪ ʏ ɯ u ɷ ʊ ɨ ʉ j ɥ ɰ ʍ w 
@@ -1250,125 +1212,124 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[ATR]}
+\subsubsection{\texttt{[atr]}}
 \label{ssub:feature_atr}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] indicates whether the base of the tongue is in an advanced or retracted position; maps loosely to a tense-lax distinction.
 \item[Type]
 \item[Examples]\ 
   \begin{itemize}
-    \item \texttt{[-consonantal, +atr]}\\
+    \item \texttt{[−consonantal, +atr]}\\
     i y ɯ u e ø ɤ o æ ɐ ʋ j ɥ ɰ ʍ w 
-    \item \texttt{[-consonantal, -atr}\\
+    \item \texttt{[−consonantal, −atr}\\
     ɪ ʏ ɷ ʊ ə ɨ ʉ ɛ œ ʌ ɔ a ɶ ɑ ɒ
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
     \item Any segment which is \texttt{[+atr]} must also be \texttt{[+sonorant]}
   \end{enumerate}
-\item[Resctrictions] Obstruents are \texttt{[-atr]} by default; this is not a hard restriction but it is not clear what \texttt{[+atr]} would mean for obstruent\\
+\item[Resctrictions] Obstruents are \texttt{[−atr]} by default; this is not a hard restriction but it is not clear what \texttt{[+atr]} would mean for obstruent\\
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[voice]}
+\subsubsection{\texttt{[voice]}}
 \label{ssub:feature_voice}
-%\textbf{binary} — 
-
-%\begin{itemize}
-%\item \texttt{[+voice]} — b̪ b d ɖ ɟ g gb ɢ bv dz dɮ dʒ dʑ ɖʐ ɟʝ gɣ β v ð ɮ z ʒ ʑ ʐ ʝ ɣ ʁ m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ʕ ɦ 
-%\item \texttt{[−voice]} — p̪ p t ʈ c k kp q pf ts tɬ tʃ tɕ ʈʂ cç kx ɸ f θ ɬ s ʃ ɕ ʂ ç x χ ħ ʔ h 
-%\end{itemize}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] contrasts sounds in which the vocal cords are in a neutral position (voiced) from one in which they are open (voiceless)
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+voice]}\\
     b̪ b d ɖ ɟ g gb ɢ bv bβ dð dz dɮ dʒ dʑ ɖʐ ɟʝ gɣ ɢʁ β v ð z ɮ ʒ ʑ ʐ ʝ ɣ ʁ m ɱ n ɳ ɲ ŋ ŋm ɴ r ɽ ʀ l ɫ ɭ ʎ ʟ i y ɪ ʏ ɯ u ɷ ʊ ə ɨ ʉ e ø ɛ œ ɤ o ʌ ɔ æ a ɶ ɐ ɑ ɒ ʋ j ɥ ɰ ʍ w ʕ ɦ 
-    \item \texttt{[-voice]}\\
+    \item \texttt{[−voice]}\\
     p̪ p t ʈ c k kp q pf pɸ tθ ts tɬ tʃ tɕ ʈʂ cç kx qχ ɸ f θ s ɬ ʃ ɕ ʂ ç x χ ħ ʔ h 
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item Any segment which is \texttt{[+voice]} must be \texttt{[-ejective]}
+    \item Any segment which is \texttt{[+voice]} must be \texttt{[−ejective]}
   \end{enumerate} 
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[creaky]}
+\subsubsection{\texttt{[creaky]}}
 \label{ssub:feature_creaky}
-
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] contrasts phonation types, specifically breathy, creaky, and modal voice. Note that \texttt{[neutral]} in this case is used for both voiceless and modal voice.
-
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+creaky]}\\
     b̰ d̰ g̰ a̰ ḭ ṵ \emph{etc.}
-    % \item \texttt{[neutral]}\\
-    % p t k ḁ i̥ u̥ b d g a i u \emph{etc.}
-    % \item \texttt{[breathy]}\\
-    % b̤ d̤ g̤ a̤ i̤ ṳ \emph{etc.}
-  \end{itemize}
-\item[Constraints]\
-  \begin{enumerate}
-    \item Any segment which is \texttt{[+creaky]} must also be \texttt{[+voice]}
-    % \item Any segment which is \texttt{[breathy]} must also be \texttt{[+voice]}
-  \end{enumerate} \emph{none}
-\end{description}
-% =============================================================================
-
-\subsubsection{[breathy]}
-\label{ssub:feature_breathy}
-
-\begin{description}
-\item[Descritpion] represents differences in voice-onset-time, contrasting tenuis from aspirated stops; does not account for negative VOT, which
-\item[Type]
-\item[Examples]\
-  \begin{itemize}
-    \item \texttt{[+vot]}\\
-    pʰ tʰ kʰ tːʰ\emph{etc.}
 %    \item \texttt{...}\\
 %    ...
   \end{itemize}
 \item[Constraints]\
   \begin{enumerate}
-    \item
-  \end{enumerate}
-\item[Resctrictions]
+    \item Any segment which is \texttt{[+creaky]} must also be \texttt{[+voice]}
+  \end{enumerate} \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[distributed]}
-\label{ssub:feature_distributed}
-
+\subsubsection{\texttt{[breathy]}}
+\label{ssub:feature_breathy}
+\begin{samepage}
 \begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[Descritpion] used to represent both breathy voice and aspiration.
+\item[Type] \emph{binary}
+\item[Examples]\
+  \begin{itemize}
+    \item \texttt{[+vot]}\\
+    pʰ tʰ kʰ tːʰ b̤ d̤ g̤ a̤ i̤ ṳ  \emph{etc.}
+%    \item \texttt{...}\\
+%    ...
+  \end{itemize}
+\item[Constraints] \emph{none}
+\item[Resctrictions] \emph{none}
+\end{description}
+\end{samepage}
+% =============================================================================
+
+\subsubsection{\texttt{[distributed]}}
+\label{ssub:feature_distributed}
+\begin{samepage}
+\begin{description}
+\itemsep1pt \parskip0pt \parsep0pt 
 \item[Descritpion] used to represent both the apical-laminal contrast of lingual consonants as well as the labiodenal-bilabial contrast of labial consonants.
 \item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize} 
     \item \texttt{[+distributed, +consonantal]}\\
     p̪ b̪ t d c ɟ pf bv tθ dð ts dz tɬ dɮ tʃ dʒ tɕ dʑ cç ɟʝ ɸ β θ ð s z ɬ ɮ ʃ ʒ ɕ ʑ ç ʝ ɱ n ɲ r ɽ l ɫ ʎ 
-    \item \texttt{[-distributed, +consonantal]}\\
+    \item \texttt{[−distributed, +consonantal]}\\
     p b ʈ ɖ k g kp gb q ɢ pɸ bβ ʈʂ ɖʐ kx gɣ qχ ɢʁ f v ʂ ʐ x ɣ χ ʁ m ɳ ŋ ŋm ɴ ʀ ɭ ʟ ħ ʕ ʔ h ɦ 
   \end{itemize}
 \item[Constraints] \emph{none}
-\item[Resctrictions]  %TODO: unclear if constraints can start with multi-key selectors; the restriction would need to be [-labial, 0:coronal] > [-distributed]
+\item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
-\subsubsection{[long]}
+\subsubsection{\texttt{[long]}}
 \label{ssub:feature_long}
-
+\begin{samepage}
 \begin{description}
-\item[Descritpion] allows for contrasting long and short vowels, or geminate and non-geminate consonsants.\footnode{The feature is problematic in that it treats length as a quality of the sound, and not as a separate quantity, but this is a convenient compromise to make until the SCA supports more sophisticated handling of supersegmentals.}
-\item[Type] \emph{binaru}
+\itemsep1pt \parskip0pt \parsep0pt 
+\item[Descritpion] allows for contrasting long and short vowels, or geminate and non-geminate consonsants.\footnote{The feature is problematic in that it treats length as a quality of the sound, and not as a separate quantity, but this is a convenient compromise to make until the SCA supports more sophisticated handling of supersegmentals.}
+\item[Type] \emph{binary}
 \item[Examples]\
   \begin{itemize}
     \item \texttt{[+long]}\\
@@ -1379,6 +1340,7 @@ The new model would need to address the shortcomings of \emph{Articulator Theory
 \item[Constraints] \emph{none}
 \item[Resctrictions] \emph{none}
 \end{description}
+\end{samepage}
 % =============================================================================
 
 \end{document}

@@ -191,8 +191,8 @@ public class FeatureModelLoader {
 		}
 		// Now parse each of the lists
 		populateFeatures(featureZone);
-		populateConstraints(constraintZone);
 		populateAliases(aliasZone);
+		populateConstraints(constraintZone);
 		populateSymbols(symbolZone);
 		populateModifiers(modifierZone);
 	}
