@@ -22,7 +22,7 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 12/14/2014
  */
-public class WeightMatrix extends SymmetricTable<Double> {
+public final class WeightMatrix extends SymmetricTable<Double> {
 
 	private static final NumberFormat FORMAT_PREC = new DecimalFormat("0.0000");
 	private static final NumberFormat FORMAT      = new DecimalFormat("0.00");
@@ -32,7 +32,7 @@ public class WeightMatrix extends SymmetricTable<Double> {
 	}
 
 	public WeightMatrix(WeightMatrix other) {
-		super(other.getNumberRows(), other.getNumberColumns());
+		super(other.getNumberColumns());
 		array.addAll(other.array);
 	}
 

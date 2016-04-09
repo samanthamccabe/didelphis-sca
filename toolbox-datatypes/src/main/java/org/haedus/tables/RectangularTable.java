@@ -17,6 +17,7 @@ package org.haedus.tables;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,9 @@ import java.util.List;
  * @param <E>
  */
 public class RectangularTable<E> implements Table<E> {
-
+	
+	private final DecimalFormat FORMAT = new DecimalFormat(" 0.000;-0.000");
+	
 	private   final   int   numberRows;
 	private   final   int   numberColumns;
 	protected final List<E> array;
@@ -94,10 +97,12 @@ public class RectangularTable<E> implements Table<E> {
 	}
 
 	/**
-	 * Computes and returns the absolute index of the internal array based on the provided coordinates.
+	 * Computes and returns the absolute index of the internal array based on
+	 * the provided coordinates.
 	 * @param i the column position
 	 * @param j the row position
-	 * @return the absolute index of the internal array based on the provided coordinates.
+	 * @return the absolute index of the internal array based on the provided
+	 * coordinates.
 	 */
 	private int getIndex(int i, int j) {
 	    return i + j * numberRows;
@@ -115,6 +120,30 @@ public class RectangularTable<E> implements Table<E> {
 
 	@Override
 	public String getPrettyTable() {
-		return "";
+		StringBuilder sb = new StringBuilder(array.size() * 8);
+		
+		int i = 1   ;
+			for (E e : array) {
+				if (e instanceof Double) {
+				sb.append(FORMAT.format(e));
+					if (i % numberColumns == 0) {
+						sb.append("\n");
+					} else {
+						sb.append("  ");
+					}
+					i++;
+			}
+		}
+
+		return sb.toString();
+	}
+
+	@Override   
+	public String toString() {
+		return "RectangularTable{" +
+				"numberRows=" + numberRows +
+				", numberColumns=" + numberColumns +
+				", array=" + array +
+				'}';
 	}
 }

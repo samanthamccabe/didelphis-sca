@@ -18,14 +18,14 @@ package org.haedus.tables;
  * @param <E>
  * @author Samantha Fiona Morrigan McCabe
  */
-public class SymmetricTable<E> extends SquareTable<E> {
+public class SymmetricTable<E> extends RectangularTable<E> {
 
-	protected SymmetricTable(int r, int c) {
-		super(r, c);
+	protected SymmetricTable(int n) {
+		super(n, n);
 	}
 
 	public SymmetricTable(E defaultValue, int n) {
-		this(n, n);
+		this(n);
 		int number = getIndex(n, n)-1;
 		for (int i = 0; i < number; i++) {
 			array.add(defaultValue);
@@ -33,7 +33,7 @@ public class SymmetricTable<E> extends SquareTable<E> {
 	}
 
 	public SymmetricTable(SymmetricTable<E> otherTable) {
-		this(otherTable.getNumberRows(), otherTable.getNumberRows());
+		this(otherTable.getNumberRows());
 		array.addAll(otherTable.array);
 	}
 
@@ -55,19 +55,21 @@ public class SymmetricTable<E> extends SquareTable<E> {
 		return sb.toString();
 	}
 
+	@SuppressWarnings("RefusedBequest")
 	@Override
 	public void set(E element, int i, int j) {
 		int index = getIndex(i, j);
 		array.set(index, element);
 	}
 
+	@SuppressWarnings("RefusedBequest")
 	@Override
 	public E get(int i, int j) {
 		return array.get(getIndex(i, j));
 	}
 
 
-	private int getIndex(int i, int j) {
+	private static int getIndex(int i, int j) {
 		if (j > i) {
 			return getRowStart(j) + i;
 		} else {
@@ -75,7 +77,7 @@ public class SymmetricTable<E> extends SquareTable<E> {
 		}
 	}
 
-	private int getRowStart(int row) {
+	private static int getRowStart(int row) {
 		int sum = 0;
 		for (int i = 0; i <= row; i++) {
 			sum += i;
