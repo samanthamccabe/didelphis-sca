@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
  * Date: 4/7/13
  * Time: 5:40 PM
  */
-public class Rule implements Command {
+public class Rule implements Runnable {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Rule.class);
 
@@ -106,7 +106,7 @@ public class Rule implements Command {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		for (Lexicon lexicon : lexicons.values()) {
 			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {

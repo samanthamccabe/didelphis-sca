@@ -15,7 +15,6 @@
 package org.haedus.soundchange;
 
 import org.haedus.phonetic.Lexicon;
-import org.haedus.soundchange.command.Command;
 
 import java.util.Queue;
 
@@ -31,5 +30,5 @@ public interface SoundChangeScript {
 
 	Lexicon getLexicon(String handle);
 	
-	Queue<Command> getCommands();
+	Queue<Runnable> getCommands();
 }

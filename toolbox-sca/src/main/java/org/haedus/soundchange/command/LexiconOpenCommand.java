@@ -39,7 +39,7 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		List<List<String>> rows = fileHandler.readTable(filePath);
 		Lexicon lexicon = factory.getLexicon(rows);
 		lexicons.addLexicon(fileHandle, lexicon);

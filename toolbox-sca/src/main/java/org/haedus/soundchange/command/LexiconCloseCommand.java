@@ -41,7 +41,7 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		// REMOVE data from lexicons
 		Lexicon lexicon = lexicons.remove(fileHandle);
 

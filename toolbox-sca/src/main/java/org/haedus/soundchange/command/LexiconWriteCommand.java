@@ -41,7 +41,7 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		// GET data from lexicons
 		Lexicon lexicon = lexicons.get(fileHandle);
 		

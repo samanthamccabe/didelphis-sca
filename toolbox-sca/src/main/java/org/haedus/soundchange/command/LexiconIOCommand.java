@@ -22,7 +22,7 @@ import org.haedus.io.FileHandler;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/15/2014
  */
-public abstract class LexiconIOCommand implements Command  {
+public abstract class LexiconIOCommand implements Runnable  {
 
 	protected final String      filePath;
 	protected final String      fileHandle;
