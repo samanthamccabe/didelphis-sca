@@ -23,7 +23,6 @@ import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
-import org.haedus.soundchange.command.Command;
 import org.haedus.soundchange.command.LexiconCloseCommand;
 import org.haedus.soundchange.command.LexiconOpenCommand;
 import org.haedus.soundchange.command.LexiconWriteCommand;
@@ -82,7 +81,7 @@ public class StandardScript implements SoundChangeScript {
 
 	private final String         scriptId;
 	private final FileHandler    fileHandler;
-	private final Queue<Command> commands;
+	private final Queue<Runnable> commands;
 	private final LexiconMap     lexicons;
 	private final VariableStore  variables;
 	private final Set<String>    reserved;
@@ -108,7 +107,7 @@ public class StandardScript implements SoundChangeScript {
 		fileHandler = handler;
 
 		lexicons  = new LexiconMap();
-		commands  = new ArrayDeque<Command>();
+		commands  = new ArrayDeque<Runnable>();
 		variables = new VariableStore();
 		reserved  = new LinkedHashSet<String>();
 
@@ -132,14 +131,14 @@ public class StandardScript implements SoundChangeScript {
 	}
 
 	@Override
-	public Queue<Command> getCommands() {
+	public Queue<Runnable> getCommands() {
 		return commands;
 	}
 
 	@Override
 	public void process() {
-		for (Command command : commands) {
-			command.execute();
+		for (Runnable command : commands) {
+			command.run();
 		}
 	}
 

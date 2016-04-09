@@ -31,7 +31,7 @@ import java.io.IOException;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class ScriptExecuteCommand implements Command {
+public class ScriptExecuteCommand implements Runnable {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ScriptExecuteCommand.class);
 
@@ -44,7 +44,7 @@ public class ScriptExecuteCommand implements Command {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		String data = handler.read(path);
 		SoundChangeScript script = new StandardScript(path, data, handler);
 		script.process();
