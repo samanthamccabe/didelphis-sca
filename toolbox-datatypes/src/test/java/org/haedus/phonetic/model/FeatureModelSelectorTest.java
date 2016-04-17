@@ -30,33 +30,7 @@ import static org.junit.Assert.assertFalse;
 public class FeatureModelSelectorTest extends ModelTestBase {
 
 	private static final FeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
-
-	@Ignore
-	@Test
-	public void testWriteOutTEMP() {
-		String selector = "[atr:0]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
-
-		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
-
-		for (Segment g : segments) {
-			System.out.print(FormatterMode.COMPOSITION.normalize(g.toString()) + ' ');
-		}
-	}
-
-	@Ignore
-	@Test
-	public void testWritexOutTEMP2() {
-		String selector = "[-consonantal]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
-
-		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
-
-		for (Segment g : segments) {
-			System.out.println(g + "\t" + FeatureModel.formatFeatures(g.getFeatures()));
-		}
-	}
-
+	
 	@Test
 	public void testConsonantal() {
 		String selector = "[+consonantal]";

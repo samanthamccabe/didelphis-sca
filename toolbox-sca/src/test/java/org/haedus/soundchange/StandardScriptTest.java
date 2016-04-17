@@ -327,15 +327,19 @@ public class StandardScriptTest {
 	}
 
 	private static String getStringFromClassPath(String name) throws IOException {
-		InputStream rulesStream = StandardScriptTest.class.getClassLoader().getResourceAsStream(name);
-		Reader reader = new BufferedReader(new InputStreamReader(rulesStream));
+		InputStream rulesStream = StandardScriptTest.class
+				.getClassLoader()
+				.getResourceAsStream(name);
+
+		Reader streamReader = new InputStreamReader(rulesStream, "UTF-8");
+		Reader bufferedReader = new BufferedReader(streamReader);
 
 		StringBuilder sb = new StringBuilder();
 
-		int c = reader.read();
+		int c = bufferedReader.read();
 		while (c >= 0) {
 			sb.append((char) c);
-			c = reader.read();
+			c = bufferedReader.read();
 		}
 		return sb.toString();
 	}
