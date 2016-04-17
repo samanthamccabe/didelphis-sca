@@ -14,18 +14,25 @@
 
 package org.haedus.tables;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @param <E>
  * @author Samantha Fiona Morrigan McCabe
  */
-public class SymmetricTable<E> extends RectangularTable<E> {
+public class SymmetricTable<E> extends AbstractTable<E> {
 
-	protected SymmetricTable(int n) {
+	private final List<E> array;
+
+	private SymmetricTable(int n) {
 		super(n, n);
+		array = new ArrayList<E>(n + n * n / 2);
 	}
-
+	
 	public SymmetricTable(E defaultValue, int n) {
 		this(n);
+		
 		int number = getIndex(n, n)-1;
 		for (int i = 0; i < number; i++) {
 			array.add(defaultValue);
@@ -83,5 +90,12 @@ public class SymmetricTable<E> extends RectangularTable<E> {
 			sum += i;
 		}
 		return sum;
+	}
+
+	@Override
+	public String toString() {
+		return "SymmetricTable{" +
+				"array=" + array +
+				'}';
 	}
 }

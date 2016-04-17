@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -29,7 +28,7 @@ import java.util.Map;
  * Samantha Fiona Morrigan McCabe
  * Created: 8/23/2015
  */
-public class DataTable<E> implements ColumnTable<E> {
+public final class DataTable<E> implements ColumnTable<E> {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(DataTable.class);
 
@@ -38,26 +37,21 @@ public class DataTable<E> implements ColumnTable<E> {
 	private final List<List<E>> rows;
 	private final List<String>  keys;
 
-	private int numberOfRows;
-
-	public DataTable() {
+	private final int nRows;
+	
+	public DataTable(Map<String, List<E>> map) {
 		columns = new LinkedHashMap<String, List<E>>();
 		keys = new ArrayList<String>();
 		rows = new ArrayList<List<E>>();
-	}
-	
-	public DataTable(Map<String, List<E>> map) {
-		this();
+		
+		int numberOfRows = 0;
 		
 		// Ensure we can 
 		if (!map.isEmpty()) {
 			Iterator<List<E>> iterator = map.values().iterator();
 			numberOfRows = iterator.next().size();
 			while (iterator.hasNext()) {
-				if (numberOfRows != iterator.next().size()) {
-					throw new IllegalArgumentException("DataTable cannot be instantiated using a Map whose values" +
-						" are Lists of inconsistent length");
-				}
+				rangeCheck(numberOfRows, iterator);
 			}
 			columns.putAll(map);
 			keys.addAll(map.keySet());
@@ -69,6 +63,15 @@ public class DataTable<E> implements ColumnTable<E> {
 				}
 				rows.add(row);
 			}
+		}
+		nRows = numberOfRows;
+	}
+
+	private void rangeCheck(int n, Iterator<List<E>> iterator) {
+		if (n != iterator.next().size()) {
+			throw new IllegalArgumentException(
+					"DataTable cannot be instantiated using a Map whose " + 
+							"values are Lists of inconsistent length");
 		}
 	}
 
@@ -113,6 +116,30 @@ public class DataTable<E> implements ColumnTable<E> {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		DataTable<?> dataTable = (DataTable<?>) o;
+
+		if (nRows != dataTable.nRows) return false;
+		if (!columns.equals(dataTable.columns)) return false;
+		if (!rows.equals(dataTable.rows)) return false;
+		return keys.equals(dataTable.keys);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = columns.hashCode();
+		result = 31 * result + rows.hashCode();
+		result = 31 * result + keys.hashCode();
+		result = 31 * result + nRows;
+		return result;
+	}
+
+	@Override
+	
 	public void set(E element, int i, int j) {
 		checkRowIndex(j);
 		columns.get(keys.get(i)).set(j, element);
@@ -120,10 +147,9 @@ public class DataTable<E> implements ColumnTable<E> {
 
 	@Override
 	public int getNumberRows() {
-		return numberOfRows;
+		return nRows;
 	}
 
-	@Override
 	public int getNumberColumns() {
 		return keys.size();	
 	}
@@ -157,8 +183,19 @@ public class DataTable<E> implements ColumnTable<E> {
 	}
 
 	private void checkRowIndex(int index) {
-		if (numberOfRows <= index) {
-			throw new IndexOutOfBoundsException("Attempting to access row " + index + " of a table with only " + numberOfRows + " rows");
+		if (nRows <= index) {
+			throw new IndexOutOfBoundsException("Attempting to access row " +
+					index + " of a table with only " + nRows + " rows");
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "DataTable{" +
+				"columns=" + columns +
+				", rows=" + rows +
+				", keys=" + keys +
+				", nRows=" + nRows +
+				'}';
 	}
 }

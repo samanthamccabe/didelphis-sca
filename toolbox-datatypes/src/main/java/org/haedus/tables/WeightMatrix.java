@@ -32,14 +32,10 @@ public final class WeightMatrix extends SymmetricTable<Double> {
 	}
 
 	public WeightMatrix(WeightMatrix other) {
-		super(other.getNumberColumns());
-		array.addAll(other.array);
+		super(other);
 	}
-
-	public List<Double> getBackingList() {
-		return array;
-	}
-
+	
+	@SuppressWarnings("RefusedBequest")
 	@Override
 	public String getPrettyTable() {
 
@@ -62,21 +58,5 @@ public final class WeightMatrix extends SymmetricTable<Double> {
 			}
 		}
 		return sb.toString();
-	}
-
-	public String getLinear() {
-		StringBuilder sb = new StringBuilder();
-
-		for (Double value : array) {
-			String format = FORMAT_PREC.format(value);
-			if (!format.startsWith("-")) {
-				sb.append(" ").append(format);
-			} else {
-				sb.append(format);
-			}
-			sb.append("\t");
-		}
-
-		return sb.toString().trim();
 	}
 }

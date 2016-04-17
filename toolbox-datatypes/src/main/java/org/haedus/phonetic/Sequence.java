@@ -15,6 +15,7 @@
 package org.haedus.phonetic;
 
 import org.haedus.phonetic.model.FeatureModel;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +24,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequence> {
+public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence> {
 
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
@@ -68,9 +70,45 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 		featureModel = featureTable;
 	}
 
-	public void add(Segment s) {
+	@Override
+	public boolean add(Segment s) {
 		validateModelOrFail(s);
-		sequence.add(s);
+		return sequence.add(s);
+	}
+
+	@Override
+	public boolean remove(Object o) {
+		return sequence.remove(o);
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		return sequence.containsAll(c);
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends Segment> c) {
+		return sequence.addAll(c);
+	}
+
+	@Override
+	public boolean addAll(int index, Collection<? extends Segment> c) {
+		return sequence.addAll(index, c);
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		return sequence.removeAll(c);
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		return sequence.retainAll(c);
+	}
+
+	@Override
+	public void clear() {
+		sequence.clear();
 	}
 
 	public void add(Sequence otherSequence) {
@@ -85,8 +123,9 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 		sequence.addAll(index, q.getSegments());
 	}
 
-	public Segment get(int i) {
-		return sequence.get(i);
+	@Override
+	public Segment get(int index) {
+		return sequence.get(index);
 	}
 
 	public Segment getFirst() {
@@ -97,10 +136,17 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 		return get(sequence.size() - 1);
 	}
 
-	public void set(int i, Segment s) {
-		sequence.set(i, s);
+	@Override
+	public Segment set(int i, Segment s) {
+		return sequence.set(i, s);
 	}
 
+	@Override
+	public void add(int index, Segment element) {
+		sequence.add(index, element);
+	}
+
+	@Override
 	public int size() {
 		return sequence.size();
 	}
@@ -134,6 +180,34 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 		return sequence.remove(index);
 	}
 
+	@Override
+	public int indexOf(Object o) {
+		return sequence.indexOf(o);
+	}
+
+	@Override
+	public int lastIndexOf(Object o) {
+		return sequence.lastIndexOf(o);
+	}
+
+	@NotNull
+	@Override
+	public ListIterator<Segment> listIterator() {
+		return sequence.listIterator();
+	}
+
+	@NotNull
+	@Override
+	public ListIterator<Segment> listIterator(int index) {
+		return sequence.listIterator(index);
+	}
+
+	@NotNull
+	@Override
+	public List<Segment> subList(int fromIndex, int toIndex) {
+		return sequence.subList(fromIndex, toIndex);
+	}
+
 	public Sequence remove(int start, int end) {
 		Sequence q = new Sequence(featureModel);
 		for (int i = 0; i < end - start; i++) {
@@ -145,10 +219,14 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 	/**
 	 * Determines if a sequence is consistent with this sequence.
 	 * Sequences must be of the same length
-	 * Two sequences are consistent if each other if all corresponding segments are consistent; i.e. if
-	 * if, for ever segment in each sequence, all corresponding features are equal OR if one is NaN
+	 * 
+	 * Two sequences are consistent if each other if all corresponding segments
+	 * are consistent; i.e. if, for ever segment in each sequence, all
+	 * corresponding features are equal OR if one is NaN
+	 * 
 	 * @param target a sequence to check against this one
-	 * @return true if, for each segment in both sequences, all specified (non NaN) features in either segment are equal
+	 * @return true if, for each segment in both sequences, all specified
+	 * (non NaN) features in either segment are equal
 	 */
 	public boolean matches(Sequence target) {
 		validateModelOrFail(target);
@@ -221,6 +299,18 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 		return sequence.iterator();
 	}
 
+	@NotNull
+	@Override
+	public Object[] toArray() {
+		return new Object[0];
+	}
+
+	@NotNull
+	@Override
+	public <T> T[] toArray(T[] a) {
+		return null;
+	}
+
 	@Override
 	public int hashCode() {
 		int hash = 23;
@@ -249,6 +339,11 @@ public class Sequence implements Iterable<Segment>, ModelBearer, Comparable<Sequ
 
 	public boolean isEmpty() {
 		return sequence.isEmpty();
+	}
+
+	@Override
+	public boolean contains(Object o) {
+		return false;
 	}
 
 	public Sequence getReverseSequence() {

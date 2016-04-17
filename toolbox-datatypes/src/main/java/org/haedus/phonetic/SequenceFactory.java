@@ -79,7 +79,11 @@ public class SequenceFactory {
 		FeatureArray<Double> featureArray = new StandardFeatureArray<Double>(featureModel.getBlankArray());
 
 		dotSegment    = new Segment(".", featureArray, featureModel);
-		borderSegment = new Segment("#", featureArray, featureModel);
+		if (featureModel.containsKey("#")) {
+			borderSegment = featureModel.getSegment("#", new ArrayList<String>());
+		} else {
+			borderSegment = new Segment("#", featureArray, featureModel);
+		}
 
 		dotSequence    = new Sequence(dotSegment);
 		borderSequence = new Sequence(borderSegment);
@@ -110,7 +114,7 @@ public class SequenceFactory {
 	}
 
 	public Segment getSegment(String string) {
-		if (string.equals("#")) {
+		if (!featureModel.containsKey("#") && string.equals("#")) {
 			return borderSegment;
 		} else if (string.equals(".")) {
 			return dotSegment;
