@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
+@Deprecated
 public class FeatureModel {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
@@ -64,16 +65,9 @@ public class FeatureModel {
 	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME);
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
 	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
-
-	private final int numberOfFeatures;
-
-	private final Map<String, Integer>              featureIndices;
+	
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> diacritics;
-	private final Map<String, FeatureArray<Double>> aliases;
-
-	private final List<String>     featureNames;
-	private final List<Constraint> constraints;
 
 	private final List<Double> blankArray;
 
@@ -85,15 +79,15 @@ public class FeatureModel {
 
 	// Initializes an empty model; access to this should only be through the EMPTY_MODEL field
 	private FeatureModel() {
-		numberOfFeatures = 0;
+//		numberOfFeatures = 0;
 
-		featureIndices = new LinkedHashMap<String, Integer>();
+//		featureIndices = new LinkedHashMap<String, Integer>();
 		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
 		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
-		aliases        = new LinkedHashMap<String, FeatureArray<Double>>();
-		constraints    = new ArrayList<Constraint>();
+//		aliases        = new LinkedHashMap<String, FeatureArray<Double>>();
+//		constraints    = new ArrayList<Constraint>();
 		blankArray     = new ArrayList<Double>();
-		featureNames   = new ArrayList<String>();
+//		featureNames   = new ArrayList<String>();
 		formatterMode  = FormatterMode.NONE;
 	}
 
@@ -171,7 +165,6 @@ public class FeatureModel {
 			String value = feature.toString().replaceAll("\\.0", "");
 
 			if (!value.startsWith("-")) {
-//				value = ' ' + value;
 				sb.append(' ');
 			}
 			
@@ -247,7 +240,8 @@ public class FeatureModel {
 		if (this == EMPTY_MODEL) {
 			string = "EMPTY MODEL";
 		} else {
-			string = "FeatureModel(number.features=" + getNumberOfFeatures() + ", number.symbols=" + featureMap.size() + ')';
+			string = "FeatureModel(number.features=" + numberOfFeatures +
+					", number.symbols=" + featureMap.size() + ')';
 		}
 		return string;
 	}
@@ -294,6 +288,7 @@ public class FeatureModel {
 		}
 	}
 
+	@Deprecated
 	public List<String> getFeatureNames() {
 		return Collections.unmodifiableList(featureNames);
 	}
