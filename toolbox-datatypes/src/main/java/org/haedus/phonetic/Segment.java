@@ -23,6 +23,7 @@ import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.Constraint;
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
-	private final FeatureModel model;
+	private final FeatureSpecification model;
 	private final String       symbol;
 	private final FeatureArray<Double> features;
 
@@ -51,14 +52,8 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		features = segment.features;
 	}
 
-	@Deprecated
-	public Segment(String s, FeatureModel modelParam) {
-		symbol = s;
-		model = modelParam;
-		features = model.getValue(s);
-	}
-
-	public Segment(String s, FeatureArray<Double> featureArray, FeatureModel modelParam) {
+	public Segment(String s, FeatureArray<Double> featureArray,
+	               FeatureSpecification modelParam) {
 		symbol = s;
 		model = modelParam;
 		features = new StandardFeatureArray<Double>(featureArray);
@@ -67,7 +62,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	// Used to create the empty segment
 	private Segment(String string) {
 		symbol = string;
-		model = FeatureModel.EMPTY_MODEL;
+		model = FeatureSpecification.EMPTY;
 		features = new StandardFeatureArray<Double>(0);
 	}
 
@@ -97,8 +92,10 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 			}
 		}
 
-		String newSymbol = model.getBestSymbol(otherFeatures);
-		return new Segment(newSymbol, otherFeatures, model);
+//		String newSymbol = model.getBestSymbol(otherFeatures);
+//		return new Segment(newSymbol, otherFeatures, model);
+		//TODO: fix this 
+		return new Segment(symbol, otherFeatures, model);
 	}
 
 	/**
@@ -141,7 +138,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	}
 
 	@Override
-	public FeatureModel getModel() {
+	public FeatureSpecification getModel() {
 		return model;
 	}
 
@@ -233,7 +230,8 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	@Deprecated
 	public boolean isUndefined() {
-		return model.getBlankArray().equals(features);
+//		return model.getBlankArray().equals(features);
+		return false;
 	}
 
 	@Deprecated
@@ -247,7 +245,6 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		if (equals(o)) {
 			return 0;
 		} else {
-//			validateModelOrFail(o);
 			int value = features.compareTo(o.getFeatures());
 			if (value == 0) {
 				// If we get here, there is either no features, or feature arrays are equal
@@ -258,7 +255,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		FeatureModel otherModel = that.getModel();
+		FeatureSpecification otherModel = that.getModel();
 		if (!model.equals(otherModel)) {
 			throw new RuntimeException(
 				"Attempting to interoperate " + that.getClass() + " with an incompatible featureModel!\n" +

@@ -42,7 +42,8 @@ import java.util.regex.Pattern;
  */
 public class FeatureModelLoader {
 
-	private static final transient Logger LOG = LoggerFactory.getLogger(FeatureModelLoader.class);
+	private static final transient Logger LOG =
+			LoggerFactory.getLogger(FeatureModelLoader.class);
 
 	private static final String FEATURES    = "FEATURES";
 	private static final String SYMBOLS     = "SYMBOLS";
@@ -59,7 +60,8 @@ public class FeatureModelLoader {
 
 	private static final String FEATURE_TYPES = "ternary|binary|numeric";
 	
-	private static final String FEATURES_STRING ="(\\w+)\\s+(\\w*)\\s+("+FEATURE_TYPES+"(\\(-?\\d,\\d\\))?)";
+	private static final String FEATURES_STRING ="(\\w+)\\s+(\\w*)\\s+(" + 
+			FEATURE_TYPES + "(\\(-?\\d,\\d\\))?)";
 
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern ZONE_PATTERN     = Pattern.compile(ZONE_STRING);
@@ -158,15 +160,19 @@ public class FeatureModelLoader {
 	private void readModelFromFileNewFormat(Iterable<String> file) {
 		String currentZone = "";
 		
-		Collection<String> featureZone    = new ArrayList<String>();
-		Collection<String> constraintZone = new ArrayList<String>();
-		Collection<String> aliasZone      = new ArrayList<String>();
+//		Collection<String> featureZone    = new ArrayList<String>();
+//		Collection<String> constraintZone = new ArrayList<String>();
+//		Collection<String> aliasZone      = new ArrayList<String>();
+		
+		// TODO: capture everything else
+		
 		Collection<String> symbolZone     = new ArrayList<String>();
 		Collection<String> modifierZone   = new ArrayList<String>();
 
-		/* Probably what we need to do here is use the zones to capture every line up to the next zone
-		 * or EOF. Put these in lists, one for each zone. Then parse each zone separately. This will
-		 * reduce cyclomatic complexity and should avoid redundant checks.
+		/* Probably what we need to do here is use the zones to capture every
+		 * line up to the next zone or EOF. Put these in lists, one for each
+		 * zone. Then parse each zone separately. This will reduce cyclomatic
+		 * complexity and should avoid redundant checks.
 		 */
 		for (String string : file) {
 			// Remove comments
@@ -174,6 +180,8 @@ public class FeatureModelLoader {
 			Matcher matcher = ZONE_PATTERN.matcher(line);
 			if (matcher.find()) {
 				currentZone = matcher.group(0);
+			} else if () {
+				
 			} else if (!line.isEmpty() && !line.trim().isEmpty()) {
 
 				if (currentZone.equals(FEATURES)) {

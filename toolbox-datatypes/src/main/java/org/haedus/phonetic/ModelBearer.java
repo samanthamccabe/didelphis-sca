@@ -14,7 +14,7 @@
 
 package org.haedus.phonetic;
 
-import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -26,5 +26,5 @@ public interface ModelBearer {
 	 * Returns the model used by this ModelBearer
 	 * @return the FeatureModel; must never be null
 	 */
-	FeatureModel getModel();
+	FeatureSpecification getModel();
 }

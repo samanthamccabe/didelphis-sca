@@ -14,7 +14,7 @@
 
 package org.haedus.phonetic;
 
-import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 	private final List<Segment> sequence;
-	private final FeatureModel  featureModel;
+	private final FeatureSpecification  featureModel;
 
 	public Sequence(Sequence q) {
 		sequence = new ArrayList<Segment>(q.getSegments());
@@ -48,24 +48,16 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	// Used to produce empty copies with the same model
-	public Sequence(FeatureModel modelParam) {
+	public Sequence(FeatureSpecification modelParam) {
 		sequence = new LinkedList<Segment>();
 		featureModel = modelParam;
 	}
 
-	// Visible for testing
-	Sequence(String word) {
-		this();
-		for (char c : word.toCharArray()) {
-			sequence.add(new Segment(new String(new char[]{c}), featureModel));
-		}
-	}
-
 	private Sequence() {
-		this(FeatureModel.EMPTY_MODEL);
+		this(FeatureSpecification.EMPTY);
 	}
 
-	private Sequence(Collection<Segment> segments, FeatureModel featureTable) {
+	private Sequence(Collection<Segment> segments, FeatureSpecification featureTable) {
 		sequence = new LinkedList<Segment>(segments);
 		featureModel = featureTable;
 	}
@@ -231,18 +223,18 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	public boolean matches(Sequence target) {
 		validateModelOrFail(target);
 		boolean matches = false;
-		if (featureModel == FeatureModel.EMPTY_MODEL) {
+		if (featureModel == FeatureSpecification.EMPTY) {
 			matches = equals(target);
 		} else {
-		int size = size();
-		if (size == target.size()) {
-			matches = true;
-			for (int i = 0; i < size && matches; i++) {
-				Segment a = get(i);
-				Segment b = target.get(i);
-				matches = a.matches(b);
+			int size = size();
+			if (size == target.size()) {
+				matches = true;
+				for (int i = 0; i < size && matches; i++) {
+					Segment a = get(i);
+					Segment b = target.get(i);
+					matches = a.matches(b);
+				}
 			}
-		}
 		}
 		return matches;
 	}
@@ -377,7 +369,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	@Override
-	public FeatureModel getModel() {
+	public FeatureSpecification getModel() {
 		return featureModel;
 	}
 
