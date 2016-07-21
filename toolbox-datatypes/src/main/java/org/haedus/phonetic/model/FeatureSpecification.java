@@ -19,7 +19,12 @@ import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,9 +36,9 @@ import java.util.regex.Pattern;
 /**
  * Samantha Fiona Morrigan McCabe Created: 7/2/2016
  */
-public class FeatureSpecification {
+public final class FeatureSpecification {
 
-	public static final FeatureSpecification EMPTY = new FeatureSpecification();
+	public static final FeatureSpecification EMPTY = new FeatureSpecification(0);
 
 	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
 	private static final String NAME   = "(\\w+)";
@@ -50,12 +55,39 @@ public class FeatureSpecification {
 	private final List<String> featureNames; 
 	private final List<Constraint> constraints;
 
-	private FeatureSpecification() {
-		size = 0;
+	public FeatureSpecification(int size) {
+		this.size = size;
+
 		aliases = new HashMap<String, FeatureArray<Double>>();
 		featureIndices = new HashMap<String, Integer>();
 		featureNames = new ArrayList<String>();
 		constraints = new ArrayList<Constraint>();
+	}
+
+	public static FeatureSpecification loadFromClassPath(String path)
+			throws IOException {
+		//get string contents
+
+		String data;
+
+		InputStream stream = FeatureSpecification.class
+				.getClassLoader()
+				.getResourceAsStream(path);
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+
+		StringBuilder sb = new StringBuilder();
+
+		reader.readLine();
+
+		int r = reader.read();
+		while (r >= 0) {
+			sb.append((char) r);
+			r = reader.read();
+		}
+		Loader loader = new Loader(sb.toString());
+
+		return loader.getSpecification();
 	}
 	
 	public FeatureSpecification(FeatureModelLoader loader) {
@@ -158,6 +190,141 @@ public class FeatureSpecification {
 		if (names.containsKey(label)) {
 			return names.get(label);
 		}
-		throw new ParseException("Invalid feature label \"" + label + "\" provided in \"" + features + '"');
+		throw new ParseException("Invalid feature label \"" + label
+		                         + "\" provided in \"" + features + '"');
+	}
+
+	private static class Loader {
+		private static final String FEATURES    = "FEATURES";
+		private static final String CONSTRAINTS = "CONSTRAINTS";
+		private static final String ALIASES     = "ALIASES";
+
+		private static final Pattern ZONE_PATTERN = Pattern.compile(
+				FEATURES + '|' +
+				CONSTRAINTS + '|' +
+				ALIASES
+		);
+
+		private static final Pattern COMMENT_PATTERN = Pattern.compile("\\s*%.*");
+
+		private final FeatureSpecification instance;
+
+		private final List<Type>       featureTypes;
+		private final List<Constraint> constraints;
+
+		private final Map<String, Integer> featureNames;
+		private final Map<String, Integer> featureAliases;
+
+		private Loader(Iterable<String> data) {
+			// parse the fields, create raw representations
+			// instantiate the specification object w size
+			// create correct internal objects with instance
+			// add objects back to instance
+
+			featureNames = new ArrayList<String>();
+			featureAliases = new ArrayList<String>();
+			aliases = new HashMap<String, FeatureArray<Double>>();
+
+			// refactor to method
+			Collection<String> featureZone    = new ArrayList<String>();
+			Collection<String> constraintZone = new ArrayList<String>();
+			Collection<String> aliasZone      = new ArrayList<String>();
+
+			String currentZone = "";
+			for (String string : data) {
+				String line = COMMENT_PATTERN.matcher(string)
+				                             .replaceAll("")
+				                             .trim();
+
+				Matcher zoneMatcher = ZONE_PATTERN.matcher(line);
+				if (zoneMatcher.find()) {
+					currentZone = zoneMatcher.group(0);
+				} else if (!line.isEmpty()) {
+					if (currentZone.equals(FEATURES)) {
+						featureZone.add(line.toLowerCase());
+					} else if (currentZone.equals(CONSTRAINTS)) {
+						constraintZone.add(line);
+					} else if (currentZone.equals(ALIASES)) {
+						aliasZone.add(line);
+					}
+				}
+			}
+
+			populateFeatures(featureZone);
+			populateAliases(aliasZone);
+			populateConstraints(constraintZone);
+
+			instance = new FeatureSpecification(featureNames.size());
+			
+		}
+
+		public FeatureSpecification getSpecification() {
+			return instance;
+		}
+
+		private void populateFeatures(Iterable<String> featureZone) {
+			int i = 0;
+			for (String entry : featureZone) {
+				Matcher matcher = FEATURES_PATTERN.matcher(entry);
+
+				if (matcher.matches()) {
+
+					String name  = matcher.group(1);
+					String alias = matcher.group(2);
+					// Ignore value range checks for now
+					String type  = matcher.group(3).replaceAll("\\(.*\\)","");
+					
+					try { // catch and rethrow if type is invalid\
+						featureTypes.add(Type.valueOf(type.toUpperCase()));
+					} catch (IllegalArgumentException e) {
+						throw new ParseException("Illegal feature type " + type
+								+" in definition: " + entry, e);
+					}
+					
+					featureNames.put(name, i);
+					featureAliases.put(alias, i);
+
+				} else {
+					LOG.error("Unrecognized command in FEATURE block: {}", entry);
+					throw new ParseException("Unrecognized command in FEATURE block"
+							+ ' ' + entry);
+				}
+				i++;
+			}
+			numberOfFeatures = i;
+		}
+
+		private void populateAliases(Collection<String> strings) {
+			Map<String, Integer> map = new HashMap<String, Integer>();
+			map.putAll(featureNames);
+			map.putAll(featureAliases);
+
+			for (String string : strings) {
+				String[] split = string.split("\\s*=\\s*", 2);
+
+				String alias = split[0].replaceAll("\\[|\\]", "");
+				String value = split[1];
+
+				aliases.put(alias, FeatureModel.getValueMap(value, numberOfFeatures, map, aliases));
+			}
+		}
+
+		private void populateConstraints(Iterable<String> constraintZone) {
+			Map<String, Integer> map = new HashMap<String, Integer>();
+			map.putAll(featureNames);
+			map.putAll(featureAliases);
+
+			for (String entry : constraintZone) {
+				String[] split = entry.split("\\s*>\\s*", 2);
+
+				String source = split[0];
+				String target = split[1];
+
+				FeatureArray<Double> sMap = FeatureModel.getValueMap(source, size, map, aliases);
+				FeatureArray<Double> tMap = FeatureModel.getValueMap(target, size, map, aliases);
+				constraints.add(new Constraint(entry, sMap, tMap));
+			}
+		}
+	
 	}
 }
