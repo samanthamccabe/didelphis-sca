@@ -17,9 +17,11 @@ import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
-import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -38,37 +39,35 @@ import java.util.regex.Pattern;
  */
 public final class FeatureSpecification {
 
+	private static final transient Logger LOG =
+			LoggerFactory.getLogger(FeatureSpecification.class);
+	
 	public static final FeatureSpecification EMPTY = new FeatureSpecification(0);
 
 	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
 	private static final String NAME   = "(\\w+)";
 	private static final String ASSIGN = "([=:><])";
 	
+	private static final Pattern FEATURES_PATTERN = Pattern.compile(
+			"(\\w+)\\s+(\\w*)\\s+(ternary|binary|numeric(\\(-?\\d,\\d\\))?)",
+			Pattern.CASE_INSENSITIVE
+	);
+
 	private static final Pattern VALUE_PATTERN   = Pattern.compile(VALUE + ASSIGN + NAME);
 	private static final Pattern BINARY_PATTERN  = Pattern.compile("(\\+|\\-)" + NAME);
 	private static final Pattern FEATURE_PATTERN = Pattern.compile("[,;]\\s*|\\s+");
 	private static final Pattern FANCY_PATTERN   = Pattern.compile("−");
 	
 	private final int size;
+	
+	private final List<String> featureNames;
+	private final List<FeatureType> featureTypes;
+	private final List<Constraint> constraints;
+	
 	private final Map<String, FeatureArray<Double>> aliases;
 	private final Map<String, Integer> featureIndices;
-	private final List<String> featureNames; 
-	private final List<Constraint> constraints;
 
-	public FeatureSpecification(int size) {
-		this.size = size;
-
-		aliases = new HashMap<String, FeatureArray<Double>>();
-		featureIndices = new HashMap<String, Integer>();
-		featureNames = new ArrayList<String>();
-		constraints = new ArrayList<Constraint>();
-	}
-
-	public static FeatureSpecification loadFromClassPath(String path)
-			throws IOException {
-		//get string contents
-
-		String data;
+	public static FeatureSpecification loadFromClassPath(String path) throws IOException {
 
 		InputStream stream = FeatureSpecification.class
 				.getClassLoader()
@@ -76,32 +75,65 @@ public final class FeatureSpecification {
 		BufferedReader reader =
 				new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 
-		StringBuilder sb = new StringBuilder();
-
-		reader.readLine();
-
-		int r = reader.read();
-		while (r >= 0) {
-			sb.append((char) r);
-			r = reader.read();
+		List<String> lines = new ArrayList<String>();
+		String line = reader.readLine();
+		while (line != null) {
+			lines.add(line);
+			line = reader.readLine();
 		}
-		Loader loader = new Loader(sb.toString());
+		return loadFromString(lines);
+	}
 
+	public static FeatureSpecification loadFromFile(String path) throws IOException {
+
+		BufferedReader reader = new BufferedReader(new FileReader(path));
+		
+		List<String> lines = new ArrayList<String>();
+		String line = reader.readLine();
+		while (line != null) {
+			lines.add(line);
+			line = reader.readLine();
+		}
+		return loadFromString(lines);
+	}
+	
+	public static FeatureSpecification loadFromString(List<String> data) {
+		Loader loader = new Loader(data);
 		return loader.getSpecification();
 	}
 	
-	public FeatureSpecification(FeatureModelLoader loader) {
-		size = loader.getNumberOfFeatures();
-		aliases = loader.getAliases();
-
-		featureIndices = new LinkedHashMap<String, Integer>();
-		featureIndices.putAll(loader.getFeatureNames());
-		featureIndices.putAll(loader.getFeatureAliases());
-
-		constraints = loader.getConstraints();
-		featureNames = new ArrayList<String>(loader.getFeatureNames().keySet());
+	public static FeatureSpecification loadFromString(String data) {
+		List<String> lines = new ArrayList<String>();
+		Collections.addAll(lines, data.split("\\r\\n?|\\n"));
+		return loadFromString(lines);
 	}
+	
+	private FeatureSpecification(int size) {
+		this.size = size;
 
+		featureNames = new ArrayList<String>();
+		featureTypes = new ArrayList<FeatureType>();
+		constraints = new ArrayList<Constraint>();
+		
+		aliases = new HashMap<String, FeatureArray<Double>>();
+		featureIndices = new HashMap<String, Integer>();
+	}
+	
+	private FeatureSpecification(int size,
+		List<String> featureNames,
+		List<FeatureType> featureTypes,
+		List<Constraint> constraints,
+		Map<String, FeatureArray<Double>> aliases,
+		Map<String, Integer> featureIndices
+	) {
+		this.size           = size;
+		this.featureNames   = featureNames;
+		this.featureTypes   = featureTypes;
+		this.constraints    = constraints;
+		this.aliases        = aliases;
+		this.featureIndices = featureIndices;
+	}
+	
 	@Override
 	public int hashCode() {
 		int code = size;
@@ -126,7 +158,7 @@ public final class FeatureSpecification {
 		return false;
 	}
 	
-	public int getSize() {
+	public int size() {
 		return size;
 	}
 	
@@ -142,25 +174,21 @@ public final class FeatureSpecification {
 		return Collections.unmodifiableList(constraints);
 	}
 
-	public Segment getSegmentFromFeatures(String string) {
-		FeatureArray<Double> map =
-				getValueMap(string, size, featureIndices, aliases);
-		return new Segment(string, map, this);
+	public List<FeatureType> getFeatureTypes() {
+		return Collections.unmodifiableList(featureTypes);
 	}
 
-	@NotNull
-	public SparseFeatureArray<Double> getValueMap(
-			String features,
-			int size,
-			Map<String, Integer> names,
-			Map<String, FeatureArray<Double>> aliases) {
+	public Segment getSegmentFromFeatures(String string) {
+		FeatureArray<Double> array = getFeatureArray(string);
+		return new Segment(string, array, this);
+	}
 
+	private FeatureArray<Double> getFeatureArray(String features) {
 		String string = FANCY_PATTERN
 				.matcher(features.substring(1, features.length() - 1))
 				.replaceAll(Matcher.quoteReplacement("-"));
-
-		SparseFeatureArray<Double> arr = new SparseFeatureArray<Double>(size);
-
+		
+		FeatureArray<Double> arr = new SparseFeatureArray<Double>(this);
 		for (String element : FEATURE_PATTERN.split(string)) {
 			Matcher valueMatcher  = VALUE_PATTERN.matcher(element);
 			Matcher binaryMatcher = BINARY_PATTERN.matcher(element);
@@ -171,12 +199,12 @@ public final class FeatureSpecification {
 				String featureName  = valueMatcher.group(3);
 				String assignment   = valueMatcher.group(2);
 				String featureValue = valueMatcher.group(1);
-				Integer value = retrieveIndex(featureName, features, names);
+				Integer value = retrieveIndex(featureName, features, featureIndices);
 				arr.set(value, Double.valueOf(featureValue));
 			} else if (binaryMatcher.matches()) {
 				String featureName = binaryMatcher.group(2);
 				String featureValue = binaryMatcher.group(1);
-				Integer value = retrieveIndex(featureName, features, names);
+				Integer value = retrieveIndex(featureName, features, featureIndices);
 				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
 			} else {
 				throw new ParseException("Unrecognized feature \"" + element
@@ -209,11 +237,16 @@ public final class FeatureSpecification {
 
 		private final FeatureSpecification instance;
 
-		private final List<Type>       featureTypes;
+		private final List<String> featureNames;
+		private final List<FeatureType> featureTypes;
 		private final List<Constraint> constraints;
+		
+		private final Map<String, Integer> featureIndices;
+		
+//		private final Map<String, Integer> featureNames;
+//		private final Map<String, Integer> featureAliases;
 
-		private final Map<String, Integer> featureNames;
-		private final Map<String, Integer> featureAliases;
+		private final Map<String, FeatureArray<Double>> aliases;
 
 		private Loader(Iterable<String> data) {
 			// parse the fields, create raw representations
@@ -222,7 +255,11 @@ public final class FeatureSpecification {
 			// add objects back to instance
 
 			featureNames = new ArrayList<String>();
-			featureAliases = new ArrayList<String>();
+			featureTypes = new ArrayList<FeatureType>();
+			constraints = new ArrayList<Constraint>();
+			
+			featureIndices = new HashMap<String, Integer>();
+			
 			aliases = new HashMap<String, FeatureArray<Double>>();
 
 			// refactor to method
@@ -249,13 +286,20 @@ public final class FeatureSpecification {
 					}
 				}
 			}
-
+			
 			populateFeatures(featureZone);
+			// Once the main feature definitions are parsed, it's possible
+			// to create the specification instance
+			instance = new FeatureSpecification(
+					featureNames.size(),
+					featureNames,
+					featureTypes,
+					constraints,
+					aliases,
+					featureIndices);
+			
 			populateAliases(aliasZone);
 			populateConstraints(constraintZone);
-
-			instance = new FeatureSpecification(featureNames.size());
-			
 		}
 
 		public FeatureSpecification getSpecification() {
@@ -268,21 +312,20 @@ public final class FeatureSpecification {
 				Matcher matcher = FEATURES_PATTERN.matcher(entry);
 
 				if (matcher.matches()) {
-
 					String name  = matcher.group(1);
 					String alias = matcher.group(2);
 					// Ignore value range checks for now
 					String type  = matcher.group(3).replaceAll("\\(.*\\)","");
 					
 					try { // catch and rethrow if type is invalid\
-						featureTypes.add(Type.valueOf(type.toUpperCase()));
+						featureTypes.add(FeatureType.valueOf(type.toUpperCase()));
 					} catch (IllegalArgumentException e) {
 						throw new ParseException("Illegal feature type " + type
 								+" in definition: " + entry, e);
 					}
-					
-					featureNames.put(name, i);
-					featureAliases.put(alias, i);
+					featureNames.add(name);
+					featureIndices.put(name, i);
+					featureIndices.put(alias, i);
 
 				} else {
 					LOG.error("Unrecognized command in FEATURE block: {}", entry);
@@ -291,40 +334,37 @@ public final class FeatureSpecification {
 				}
 				i++;
 			}
-			numberOfFeatures = i;
 		}
 
 		private void populateAliases(Collection<String> strings) {
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			map.putAll(featureNames);
-			map.putAll(featureAliases);
-
 			for (String string : strings) {
 				String[] split = string.split("\\s*=\\s*", 2);
 
 				String alias = split[0].replaceAll("\\[|\\]", "");
 				String value = split[1];
 
-				aliases.put(alias, FeatureModel.getValueMap(value, numberOfFeatures, map, aliases));
+				aliases.put(alias, instance.getFeatureArray(value));
 			}
 		}
 
 		private void populateConstraints(Iterable<String> constraintZone) {
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			map.putAll(featureNames);
-			map.putAll(featureAliases);
-
 			for (String entry : constraintZone) {
 				String[] split = entry.split("\\s*>\\s*", 2);
 
 				String source = split[0];
 				String target = split[1];
 
-				FeatureArray<Double> sMap = FeatureModel.getValueMap(source, size, map, aliases);
-				FeatureArray<Double> tMap = FeatureModel.getValueMap(target, size, map, aliases);
-				constraints.add(new Constraint(entry, sMap, tMap));
+				FeatureArray<Double> sMap = instance.getFeatureArray(source);
+				FeatureArray<Double> tMap = instance.getFeatureArray(target);
+				constraints.add(new Constraint(entry, sMap, tMap, instance));
 			}
 		}
-	
+	}
+
+	@Override
+	public String toString() {
+		return "FeatureSpecification{" +
+				"featureNames=" + featureNames +
+				'}';
 	}
 }

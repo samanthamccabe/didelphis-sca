@@ -17,7 +17,6 @@ package org.haedus.phonetic.model;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.haedus.enums.FormatterMode;
-import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
@@ -29,8 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,66 +46,52 @@ public class FeatureModelLoader {
 	private static final String MODIFIERS   = "MODIFIERS";
 	private static final String ZONE_STRING = SYMBOLS + '|' + MODIFIERS;
 
-	private static final String FEATURE_TYPES = "ternary|binary|numeric";
-	
-	private static final String FEATURES_STRING ="(\\w+)\\s+(\\w*)\\s+(" + 
-			FEATURE_TYPES + "(\\(-?\\d,\\d\\))?)";
-
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern ZONE_PATTERN     = Pattern.compile(ZONE_STRING);
-	private static final Pattern FEATURES_PATTERN = Pattern.compile(FEATURES_STRING, Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)");
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 	private static final Pattern SPEC_PATTERN   = Pattern.compile("SPECIFICATION:\\s\"([^\"])\"");
-
-	private int numberOfFeatures;
-
+	
 	private final String        sourcePath;
 	private final FormatterMode formatterMode;
 	
-//	private final List<Type>       featureTypes;
-//	private final List<Constraint> constraints;
+	private FeatureSpecification specification;
 	
-//	private final Map<String, Integer> featureNames;
-//	private final Map<String, Integer> featureAliases;
-
-	private final Map<String, FeatureArray<Double>> featureMap;
-	private final Map<String, FeatureArray<Double>> diacritics;
-//	private final Map<String, FeatureArray<Double>> aliases;
-	
-	private FeatureModelLoader(String path, FormatterMode modeParam) {
-		sourcePath = path;
-		formatterMode = modeParam;
-
-//		featureTypes   = new ArrayList<Type>();
-//		constraints    = new ArrayList<Constraint>();
-//		featureNames   = new LinkedHashMap<String, Integer>();
-//		featureAliases = new LinkedHashMap<String, Integer>();
-		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
-		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
-//		aliases        = new HashMap<String, FeatureArray<Double>>();
-	}
+	private Map<String, FeatureArray<Double>> featureMap;
+	private Map<String, FeatureArray<Double>> diacritics;
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
-		this("file:" + file.getAbsolutePath(), modeParam);
+		sourcePath = file.getAbsolutePath();
+		formatterMode = modeParam;
+		featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
 		try {
-			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"));
+			readModelFromFileNewFormat(FileUtils.readLines(file, "UTF-8"), false);
 		} catch (IOException e) {
 			LOG.error("Failed to read from file {}", file, e);
 		}
 	}
 
 	public FeatureModelLoader(String path, Iterable<String> file, FormatterMode modeParam) {
-		this(path, modeParam);
-		readModelFromFileNewFormat(file);
+		sourcePath = path;
+		formatterMode = modeParam;
+		featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
+		try {
+			readModelFromFileNewFormat(file, false);
+		} catch (IOException e) {
+			LOG.error("Problem while reading from path {}", path, e);
+		}
 	}
 
 	public FeatureModelLoader(InputStream stream, FormatterMode modeParam) {
-		this(stream.toString(), modeParam);
-
+		sourcePath = stream.toString();
+		formatterMode = modeParam;
+		featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
+		diacritics = new LinkedHashMap<String, FeatureArray<Double>>();
 		try {
-			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"));
+			readModelFromFileNewFormat(IOUtils.readLines(stream, "UTF-8"), true);
 		} catch (IOException e) {
 			LOG.error("Problem while reading from stream {}", stream, e);
 		}
@@ -129,12 +112,18 @@ public class FeatureModelLoader {
 		return diacritics;
 	}
 
-	private void readModelFromFileNewFormat(Iterable<String> file) {
-		String currentZone = "";
-		// TODO: capture everything else
+	public FeatureSpecification getSpecification() {
+		return specification;
+	}
 
-		Collection<String> symbolZone     = new ArrayList<String>();
-		Collection<String> modifierZone   = new ArrayList<String>();
+	private void readModelFromFileNewFormat(Iterable<String> file, boolean fromClassPath) throws IOException {
+		String currentZone = "";
+
+		specification = null;
+		
+		List<String> specZone = new ArrayList<String>();
+		List<String> symbolZone = new ArrayList<String>();
+		List<String> modifierZone = new ArrayList<String>();
 
 		/* Probably what we need to do here is use the zones to capture every
 		 * line up to the next zone or EOF. Put these in lists, one for each
@@ -146,18 +135,26 @@ public class FeatureModelLoader {
 			String line = COMMENT_PATTERN.matcher(string).replaceAll("");
 			Matcher specMatcher = SPEC_PATTERN.matcher(line);
 			Matcher zoneMatcher = ZONE_PATTERN.matcher(line);
-			if (currentZone.isEmpty()) {
-				// capture and pass to spec loader
-			} else if (zoneMatcher.find()) {
+			if (zoneMatcher.find()) {
 				currentZone = zoneMatcher.group(0);
 			} else if (specMatcher.find()) {
-				// TODO: call spec loader
 				String path = specMatcher.group(1);
-
-				FeatureSpecification.
-
+				if (fromClassPath) {
+					specification = FeatureSpecification.loadFromClassPath(path);
+				} else {
+					String newPath;
+					if (path.startsWith("(\\w:)?/")) {
+						newPath = path;
+					} else {
+						String parent = new File(sourcePath).getCanonicalFile().getParent();
+						newPath = parent + '/' + path;
+					}
+					specification = FeatureSpecification.loadFromFile(newPath);
+				}
 			} else if (!line.isEmpty() && !line.trim().isEmpty()) {
-				if (currentZone.equals(SYMBOLS)) {
+				if (currentZone.isEmpty()) {
+					specZone.add(line);
+				} else if (currentZone.equals(SYMBOLS)) {
 					symbolZone.add(line);
 				} else if (currentZone.equals(MODIFIERS)) {
 					modifierZone.add(line);
@@ -166,6 +163,11 @@ public class FeatureModelLoader {
 				// ignore and log (at the end?)
 			}
 		}
+		
+		if (specification == null) {
+			specification = FeatureSpecification.loadFromString(specZone);
+		}
+		
 		// Now parse each of the lists
 		populateSymbols(symbolZone);
 		populateModifiers(modifierZone);
@@ -178,10 +180,8 @@ public class FeatureModelLoader {
 			if (matcher.matches()) {
 				String symbol = matcher.group(1);
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
-
-				int size = numberOfFeatures;
-
-				FeatureArray<Double> array = new SparseFeatureArray<Double>(size);
+				
+				FeatureArray<Double> array = new SparseFeatureArray<Double>(specification);
 				int i = 0;
 				for (String value : values) {
 					if (!value.isEmpty()) {
@@ -204,11 +204,12 @@ public class FeatureModelLoader {
 				String symbol = formatterMode.normalize(matcher.group(1));
 				String[] values = TAB_PATTERN.split(matcher.group(2), -1);
 
-				int size = numberOfFeatures;
-
-				FeatureArray<Double> features = new StandardFeatureArray<Double>(size);
-				for (int i = 0; i < featureTypes.size();i++) {
-					Type type = featureTypes.get(i);
+				int size = specification.size();
+				
+				List<FeatureType> featureTypes = specification.getFeatureTypes();
+				FeatureArray<Double> features = new StandardFeatureArray<Double>(specification);
+				for (int i = 0; i < size; i++) {
+					FeatureType type = featureTypes.get(i);
 					String value = values[i];
 					if (!type.matches(value)) {
 						LOG.warn("Value '{}' at position {} is not valid for {} in array: {}",
@@ -224,10 +225,6 @@ public class FeatureModelLoader {
 		}
 	}
 
-	public int getNumberOfFeatures() {
-		return featureNames.size();
-	}
-
 	private void checkFeatureCollisions(String symbol, FeatureArray<Double> features) {
 		if (featureMap.containsValue(features)) {
 			for (Map.Entry<String, FeatureArray<Double>> e : featureMap.entrySet()) {
@@ -241,7 +238,7 @@ public class FeatureModelLoader {
 
 	private List<Double> getUnderspecifiedArray() {
 		List<Double> list = new ArrayList<Double>();
-		int size = featureNames.size();
+		int size = specification.size();
 		for (int i = 0; i < size; i++) {
 			list.add(FeatureModel.MASKING_VALUE);
 		}
@@ -260,21 +257,5 @@ public class FeatureModelLoader {
 			featureValue = Double.valueOf(cell);
 		}
 		return featureValue;
-	}
-	
-	private enum Type {
-		BINARY("(\\+|-|−)?"),
-		TERNARY("(\\+|-|−|0)?"),
-		NUMERIC("(-?\\d+)?");
-
-		private Pattern pattern;
-
-		Type(String value) {
-			pattern = Pattern.compile(value);
-		}
-		
-		boolean matches(CharSequence value) {
-			return pattern.matcher(value).matches();
-		}
 	}
 }

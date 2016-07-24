@@ -20,12 +20,10 @@
 package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.exceptions.ParseException;
+import org.haedus.phonetic.ModelBearer;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.features.FeatureArray;
-import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,19 +32,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-@Deprecated
-public class FeatureModel {
+public class FeatureModel implements ModelBearer {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
@@ -59,7 +53,7 @@ public class FeatureModel {
 	private final FeatureSpecification specification;
 	
 	private final Map<String, FeatureArray<Double>> featureMap;
-	private final Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> modifiers;
 
 	private final List<Double> blankArray;
 
@@ -75,7 +69,7 @@ public class FeatureModel {
 		specification = FeatureSpecification.EMPTY;
 
 		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
-		diacritics     = new LinkedHashMap<String, FeatureArray<Double>>();
+		modifiers = new LinkedHashMap<String, FeatureArray<Double>>();
 		blankArray     = new ArrayList<Double>();
 		formatterMode  = FormatterMode.NONE;
 	}
@@ -89,56 +83,15 @@ public class FeatureModel {
 	}
 
 	public FeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
-//		numberOfFeatures = loader.getNumberOfFeatures();
-
-//		featureIndices = new LinkedHashMap<String, Integer>();
-//		featureIndices.putAll(loader.getFeatureNames());
-//		featureIndices.putAll(loader.getFeatureAliases());
-
-		specification = new FeatureSpecification(loader);
-		
-		featureMap     = loader.getFeatureMap();
-		diacritics     = loader.getDiacritics();
-//		aliases        = loader.getAliases();
-//		constraints    = loader.getConstraints();
-//		featureNames   = new ArrayList<String>(loader.getFeatureNames().keySet());
-
+		featureMap    = loader.getFeatureMap();
+		modifiers = loader.getDiacritics();
+		specification = loader.getSpecification();
 		formatterMode = modeParam;
 
 		blankArray = new ArrayList<Double>();
-		for (int i = 0; i < specification.getSize(); i++) {
+		for (int i = 0; i < specification.size(); i++) {
 			blankArray.add(UNDEFINED_VALUE);
 		}
-	}
-
-//	public static String formatFeatures(FeatureArray<Double> features) {
-//		StringBuilder sb = new StringBuilder(5 * features.size());
-//		for (Double feature : features) {
-//
-//			String value = feature.toString().replaceAll("\\.0", "");
-//
-//			if (!value.startsWith("-")) {
-//				sb.append(' ');
-//			}
-//			
-//			sb.append(value);
-//			sb.append('\t');
-//		}
-//		return sb.toString();
-//	}
-
-	@Deprecated
-	public Segment getSegmentFromFeatures(String string) {
-//		FeatureArray<Double> map =
-//				getValueMap(string, numberOfFeatures, featureIndices, aliases);
-//		return new Segment(string, map, this);
-		return specification.getSegmentFromFeatures(string);
-	}
-
-	@Deprecated
-	public List<Constraint> getConstraints() {
-//		return Collections.unmodifiableList(constraints);
-		return specification.getConstraints();
 	}
 
 	// requires mapping
@@ -161,7 +114,7 @@ public class FeatureModel {
 		StringBuilder sb = new StringBuilder();
 		if (minimum > 0.0) {
 			Collection collection = getBestDiacritic(featureArray, bestFeatures);
-			for (String diacritic : diacritics.keySet()) {
+			for (String diacritic : modifiers.keySet()) {
 				if (collection.contains(diacritic)) {
 					sb.append(diacritic);
 				}
@@ -220,7 +173,7 @@ public class FeatureModel {
 		if (getClass() != obj.getClass()) { return false; }
 
 		FeatureModel other = (FeatureModel) obj;
-		boolean diacriticsEquals = diacritics.equals(other.diacritics);
+		boolean diacriticsEquals = modifiers.equals(other.modifiers);
 		boolean featureEquals    = featureMap.equals(other.getFeatureMap());
 		boolean specEquals = specification.equals(other.specification);
 		return specEquals && featureEquals && diacriticsEquals;
@@ -230,43 +183,37 @@ public class FeatureModel {
 		return featureMap.containsKey(key);
 	}
 
-	@Deprecated
-	public int getNumberOfFeatures() {
-//		return numberOfFeatures;
-		return specification.getSize();
-	}
-
 	public Map<String, FeatureArray<Double>> getFeatureMap() {
 		return Collections.unmodifiableMap(featureMap);
+	}
+	
+	public Map<String, FeatureArray<Double>> getModifiers() {
+		return Collections.unmodifiableMap(modifiers);
 	}
 
 	public FeatureArray<Double> getValue(String key) {
 		if (featureMap.containsKey(key)) {
 			return new StandardFeatureArray<Double>(featureMap.get(key));
 		} else {
-			return new StandardFeatureArray<Double>(blankArray);
+			return new StandardFeatureArray<Double>(specification);
 		}
 	}
-
-	@Deprecated
-	public List<String> getFeatureNames() {
-//		return Collections.unmodifiableList(featureNames);
-		return null;
-	}
-
+	
 	public List<Double> getBlankArray() {
 		return blankArray;
 	}
 
 	// requires mapping
-	// This should be here because how the segment is constructed is a function of what kind of model this is
+	// This should be here because how the segment is constructed is a function
+	// of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
-		FeatureArray<Double> featureArray = getValue(head); // May produce a null value if the head is not found for some reason
+		// May produce a null value if the head is not found for some reason
+		FeatureArray<Double> featureArray = getValue(head);
 		StringBuilder sb = new StringBuilder(head);
 		for (String modifier : modifiers) {
 			sb.append(modifier);
-			if (diacritics.containsKey(modifier)) {
-				FeatureArray<Double> doubles = diacritics.get(modifier);
+			if (this.modifiers.containsKey(modifier)) {
+				FeatureArray<Double> doubles = this.modifiers.get(modifier);
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// this will need to change if we support value modification (up or down)
@@ -279,9 +226,14 @@ public class FeatureModel {
 		return new Segment(sb.toString(), featureArray, specification);
 	}
 
+	@Override
+	public FeatureSpecification getSpecification() {
+		return specification;
+	}
+
 	private static FeatureArray<Double> getDifferenceArray(FeatureArray<Double> left, FeatureArray<Double> right) {
 		List<Double> list = new ArrayList<Double>();
-		if (left.size() == right.size()) {
+		if (left.getSpecification().equals(right.getSpecification())) {
 			for (int i = 0; i < left.size(); i++) {
 				Double l = left.get(i);
 				Double r = right.get(i);
@@ -290,7 +242,7 @@ public class FeatureModel {
 		} else {
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
 		}
-		return new StandardFeatureArray<Double>(list);
+		return new StandardFeatureArray<Double>(list, left.getSpecification());
 	}
 
 	private static double getDifferenceValue(FeatureArray<Double> left, FeatureArray<Double> right) {
@@ -323,17 +275,17 @@ public class FeatureModel {
 			FeatureArray<Double> bestFeatures,
 			double lastMinimum) {
 
-		int size = getNumberOfFeatures();
+		int size = specification.size();
 
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-		FeatureArray<Double> best = new StandardFeatureArray<Double>(size);
+		FeatureArray<Double> best = new StandardFeatureArray<Double>(specification);
 
 		Collection<String> diacriticList = new ArrayList<String>();
 
-		for (Map.Entry<String, FeatureArray<Double>> entry : diacritics.entrySet()) {
+		for (Map.Entry<String, FeatureArray<Double>> entry : modifiers.entrySet()) {
 			FeatureArray<Double> diacriticFeatures = entry.getValue();
-			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(size);
+			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(specification);
 				for (int i = 0; i < size; i++) {
 					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);

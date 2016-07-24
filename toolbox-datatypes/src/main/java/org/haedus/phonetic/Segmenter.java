@@ -23,6 +23,7 @@ import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.machines.Expression;
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +35,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Segmenter provides functionality to split strings into an an array where each element
- * represents a series of characters grouped according to their functional value as diacritical
- * marks or combining marks.
+ * Segmenter provides functionality to split strings into an an array where
+ * each element represents a series of characters grouped according to their
+ * functional value as diacritical marks or combining marks.
  *
  * @author Samantha Fiona Morrigan McCabe
  */
@@ -46,13 +47,13 @@ public final class Segmenter {
 
 	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
-	public static final int BINDER_START      = 860;
-	public static final int BINDER_END        = 866;
-	public static final int SUPERSCRIPT_ZERO  = 8304;
-	public static final int SUBSCRIPT_SMALL_T = 8348;
-	public static final int SUPERSCRIPT_TWO   = 178;
-	public static final int SUPERSCRIPT_THREE = 179;
-	public static final int SUPERSCRIPT_ONE   = 185;
+	private static final int BINDER_START      = 0x035C;
+	private static final int BINDER_END        = 0x0362;
+	private static final int SUPERSCRIPT_ZERO  = 0x2070;
+	private static final int SUBSCRIPT_SMALL_T = 0x209C;
+	private static final int SUPERSCRIPT_TWO   = 0x00B2;
+	private static final int SUPERSCRIPT_THREE = 0x00B3;
+	private static final int SUPERSCRIPT_ONE   = 0x00B9;
 
 	// Prevent the class from being instantiated
 	private Segmenter() {
@@ -103,6 +104,7 @@ public final class Segmenter {
 	public static Segment getSegment(String string, FeatureModel model, Collection<String> reservedStrings, FormatterMode formatterMode) {
 		Collection<String> keys = getKeys(model, reservedStrings);
 		String normalString = formatterMode.normalize(string);
+		FeatureSpecification specification = model.getSpecification();
 		List<Symbol> segmentedSymbol = getCompositeSymbols(normalString, keys, formatterMode);
 		if (segmentedSymbol.size() >= 1) {
 			Symbol symbol = segmentedSymbol.get(0);
@@ -111,9 +113,10 @@ public final class Segmenter {
 
 			if (head.startsWith("[")) {
 				if (tail.isEmpty()) {
-					return model.getSegmentFromFeatures(head);
+					return specification.getSegmentFromFeatures(head);
 				} else {
-					throw new ParseException("Attempting to attach diacritics " + tail + " to a feature definition: " + head);
+					throw new ParseException("Attempting to attach diacritics "
+							+ tail + " to a feature definition: " + head);
 				}
 			} else {
 				return model.getSegment(head, tail);
@@ -141,14 +144,15 @@ public final class Segmenter {
 		Collection<String> keys = getKeys(model, reservedStrings);
 		String normalString = formatterMode.normalize(word);
 		List<Symbol> list = getCompositeSymbols(normalString, keys, formatterMode);
-		Sequence sequence = new Sequence(model);
+		FeatureSpecification specification = model.getSpecification();
+		Sequence sequence = new Sequence(specification);
 		for (Symbol item : list) {
 			String head = item.getHead();
 			List<String> tail = item.getTail();
 
 			Segment segment;
 			if (head.startsWith("[") && !keys.contains(head) && model != FeatureModel.EMPTY_MODEL) {
-				segment = model.getSegmentFromFeatures(head);
+				segment = specification.getSegmentFromFeatures(head);
 			} else {
 				segment = model.getSegment(head, tail);
 			}
@@ -217,13 +221,17 @@ public final class Segmenter {
 		int length = word.length();
 		for (int i = 0; i < length; ) {
 
-			String substring = word.substring(i);       // Get the word from current position on
-			String key = getBestMatch(substring, keys); // Find the longest string in keys which he substring starts with
+			// Get the word from current position on
+			String substring = word.substring(i);
+			// Find the longest string in keys which he substring starts with
+			String key = getBestMatch(substring, keys);
 			if (symbol.isEmpty()) {
 				// Assume that the first symbol must be a base-character
-				// This doesn't universally word (pre-nasalized, pre-aspirated), but we don't support this in our model yet
+				// This doesn't universally word (pre-nasalized, pre-aspirated),
+				// but we don't support this in our model yet
 				if (key.isEmpty()) {
-					// No special error handling if word starts with diacritic, but may be desirable
+					// No special error handling if word starts with diacritic,
+					// but may be desirable
 					symbol.appendHead(word.charAt(i));
 				} else {
 					symbol.appendHead(key);

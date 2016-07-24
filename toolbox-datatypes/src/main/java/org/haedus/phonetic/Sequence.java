@@ -35,22 +35,22 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
 	private final List<Segment> sequence;
-	private final FeatureSpecification  featureModel;
+	private final FeatureSpecification specification;
 
 	public Sequence(Sequence q) {
 		sequence = new ArrayList<Segment>(q.getSegments());
-		featureModel = q.getModel();
+		specification = q.getSpecification();
 	}
 
 	public Sequence(Segment g) {
-		this(g.getModel());
+		this(g.getSpecification());
 		sequence.add(g);
 	}
 
 	// Used to produce empty copies with the same model
 	public Sequence(FeatureSpecification modelParam) {
 		sequence = new LinkedList<Segment>();
-		featureModel = modelParam;
+		specification = modelParam;
 	}
 
 	private Sequence() {
@@ -59,7 +59,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 
 	private Sequence(Collection<Segment> segments, FeatureSpecification featureTable) {
 		sequence = new LinkedList<Segment>(segments);
-		featureModel = featureTable;
+		specification = featureTable;
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	 * @return
 	 */
 	public Sequence getSubsequence(int i, int k) {
-		return new Sequence(sequence.subList(i, k), featureModel);
+		return new Sequence(sequence.subList(i, k), specification);
 	}
 
 	public int indexOf(Segment target) {
@@ -201,7 +201,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	public Sequence remove(int start, int end) {
-		Sequence q = new Sequence(featureModel);
+		Sequence q = new Sequence(specification);
 		for (int i = 0; i < end - start; i++) {
 			q.add(remove(start));
 		}
@@ -223,7 +223,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	public boolean matches(Sequence target) {
 		validateModelOrFail(target);
 		boolean matches = false;
-		if (featureModel == FeatureSpecification.EMPTY) {
+		if (specification == FeatureSpecification.EMPTY) {
 			matches = equals(target);
 		} else {
 			int size = size();
@@ -307,7 +307,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	public int hashCode() {
 		int hash = 23;
 		hash *= sequence.hashCode();
-		hash *= featureModel.hashCode();
+		hash *= specification.hashCode();
 		return hash;
 	}
 
@@ -316,7 +316,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 		if (obj == null) { return false; }
 		if (obj.getClass() != getClass()) { return false; }
 		Sequence object = (Sequence) obj;
-		return featureModel.equals(object.featureModel) && sequence.equals(object.sequence);
+		return specification.equals(object.specification) && sequence.equals(object.sequence);
 	}
 
 	@Override
@@ -339,7 +339,7 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	public Sequence getReverseSequence() {
-		Sequence reversed = new Sequence(featureModel);
+		Sequence reversed = new Sequence(specification);
 		for (Segment g : sequence) {
 			reversed.addFirst(g);
 		}
@@ -369,8 +369,8 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	@Override
-	public FeatureSpecification getModel() {
-		return featureModel;
+	public FeatureSpecification getSpecification() {
+		return specification;
 	}
 
 	@Override
@@ -399,18 +399,18 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 	}
 
 	private void validateModelOrWarn(ModelBearer that) {
-		if (!featureModel.equals(that.getModel())) {
+		if (!specification.equals(that.getSpecification())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
-				that.getClass(), this, that, featureModel, that.getModel());
+				that.getClass(), this, that, specification, that.getSpecification());
 		}
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		if (!featureModel.equals(that.getModel())) {
+		if (!specification.equals(that.getSpecification())) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +
-					'\t' + this + '\t' + featureModel + '\n' +
-					'\t' + that + '\t' + that.getModel()
+					'\t' + this + '\t' + specification + '\n' +
+					'\t' + that + '\t' + that.getSpecification()
 			);
 		}
 	}

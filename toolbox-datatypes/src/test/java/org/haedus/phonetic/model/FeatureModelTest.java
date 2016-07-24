@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -62,55 +63,56 @@ public class FeatureModelTest extends ModelTestBase {
 	@Test
 	public void testLoad01() {
 		// Ensure the MODEL loads correctly.
-		assertTrue(MODEL.getNumberOfFeatures() > 0);
+		assertFalse(MODEL.getFeatureMap().isEmpty());
+		assertFalse(MODEL.getModifiers().isEmpty());
 	}
 
 	@Test
 	public void testLoad_AT_Hybrid() {
-		// Ensure the MODEL loads correctly.
 		FeatureModel model = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
-		assertTrue(model.getNumberOfFeatures() > 0);
+		assertFalse(model.getFeatureMap().isEmpty());
+		assertFalse(model.getModifiers().isEmpty());
 	}
 	
 	@Test
 	public void testConstructor01() {
 		Segment received = Segmenter.getSegment("g", MODEL, FormatterMode.INTELLIGENT);
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES);
-		Segment expected = new Segment("g", array, MODEL);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES, MODEL.getSpecification());
+		Segment expected = new Segment("g", array,  MODEL.getSpecification());
 		assertEquals(expected, received);
 	}
 
 	@Test
 	public void testGetStringFromFeatures01()  {
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(G_FEATURES, MODEL.getSpecification());
 		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("g", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures02()  {
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(GH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(GH_FEATURES, MODEL.getSpecification());
 		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("gʱ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures03()  {
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(GJ_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(GJ_FEATURES, MODEL.getSpecification());
 		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("gʲ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures04()  {
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(KWH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(KWH_FEATURES, MODEL.getSpecification());
 		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("kʷʰ", bestSymbol);
 	}
 
 	@Test
 	public void testGetStringFromFeatures05()  {
-		FeatureArray<Double> array = new StandardFeatureArray<Double>(KKWH_FEATURES);
+		FeatureArray<Double> array = new StandardFeatureArray<Double>(KKWH_FEATURES, MODEL.getSpecification());
 		String bestSymbol = MODEL.getBestSymbol(array);
 		assertEquals("kːʷʰ", bestSymbol);
 	}

@@ -30,11 +30,12 @@ import static org.junit.Assert.assertFalse;
 public class FeatureModelSelectorTest extends ModelTestBase {
 
 	private static final FeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
+	private static final FeatureSpecification SPEC = MODEL.getSpecification();
 	
 	@Test
 	public void testConsonantal() {
 		String selector = "[+consonantal]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
+		Segment segment = SPEC.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
@@ -45,7 +46,7 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	@Test
 	public void testNonConsonantal() {
 		String selector = "[-consonantal]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
+		Segment segment = SPEC.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
@@ -56,7 +57,7 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	@Test
 	public void testObstruent() {
 		String selector = "[-sonorant]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
+		Segment segment = SPEC.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
@@ -67,8 +68,8 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	@Test
 	public void testObstruentEquivalence() {
 
-		Segment segment1 = MODEL.getSegmentFromFeatures("[-sonorant]");
-		Segment segment2 = MODEL.getSegmentFromFeatures("[+consonantal; -sonorant]");
+		Segment segment1 = SPEC.getSegmentFromFeatures("[-sonorant]");
+		Segment segment2 = SPEC.getSegmentFromFeatures("[+consonantal; -sonorant]");
 
 		Collection<Segment> segments1 = MODEL.getMatchingSegments(segment1);
 		Collection<Segment> segments2 = MODEL.getMatchingSegments(segment2);
@@ -79,14 +80,12 @@ public class FeatureModelSelectorTest extends ModelTestBase {
 	@Test
 	public void testNasal() {
 		String selector = "[+nasal]";
-		Segment segment = MODEL.getSegmentFromFeatures(selector);
+		Segment segment = SPEC.getSegmentFromFeatures(selector);
 
 		Collection<Segment> segments = MODEL.getMatchingSegments(segment);
 
 		assertFalse(segments.isEmpty());
 		assertEquals(8, segments.size());
 	}
-
-
-
+	
 }

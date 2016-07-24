@@ -37,9 +37,10 @@ public class SegmentTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(SequenceTest.class);
 
-	private static final SequenceFactory FACTORY          = loadArticulatorTheoryModel();
-	private static final Pattern         INFINITY_PATTERN = Pattern.compile("(-|\\+)?Infinity");
-	private static final Pattern         DECIMAL_PATTERN  = Pattern.compile("([^\\-])(\\d\\.\\d)");
+	private static final SequenceFactory FACTORY = loadArticulatorTheoryModel();
+	
+	private static final Pattern INFINITY_PATTERN = Pattern.compile("(-|\\+)?Infinity");
+	private static final Pattern DECIMAL_PATTERN  = Pattern.compile("([^\\-])(\\d\\.\\d)");
 
 	private static SequenceFactory loadArticulatorTheoryModel() {
 		InputStream stream = SegmentTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
@@ -54,7 +55,8 @@ public class SegmentTest {
 		FeatureModel model = FACTORY.getFeatureModel();
 
 		List<Double> array = new ArrayList<Double>();
-		for (int i = 0; i < model.getNumberOfFeatures(); i++) {
+		int size = model.getSpecification().size();
+		for (int i = 0; i < size; i++) {
 			array.add(FeatureModel.MASKING_VALUE);
 		}
 		

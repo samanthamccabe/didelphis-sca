@@ -15,6 +15,7 @@
 package org.haedus.phonetic.features;
 
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,25 +28,31 @@ import java.util.List;
 public final class StandardFeatureArray<T extends Number & Comparable<T>>
 		implements FeatureArray<T> {
 	
+	private final FeatureSpecification specification;
 	private final List<T> features;
 
-	public StandardFeatureArray(int size) {
+	public StandardFeatureArray(FeatureSpecification specification) {
+		this.specification = specification;
+		int size = specification.size();
 		features = new ArrayList<T>(size);
 		for (int i = 0; i < size; i++) {
 			features.add(null);
 		}
 	}
 
-	public StandardFeatureArray(List<T> list) {
+	public StandardFeatureArray(List<T> list, FeatureSpecification specification) {
+		this.specification = specification;
 		features = new ArrayList<T>(list);
 	}
 	
 	public StandardFeatureArray(StandardFeatureArray<T> array) {
+		specification = array.getSpecification();
 		features = new ArrayList<T>(array.features);
 	}
 
 	public StandardFeatureArray(FeatureArray<T> array) {
-		int size = array.size();
+		specification = array.getSpecification();
+		int size = specification.size();
 		features = new ArrayList<T>(size);
 		for (int i = 0; i < size; i++) {
 			features.add(array.get(i));
@@ -163,5 +170,10 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 	@Override
 	public Iterator<T> iterator() {
 		return features.iterator();
+	}
+
+	@Override
+	public FeatureSpecification getSpecification() {
+		return specification;
 	}
 }

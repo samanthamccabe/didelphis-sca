@@ -19,8 +19,10 @@ package org.haedus.phonetic;
 import org.haedus.enums.FormatterMode;
 import org.haedus.machines.Expression;
 import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,14 +77,15 @@ public class SequenceFactory {
 		reservedStrings = reserved;
 		formatterMode   = mode;
 
-//		List<Double> featureArray = Collections.unmodifiableList(featureModel.getBlankArray());
-		FeatureArray<Double> featureArray = new StandardFeatureArray<Double>(featureModel.getBlankArray());
+		FeatureSpecification specification = featureModel.getSpecification();
+		FeatureArray<Double> sparseArray = new SparseFeatureArray<Double>(specification);
+		FeatureArray<Double> standardArray = new StandardFeatureArray<Double>(specification);
 
-		dotSegment    = new Segment(".", featureArray, featureModel);
+		dotSegment = new Segment(".", sparseArray, specification);
 		if (featureModel.containsKey("#")) {
 			borderSegment = featureModel.getSegment("#", new ArrayList<String>());
 		} else {
-			borderSegment = new Segment("#", featureArray, featureModel);
+			borderSegment = new Segment("#", standardArray, specification);
 		}
 
 		dotSequence    = new Sequence(dotSegment);
@@ -161,11 +164,11 @@ public class SequenceFactory {
 
 	public Sequence getSequence(String word) {
 		if (word.equals("#")) {
-			Sequence sequence = new Sequence(featureModel);
+			Sequence sequence = new Sequence(featureModel.getSpecification());
 			sequence.add(borderSegment);
 			return sequence;
 		} else if (word.equals(".")) {
-			Sequence sequence = new Sequence(featureModel);
+			Sequence sequence = new Sequence(featureModel.getSpecification());
 			sequence.add(dotSegment);
 			return sequence;
 		} else {

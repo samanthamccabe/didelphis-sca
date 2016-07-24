@@ -17,44 +17,24 @@
 
 package org.haedus.phonetic.model;
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.regex.Pattern;
 
 /**
- * Samantha Fiona Morrigan McCabe Created: 7/4/2016
+ * Samantha Fiona Morrigan McCabe
+ * Created: 7/21/2016
  */
-public class FeatureSpecificationTest {
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(
-			FeatureSpecificationTest.class);
-	
-	private static final FeatureSpecification MODEL = load();
-	
-	private static FeatureSpecification load() {
-		String path = "AT_hybrid.spec";
-		try {
-			return FeatureSpecification.loadFromClassPath(path);
-		} catch (IOException e) {
-			LOGGER.error("Failed to load {}", path);
-		}
-		return null;
+public enum FeatureType {
+	BINARY("(\\+|-|−)?"),
+	TERNARY("(\\+|-|−|0)?"),
+	NUMERIC("(-?\\d+)?");
+
+	private final Pattern pattern;
+
+	FeatureType(String value) {
+		pattern = Pattern.compile(value);
 	}
-	
-	@Test
-	public void test() {
-		List<Constraint> constraints = MODEL.getConstraints();
-		
-		assertFalse("Constraints should not empty", constraints.isEmpty());
+
+	boolean matches(CharSequence value) {
+		return pattern.matcher(value).matches();
 	}
 }

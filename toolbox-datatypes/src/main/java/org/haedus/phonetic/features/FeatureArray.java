@@ -14,12 +14,14 @@
 
 package org.haedus.phonetic.features;
 
+import org.haedus.phonetic.ModelBearer;
+
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 3/26/2016
  */
 public interface FeatureArray<T extends Number & Comparable<T>>
-		extends Comparable<FeatureArray<T>>, Iterable<T> {
+		extends Comparable<FeatureArray<T>>, Iterable<T>, ModelBearer {
 
 	/**
 	 * Returns the number of elements in this list.
@@ -28,7 +30,7 @@ public interface FeatureArray<T extends Number & Comparable<T>>
 	int size();
 
 	/**
-	 * Replaces the element at the specified position in this list with the specified element.
+	 * Replaces the element at the specified position in this list withthe specified element.
 	 * @param index index of the element to replace
 	 * @param value element to be stored at the specified position
 	 * @throws IndexOutOfBoundsException - if the index is out of range (index < 0 || index >= size())

@@ -28,11 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -41,41 +36,41 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
-	private final FeatureSpecification model;
+	private final FeatureSpecification specification;
 	private final String       symbol;
 	private final FeatureArray<Double> features;
 
 	// Copy-constructor
 	public Segment(Segment segment) {
 		symbol = segment.symbol;
-		model = segment.model;
+		specification = segment.specification;
 		features = segment.features;
 	}
 
 	public Segment(String s, FeatureArray<Double> featureArray,
 	               FeatureSpecification modelParam) {
 		symbol = s;
-		model = modelParam;
+		specification = modelParam;
 		features = new StandardFeatureArray<Double>(featureArray);
 	}
 
 	// Used to create the empty segment
 	private Segment(String string) {
 		symbol = string;
-		model = FeatureSpecification.EMPTY;
-		features = new StandardFeatureArray<Double>(0);
+		specification = FeatureSpecification.EMPTY;
+		features = new StandardFeatureArray<Double>(FeatureSpecification.EMPTY);
 	}
 
 	/**
-	 * Combines the two segments, applying all fully specified features from the other segement onto this one
+	 * Combines the two segments, applying all fully specified features from
+	 * the other segment onto this one
 	 * @param other an underspecified segment from which to take changes
-	 * @return a new segment based on this one, with modifications from the other
+	 * @return a new segment based on this one with modifications from the other
 	 */
 	public Segment alter(Segment other) {
 		validateModelOrFail(other);
 
 		Collection<Integer> alteredIndices = new ArrayList<Integer>();
-
 		FeatureArray<Double> otherFeatures = new StandardFeatureArray<Double>(features);
 		for (int j = 0; j < otherFeatures.size(); j++) {
 			double value = other.getFeatureValue(j);
@@ -87,20 +82,18 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		
 		// For each altered index, check if the constraints apply 
 		for (int index : alteredIndices) {
-			for (Constraint constraint : model.getConstraints()) {
+			for (Constraint constraint : specification.getConstraints()) {
 				applyConstraint(index, otherFeatures, constraint);
 			}
 		}
-
-//		String newSymbol = model.getBestSymbol(otherFeatures);
-//		return new Segment(newSymbol, otherFeatures, model);
-		//TODO: fix this 
-		return new Segment(symbol, otherFeatures, model);
+		
+		return new Segment(symbol, otherFeatures, specification);
 	}
 
 	/**
-	 * Determines if a segment is consistent with this segment.
-	 * Two segments are consistent with each other if all corresponding features are equal OR if one is NaN
+	 * Determines if a segment is consistent with this segment. Two segments are
+	 * consistent with each other if all corresponding features are equal OR if
+	 * one is NaN
 	 *
 	 * @param other another segment to compare to this one
 	 * @return true if all specified (non NaN) features in either segment are equal
@@ -118,28 +111,9 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		}
 	}
 
-	public static boolean matchesFeatures(FeatureArray<Double> features1, FeatureArray<Double> features2) {
-		if (features1.size()!= features2.size()) {return false;}
-		if (features1 == features2) {return true;}
-		if (features1.equals(features2)) {return true;}
-
-		int size = features1.size();
-		for (int i = 0; i < size; i++) {
-			Double a = features1.get(i);
-			Double b = features2.get(i);
-			// Two-way comparison? I'm not certain this is the most desirable semantics.
-			if (!a.equals(b) &&
-			    !b.equals(FeatureModel.MASKING_VALUE) &&
-			    !a.equals(FeatureModel.MASKING_VALUE)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	@Override
-	public FeatureSpecification getModel() {
-		return model;
+	public FeatureSpecification getSpecification() {
+		return specification;
 	}
 
 	@Override
@@ -147,7 +121,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		int hash = 19;
 		hash *= 31 + symbol.hashCode();
 		hash *= 31 + features.hashCode();
-		hash *= 31 + model.hashCode();
+		hash *= 31 + specification.hashCode();
 		return hash;
 	}
 
@@ -158,7 +132,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		if (getClass() != obj.getClass()) { return false; }
 
 		Segment other = (Segment) obj;
-		 return model.equals(other.model) &&
+		 return specification.equals(other.specification) &&
 			 features.equals(other.features) &&
 			 symbol.equals(other.symbol);
 	}
@@ -201,7 +175,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	public void setFeatureValue(int index, double value) {
 		features.set(index, value);
-		for (Constraint constraint : model.getConstraints()) {
+		for (Constraint constraint : specification.getConstraints()) {
 			applyConstraint(index, features, constraint);
 		}
 	}
@@ -210,19 +184,10 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 			int index,
 			FeatureArray<Double> features,
 			Constraint constraint) {
-
-
+		
 		FeatureArray<Double> source = constraint.getSource();
 		if (source.get(index) != null) {
-//			boolean match = true;
-//			for (Map.Entry<Integer, Double> entry : source.entrySet()) {
-//				match &= features.get(entry.getKey()).equals(entry.getValue());
-//			}
-
 			if (source.matches(features)) {
-//				for (Map.Entry<Integer, Double> entry : constraint.getTarget().entrySet()) {
-//					features.set(entry.getKey(), entry.getValue());
-//				}
 				features.alter(constraint.getTarget());
 			}
 		}
@@ -230,7 +195,6 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	@Deprecated
 	public boolean isUndefined() {
-//		return model.getBlankArray().equals(features);
 		return false;
 	}
 
@@ -255,11 +219,11 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	}
 
 	private void validateModelOrFail(ModelBearer that) {
-		FeatureSpecification otherModel = that.getModel();
-		if (!model.equals(otherModel)) {
+		FeatureSpecification otherModel = that.getSpecification();
+		if (!specification.equals(otherModel)) {
 			throw new RuntimeException(
 				"Attempting to interoperate " + that.getClass() + " with an incompatible featureModel!\n" +
-					'\t' + this + '\t' + model.getFeatureNames() + '\n' +
+					'\t' + this + '\t' + specification.getFeatureNames() + '\n' +
 					'\t' + that + '\t' + otherModel.getFeatureNames()
 			);
 		}

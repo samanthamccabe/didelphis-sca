@@ -15,6 +15,7 @@
 package org.haedus.phonetic.features;
 
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.FeatureSpecification;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,29 +28,30 @@ import java.util.Map;
 public final class SparseFeatureArray<T extends Number & Comparable<T>>
 		implements FeatureArray<T> {
 
-	private final int size;
+	private final FeatureSpecification specification;
+
 	private final Map<Integer, T> features;
 
-	public SparseFeatureArray(int size) {
-		this.size = size;
+	public SparseFeatureArray(FeatureSpecification specification) {
+		this.specification = specification;
 		features = new HashMap<Integer, T>();
 	}
 
-	public SparseFeatureArray(List<T> list) {
-		this(list.size());
-		for (int i = 0; i < size; i++) {
+	public SparseFeatureArray(List<T> list, FeatureSpecification specification) {
+		this(specification);
+		for (int i = 0; i < list.size(); i++) {
 			features.put(i, list.get(i));
 		}
 	}
 
 	public SparseFeatureArray(SparseFeatureArray<T> array) {
-		size = array.size;
+		specification = array.getSpecification();
 		features = new HashMap<Integer, T>(array.features);
 	}
 
 	@Override
 	public int size() {
-		return size;
+		return specification.size();
 	}
 
 	@Override
@@ -112,6 +114,8 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 					"Attempting to compare arrays of different lengths");
 		}
 
+		int size = specification.size();
+
 		// There should be a better way to do this than checking
 		// every index, since usually only one value will be defined
 		for (int i = 0; i < size; i++) {
@@ -143,10 +147,7 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 
 	@Override
 	public String toString() {
-		return "SparseFeatureArray{" +
-				"size=" + size +
-				", features=" + features +
-				'}';
+		return "SparseFeatureArray{" + ", features=" + features + '}';
 	}
 
 	@Override
@@ -156,21 +157,27 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 
 		SparseFeatureArray<?> that = (SparseFeatureArray<?>) o;
 
-		return size == that.size &&
+		return specification.equals(specification) &&
 				features.equals(that.features);
 	}
 
 	@Override
 	public int hashCode() {
-		int result = size;
+		int result = features.hashCode();
 		result = 31 * result + features.hashCode();
 		return result;
 	}
 
+	@Override
+	public FeatureSpecification getSpecification() {
+		return specification;
+	}
+
 	private void indexCheck(int index) {
+		int size = specification.size();
 		if (index >= size) {
 			throw new IndexOutOfBoundsException("Provided index " + index +
-					" is larger than defined size for object " + size);
+					" is larger than defined size "+ size + " for specification " + specification);
 		}
 	}
 }

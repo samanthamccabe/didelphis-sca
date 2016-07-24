@@ -13,6 +13,7 @@
 
 package org.haedus.phonetic.model;
 
+import org.haedus.phonetic.ModelBearer;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
 
@@ -20,20 +21,24 @@ import org.haedus.phonetic.features.SparseFeatureArray;
  * Samantha Fiona Morrigan McCabe
  * Created: 3/1/2016
  */
-public class Constraint {
+public class Constraint implements ModelBearer {
 
 	private final String label;
+	
+	private final FeatureSpecification specification;
 
 	private final FeatureArray<Double> source;
 	private final FeatureArray<Double> target;
 
 	public Constraint(String label,
 	                  FeatureArray<Double> source,
-	                  FeatureArray<Double> target) {
+	                  FeatureArray<Double> target,
+	                  FeatureSpecification specification) {
 
-		this.label  = label.replaceAll("\\s+"," ");
+		this.label = label.replaceAll("\\s+"," ");
 		this.source = source;
 		this.target = target;
+		this.specification = specification;
 	}
 
 	public FeatureArray<Double> getTarget() {
@@ -64,5 +69,10 @@ public class Constraint {
 	@Override
 	public int hashCode() {
 		return 31 * source.hashCode() * target.hashCode();
+	}
+
+	@Override
+	public FeatureSpecification getSpecification() {
+		return specification;
 	}
 }
