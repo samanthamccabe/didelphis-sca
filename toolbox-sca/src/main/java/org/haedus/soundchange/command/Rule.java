@@ -17,13 +17,13 @@ package org.haedus.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.features.FeatureArray;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.soundchange.Condition;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -213,10 +214,13 @@ public class Rule implements Runnable {
 						}
 					}
 
-					// This is checked second for a good reason: it may not be possible to know in advance what is the
-					// length of the matching initial until it's been evaluated, esp. in the case of a variable whose
-					// elements are allowed to have a length greater than 1. This is allowed because it is possible, or
-					// even likely, that a language might have a set of multi-segment clusters which still pattern
+					// This is checked second for a good reason: it may not be
+					// possible to know in advance what is the length of the
+					// matching initial until it's been evaluated, esp. in the
+					// case of a variable whose elements are allowed to have a
+					// length greater than 1. This is allowed because it is
+					// possible, or even likely, that a language might have a
+					// set of multi-segment clusters which still pattern
 					// together, or which are part of conditioning environments.
 					if (testIndex >= 0 && conditionsMatch(output, startIndex, testIndex)) {
 						index = testIndex;
@@ -293,20 +297,31 @@ public class Rule implements Runnable {
 	}
 
 	/**
-	 * Generates an appropriate sequence by filling in backreferences based on the provided maps.
+	 * Generates an appropriate sequence by filling in backreferences based on
+	 * the provided maps.
 	 *
 	 * @param source
-	 * @param target the "target" pattern; provides a template of indexed variables and backreferences to be filled in
-	 * @param variableMap Tracks the order of variables in the "source" pattern; i.e. the 2nd variable in the source
-	 *                    pattern is referenced via {@code $2}. Unlike standard regular expressions, all variables are
-	 *                    tracked, rather than tracking explicit groups
-	 * @param indexMap tracks which variable values are matched by the "source" pattern; an entry (2 -> 4) would
-	 *                 indicate that the source matched the 4th value of the 2nd variable. This permits proper mapping
-	 *                 between source and target symbols when using backreferences and indexed variables
+	 * @param target the "target" pattern; provides a template of indexed
+	 *      variables and backreferences to be filled in
+	 * @param variableMap Tracks the order of variables in the "source"
+	 *      pattern; i.e. the 2nd variable in the source pattern is referenced
+	 *      via {@code $2}. Unlike standard regular expressions, all variables
+	 *      are tracked, rather than tracking explicit groups
+	 * @param indexMap tracks which variable values are matched by the "source"
+	 *      pattern; an entry (2 -> 4) would indicate that the source matched
+	 *      the 4th value of the 2nd variable. This permits proper mapping
+	 *      between source and target symbols when using backreferences and
+	 *      indexed variables
 	 * @param sequenceMap
-	 * @return a Sequence object with variables and references filled in according to the provided maps
+	 * @return a Sequence object with variables and references filled in
+	 * according to the provided maps
 	 */
-	private Sequence getReplacementSequence(Sequence source, Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap, Map<Integer, Sequence> sequenceMap) {
+	private Sequence getReplacementSequence(
+			Sequence source,
+			Sequence target,
+			Map<Integer, String> variableMap,
+			Map<Integer, Integer> indexMap,
+			Map<Integer, Sequence> sequenceMap) {
 		int variableIndex = 1;
 		Sequence replacement = factory.getNewSequence();
 		// Step through the target pattern
@@ -326,7 +341,8 @@ public class Rule implements Runnable {
 				variableIndex++;
 			} else if (segment.isUnderspecified()) {
 				// Underspecified - overwrite the feature
-				replacement.add(source.get(i).alter(segment));
+				Segment alter = source.get(i).alter(segment);
+				replacement.add(alter);
 			} else if (!segment.getSymbol().equals("0")) {
 				// Normal segment and not 0
 				replacement.add(segment);
@@ -336,7 +352,13 @@ public class Rule implements Runnable {
 		return replacement;
 	}
 
-	private Sequence getReferencedReplacement(Sequence target, Map<Integer, String> variableMap, Map<Integer, Integer> indexMap, Map<Integer, Sequence> sequenceMap, Matcher matcher) {
+	private Sequence getReferencedReplacement(
+			Sequence target,
+			Map<Integer, String> variableMap,
+			Map<Integer, Integer> indexMap,
+			Map<Integer, Sequence> sequenceMap,
+			MatchResult matcher
+	) {
 		String symbol = matcher.group(1);
 		String digits = matcher.group(2);
 
@@ -344,19 +366,17 @@ public class Rule implements Runnable {
 		int integer = indexMap.get(reference);
 
 		Sequence sequence;
-		if ( integer == -1) {
+		if (integer == -1) {
 			// -1 means it was an underspecified feature
 			// but we need to know what was matched
 			if (symbol.isEmpty()) {
 				sequence = factory.getNewSequence();
-
 				// add the captured segment
 				Segment captured = sequenceMap.get(reference).get(0);
 				sequence.add(captured);
 			} else {
 				throw new RuntimeException("The use of feature substitution in this manner is not supported! " + target);
 			}
-
 		} else {
 			String variable;
 			if (symbol.isEmpty()) {
@@ -410,18 +430,12 @@ public class Rule implements Runnable {
 				List<String> sourceList = parseToList(sourceString);
 				List<String> targetList = parseToList(targetString);
 
-				// Validate, make sure that if an entry contains 0, it's the string length == 1
-//				validateZeros(sourceList);
-//				validateZeros(targetList);
-				// j/k can't check here - 0 might occur as part of a feature definition
-
 				// fill in target for cases like "a b c > d"
-
 				if (sourceList.contains("0") && (sourceList.size() != 1 || targetList.size() != 1)) {
 					throw new ParseException("A rule may only use \"0\" in the \"source\" if that ");
-				} else {
-					balanceTransform(sourceList, targetList);
 				}
+				
+				balanceTransform(sourceList, targetList);
 
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
@@ -445,16 +459,18 @@ public class Rule implements Runnable {
 	}
 
 	/**
-	 * Once converted to features, ensure that the rule's transform is well-formed and has an appropriate structure
+	 * Once converted to features, ensure that the rule's transform is well-
+	 * formed and has an appropriate structure
 	 */
 	private void validateTransform(Sequence source, Sequence target) {
 		int j = 0;
 		for (Segment segment : target) {
 			FeatureArray<Double> features = segment.getFeatures();
-			if (features.contains(FeatureModel.MASKING_VALUE) ||
-				features.contains(null)&&source.size() <= j) {
-				throw new RuleFormatException("Unmatched underspecified segment " +
-						segment + " in target of rule " + ruleText);
+			boolean underspecified = features.contains(null) || features instanceof SparseFeatureArray;
+			if (underspecified && source.size() <= j) {
+				throw new RuleFormatException(
+						"Unmatched underspecified segment " + segment +
+								" in target of rule " + ruleText);
 			}
 			j++;
 		}

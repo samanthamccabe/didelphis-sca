@@ -13,15 +13,14 @@
 
 package org.haedus.phonetic.model;
 
-import org.haedus.phonetic.ModelBearer;
+import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.features.FeatureArray;
-import org.haedus.phonetic.features.SparseFeatureArray;
 
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 3/1/2016
  */
-public class Constraint implements ModelBearer {
+public class Constraint implements SpecificationBearer {
 
 	private final String label;
 	

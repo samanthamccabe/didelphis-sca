@@ -20,7 +20,7 @@ import org.haedus.phonetic.model.FeatureSpecification;
  * Samantha Fiona Morrigan McCabe
  * Created: 1/21/2015
  */
-public interface ModelBearer {
+public interface SpecificationBearer {
 
 	/**
 	 * Returns the model used by this ModelBearer

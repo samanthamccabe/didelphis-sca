@@ -185,7 +185,7 @@ public class FeatureModelLoader {
 				int i = 0;
 				for (String value : values) {
 					if (!value.isEmpty()) {
-						array.set(i, getDouble(value, FeatureModel.MASKING_VALUE));
+						array.set(i, getDouble(value, null));
 					}
 					i++;
 				}
@@ -207,7 +207,9 @@ public class FeatureModelLoader {
 				int size = specification.size();
 				
 				List<FeatureType> featureTypes = specification.getFeatureTypes();
-				FeatureArray<Double> features = new StandardFeatureArray<Double>(specification);
+				FeatureArray<Double> features = new StandardFeatureArray<Double>(
+						FeatureSpecification.UNDEFINED_VALUE, specification);
+				
 				for (int i = 0; i < size; i++) {
 					FeatureType type = featureTypes.get(i);
 					String value = values[i];
@@ -215,7 +217,7 @@ public class FeatureModelLoader {
 						LOG.warn("Value '{}' at position {} is not valid for {} in array: {}",
 							value, i, type, Arrays.toString(values));
 					} 
-					features.set(i, getDouble(value, FeatureModel.UNDEFINED_VALUE));
+					features.set(i, getDouble(value, FeatureSpecification.UNDEFINED_VALUE));
 				}
 				checkFeatureCollisions(symbol, features);
 				featureMap.put(symbol, features);
@@ -234,15 +236,6 @@ public class FeatureModelLoader {
 				}
 			}
 		}
-	}
-
-	private List<Double> getUnderspecifiedArray() {
-		List<Double> list = new ArrayList<Double>();
-		int size = specification.size();
-		for (int i = 0; i < size; i++) {
-			list.add(FeatureModel.MASKING_VALUE);
-		}
-		return list;
 	}
 
 	private static double getDouble(String cell, Double defaultValue) {

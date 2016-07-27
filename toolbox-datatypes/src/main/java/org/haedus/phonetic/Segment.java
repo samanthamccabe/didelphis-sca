@@ -20,9 +20,9 @@
 package org.haedus.phonetic;
 
 import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.Constraint;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.model.FeatureSpecification;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ import java.util.Collection;
 /**
  * Samantha Fiona Morrigan McCabe
  */
-public class Segment implements ModelBearer, Comparable<Segment> {
+public class Segment implements SpecificationBearer, Comparable<Segment> {
 
 	public static final Segment EMPTY_SEGMENT = new Segment("∅");
 
@@ -51,14 +51,17 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 	               FeatureSpecification modelParam) {
 		symbol = s;
 		specification = modelParam;
-		features = new StandardFeatureArray<Double>(featureArray);
+		features = featureArray;
 	}
 
 	// Used to create the empty segment
 	private Segment(String string) {
 		symbol = string;
 		specification = FeatureSpecification.EMPTY;
-		features = new StandardFeatureArray<Double>(FeatureSpecification.EMPTY);
+		features = new StandardFeatureArray<Double>(
+				FeatureSpecification.UNDEFINED_VALUE,
+				FeatureSpecification.EMPTY
+		);
 	}
 
 	/**
@@ -71,23 +74,25 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		validateModelOrFail(other);
 
 		Collection<Integer> alteredIndices = new ArrayList<Integer>();
-		FeatureArray<Double> otherFeatures = new StandardFeatureArray<Double>(features);
-		for (int j = 0; j < otherFeatures.size(); j++) {
-			double value = other.getFeatureValue(j);
-			if (!FeatureModel.MASKING_VALUE.equals(value)) {
-				otherFeatures.set(j, value);
+		FeatureArray<Double> newFeatures = new StandardFeatureArray<Double>(features);
+		for (int j = 0; j < newFeatures.size(); j++) {
+			Double value = other.getFeatureValue(j);
+			if (value != null) {
+				newFeatures.set(j, value);
 				alteredIndices.add(j);
 			}
 		}
-		
+
 		// For each altered index, check if the constraints apply 
 		for (int index : alteredIndices) {
 			for (Constraint constraint : specification.getConstraints()) {
-				applyConstraint(index, otherFeatures, constraint);
+				applyConstraint(index, newFeatures, constraint);
 			}
 		}
 		
-		return new Segment(symbol, otherFeatures, specification);
+		
+		
+		return new Segment(symbol, newFeatures, specification);
 	}
 
 	/**
@@ -150,9 +155,8 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		return features;
 	}
 
-	public double getFeatureValue(int i) {
-		Double value = features.get(i);
-		return value != null ? value : FeatureModel.MASKING_VALUE;
+	public Double getFeatureValue(int i) {
+		return features.get(i);
 	}
 
 	public String toStringLong() {
@@ -200,8 +204,7 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 
 	@Deprecated
 	public boolean isUnderspecified() {
-		return features.contains(null)||
-		       features.contains(FeatureModel.MASKING_VALUE);
+		return features.contains(null) || features instanceof SparseFeatureArray;
 	}
 
 	@Override
@@ -211,14 +214,15 @@ public class Segment implements ModelBearer, Comparable<Segment> {
 		} else {
 			int value = features.compareTo(o.getFeatures());
 			if (value == 0) {
-				// If we get here, there is either no features, or feature arrays are equal
-				return symbol.compareTo(o.getSymbol()); // so just compare the symbols
+				// If we get here, there is either no features, or feature
+				// arrays are equal so just compare the symbols
+				return symbol.compareTo(o.getSymbol());
 			}
 			return value;
 		}
 	}
 
-	private void validateModelOrFail(ModelBearer that) {
+	private void validateModelOrFail(SpecificationBearer that) {
 		FeatureSpecification otherModel = that.getSpecification();
 		if (!specification.equals(otherModel)) {
 			throw new RuntimeException(

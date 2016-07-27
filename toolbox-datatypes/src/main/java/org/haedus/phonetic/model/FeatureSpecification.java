@@ -44,6 +44,8 @@ public final class FeatureSpecification {
 	
 	public static final FeatureSpecification EMPTY = new FeatureSpecification(0);
 
+	public static final Double UNDEFINED_VALUE = Double.NaN;
+
 	private static final String VALUE  = "(-?\\d|[A-Zα-ω]+)";
 	private static final String NAME   = "(\\w+)";
 	private static final String ASSIGN = "([=:><])";

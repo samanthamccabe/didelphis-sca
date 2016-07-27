@@ -95,7 +95,7 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 		} else{
 			for (int i = 0; i < size(); i++) {
 				T t = array.get(i);
-				if (t != null && !t.equals(FeatureModel.MASKING_VALUE)) {
+				if (t != null) {
 					features.put(i, t);
 				}
 			}

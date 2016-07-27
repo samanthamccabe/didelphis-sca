@@ -20,7 +20,7 @@
 package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.ModelBearer;
+import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
@@ -40,22 +40,16 @@ import java.util.Set;
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-public class FeatureModel implements ModelBearer {
+public class FeatureModel implements SpecificationBearer {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
 
 	public static final FeatureModel EMPTY_MODEL = new FeatureModel();
 	
-	public static final Double UNDEFINED_VALUE = Double.NaN;
-	@Deprecated
-	public static final Double MASKING_VALUE = Double.NEGATIVE_INFINITY;
-	
 	private final FeatureSpecification specification;
 	
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> modifiers;
-
-	private final List<Double> blankArray;
 
 	public FormatterMode getFormatterMode() {
 		return formatterMode;
@@ -67,11 +61,9 @@ public class FeatureModel implements ModelBearer {
 	// EMPTY_MODEL field
 	private FeatureModel() {
 		specification = FeatureSpecification.EMPTY;
-
-		featureMap     = new LinkedHashMap<String, FeatureArray<Double>>();
+		featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
 		modifiers = new LinkedHashMap<String, FeatureArray<Double>>();
-		blankArray     = new ArrayList<Double>();
-		formatterMode  = FormatterMode.NONE;
+		formatterMode = FormatterMode.NONE;
 	}
 
 	public FeatureModel(InputStream stream, FormatterMode modeParam) {
@@ -87,14 +79,8 @@ public class FeatureModel implements ModelBearer {
 		modifiers = loader.getDiacritics();
 		specification = loader.getSpecification();
 		formatterMode = modeParam;
-
-		blankArray = new ArrayList<Double>();
-		for (int i = 0; i < specification.size(); i++) {
-			blankArray.add(UNDEFINED_VALUE);
-		}
 	}
 
-	// requires mapping
 	public String getBestSymbol(FeatureArray<Double> featureArray) {
 
 		FeatureArray<Double> bestFeatures = null;
@@ -123,7 +109,6 @@ public class FeatureModel implements ModelBearer {
 		return formatterMode.normalize(bestSymbol + sb);
 	}
 
-	// requires mapping
 	// Return a list of all segments g such that matches.matches(input) is true
 	public Collection<Segment> getMatchingSegments(Segment input) {
 		Collection<Segment> collection = new ArrayList<Segment>();
@@ -143,7 +128,6 @@ public class FeatureModel implements ModelBearer {
 		return collection;
 	}
 
-	// requires mapping
 	public Set<String> getSymbols() {
 		return Collections.unmodifiableSet(featureMap.keySet());
 	}
@@ -195,15 +179,12 @@ public class FeatureModel implements ModelBearer {
 		if (featureMap.containsKey(key)) {
 			return new StandardFeatureArray<Double>(featureMap.get(key));
 		} else {
-			return new StandardFeatureArray<Double>(specification);
+			return new StandardFeatureArray<Double>(
+					FeatureSpecification.UNDEFINED_VALUE,
+					specification);
 		}
 	}
 	
-	public List<Double> getBlankArray() {
-		return blankArray;
-	}
-
-	// requires mapping
 	// This should be here because how the segment is constructed is a function
 	// of what kind of model this is
 	public Segment getSegment(String head, Iterable<String> modifiers) {
@@ -217,7 +198,7 @@ public class FeatureModel implements ModelBearer {
 				for (int i = 0; i < doubles.size(); i++) {
 					Double d = doubles.get(i);
 					// this will need to change if we support value modification (up or down)
-					if (d != null &&!d.equals(MASKING_VALUE)) {
+					if (d != null) {
 						featureArray.set(i, d);
 					}
 				}
@@ -279,18 +260,22 @@ public class FeatureModel implements ModelBearer {
 
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-		FeatureArray<Double> best = new StandardFeatureArray<Double>(specification);
+		FeatureArray<Double> best = new StandardFeatureArray<Double>(
+				FeatureSpecification.UNDEFINED_VALUE,
+				specification);
 
 		Collection<String> diacriticList = new ArrayList<String>();
 
 		for (Map.Entry<String, FeatureArray<Double>> entry : modifiers.entrySet()) {
 			FeatureArray<Double> diacriticFeatures = entry.getValue();
-			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(specification);
+			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(
+					FeatureSpecification.UNDEFINED_VALUE,
+					specification);
 				for (int i = 0; i < size; i++) {
 					Double left  = diacriticFeatures.get(i);
 					Double right = bestFeatures.get(i);
 
-					if (left == null || left.equals(MASKING_VALUE)) {
+					if (left == null) {
 						compiledFeatures.set(i, right);
 					} else {
 						compiledFeatures.set(i, left);

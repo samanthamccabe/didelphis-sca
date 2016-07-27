@@ -31,12 +31,12 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 	private final FeatureSpecification specification;
 	private final List<T> features;
 
-	public StandardFeatureArray(FeatureSpecification specification) {
+	public StandardFeatureArray(T value, FeatureSpecification specification) {
 		this.specification = specification;
 		int size = specification.size();
 		features = new ArrayList<T>(size);
 		for (int i = 0; i < size; i++) {
-			features.add(null);
+			features.add(value);
 		}
 	}
 
@@ -87,8 +87,6 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 			boolean matches =
 					a == null ||
 					b == null ||
-					a.equals(FeatureModel.MASKING_VALUE) ||
-					b.equals(FeatureModel.MASKING_VALUE) ||
 					a.equals(b);
 			if (!matches) {
 				return false;
@@ -106,7 +104,7 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 
 		for (int i = 0; i < features.size(); i++) {
 			T t = array.get(i);
-			if (t != null && !t.equals(FeatureModel.MASKING_VALUE)) {
+			if (t != null) {
 				features.set(i, t);
 			}
 		}

@@ -29,7 +29,7 @@ import java.util.ListIterator;
 /**
  * @author Samantha Fiona Morrigan McCabe
  */
-public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence> {
+public class Sequence implements List<Segment>, SpecificationBearer, Comparable<Sequence> {
 
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
@@ -398,14 +398,14 @@ public class Sequence implements List<Segment>, ModelBearer, Comparable<Sequence
 		return indices;
 	}
 
-	private void validateModelOrWarn(ModelBearer that) {
+	private void validateModelOrWarn(SpecificationBearer that) {
 		if (!specification.equals(that.getSpecification())) {
 			LOGGER.warn("Attempting to check a {} with an incompatible model!\n\t{}\t{}\n\t{}\t{}",
 				that.getClass(), this, that, specification, that.getSpecification());
 		}
 	}
 
-	private void validateModelOrFail(ModelBearer that) {
+	private void validateModelOrFail(SpecificationBearer that) {
 		if (!specification.equals(that.getSpecification())) {
 			throw new RuntimeException(
 				"Attempting to add " + that.getClass() + " with an incompatible model!\n" +

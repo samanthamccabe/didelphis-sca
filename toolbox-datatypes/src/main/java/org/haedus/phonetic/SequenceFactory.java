@@ -79,7 +79,9 @@ public class SequenceFactory {
 
 		FeatureSpecification specification = featureModel.getSpecification();
 		FeatureArray<Double> sparseArray = new SparseFeatureArray<Double>(specification);
-		FeatureArray<Double> standardArray = new StandardFeatureArray<Double>(specification);
+		FeatureArray<Double> standardArray = new StandardFeatureArray<Double>(
+				FeatureSpecification.UNDEFINED_VALUE,
+				specification);
 
 		dotSegment = new Segment(".", sparseArray, specification);
 		if (featureModel.containsKey("#")) {

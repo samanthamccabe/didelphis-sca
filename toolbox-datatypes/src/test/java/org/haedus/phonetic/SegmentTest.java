@@ -57,7 +57,7 @@ public class SegmentTest {
 		List<Double> array = new ArrayList<Double>();
 		int size = model.getSpecification().size();
 		for (int i = 0; i < size; i++) {
-			array.add(FeatureModel.MASKING_VALUE);
+			array.add(null);
 		}
 		
 		array.set(1, -1.0);

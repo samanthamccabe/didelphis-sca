@@ -14,14 +14,14 @@
 
 package org.haedus.phonetic.features;
 
-import org.haedus.phonetic.ModelBearer;
+import org.haedus.phonetic.SpecificationBearer;
 
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 3/26/2016
  */
 public interface FeatureArray<T extends Number & Comparable<T>>
-		extends Comparable<FeatureArray<T>>, Iterable<T>, ModelBearer {
+		extends Comparable<FeatureArray<T>>, Iterable<T>, SpecificationBearer {
 
 	/**
 	 * Returns the number of elements in this list.

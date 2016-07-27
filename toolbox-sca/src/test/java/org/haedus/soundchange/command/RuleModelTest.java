@@ -411,22 +411,29 @@ public class RuleModelTest {
 		testRule(rule, FACTORY, "arka", "arka");
 		testRule(rule, FACTORY, "arpa", "arpa");
 		testRule(rule, FACTORY, "arta", "arʈa");
-
 		testRule(rule, FACTORY, "arsa", "arsa");
 	}
-
-
+	
 	@Test
 	public void testAliases02() {
 		Rule rule = new Rule("[alveolar]y > [palatal]", FACTORY);
 
 		testRule(rule, FACTORY, "akya", "akya");
 		testRule(rule, FACTORY, "apya", "apya");
-		testRule(rule, FACTORY, "atya", "aca");
-
+ 		testRule(rule, FACTORY, "atya", "aca");
 		testRule(rule, FACTORY, "asya", "aça");
 	}
 
+
+	@Test
+	public void testAliases03() {
+		Rule rule = new Rule("[alveolar] > [palatal]", FACTORY);
+
+//		testRule(rule, FACTORY, "aka", "aka");
+//		testRule(rule, FACTORY, "apa", "apa");
+		testRule(rule, FACTORY, "ata", "aca");
+//		testRule(rule, FACTORY, "asa", "aça");
+	}
 
 	private static void testRule(Rule rule, String seq, String exp) {
 		testRule(rule, FACTORY, seq, exp);
