@@ -258,29 +258,14 @@ public class FeatureModel implements SpecificationBearer {
 			FeatureArray<Double> featureArray,
 			FeatureArray<Double> bestFeatures,
 			double lastMinimum) {
-
-		int size = specification.size();
-
+		
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-//		FeatureArray<Double> best = new StandardFeatureArray<Double>(
-//				FeatureSpecification.UNDEFINED_VALUE,
-//				specification);
 		FeatureArray<Double> best = new SparseFeatureArray<Double>(specification);
-
 		Collection<String> diacriticList = new ArrayList<String>();
 
 		for (Map.Entry<String, FeatureArray<Double>> entry : modifiers.entrySet()) {
 			FeatureArray<Double> diacriticFeatures = entry.getValue();
-//			FeatureArray<Double> compiled = new SparseFeatureArray<Double>(specification);
-//				for (int i = 0; i < size; i++) {
-//					Double left  = diacriticFeatures.get(i);
-//					Double right = bestFeatures.get(i);
-//
-//					if (left == null) {
-//						compiled.set(i, right);
-//					}
-//				}
 
 			FeatureArray<Double> compiled = new StandardFeatureArray<Double>(bestFeatures);
 			compiled.alter(diacriticFeatures);
