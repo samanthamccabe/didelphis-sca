@@ -147,7 +147,7 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 
 	@Override
 	public String toString() {
-		return "SparseFeatureArray{" + ", features=" + features + '}';
+		return "SparseFeatureArray{" + features + '}';
 	}
 
 	@Override

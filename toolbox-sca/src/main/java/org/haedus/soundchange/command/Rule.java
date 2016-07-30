@@ -24,6 +24,7 @@ import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
+import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.soundchange.Condition;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
@@ -342,7 +343,14 @@ public class Rule implements Runnable {
 			} else if (segment.isUnderspecified()) {
 				// Underspecified - overwrite the feature
 				Segment alter = source.get(i).alter(segment);
-				replacement.add(alter);
+				FeatureArray<Double> features = alter.getFeatures();
+				FeatureModel model = factory.getFeatureModel();
+				String bestSymbol = model.getBestSymbol(features);
+				Segment newSegment = new Segment(
+						bestSymbol,
+						features,
+						model.getSpecification());
+				replacement.add(newSegment);
 			} else if (!segment.getSymbol().equals("0")) {
 				// Normal segment and not 0
 				replacement.add(segment);

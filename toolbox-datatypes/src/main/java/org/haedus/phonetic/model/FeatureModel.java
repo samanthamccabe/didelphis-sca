@@ -23,6 +23,7 @@ import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.features.FeatureArray;
+import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +100,7 @@ public class FeatureModel implements SpecificationBearer {
 
 		StringBuilder sb = new StringBuilder();
 		if (minimum > 0.0) {
-			Collection collection = getBestDiacritic(featureArray, bestFeatures);
+			Collection collection = getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 			for (String diacritic : modifiers.keySet()) {
 				if (collection.contains(diacritic)) {
 					sb.append(diacritic);
@@ -218,7 +219,7 @@ public class FeatureModel implements SpecificationBearer {
 			for (int i = 0; i < left.size(); i++) {
 				Double l = left.get(i);
 				Double r = right.get(i);
-				list.add(Math.abs(getDifference(l, r)));
+				list.add(getDifference(l, r));
 			}
 		} else {
 			LOGGER.warn("Attempt to compare arrays of differing length! {} vs {}", left, right);
@@ -240,13 +241,15 @@ public class FeatureModel implements SpecificationBearer {
 	}
 
 	private static Double getDifference(Double a, Double b) {
-		if (a.equals(b)) {
+		if (a == null && b == null) {
 			return 0.0;
-		} else if (a.isNaN()) {
-			return b;
-		} else if (b.isNaN()) {
-			return a;
-		} else {
+		} else if (a == null || a.isNaN()) {
+			return Math.abs(b);
+		} else if (b == null || b.isNaN()) {
+			return Math.abs(a);
+		} else if (a.equals(b)) {
+			return 0.0;
+		} else  {
 			return Math.abs(a - b);
 		}
 	}
@@ -260,34 +263,34 @@ public class FeatureModel implements SpecificationBearer {
 
 		String bestDiacritic = "";
 		double minimumDifference = lastMinimum;
-		FeatureArray<Double> best = new StandardFeatureArray<Double>(
-				FeatureSpecification.UNDEFINED_VALUE,
-				specification);
+//		FeatureArray<Double> best = new StandardFeatureArray<Double>(
+//				FeatureSpecification.UNDEFINED_VALUE,
+//				specification);
+		FeatureArray<Double> best = new SparseFeatureArray<Double>(specification);
 
 		Collection<String> diacriticList = new ArrayList<String>();
 
 		for (Map.Entry<String, FeatureArray<Double>> entry : modifiers.entrySet()) {
 			FeatureArray<Double> diacriticFeatures = entry.getValue();
-			FeatureArray<Double> compiledFeatures = new StandardFeatureArray<Double>(
-					FeatureSpecification.UNDEFINED_VALUE,
-					specification);
-				for (int i = 0; i < size; i++) {
-					Double left  = diacriticFeatures.get(i);
-					Double right = bestFeatures.get(i);
+//			FeatureArray<Double> compiled = new SparseFeatureArray<Double>(specification);
+//				for (int i = 0; i < size; i++) {
+//					Double left  = diacriticFeatures.get(i);
+//					Double right = bestFeatures.get(i);
+//
+//					if (left == null) {
+//						compiled.set(i, right);
+//					}
+//				}
 
-					if (left == null) {
-						compiledFeatures.set(i, right);
-					} else {
-						compiledFeatures.set(i, left);
-					}
-				}
+			FeatureArray<Double> compiled = new StandardFeatureArray<Double>(bestFeatures);
+			compiled.alter(diacriticFeatures);
 
-			if (!compiledFeatures.equals(bestFeatures)) {
-				double difference = getDifferenceValue(compiledFeatures, featureArray);
+			if (!compiled.equals(bestFeatures)) {
+				double difference = getDifferenceValue(compiled, featureArray);
 				if (difference < minimumDifference) {
 					minimumDifference = difference;
 					bestDiacritic = entry.getKey();
-					best = compiledFeatures;
+					best = compiled;
 				}
 			}
 		}
@@ -299,11 +302,5 @@ public class FeatureModel implements SpecificationBearer {
 			diacriticList.add(bestDiacritic);
 		}
 		return diacriticList;
-	}
-
-	private Collection getBestDiacritic(
-			FeatureArray<Double> featureArray,
-			FeatureArray<Double> bestFeatures) {
-		return getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 	}
 }
