@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Created with IntelliJ IDEA.
@@ -55,6 +56,22 @@ public class RuleTest {
 	public void testMultipleZeroWithMultipleTarget() {
 		new Rule("0 0 > a a", FACTORY);
 	}
+	
+	@Test(expected = ParseException.class)
+	public void testMissingArrow() {
+		new Rule ("a", FACTORY);
+	}
+
+	@Test(expected = ParseException.class)
+	public void testUnbalancedTransform1() {
+		new Rule("b > a a", FACTORY);
+	}
+
+	@Test(expected = ParseException.class)
+	public void testUnbalancedTransform2() {
+		new Rule("a b c > x y", FACTORY);
+	}
+
 
 	@Test
 	public void testBrackets01() throws Exception {

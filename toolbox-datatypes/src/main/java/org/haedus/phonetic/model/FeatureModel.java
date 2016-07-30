@@ -20,8 +20,8 @@
 package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.Segment;
+import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.features.FeatureArray;
 import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
@@ -230,12 +230,8 @@ public class FeatureModel implements SpecificationBearer {
 	private static double getDifferenceValue(FeatureArray<Double> left, FeatureArray<Double> right) {
 		double sum = 0.0;
 		FeatureArray<Double> differenceArray = getDifferenceArray(left, right);
-		if (differenceArray.size() == 0) {
-			sum = Double.NaN;
-		} else {
-			for (Double value : differenceArray) {
-				sum += value;
-			}
+		for (Double value : differenceArray) {
+			sum += value;
 		}
 		return sum;
 	}

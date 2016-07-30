@@ -458,14 +458,6 @@ public class Rule implements Runnable {
 		}
 	}
 
-	private static void validateZeros(List<String> sourceList) {
-		for (String item : sourceList) {
-			if (item.contains("0") && item.length() > 1) {
-				throw new RuleFormatException("\"0\" cannot be combined with other symbols.");
-			}
-		}
-	}
-
 	/**
 	 * Once converted to features, ensure that the rule's transform is well-
 	 * formed and has an appropriate structure
