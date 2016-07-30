@@ -245,9 +245,6 @@ public final class FeatureSpecification {
 		private final List<Constraint> constraints;
 		
 		private final Map<String, Integer> featureIndices;
-		
-//		private final Map<String, Integer> featureNames;
-//		private final Map<String, Integer> featureAliases;
 
 		private final Map<String, FeatureArray<Double>> aliases;
 
@@ -366,8 +363,6 @@ public final class FeatureSpecification {
 
 	@Override
 	public String toString() {
-		return "FeatureSpecification{" +
-				"featureNames=" + featureNames +
-				'}';
+		return "FeatureSpecification{" + featureNames + '}';
 	}
 }
