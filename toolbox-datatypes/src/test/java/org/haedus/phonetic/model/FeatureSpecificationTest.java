@@ -17,6 +17,7 @@
 
 package org.haedus.phonetic.model;
 
+import org.haedus.phonetic.features.FeatureArray;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -40,7 +42,7 @@ public class FeatureSpecificationTest {
 			FeatureSpecificationTest.class);
 	
 	private static final FeatureSpecification MODEL = load();
-	
+
 	private static FeatureSpecification load() {
 		String path = "AT_hybrid.spec";
 		try {
@@ -48,13 +50,44 @@ public class FeatureSpecificationTest {
 		} catch (IOException e) {
 			LOGGER.error("Failed to load {}", path);
 		}
-		return null;
+		return FeatureSpecification.EMPTY;
 	}
-	
+
 	@Test
-	public void test() {
+	public void testSize() {
+		int size = MODEL.size();
+		assertEquals(19, size);
+	}
+
+	@Test
+	public void testGetIndexSonorant() {
+		int index = MODEL.getIndex("sonorant");
+		assertEquals(1, index);
+	}
+
+	@Test
+	public void testGetIndexLong() {
+		int index = MODEL.getIndex("long");
+		assertEquals(18, index);
+	}
+
+	@Test
+	public void testGetIndexBadFeature() {
+		int index = MODEL.getIndex("x");
+		assertEquals(-1, index);
+	}
+
+	@Test
+	public void getSegmentFromFeatures() {
+		FeatureArray<Double> features =
+				MODEL.getSegmentFromFeatures("[+con -son]").getFeatures();
+		assertEquals(1, features.get(0), 0.001);
+		assertEquals(-1, features.get(1), 0.001);
+	}
+
+	@Test
+	public void testConstraints() {
 		List<Constraint> constraints = MODEL.getConstraints();
-		
 		assertFalse("Constraints should not empty", constraints.isEmpty());
 	}
 }

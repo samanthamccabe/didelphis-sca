@@ -165,7 +165,8 @@ public final class FeatureSpecification {
 	}
 	
 	public int getIndex(String featureName) {
-		return featureIndices.get(featureName);
+		Integer index = featureIndices.get(featureName);
+		return index == null ? -1 : index;
 	}
 
 	public List<String> getFeatureNames() {
