@@ -15,10 +15,10 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -521,7 +521,7 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
+		SequenceFactory sequenceFactory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 
 		testTrue(sequenceFactory, condition,  "abaptk",  2);
@@ -543,7 +543,7 @@ public class ConditionTest {
 		VariableStore store = new VariableStore();
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory sequenceFactory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(),FormatterMode.INTELLIGENT);
+		SequenceFactory sequenceFactory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, new HashSet<String>(),FormatterMode.INTELLIGENT);
 		Condition condition = new Condition("_C+#", sequenceFactory);
 		
 		testTrue(sequenceFactory, condition,  "abatʰkʰ", 2);

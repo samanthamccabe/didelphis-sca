@@ -19,6 +19,7 @@ import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -306,7 +307,7 @@ public class RuleModelTest {
 		VariableStore store = new VariableStore();
 		store.add("V = a e i o u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Sequence original = factory.getSequence("mlan");
 		Sequence expected = factory.getSequence("blan");
@@ -341,7 +342,7 @@ public class RuleModelTest {
 		store.add("[OBSTRUENT] = [PLOSIVE] s");
 		store.add("C = [OBSTRUENT] A W");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
 
 		Sequence original = factory.getSequence("trh₂we");
 		Sequence expected = factory.getSequence("tə̄rwe");
@@ -395,7 +396,7 @@ public class RuleModelTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("a > b / C_ NOT x_", factory);
 
@@ -449,6 +450,6 @@ public class RuleModelTest {
 
 	private static FeatureModel loadModel() {
 		InputStream stream = RuleModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
-		return new FeatureModel(stream, FormatterMode.INTELLIGENT);
+		return new StandardFeatureModel(stream, FormatterMode.INTELLIGENT);
 	}
 }

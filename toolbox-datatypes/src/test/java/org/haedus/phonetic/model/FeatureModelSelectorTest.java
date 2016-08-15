@@ -16,7 +16,6 @@ package org.haedus.phonetic.model;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -29,7 +28,7 @@ import static org.junit.Assert.assertFalse;
  */
 public class FeatureModelSelectorTest extends ModelTestBase {
 
-	private static final FeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
+	private static final StandardFeatureModel MODEL = loadModel("AT_hybrid.model", FormatterMode.INTELLIGENT);
 	private static final FeatureSpecification SPEC = MODEL.getSpecification();
 	
 	@Test

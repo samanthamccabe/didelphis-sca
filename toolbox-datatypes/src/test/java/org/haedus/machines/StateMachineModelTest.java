@@ -18,6 +18,7 @@ import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
 import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class StateMachineModelTest extends MachineTestBase{
 		InputStream stream = StateMachineModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		FeatureModel model = new FeatureModel(stream, mode);
+		FeatureModel model = new StandardFeatureModel(stream, mode);
 
 		FACTORY = new SequenceFactory(model, mode);
 	}

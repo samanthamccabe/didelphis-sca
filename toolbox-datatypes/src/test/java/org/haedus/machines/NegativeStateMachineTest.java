@@ -16,9 +16,9 @@ package org.haedus.machines;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.enums.ParseDirection;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -283,7 +283,7 @@ public class NegativeStateMachineTest extends MachineTestBase {
 
 	private static StateMachine getStateMachine(VariableStore store, String expression) {
 		SequenceFactory factory = new SequenceFactory(
-			FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.NONE);
+			StandardFeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.NONE);
 		return StateMachine.create("M0", expression, factory, ParseDirection.FORWARD);
 	}
 }

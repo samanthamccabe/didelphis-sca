@@ -51,7 +51,7 @@ public class FeatureModelLoader {
 
 	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)");
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
-	private static final Pattern SPEC_PATTERN   = Pattern.compile("SPECIFICATION:\\s\"([^\"])\"");
+	private static final Pattern SPEC_PATTERN   = Pattern.compile("SPECIFICATION:\\s\"([^\"]+)\"");
 	
 	private final String        sourcePath;
 	private final FormatterMode formatterMode;

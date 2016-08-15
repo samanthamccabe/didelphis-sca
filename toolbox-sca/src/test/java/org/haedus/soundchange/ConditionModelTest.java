@@ -15,8 +15,8 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +154,6 @@ public class ConditionModelTest {
 	private static SequenceFactory loadModel() {
 		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		return new SequenceFactory(new FeatureModel(stream, mode),mode);
+		return new SequenceFactory(new StandardFeatureModel(stream, mode),mode);
 	}
 }
