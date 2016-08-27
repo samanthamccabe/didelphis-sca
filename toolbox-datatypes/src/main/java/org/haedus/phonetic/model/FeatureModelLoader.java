@@ -49,10 +49,11 @@ public class FeatureModelLoader {
 	private static final Pattern COMMENT_PATTERN  = Pattern.compile("\\s*%.*");
 	private static final Pattern ZONE_PATTERN     = Pattern.compile(ZONE_STRING);
 
-	private static final Pattern SYMBOL_PATTERN = Pattern.compile("(\\S+)\\t(.*)");
+	private static final Pattern SYMBOL_PATTERN = Pattern.compile("([^\\t]+)\\t(.*)");
 	private static final Pattern TAB_PATTERN    = Pattern.compile("\\t");
 	private static final Pattern SPEC_PATTERN   = Pattern.compile("SPECIFICATION:\\s\"([^\"]+)\"");
-	
+	private static final Pattern DOTTED_CIRCLE  = Pattern.compile("\u25CC", Pattern.LITERAL);
+
 	private final String        sourcePath;
 	private final FormatterMode formatterMode;
 	
@@ -189,7 +190,8 @@ public class FeatureModelLoader {
 					}
 					i++;
 				}
-				diacritics.put(symbol, array);
+				String diacritic = DOTTED_CIRCLE.matcher(symbol).replaceAll("");
+				diacritics.put(diacritic, array);
 			} else {
 				LOG.error("Unrecognized diacritic definition {}", entry);
 			}

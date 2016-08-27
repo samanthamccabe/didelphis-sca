@@ -212,7 +212,11 @@ public class StandardFeatureModel implements FeatureModel {
 					}
 				}
 			} else {
-				LOGGER.warn("Ignoring diacritic {}", diacritic);
+				StringBuilder s = new StringBuilder(head);
+				for (String d : diacritics) {
+					s.append(d);
+				}
+				LOGGER.warn("Ignoring diacritic {} in {}", diacritic, s);
 			}
 		}
 		return new Segment(sb.toString(), featureArray, specification);
