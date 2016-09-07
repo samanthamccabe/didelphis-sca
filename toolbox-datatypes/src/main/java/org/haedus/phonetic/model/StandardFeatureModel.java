@@ -51,7 +51,6 @@ public class StandardFeatureModel implements FeatureModel {
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> modifiers;
 
-
 	// Initializes an empty model; access to this should only be through the
 	// EMPTY_MODEL field
 	private StandardFeatureModel() {
@@ -61,14 +60,14 @@ public class StandardFeatureModel implements FeatureModel {
 	}
 
 	public StandardFeatureModel(InputStream stream, FormatterMode modeParam) {
-		this(new FeatureModelLoader(stream, modeParam), modeParam);
+		this(new FeatureModelLoader(stream, modeParam));
 	}
 
 	public StandardFeatureModel(File file, FormatterMode modeParam) {
-		this(new FeatureModelLoader(file, modeParam), modeParam);
+		this(new FeatureModelLoader(file, modeParam));
 	}
 
-	public StandardFeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
+	public StandardFeatureModel(FeatureModelLoader loader) {
 		featureMap    = loader.getFeatureMap();
 		modifiers = loader.getDiacritics();
 		specification = loader.getSpecification();
