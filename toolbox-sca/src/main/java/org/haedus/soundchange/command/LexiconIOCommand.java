@@ -36,11 +36,9 @@ public abstract class LexiconIOCommand implements Runnable  {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof LexiconIOCommand)) { return false; }
+		
 		LexiconIOCommand rhs = (LexiconIOCommand) obj;
 		return new EqualsBuilder()
 				.append(filePath, rhs.filePath)

@@ -14,7 +14,6 @@
 
 package org.haedus.phonetic.features;
 
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.model.FeatureSpecification;
 
 import java.util.HashMap;
@@ -151,13 +150,13 @@ public final class SparseFeatureArray<T extends Number & Comparable<T>>
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+	public boolean equals(Object obj) {
+		if (this == obj) { return true; }
+		if (!(obj instanceof SparseFeatureArray)) { return false; }
 
-		SparseFeatureArray<?> that = (SparseFeatureArray<?>) o;
+		SparseFeatureArray<?> that = (SparseFeatureArray<?>) obj;
 
-		return specification.equals(specification) &&
+		return specification.equals(that.specification) &&
 				features.equals(that.features);
 	}
 

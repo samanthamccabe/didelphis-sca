@@ -16,7 +16,6 @@ package org.haedus.tables;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.List;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
@@ -24,7 +23,6 @@ import java.util.List;
  */
 public final class WeightMatrix extends SymmetricTable<Double> {
 
-	private static final NumberFormat FORMAT_PREC = new DecimalFormat("0.0000");
 	private static final NumberFormat FORMAT      = new DecimalFormat("0.00");
 
 	public WeightMatrix(Double defaultValue, int n) {

@@ -41,8 +41,8 @@ public class Tuple<L, R> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
+		if (this == obj) { return true; }
+		if (!(obj instanceof Tuple)) { return false; }
 
 		Tuple<?, ?> tuple = (Tuple<?, ?>) obj;
 		return left.equals(tuple.left) && right.equals(tuple.right);
@@ -55,5 +55,10 @@ public class Tuple<L, R> {
 		result = 31 * result + (left  !=null ? left.hashCode()  : 0);
 		result = 31 * result + (right !=null ? right.hashCode() : 0);
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "<" + left + ", " + right + '>';
 	}
 }

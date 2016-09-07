@@ -26,9 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 /**
  * Samantha Fiona Morrigan McCabe
  * Created: 2/28/2015

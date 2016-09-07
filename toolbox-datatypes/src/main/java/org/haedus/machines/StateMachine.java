@@ -154,9 +154,8 @@ public class StateMachine implements Machine {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) { return true; }
+		if (!(obj instanceof StateMachine)) { return false; }
 
 		StateMachine that = (StateMachine) obj;
 		boolean isEqualAccepting = acceptingStates.equals(that.acceptingStates);
@@ -413,9 +412,9 @@ public class StateMachine implements Machine {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj == null) { return false; }
-			if (obj.getClass() != getClass()) { return false; }
-
+			if (this == obj) { return true; }
+			if (!(obj instanceof MatchState)) { return false; }
+			
 			MatchState other = (MatchState) obj;
 			return index == other.index &&
 				node.equals(other.node);

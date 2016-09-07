@@ -22,17 +22,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Samantha Fiona Morrigan McCabe Created: 7/4/2016
@@ -48,7 +42,7 @@ public class FeatureSpecificationTest {
 		try {
 			return FeatureSpecification.loadFromClassPath(path);
 		} catch (IOException e) {
-			LOGGER.error("Failed to load {}", path);
+			LOGGER.error("Failed to load {}", path, e);
 		}
 		return FeatureSpecification.EMPTY;
 	}

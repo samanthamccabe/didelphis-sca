@@ -17,7 +17,6 @@
 
 package org.haedus.phonetic.model;
 
-import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.SpecificationBearer;
 import org.haedus.phonetic.features.FeatureArray;

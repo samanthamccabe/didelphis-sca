@@ -15,14 +15,11 @@
 package org.haedus.machines;
 
 import org.haedus.enums.ParseDirection;
-import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;

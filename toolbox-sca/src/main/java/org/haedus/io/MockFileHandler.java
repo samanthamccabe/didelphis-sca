@@ -39,11 +39,9 @@ public class MockFileHandler implements FileHandler {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof MockFileHandler)) { return false; }
+		
 		MockFileHandler rhs = (MockFileHandler) obj;
 		return new EqualsBuilder()
 				.append(mockFileSystem, rhs.mockFileSystem)

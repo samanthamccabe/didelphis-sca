@@ -147,8 +147,7 @@ public class StandardFeatureModel implements FeatureModel {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if (obj == null) { return false; }
-		if (getClass() != obj.getClass()) { return false; }
+		if (!(obj instanceof StandardFeatureModel)) { return false; }
 
 		StandardFeatureModel other = (StandardFeatureModel) obj;
 		boolean diacriticsEquals = modifiers.equals(other.modifiers);

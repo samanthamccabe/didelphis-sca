@@ -59,8 +59,8 @@ public class FeatureModelLoader {
 	
 	private FeatureSpecification specification;
 	
-	private Map<String, FeatureArray<Double>> featureMap;
-	private Map<String, FeatureArray<Double>> diacritics;
+	private final Map<String, FeatureArray<Double>> featureMap;
+	private final Map<String, FeatureArray<Double>> diacritics;
 
 	public FeatureModelLoader(File file, FormatterMode modeParam) {
 		sourcePath = file.getAbsolutePath();

@@ -65,8 +65,7 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if (obj == null) { return false; }
-		if (getClass() != obj.getClass()) { return false; }
+		if (!(obj instanceof LexiconCloseCommand)) { return false; }
 
 		LexiconCloseCommand other = (LexiconCloseCommand) obj;
 		return new EqualsBuilder()
@@ -82,5 +81,13 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 			.appendSuper(super.hashCode())
 			.append(lexicons)
 			.toHashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "LexiconCloseCommand{" +
+				"lexicons=" + lexicons +
+				", mode=" + mode +
+				'}';
 	}
 }

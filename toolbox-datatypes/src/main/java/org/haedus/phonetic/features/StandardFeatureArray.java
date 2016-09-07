@@ -14,7 +14,6 @@
 
 package org.haedus.phonetic.features;
 
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.model.FeatureSpecification;
 
 import java.util.ArrayList;
@@ -82,7 +81,7 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 		}
 
 		for (int i = 0; i < size(); i++) {
-			T a = this.get(i);
+			T a = get(i);
 			T b = array.get(i);
 			boolean matches =
 					a == null ||
@@ -147,8 +146,8 @@ public final class StandardFeatureArray<T extends Number & Comparable<T>>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
+		if (this == obj) { return true; }
+		if (!(obj instanceof StandardFeatureArray)) { return false; }
 
 		StandardFeatureArray<?> that = (StandardFeatureArray<?>) obj;
 
