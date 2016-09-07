@@ -24,6 +24,7 @@ import org.haedus.exceptions.ParseException;
 import org.haedus.machines.Expression;
 import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.model.FeatureSpecification;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,9 @@ import java.util.regex.Pattern;
  */
 public final class Segmenter {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(FeatureModel.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
-	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private static final int BINDER_START      = 0x035C;
 	private static final int BINDER_END        = 0x0362;
@@ -56,8 +57,7 @@ public final class Segmenter {
 	private static final int SUPERSCRIPT_ONE   = 0x00B9;
 
 	// Prevent the class from being instantiated
-	private Segmenter() {
-	}
+	private Segmenter() {}
 
 	public static List<Expression> getExpressions(String string, Collection<String> keys, FormatterMode formatterMode) {
 
@@ -151,7 +151,7 @@ public final class Segmenter {
 			List<String> tail = item.getTail();
 
 			Segment segment;
-			if (head.startsWith("[") && !keys.contains(head) && model != FeatureModel.EMPTY_MODEL) {
+			if (head.startsWith("[") && !keys.contains(head) && model != StandardFeatureModel.EMPTY_MODEL) {
 				segment = specification.getSegmentFromFeatures(head);
 			} else {
 				segment = model.getSegment(head, tail);

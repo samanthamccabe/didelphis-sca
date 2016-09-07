@@ -14,18 +14,13 @@
 
 package org.haedus.soundchange.command;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.haedus.io.FileHandler;
-import org.haedus.phonetic.LexiconMap;
 import org.haedus.soundchange.SoundChangeScript;
 import org.haedus.soundchange.StandardScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
@@ -57,11 +52,9 @@ public class ScriptExecuteCommand implements Runnable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof ScriptExecuteCommand)) { return false; }
+		
 		ScriptExecuteCommand rhs = (ScriptExecuteCommand) obj;
 		return new EqualsBuilder()
 				.append(path, rhs.path)

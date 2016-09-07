@@ -16,6 +16,7 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public class SequenceTest {
 
 		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
-		FeatureModel model = new FeatureModel(stream, mode);
+		FeatureModel model = new StandardFeatureModel(stream, mode);
 
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
@@ -105,7 +106,7 @@ public class SequenceTest {
 
 		InputStream stream = SequenceTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
-		FeatureModel model = new FeatureModel(stream, mode);
+		FeatureModel model = new StandardFeatureModel(stream, mode);
 		SequenceFactory factory = new SequenceFactory(model, mode);
 
 		Sequence sequence = factory.getSequence("a[-continuant, +rel, -voice]");
@@ -433,7 +434,7 @@ public class SequenceTest {
 	public void testStartsWith03() {
 		Sequence sequence = FACTORY.getSequence("elə");
 
-		assertFalse(sequence.startsWith(FACTORY.getSequence("eʔé")));
+		assertFalse(sequence.startsWith(FACTORY.getSequence("eʔo")));
 	}
 }
 

@@ -16,6 +16,7 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.model.FeatureModel;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class SequenceFactoryTest {
 		InputStream stream = SequenceFactoryTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode formatterMode = FormatterMode.INTELLIGENT;
 		
-		FeatureModel model = new FeatureModel(stream, formatterMode);
+		FeatureModel model = new StandardFeatureModel(stream, formatterMode);
 		
 		String word = "avaːm";
 
@@ -56,7 +57,7 @@ public class SequenceFactoryTest {
 		reserved.add("kh");
 
 		SequenceFactory factory = new SequenceFactory(
-			FeatureModel.EMPTY_MODEL,
+			StandardFeatureModel.EMPTY_MODEL,
 			new VariableStore(),
 			reserved,
 			FormatterMode.NONE);

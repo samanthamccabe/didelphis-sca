@@ -14,6 +14,7 @@
 
 package org.haedus.tables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,16 +118,16 @@ public final class DataTable<E> implements ColumnTable<E> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) { return true; }
+		if (!(o instanceof  DataTable)) { return false; }
 
 		DataTable<?> dataTable = (DataTable<?>) o;
 
-		if (nRows != dataTable.nRows) return false;
-		if (!columns.equals(dataTable.columns)) return false;
-		if (!rows.equals(dataTable.rows)) return false;
-		return keys.equals(dataTable.keys);
-
+		return new EqualsBuilder()
+				.append(nRows, dataTable.nRows)
+				.append(columns, dataTable.columns)
+				.append(rows, dataTable.rows)
+				.build();
 	}
 
 	@Override
@@ -150,6 +151,7 @@ public final class DataTable<E> implements ColumnTable<E> {
 		return nRows;
 	}
 
+	@Override
 	public int getNumberColumns() {
 		return keys.size();	
 	}

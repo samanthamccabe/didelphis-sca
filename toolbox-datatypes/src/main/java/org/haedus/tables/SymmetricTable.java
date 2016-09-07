@@ -29,6 +29,21 @@ public class SymmetricTable<E> extends AbstractTable<E> {
 		super(n, n);
 		array = new ArrayList<E>(n + n * n / 2);
 	}
+
+	public SymmetricTable(int n, List<E> array) {
+		super(n, n);
+
+		int size = n + n * n / 2;
+		
+		if (array.size() == size) {
+			this.array = new ArrayList<E>(array);
+		} else {
+			throw new IllegalArgumentException(
+					"Array was provided with size " + array.size() + " but " +
+							"must be " + size
+			);
+		}
+	}
 	
 	public SymmetricTable(E defaultValue, int n) {
 		this(n);
@@ -62,14 +77,12 @@ public class SymmetricTable<E> extends AbstractTable<E> {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("RefusedBequest")
 	@Override
 	public void set(E element, int i, int j) {
 		int index = getIndex(i, j);
 		array.set(index, element);
 	}
 
-	@SuppressWarnings("RefusedBequest")
 	@Override
 	public E get(int i, int j) {
 		return array.get(getIndex(i, j));

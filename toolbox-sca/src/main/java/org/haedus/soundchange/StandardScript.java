@@ -23,6 +23,7 @@ import org.haedus.phonetic.Lexicon;
 import org.haedus.phonetic.LexiconMap;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.haedus.soundchange.command.LexiconCloseCommand;
 import org.haedus.soundchange.command.LexiconOpenCommand;
 import org.haedus.soundchange.command.LexiconWriteCommand;
@@ -91,7 +92,7 @@ public class StandardScript implements SoundChangeScript {
 	private FeatureModel  featureModel;
 
 	public StandardScript(String id, CharSequence script, FileHandler handler) {
-		this(id, handler, FormatterMode.NONE, FeatureModel.EMPTY_MODEL);
+		this(id, handler, FormatterMode.NONE, StandardFeatureModel.EMPTY_MODEL);
 
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(script));
@@ -210,7 +211,7 @@ public class StandardScript implements SoundChangeScript {
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 
 		FeatureModelLoader loader = new FeatureModelLoader(path, handler.readLines(path), mode);
-		return new FeatureModel(loader, mode);
+		return new StandardFeatureModel(loader);
 	}
 
 	/**

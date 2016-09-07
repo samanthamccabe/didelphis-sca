@@ -108,4 +108,9 @@ public class TwoKeyMultiHashMap<T,U,V> implements TwoKeyMultiMap<T,U,V> {
 		}
 		return list.iterator();
 	}
+
+	@Override
+	public String toString() {
+		return "TwoKeyMultiHashMap{" + map + '}';
+	}
 }

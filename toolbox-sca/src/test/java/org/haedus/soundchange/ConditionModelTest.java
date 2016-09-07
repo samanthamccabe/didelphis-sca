@@ -15,8 +15,8 @@
 package org.haedus.soundchange;
 
 import org.haedus.enums.FormatterMode;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.SequenceFactory;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,47 +60,47 @@ public class ConditionModelTest {
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
 		test(condition, "xakʰus");
-		test(condition, "xaḱʰus");
+		test(condition, "xacʰus");
 
 		test(condition, "xepʰus");
 		test(condition, "xetʰus");
 		test(condition, "xekʰus");
-		test(condition, "xeḱʰus");
+		test(condition, "xecʰus");
 
 		test(condition, "xopʰus");
 		test(condition, "xotʰus");
 		test(condition, "xokʰus");
-		test(condition, "xoḱʰus");
+		test(condition, "xocʰus");
 
 		test(condition, "xāpʰus");
 		test(condition, "xātʰus");
 		test(condition, "xākʰus");
-		test(condition, "xāḱʰus");
+		test(condition, "xācʰus");
 
 		test(condition, "xēpʰus");
 		test(condition, "xētʰus");
 		test(condition, "xēkʰus");
-		test(condition, "xēḱʰus");
+		test(condition, "xēcʰus");
 
 		test(condition, "xōpʰus");
 		test(condition, "xōtʰus");
 		test(condition, "xōkʰus");
-		test(condition, "xōḱʰus");
+		test(condition, "xōcʰus");
 
 		test(condition, "xipʰus");
 		test(condition, "xitʰus");
 		test(condition, "xikʰus");
-		test(condition, "xiḱʰus");
+		test(condition, "xicʰus");
 
 		fail(condition, "xōpus");
 		fail(condition, "xōtus");
 		fail(condition, "xōkus");
-		fail(condition, "xōḱus");
+		fail(condition, "xōcus");
 
 		fail(condition, "xa̰pʰus");
 		fail(condition, "xa̰tʰus");
 		fail(condition, "xa̰kʰus");
-		fail(condition, "xa̰ḱʰus");
+		fail(condition, "xa̰cʰus");
 	}
 
 	@Test
@@ -110,37 +110,37 @@ public class ConditionModelTest {
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
 		test(condition, "xakʰus");
-		test(condition, "xaḱʰus");
+		test(condition, "xacʰus");
 
 		test(condition, "xepʰus");
 		test(condition, "xetʰus");
 		test(condition, "xekʰus");
-		test(condition, "xeḱʰus");
+		test(condition, "xecʰus");
 
 		test(condition, "xāpʰus");
 		test(condition, "xātʰus");
 		test(condition, "xākʰus");
-		test(condition, "xāḱʰus");
+		test(condition, "xācʰus");
 
 		test(condition, "xōpʰus");
 		test(condition, "xōtʰus");
 		test(condition, "xōkʰus");
-		test(condition, "xōḱʰus");
+		test(condition, "xōcʰus");
 
 		test(condition, "xōpus");
 		test(condition, "xōtus");
 		test(condition, "xōkus");
-		test(condition, "xōḱus");
+		test(condition, "xōcus");
 
 		test(condition, "xa̤pʰus");
 		test(condition, "xa̤tʰus");
 		test(condition, "xa̤kʰus");
-		test(condition, "xa̤ḱʰus");
+		test(condition, "xa̤cʰus");
 
 		fail(condition, "xpʰeus");
 		fail(condition, "xtʰeus");
 		fail(condition, "xkʰeus");
-		fail(condition, "xḱʰeus");
+		fail(condition, "xcʰeus");
 	}
 
 	private static void test(Condition condition, String target) {
@@ -154,6 +154,6 @@ public class ConditionModelTest {
 	private static SequenceFactory loadModel() {
 		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		return new SequenceFactory(new FeatureModel(stream, mode),mode);
+		return new SequenceFactory(new StandardFeatureModel(stream, mode),mode);
 	}
 }

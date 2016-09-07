@@ -121,11 +121,9 @@ public class Rule implements Runnable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof Rule)) { return false; }
+		
 		Rule rhs = (Rule) obj;
 		return new EqualsBuilder()
 			.append(ruleText, rhs.ruleText)

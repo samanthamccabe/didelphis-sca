@@ -64,9 +64,8 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) { return true;  }
-		if (obj == null) { return false; }
-		if (getClass() != obj.getClass()) { return false; }
+		if (this == obj) { return true; }
+		if (!(obj instanceof LexiconWriteCommand)) { return false; }
 
 		LexiconWriteCommand other = (LexiconWriteCommand) obj;
 		return new EqualsBuilder()
@@ -82,5 +81,13 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 				.appendSuper(super.hashCode())
 				.append(lexicons)
 				.toHashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "LexiconWriteCommand{" +
+				"lexicons=" + lexicons +
+				", mode=" + mode +
+				'}';
 	}
 }

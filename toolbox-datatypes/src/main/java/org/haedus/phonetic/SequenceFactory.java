@@ -23,13 +23,13 @@ import org.haedus.phonetic.features.SparseFeatureArray;
 import org.haedus.phonetic.features.StandardFeatureArray;
 import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.model.FeatureSpecification;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,11 +60,11 @@ public class SequenceFactory {
 	private final Sequence borderSequence;
 
 	private SequenceFactory() {
-		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), FormatterMode.NONE);
+		this(StandardFeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), FormatterMode.NONE);
 	}
 
 	public SequenceFactory(FormatterMode modeParam) {
-		this(FeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), modeParam);
+		this(StandardFeatureModel.EMPTY_MODEL, new VariableStore(), new HashSet<String>(), modeParam);
 	}
 
 	public SequenceFactory(FeatureModel modelParam, FormatterMode modeParam) {
@@ -93,7 +93,7 @@ public class SequenceFactory {
 		dotSequence    = new Sequence(dotSegment);
 		borderSequence = new Sequence(borderSegment);
 	}
-
+	
 	public static SequenceFactory getEmptyFactory() {
 		return EMPTY_FACTORY;
 	}

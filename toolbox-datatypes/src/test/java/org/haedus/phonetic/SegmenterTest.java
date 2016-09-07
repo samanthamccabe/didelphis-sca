@@ -16,7 +16,7 @@ package org.haedus.phonetic;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.model.FeatureModel;
-import org.junit.BeforeClass;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -32,7 +32,7 @@ public class SegmenterTest {
 	private static FeatureModel init() {
 		InputStream stream = SegmenterTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
 
-		return new FeatureModel(stream, FormatterMode.NONE);
+		return new StandardFeatureModel(stream, FormatterMode.NONE);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class SegmenterTest {
 
 	@Test
 	public void testSequence02() {
-		String word = "aḱʰus";
+		String word = "acʰus";
 
 		Sequence sequence = getSequence(word);
 		assertTrue(sequence.size() == 4);

@@ -226,7 +226,7 @@ public class Segment implements SpecificationBearer, Comparable<Segment> {
 		FeatureSpecification otherModel = that.getSpecification();
 		if (!specification.equals(otherModel)) {
 			throw new RuntimeException(
-				"Attempting to interoperate " + that.getClass() + " with an incompatible featureModel!\n" +
+				"Attempting to inter-operate " + that.getClass() + " with an incompatible featureModel!\n" +
 					'\t' + this + '\t' + specification.getFeatureNames() + '\n' +
 					'\t' + that + '\t' + otherModel.getFeatureNames()
 			);

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,6 +35,8 @@ public class Sequence implements List<Segment>, SpecificationBearer, Comparable<
 	public static final Sequence EMPTY_SEQUENCE = new Sequence(Segment.EMPTY_SEGMENT);
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Sequence.class);
+	private static final Object[] OBJECTS = new Object[0];
+	
 	private final List<Segment> sequence;
 	private final FeatureSpecification specification;
 
@@ -168,6 +171,7 @@ public class Sequence implements List<Segment>, SpecificationBearer, Comparable<
 		return index;
 	}
 
+	@Override
 	public Segment remove(int index) {
 		return sequence.remove(index);
 	}
@@ -294,13 +298,28 @@ public class Sequence implements List<Segment>, SpecificationBearer, Comparable<
 	@NotNull
 	@Override
 	public Object[] toArray() {
-		return new Object[0];
+		int size = sequence.size();
+		Object[] objects = new Object[size];
+		for (int i = 0; i < size; i++) {
+			objects[i] = sequence.get(i);
+		}
+		return objects;
 	}
 
 	@NotNull
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return null;
+		int size = sequence.size();
+		Object[] elementData = toArray();
+		if (a.length < size) {
+			//noinspection unchecked
+			return (T[]) Arrays.copyOf(elementData, size, a.getClass());
+		}
+		System.arraycopy(elementData, 0, a, 0, size);
+		if (a.length > size) {
+			a[size] = null;
+		}
+		return a;
 	}
 
 	@Override
@@ -313,8 +332,9 @@ public class Sequence implements List<Segment>, SpecificationBearer, Comparable<
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj.getClass() != getClass()) { return false; }
+		if (this == obj) { return true; }
+		if (!(obj instanceof Sequence)) { return false; }
+		
 		Sequence object = (Sequence) obj;
 		return specification.equals(object.specification) && sequence.equals(object.sequence);
 	}
@@ -329,6 +349,7 @@ public class Sequence implements List<Segment>, SpecificationBearer, Comparable<
 		return sb.toString();
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return sequence.isEmpty();
 	}

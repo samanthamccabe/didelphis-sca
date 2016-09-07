@@ -16,10 +16,10 @@ package org.haedus.soundchange.command;
 
 import org.haedus.enums.FormatterMode;
 import org.haedus.exceptions.ParseException;
-import org.haedus.phonetic.model.FeatureModel;
 import org.haedus.phonetic.Sequence;
 import org.haedus.phonetic.SequenceFactory;
 import org.haedus.phonetic.VariableStore;
+import org.haedus.phonetic.model.StandardFeatureModel;
 import org.haedus.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * Created with IntelliJ IDEA.
@@ -82,7 +81,7 @@ public class RuleTest {
 		store.add("V  = VS VL");
 		store.add("X  = x ʔ");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("X  > 0   / [Obstruent]_V", factory);
 	}
@@ -93,7 +92,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$1", factory);
 
@@ -117,7 +116,7 @@ public class RuleTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 
 		Rule rule = new Rule("CVN > $3V$1", factory);
@@ -141,7 +140,7 @@ public class RuleTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("CN > $2$G1", factory);
 
@@ -317,7 +316,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("V = a e i o u");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Sequence original = factory.getSequence("mlan");
 		Sequence expected = factory.getSequence("blan");
@@ -352,7 +351,7 @@ public class RuleTest {
 		store.add("[OBSTRUENT] = [PLOSIVE] s");
 		store.add("C = [OBSTRUENT] A W");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, new HashSet<String>(), FormatterMode.INTELLIGENT);
 
 		Sequence original = factory.getSequence("trh₂we");
 		Sequence expected = factory.getSequence("tə̄rwe");
@@ -406,7 +405,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("a > b / C_ NOT x_", factory);
 
@@ -421,7 +420,7 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 		store.add("C = x y z");
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("a > b / not x_", factory);
 
@@ -436,7 +435,7 @@ public class RuleTest {
 	public void testCompound05() {
 		VariableStore store = new VariableStore();
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 		Rule rule = new Rule("a > b / not x_ not _y", factory);
 
@@ -451,7 +450,7 @@ public class RuleTest {
 	public void testCompound06() {
 		VariableStore store = new VariableStore();
 
-		SequenceFactory factory = new SequenceFactory(FeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
+		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 		Rule rule = new Rule("a > b / not x_ or _y", factory);
 	}
 

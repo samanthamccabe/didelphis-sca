@@ -47,11 +47,9 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof LexiconOpenCommand)) { return false; }
+		
 		LexiconOpenCommand rhs = (LexiconOpenCommand) obj;
 		return new EqualsBuilder()
 				.appendSuper(super.equals(obj))
@@ -63,5 +61,13 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 		return new HashCodeBuilder()
 				.appendSuper(super.hashCode())
 				.toHashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "LexiconOpenCommand{" +
+				"lexicons=" + lexicons +
+				", factory=" + factory +
+				'}';
 	}
 }

@@ -28,8 +28,8 @@ public class ModelTestBase {
 		return new SequenceFactory(loadModel(resourceName, mode), mode);
 	}
 
-	protected static FeatureModel loadModel(String resourceName, FormatterMode mode) {
+	protected static StandardFeatureModel loadModel(String resourceName, FormatterMode mode) {
 		InputStream stream = ModelTestBase.class.getClassLoader().getResourceAsStream(resourceName);
-		return new FeatureModel(stream, mode);
+		return new StandardFeatureModel(stream, mode);
 	}
 }
