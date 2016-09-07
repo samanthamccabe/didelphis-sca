@@ -237,30 +237,30 @@ public class StateMachineTest extends MachineTestBase{
 
 	@Test
 	public void testComplex02() {
-		Machine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ cʰ}us");
 
-		test(machine, "āḱʰus");
+		test(machine, "ācʰus");
 	}
 
 	@Test
 	public void testComplex03() {
-		Machine machine = getMachine("a?{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("a?{pʰ tʰ kʰ cʰ}us");
 
 		test(machine, "pʰus");
 		test(machine, "tʰus");
 		test(machine, "kʰus");
-		test(machine, "ḱʰus");
-		test(machine, "aḱʰus");
+		test(machine, "cʰus");
+		test(machine, "acʰus");
 	}
 
 	@Test
 	public void testComplex04() {
-		Machine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ ḱʰ}us");
+		Machine machine = getMachine("{a e o ā ē ō}{pʰ tʰ kʰ cʰ}us");
 
 		test(machine, "apʰus");
 		test(machine, "atʰus");
 		test(machine, "akʰus");
-		test(machine, "aḱʰus");
+		test(machine, "acʰus");
 	}
 
 	@Test

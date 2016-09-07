@@ -93,7 +93,7 @@ public class SequenceFactory {
 		dotSequence    = new Sequence(dotSegment);
 		borderSequence = new Sequence(borderSegment);
 	}
-
+	
 	public static SequenceFactory getEmptyFactory() {
 		return EMPTY_FACTORY;
 	}

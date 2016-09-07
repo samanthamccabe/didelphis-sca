@@ -22,6 +22,7 @@ creaky		crk	ternary % 15
 breathy		bth	binary  % 16
 distributed	dst	binary  % 17
 long		lng	binary  % 18
+upper		upr	binary	% 19
 
 ALIASES
 [+vot]    = [+breathy]

@@ -94,7 +94,7 @@ public class StandardFeatureModelTest extends ModelTestBase {
 	}
 	
 	private static void testBestSymbol(String string) {
-		Segment segment = Segmenter.getSegment(string, MODEL, MODEL.getFormatterMode());
+		Segment segment = Segmenter.getSegment(string, MODEL, FormatterMode.INTELLIGENT);
 		
 		FeatureArray<Double> array = segment.getFeatures();
 		String bestSymbol = MODEL.getBestSymbol(array);

@@ -51,36 +51,26 @@ public class StandardFeatureModel implements FeatureModel {
 	private final Map<String, FeatureArray<Double>> featureMap;
 	private final Map<String, FeatureArray<Double>> modifiers;
 
-	private final FormatterMode formatterMode;
-
 	// Initializes an empty model; access to this should only be through the
 	// EMPTY_MODEL field
 	private StandardFeatureModel() {
 		specification = FeatureSpecification.EMPTY;
 		featureMap = new LinkedHashMap<String, FeatureArray<Double>>();
 		modifiers = new LinkedHashMap<String, FeatureArray<Double>>();
-		formatterMode = FormatterMode.NONE;
 	}
 
 	public StandardFeatureModel(InputStream stream, FormatterMode modeParam) {
-		this(new FeatureModelLoader(stream, modeParam), modeParam);
+		this(new FeatureModelLoader(stream, modeParam));
 	}
 
 	public StandardFeatureModel(File file, FormatterMode modeParam) {
-		this(new FeatureModelLoader(file, modeParam), modeParam);
+		this(new FeatureModelLoader(file, modeParam));
 	}
 
-	public StandardFeatureModel(FeatureModelLoader loader, FormatterMode modeParam) {
+	public StandardFeatureModel(FeatureModelLoader loader) {
 		featureMap    = loader.getFeatureMap();
 		modifiers = loader.getDiacritics();
 		specification = loader.getSpecification();
-		formatterMode = modeParam;
-	}
-
-
-	@Override
-	public FormatterMode getFormatterMode() {
-		return formatterMode;
 	}
 	
 	@Override
@@ -109,7 +99,7 @@ public class StandardFeatureModel implements FeatureModel {
 				}
 			}
 		}
-		return formatterMode.normalize(bestSymbol + sb);
+		return bestSymbol + sb;
 	}
 
 	// Return a list of all segments g such that matches.matches(input) is true
@@ -211,7 +201,7 @@ public class StandardFeatureModel implements FeatureModel {
 						featureArray.set(i, d);
 					}
 				}
-			} else {
+			} else if (this != EMPTY_MODEL){
 				StringBuilder s = new StringBuilder(head);
 				for (String d : diacritics) {
 					s.append(d);

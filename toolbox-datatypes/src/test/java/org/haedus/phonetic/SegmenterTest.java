@@ -61,7 +61,7 @@ public class SegmenterTest {
 
 	@Test
 	public void testSequence02() {
-		String word = "aḱʰus";
+		String word = "acʰus";
 
 		Sequence sequence = getSequence(word);
 		assertTrue(sequence.size() == 4);
