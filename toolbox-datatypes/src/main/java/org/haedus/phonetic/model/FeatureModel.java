@@ -31,8 +31,6 @@ import java.util.Set;
  */
 public interface FeatureModel extends SpecificationBearer {
 	
-	FormatterMode getFormatterMode();
-
 	String getBestSymbol(FeatureArray<Double> featureArray);
 
 	Set<String> getSymbols();

@@ -56,7 +56,7 @@ public class FeatureSpecificationTest {
 	@Test
 	public void testSize() {
 		int size = MODEL.size();
-		assertEquals(19, size);
+		assertEquals(20, size);
 	}
 
 	@Test

@@ -434,7 +434,7 @@ public class SequenceTest {
 	public void testStartsWith03() {
 		Sequence sequence = FACTORY.getSequence("elə");
 
-		assertFalse(sequence.startsWith(FACTORY.getSequence("eʔé")));
+		assertFalse(sequence.startsWith(FACTORY.getSequence("eʔo")));
 	}
 }
 

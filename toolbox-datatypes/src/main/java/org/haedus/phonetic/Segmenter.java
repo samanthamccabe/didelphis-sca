@@ -44,9 +44,9 @@ import java.util.regex.Pattern;
  */
 public final class Segmenter {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardFeatureModel.class);
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(Segmenter.class);
 
-	public static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
+	private static final Pattern BACKREFERENCE_PATTERN = Pattern.compile("(\\$[^\\$]*\\d+)");
 
 	private static final int BINDER_START      = 0x035C;
 	private static final int BINDER_END        = 0x0362;
@@ -57,8 +57,7 @@ public final class Segmenter {
 	private static final int SUPERSCRIPT_ONE   = 0x00B9;
 
 	// Prevent the class from being instantiated
-	private Segmenter() {
-	}
+	private Segmenter() {}
 
 	public static List<Expression> getExpressions(String string, Collection<String> keys, FormatterMode formatterMode) {
 

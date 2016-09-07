@@ -243,21 +243,21 @@ public class RuleModelTest {
 
 	@Test
 	public void testConditional05() {
-		Rule rule = new Rule("rˌh lˌh > ər əl / _a", FACTORY);
-		testRule(rule, FACTORY, "krˌha", "kəra");
-		testRule(rule, FACTORY, "klˌha", "kəla");
-		testRule(rule, FACTORY, "klˌhe", "klˌhe");
+		Rule rule = new Rule("r̄h l̄h > ər əl / _a", FACTORY);
+		testRule(rule, FACTORY, "kr̄ha", "kəra");
+		testRule(rule, FACTORY, "kl̄ha", "kəla");
+		testRule(rule, FACTORY, "kl̄he", "kl̄he");
 	}
 
 	@Test
 	public void testConditional06() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", FACTORY);
+		Rule rule = new Rule("pʰ tʰ kʰ cʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ cʰ}", FACTORY);
 
-		testRule(rule, FACTORY, "pʰāḱʰus", "bāḱʰus");
+		testRule(rule, FACTORY, "pʰācʰus", "bācʰus");
 		testRule(rule, FACTORY, "pʰentʰros", "bentʰros");
-		testRule(rule, FACTORY, "pʰlaḱʰmēn", "blaḱʰmēn");
+		testRule(rule, FACTORY, "pʰlacʰmēn", "blacʰmēn");
 		testRule(rule, FACTORY, "pʰoutʰéyet", "boutʰéyet");
-		testRule(rule, FACTORY, "pʰɛḱʰus", "pʰɛḱʰus");
+		testRule(rule, FACTORY, "pʰɛcʰus", "pʰɛcʰus");
 	}
 
 	@Test
@@ -285,10 +285,12 @@ public class RuleModelTest {
 
 	@Test
 	public void testUnconditional() {
-		Sequence word = FACTORY.getSequence("h₁óh₁es-");
-		Sequence expected = FACTORY.getSequence("ʔóʔes-");
+		SequenceFactory factory = SequenceFactory.getEmptyFactory();
 
-		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", FACTORY);
+		Sequence word = factory.getSequence("h₁óh₁es-");
+		Sequence expected = factory.getSequence("ʔóʔes-");
+
+		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", factory);
 
 		assertEquals(expected, rule.apply(word));
 	}
