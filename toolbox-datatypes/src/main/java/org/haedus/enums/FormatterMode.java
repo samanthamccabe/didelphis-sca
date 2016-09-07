@@ -31,7 +31,7 @@ public enum FormatterMode{
 	DECOMPOSITION(Normalizer.Form.NFD),
 	// Unicode Canonical Decomposition followed by Canonical Composition
 	COMPOSITION(Normalizer.Form.NFC),
-	// Uses Haedus segmentation algorithm with Unicode Canonical Decomposition
+	// Uses segmentation algorithm with Unicode Canonical Decomposition
 	INTELLIGENT(Normalizer.Form.NFD),
 	// No change to input strings
 	NONE(null);

@@ -47,8 +47,8 @@ public class Triple<T,U,V> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
+		if (this == obj) { return true; }
+		if (!(obj instanceof Triple)) { return false; }
 
 		Triple<?, ?, ?> triple = (Triple<?, ?, ?>) obj;
 		return  element1 != null && element1.equals(triple.element1) && 
@@ -63,5 +63,13 @@ public class Triple<T,U,V> {
 		result = 31 * result + (element2 != null ? element2.hashCode() : 0);
 		result = 31 * result + (element3 != null ? element3.hashCode() : 0);
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "<" + element1 +
+				", " + element2 +
+				", " + element3 +
+				'>';
 	}
 }

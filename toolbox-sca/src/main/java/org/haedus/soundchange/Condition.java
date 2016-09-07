@@ -110,11 +110,9 @@ public class Condition {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) { return false; }
-		if (obj == this) { return true; }
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+		if (this == obj) { return true; }
+		if (!(obj instanceof Condition)) { return false; }
+		
 		Condition rhs = (Condition) obj;
 		return new EqualsBuilder()
 				.append(preCondition, rhs.preCondition)

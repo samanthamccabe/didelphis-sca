@@ -55,9 +55,8 @@ public class Constraint implements SpecificationBearer {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (!getClass().equals(obj.getClass())) return false;
+		if (this == obj) { return true; }
+		if (!(obj instanceof Constraint)) { return false; }
 
 		Constraint constraint = (Constraint) obj;
 

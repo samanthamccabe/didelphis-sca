@@ -77,14 +77,12 @@ public class SymmetricTable<E> extends AbstractTable<E> {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("RefusedBequest")
 	@Override
 	public void set(E element, int i, int j) {
 		int index = getIndex(i, j);
 		array.set(index, element);
 	}
 
-	@SuppressWarnings("RefusedBequest")
 	@Override
 	public E get(int i, int j) {
 		return array.get(getIndex(i, j));

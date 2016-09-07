@@ -18,14 +18,9 @@ import org.haedus.enums.FormatterMode;
 import org.haedus.phonetic.Segment;
 import org.haedus.phonetic.Segmenter;
 import org.haedus.phonetic.features.FeatureArray;
-import org.haedus.phonetic.features.StandardFeatureArray;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
