@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
  * Time: 3:37 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RuleTest {
+public class BaseRuleTest {
 
 	private static final Set<String>     EMPTY_SET   = new HashSet<String>();
 	private static final SequenceFactory INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
@@ -43,32 +43,32 @@ public class RuleTest {
 
 	@Test(expected = ParseException.class)
 	public void testMultipleSourceZeroes() {
-		new Rule("0 0 > a", FACTORY);
+		new BaseRule("0 0 > a", FACTORY);
 	}
 
 	@Test(expected = ParseException.class)
 	public void testZeroWithMultipleTarget() {
-		new Rule("0 > a a", FACTORY);
+		new BaseRule("0 > a a", FACTORY);
 	}
 
 	@Test(expected = ParseException.class)
 	public void testMultipleZeroWithMultipleTarget() {
-		new Rule("0 0 > a a", FACTORY);
+		new BaseRule("0 0 > a a", FACTORY);
 	}
 	
 	@Test(expected = ParseException.class)
 	public void testMissingArrow() {
-		new Rule ("a", FACTORY);
+		new BaseRule("a", FACTORY);
 	}
 
 	@Test(expected = ParseException.class)
 	public void testUnbalancedTransform1() {
-		new Rule("b > a a", FACTORY);
+		new BaseRule("b > a a", FACTORY);
 	}
 
 	@Test(expected = ParseException.class)
 	public void testUnbalancedTransform2() {
-		new Rule("a b c > x y", FACTORY);
+		new BaseRule("a b c > x y", FACTORY);
 	}
 
 
@@ -83,7 +83,7 @@ public class RuleTest {
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("X  > 0   / [Obstruent]_V", factory);
+		BaseRule rule = new BaseRule("X  > 0   / [Obstruent]_V", factory);
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class RuleTest {
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("CN > $2$1", factory);
+		BaseRule rule = new BaseRule("CN > $2$1", factory);
 
 		testRule(rule, "pn", "np");
 		testRule(rule, "tn", "nt");
@@ -119,7 +119,7 @@ public class RuleTest {
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
 
-		Rule rule = new Rule("CVN > $3V$1", factory);
+		BaseRule rule = new BaseRule("CVN > $3V$1", factory);
 
 		testRule(rule, "pan", "nap");
 		testRule(rule, "tin", "nit");
@@ -142,7 +142,7 @@ public class RuleTest {
 		store.add("N = m n");
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("CN > $2$G1", factory);
+		BaseRule rule = new BaseRule("CN > $2$G1", factory);
 
 		testRule(rule, "pn", "nb");
 		testRule(rule, "tn", "nd");
@@ -159,32 +159,32 @@ public class RuleTest {
 
 	@Test
 	public void testDeletion01() {
-		Rule rule = new Rule("∅ - > 0", FACTORY);
+		Rule rule = new BaseRule("∅ - > 0", FACTORY);
 		testRule(rule, FACTORY, "∅-s-irentu-pʰen", "sirentupʰen");
 	}
 
 	@Test
 	public void testDeletion02() {
-		Rule rule = new Rule("a > 0", FACTORY);
+		Rule rule = new BaseRule("a > 0", FACTORY);
 		testRule(rule, FACTORY, "aaaabbba", "bbb");
 	}
 
 	@Test
 	public void testDeletion03() {
-		Rule rule = new Rule("a b > 0", FACTORY);
+		Rule rule = new BaseRule("a b > 0", FACTORY);
 		testRule(rule, FACTORY, "aaaaccbbccbba", "cccc");
 	}
 
 	@Test
 	public void testRule01() {
-		Rule rule = new Rule("a > b", FACTORY);
+		Rule rule = new BaseRule("a > b", FACTORY);
 
 		testRule(rule, FACTORY, "aaaaaaccca", "bbbbbbcccb");
 	}
 
 	@Test
 	public void testRule02() {
-		Rule rule = new Rule("a e > æ ɛ", FACTORY);
+		Rule rule = new BaseRule("a e > æ ɛ", FACTORY);
 
 		testRule(rule, FACTORY, "ate", "ætɛ");
 		testRule(rule, FACTORY, "atereyamane", "ætɛrɛyæmænɛ");
@@ -192,14 +192,15 @@ public class RuleTest {
 
 	@Test
 	public void testRule03() {
-		Rule rule = new Rule("a b c d e f g > A B C D E F G", FACTORY);
+		Rule
+				rule = new BaseRule("a b c d e f g > A B C D E F G", FACTORY);
 
 		testRule(rule, FACTORY, "abcdefghijk", "ABCDEFGhijk");
 	}
 
 	@Test
 	public void testConditional01() {
-		Rule rule = new Rule("a > o / g_", FACTORY);
+		Rule rule = new BaseRule("a > o / g_", FACTORY);
 
 		testRule(rule, FACTORY, "ga", "go");
 		testRule(rule, FACTORY, "adamagara", "adamagora");
@@ -207,7 +208,7 @@ public class RuleTest {
 
 	@Test
 	public void testConditional02() {
-		Rule rule = new Rule("a > e / _c", FACTORY);
+		Rule rule = new BaseRule("a > e / _c", FACTORY);
 		testRule(rule, FACTORY, "abacaba", "abecaba");
 		testRule(rule, FACTORY, "ababaca", "ababeca");
 		testRule(rule, FACTORY, "acababa", "ecababa");
@@ -216,7 +217,7 @@ public class RuleTest {
 
 	@Test
 	public void testConditional03() {
-		Rule rule = new Rule("a > e / _c+#", INTELLIGENT);
+		Rule rule = new BaseRule("a > e / _c+#", INTELLIGENT);
 		testRule(rule, INTELLIGENT, "abac", "abec");
 		testRule(rule, INTELLIGENT, "abacc", "abecc");
 		testRule(rule, INTELLIGENT, "abaccc", "abeccc");
@@ -226,7 +227,8 @@ public class RuleTest {
 
 	@Test
 	public void testUnconditional04() {
-		Rule rule = new Rule("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
+		Rule
+				rule = new BaseRule("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
 		testRule(rule, INTELLIGENT, "keʔe", "kē");
 		testRule(rule, INTELLIGENT, "kaʔa", "kā");
 		testRule(rule, INTELLIGENT, "keʔa", "kā");
@@ -235,7 +237,7 @@ public class RuleTest {
 
 	@Test
 	public void testConditional05() {
-		Rule rule = new Rule("rˌh lˌh > ər əl / _a", INTELLIGENT);
+		Rule rule = new BaseRule("rˌh lˌh > ər əl / _a", INTELLIGENT);
 		testRule(rule, INTELLIGENT, "krˌha", "kəra");
 		testRule(rule, INTELLIGENT, "klˌha", "kəla");
 		testRule(rule, INTELLIGENT, "klˌhe", "klˌhe");
@@ -243,7 +245,8 @@ public class RuleTest {
 
 	@Test
 	public void testConditional06() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
+		Rule
+				rule = new BaseRule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
 
 		testRule(rule, INTELLIGENT, "pʰāḱʰus", "bāḱʰus");
 		testRule(rule, INTELLIGENT, "pʰentʰros", "bentʰros");
@@ -254,7 +257,8 @@ public class RuleTest {
 
 	@Test
 	public void testConditional07() {
-		Rule rule = new Rule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
+		Rule
+				rule = new BaseRule("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
 
 		testRule(rule, INTELLIGENT, "pʰaḱʰus", "baḱʰus");
 		testRule(rule, INTELLIGENT, "pʰāḱʰus", "pʰāḱʰus");
@@ -262,7 +266,7 @@ public class RuleTest {
 
 	@Test
 	public void testConditional08() {
-		Rule rule = new Rule("d > t / _#", FACTORY);
+		Rule rule = new BaseRule("d > t / _#", FACTORY);
 
 		testRule(rule, FACTORY, "abad", "abat");
 		testRule(rule, FACTORY, "abada", "abada");
@@ -270,21 +274,21 @@ public class RuleTest {
 
 	@Test
 	public void testInsertion01() {
-		Rule rule = new Rule("q > qn", FACTORY);
+		Rule rule = new BaseRule("q > qn", FACTORY);
 
 		testRule(rule, FACTORY, "aqa", "aqna");
 	}
 
 	@Test
 	public void testInsertion02() {
-		Rule rule = new Rule("0 > n / q_", FACTORY);
+		Rule rule = new BaseRule("0 > n / q_", FACTORY);
 
 		testRule(rule, FACTORY, "aqa", "aqna");
 	}
 
 	@Test
 	public void testInsertion03() {
-		Rule rule = new Rule("0 > a / x_x", FACTORY);
+		Rule rule = new BaseRule("0 > a / x_x", FACTORY);
 
 		testRule(rule, FACTORY, "xx", "xax");
 		testRule(rule, FACTORY, "xxx", "xaxax");
@@ -297,7 +301,8 @@ public class RuleTest {
 		Sequence word = INTELLIGENT.getSequence("h₁óh₁es-");
 		Sequence expected = INTELLIGENT.getSequence("ʔóʔes-");
 
-		Rule rule = new Rule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
+		Rule
+				rule = new BaseRule("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(word));
 	}
@@ -305,7 +310,7 @@ public class RuleTest {
 	@Test
 	public void testUnconditional02() {
 		Sequence expected = INTELLIGENT.getSequence("telə");
-		Rule rule = new Rule("eʔé > ê", INTELLIGENT);
+		Rule rule = new BaseRule("eʔé > ê", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(expected));
 	}
@@ -321,14 +326,14 @@ public class RuleTest {
 		Sequence original = factory.getSequence("mlan");
 		Sequence expected = factory.getSequence("blan");
 
-		Rule rule = new Rule("ml > bl / #_V", factory);
+		Rule rule = new BaseRule("ml > bl / #_V", factory);
 
 		assertEquals(expected, rule.apply(original));
 	}
 
 	@Test
 	public void testUnconditional03() {
-		Rule rule = new Rule("ox > l", FACTORY);
+		Rule rule = new BaseRule("ox > l", FACTORY);
 
 		testRule(rule, FACTORY, "oxoxoxox", "llll");
 		testRule(rule, FACTORY, "moxmoxmoxmoxmox", "mlmlmlmlml");
@@ -356,10 +361,10 @@ public class RuleTest {
 		Sequence original = factory.getSequence("trh₂we");
 		Sequence expected = factory.getSequence("tə̄rwe");
 
-		Rule rule1 = new Rule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
-		Rule rule2 = new Rule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", factory);
-		Rule rule3 = new Rule("r̩ l̩ > r l / C_N{C #}", factory);
-		Rule rule4 = new Rule("r̩X l̩X > ə̄r ə̄l   / _{C #}", factory);
+		Rule rule1 = new BaseRule("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
+		Rule rule2 = new BaseRule("r l > r̩ l̩ / [OBSTRUENT]_{C #}", factory);
+		Rule rule3 = new BaseRule("r̩ l̩ > r l / C_N{C #}", factory);
+		Rule rule4 = new BaseRule("r̩X l̩X > ə̄r ə̄l   / _{C #}", factory);
 
 		Sequence sequence = rule1.apply(original);
 
@@ -375,7 +380,7 @@ public class RuleTest {
 		Sequence original = FACTORY.getSequence("pʰabopa");
 		Sequence expected = FACTORY.getSequence("papoba");
 
-		Rule rule = new Rule("pʰ p b > p b p", FACTORY);
+		Rule rule = new BaseRule("pʰ p b > p b p", FACTORY);
 
 		Sequence received = rule.apply(original);
 		assertEquals(expected, received);
@@ -383,7 +388,7 @@ public class RuleTest {
 
 	@Test
 	public void testCompound01() {
-		Rule rule = new Rule("a > b / x_ OR _y", FACTORY);
+		Rule rule = new BaseRule("a > b / x_ OR _y", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "aya", "bya");
@@ -393,7 +398,7 @@ public class RuleTest {
 
 	@Test
 	public void testCompound02() {
-		Rule rule = new Rule("a > b / x_ NOT _y", FACTORY);
+		Rule rule = new BaseRule("a > b / x_ NOT _y", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "axay", "axay");
@@ -407,7 +412,7 @@ public class RuleTest {
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("a > b / C_ NOT x_", factory);
+		Rule rule = new BaseRule("a > b / C_ NOT x_", factory);
 
 		testRule(rule, factory, "axa", "axa");
 		testRule(rule, factory, "aya", "ayb");
@@ -422,7 +427,7 @@ public class RuleTest {
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("a > b / not x_", factory);
+		Rule rule = new BaseRule("a > b / not x_", factory);
 
 		testRule(rule, factory, "xaa", "xab");
 		testRule(rule, factory, "axa", "bxa");
@@ -437,7 +442,7 @@ public class RuleTest {
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
 
-		Rule rule = new Rule("a > b / not x_ not _y", factory);
+		Rule rule = new BaseRule("a > b / not x_ not _y", factory);
 
 		testRule(rule, factory, "xaa", "xab");
 		testRule(rule, factory, "axa", "bxa");
@@ -451,12 +456,12 @@ public class RuleTest {
 		VariableStore store = new VariableStore();
 
 		SequenceFactory factory = new SequenceFactory(StandardFeatureModel.EMPTY_MODEL, store, EMPTY_SET, FormatterMode.INTELLIGENT);
-		Rule rule = new Rule("a > b / not x_ or _y", factory);
+		BaseRule rule = new BaseRule("a > b / not x_ or _y", factory);
 	}
 
 	@Test
 	public void testCompound07() {
-		Rule rule = new Rule("a > b / x_ OR _y NOT _a NOT b_", FACTORY);
+		Rule rule = new BaseRule("a > b / x_ OR _y NOT _a NOT b_", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "aya", "bya");
@@ -473,27 +478,27 @@ public class RuleTest {
 	 +======================================================================*/
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException01() {
-		new Rule(" > ", FACTORY);
+		new BaseRule(" > ", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException02() {
-		new Rule("a > b /", FACTORY);
+		new BaseRule("a > b /", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException03() {
-		new Rule("a > / b", FACTORY);
+		new BaseRule("a > / b", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException04() {
-		new Rule(" > a / b", FACTORY);
+		new BaseRule(" > a / b", FACTORY);
 	}
 
 	@Test(expected = RuleFormatException.class)
 	public void testRuleException05() {
-		new Rule(" > / b", FACTORY);
+		new BaseRule(" > / b", FACTORY);
 	}
 
 	private static void testRule(Rule rule, String seq, String exp) {

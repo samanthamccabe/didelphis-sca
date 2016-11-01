@@ -17,33 +17,50 @@
 
 package org.didelphis.soundchange.command;
 
+import org.didelphis.phonetic.Lexicon;
+import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.Sequence;
+
+import java.util.List;
 
 /**
  * Created by samantha on 10/23/16.
  */
-public interface Rule extends Runnable {
+public class CompoundRule implements Rule {
 
-	/**
-	 * Applies the rule to the provided <code>Sequence</code>. It is not
-	 * required that the changes be made in-place, <i>i.e.</i> to the input
-	 * parameter
-	 *
-	 * @param input the <code>Sequence</code> to which to apply the rule; cannot
-	 * be null
-	 * @return the modified <code>Sequence</code>. This can be
-	 */
-	public Sequence apply(Sequence input);
+	private final Iterable<BaseRule> rules;
+	private final LexiconMap lexicons;
 
-	/**
-	 * Applies the rule to the given input <i>in place</i>, that is, the object
-	 * passed in will be modified
-	 *
-	 * @param input the <code>Sequence</code> to which this rule will be applied
-	 * @param index the index at which to apply this rule
-	 * @return the index of the next position relative to the modified
-	 * <code>Sequence</code>, <i>i.e.</i> the position of the cursor after this
-	 * method has been called
-	 */
-	public int applyAtIndex(Sequence input, int index);
+	public CompoundRule(Iterable<BaseRule> rules, LexiconMap lexicons) {
+		this.rules = rules;
+		this.lexicons = lexicons;
+	}
+
+	@Override
+	public void run() {
+		for (Lexicon lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
+				for (int i = 0; i < row.size(); i++) {
+					Sequence word = apply(row.get(i));
+					row.set(i, word);
+				}
+			}
+		}
+	}
+
+	@Override
+	public Sequence apply(Sequence input) {
+		Sequence output = new Sequence(input);
+		for (int index = 0; index < output.size(); index++) {
+			for (BaseRule rule : rules) {
+				rule.applyAtIndex(output, index);
+			}
+		}
+		return output;
+	}
+
+	@Override
+	public int applyAtIndex(Sequence input, int index) {
+		return 0;
+	}
 }

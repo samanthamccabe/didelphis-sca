@@ -17,33 +17,55 @@
 
 package org.didelphis.soundchange.command;
 
+import org.didelphis.phonetic.Lexicon;
+import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.Sequence;
+import org.didelphis.phonetic.SequenceFactory;
+
+import java.util.List;
 
 /**
- * Created by samantha on 10/23/16.
+ * Created by samantha on 10/24/16.
  */
-public interface Rule extends Runnable {
+public class StandardRule implements Rule {
 
-	/**
-	 * Applies the rule to the provided <code>Sequence</code>. It is not
-	 * required that the changes be made in-place, <i>i.e.</i> to the input
-	 * parameter
-	 *
-	 * @param input the <code>Sequence</code> to which to apply the rule; cannot
-	 * be null
-	 * @return the modified <code>Sequence</code>. This can be
-	 */
-	public Sequence apply(Sequence input);
+	private final LexiconMap lexicons;
+	private final BaseRule rule;
 
-	/**
-	 * Applies the rule to the given input <i>in place</i>, that is, the object
-	 * passed in will be modified
-	 *
-	 * @param input the <code>Sequence</code> to which this rule will be applied
-	 * @param index the index at which to apply this rule
-	 * @return the index of the next position relative to the modified
-	 * <code>Sequence</code>, <i>i.e.</i> the position of the cursor after this
-	 * method has been called
-	 */
-	public int applyAtIndex(Sequence input, int index);
+	public StandardRule(String rule, LexiconMap lexicons, SequenceFactory factory) {
+		this.rule = new BaseRule(rule, factory);
+		this.lexicons = lexicons;
+	}
+
+	public StandardRule(BaseRule rule, LexiconMap lexicons) {
+		this.rule = rule;
+		this.lexicons = lexicons;
+	}
+
+	@Override
+	public Sequence apply(Sequence input) {
+		return rule.apply(input);
+	}
+
+	@Override
+	public int applyAtIndex(Sequence input, int index) {
+		return rule.applyAtIndex(input, index);
+	}
+
+	@Override
+	public void run() {
+		for (Lexicon lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
+				for (int i = 0; i < row.size(); i++) {
+					Sequence word = apply(row.get(i));
+					row.set(i, word);
+				}
+			}
+		}
+	}
+
+	@Override
+	public String toString() {
+		return rule.toString();
+	}
 }
