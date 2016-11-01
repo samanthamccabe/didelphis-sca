@@ -1,4 +1,4 @@
-Haedus Toolbox SCA
+Didelphis Sound Change Applier
 
 Samantha F McCabe, 2016
 
@@ -11,17 +11,19 @@ Samantha F McCabe, 2016
 ### Removed 
 ### Fixed 
 ### Security 
+-->
 
-## [0.8.0]
+## [1.0.0]
 ### Added
+* Change rule parsing to permit commands to be split across multiple lines for readability [tooblox-sca-117]
+* Added support for compound rules, where several rules are applied sequentially at each position in a word, rather than each rule reaching the end of a word before the next rule is applied [tooblox-sca-57]
 
 ### Changed
+* Refactored the feature model into a specification containing the feature definitions and a mapping, containing the mapping of symbols to feature arrays [tooblox-sca-106]
+* Updated artifact definitions and package names [tooblox-sca-113]
 
-### Deprecated
-### Removed 
-### Fixed 
-### Security 
--->
+### Removed
+* Removed `obj == null` checks in the .equals() methods of some objects and used `instanceof` [tooblox-sca-107]
 
 ## [0.7.0]
 ### Added 
@@ -73,14 +75,6 @@ Samantha F McCabe, 2016
 * Improved normalization mode operation
 * Rewrote regular expression engine, including support for the `.` dot metacharacter
 * Numerous bug fixes
-
-<!---
-### Deprecated
-### Removed 
-### Fixed 
-### Security 
--->
-
 
 ## [0.1.0] 2014-10-25
 ### Added
