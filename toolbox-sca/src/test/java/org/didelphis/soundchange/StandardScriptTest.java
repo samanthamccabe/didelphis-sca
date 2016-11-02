@@ -22,6 +22,7 @@ import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.phonetic.Lexicon;
 import org.didelphis.phonetic.SequenceFactory;
+import org.didelphis.phonetic.VariableStore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import java.io.Reader;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -54,7 +56,6 @@ public class StandardScriptTest {
 	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
 	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
 	public static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
-
 
 	@Test(expected = ParseException.class)
 	public void testBadMode() {
@@ -231,7 +232,8 @@ public class StandardScriptTest {
 		assertEquals(expected, received);
 	}
 
-	@Test(timeout = 2000)
+//	@Test(timeout = 2000)
+	@Test
 	public void testLoop() {
 		String commands =
 				"P = pw p t k" + '\n' +
@@ -295,6 +297,54 @@ public class StandardScriptTest {
 		Lexicon expected = FACTORY_NONE.getLexiconFromSingleColumn(lexicon.split("\\n\\r?"));
 		Lexicon received = sca.getLexicon("TEST");
 		assertEquals(expected, received);
+	}
+
+	@Test
+	public void testMultilineVariable() {
+		String commands = "" +
+				"C = p  t  k \n" +
+				"    ph th kh\n" +
+				"    f  s  x \n";
+
+		NullFileHandler handler = NullFileHandler.INSTANCE;
+		StandardScript script = new StandardScript(commands, handler);
+
+		VariableStore variableStore = script.getVariableStore();
+		List<String> list = variableStore.get("C");
+
+		assertEquals(9, list.size());
+	}
+
+	@Test
+	public void testMultilineVariableBracket() {
+		String commands = "" +
+				"C = p   t   k  \n" +
+				"    ph  th  kh \n" +
+				"    [P] [T] [K]\n";
+
+		NullFileHandler handler = NullFileHandler.INSTANCE;
+		StandardScript script = new StandardScript(commands, handler);
+
+		VariableStore variableStore = script.getVariableStore();
+		List<String> list = variableStore.get("C");
+
+		assertEquals(9, list.size());
+	}
+
+	@Test
+	public void testMultilineVariableOverparse() {
+		String commands = "" +
+				"C   =  p   t   k \n" +
+				"[W] = [X] [Y] [Z]";
+
+		NullFileHandler handler = NullFileHandler.INSTANCE;
+		StandardScript script = new StandardScript(commands, handler);
+
+		VariableStore variableStore = script.getVariableStore();
+		List<String> cList = variableStore.get("C");
+		List<String> xList = variableStore.get("[W]");
+		assertEquals(3, cList.size());
+		assertEquals(3, xList.size());
 	}
 
 	@Test

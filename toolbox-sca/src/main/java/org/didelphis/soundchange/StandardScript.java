@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -79,6 +80,8 @@ public class StandardScript implements SoundChangeScript {
 	private static final Pattern IMPORT_PATTERN  = Pattern.compile(IMPORT.pattern() + "\\s+");
 	private static final Pattern LOAD_PATTERN    = Pattern.compile(LOAD.pattern() + "\\s+");
 	private static final Pattern QUOTES_PATTERN  = Pattern.compile("\"|\'");
+	private static final String VAR_ELEMENT = "([^\\s/_>=<\\-:;,\\.\\$#!\\*\\+\\?\\{\\}\\(\\)\\|\\\\]|\\[[^\\]]+\\])+";
+	private static final Pattern VAR_NEXTLINE = Pattern.compile("(" + VAR_ELEMENT + "\\s+)*"+VAR_ELEMENT);
 
 	private final String         scriptId;
 	private final FileHandler    fileHandler;
@@ -147,13 +150,20 @@ public class StandardScript implements SoundChangeScript {
 		return reserved;
 	}
 
+	public VariableStore getVariableStore() {
+		return variables;
+	}
+
 	private boolean parse(String id, Iterable<String> strings) {
 
 		// For error reporting
 		int lineNumber = 1;
 		boolean fail = false;
 
-		for (String string : strings) {
+		Iterator<String> it = strings.iterator();
+		String string = it.next();
+		do {
+			boolean shouldAdvance = true;
 			if (!string.startsWith(COMMENT_STRING) && !string.isEmpty()) {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
 				try {
@@ -176,10 +186,21 @@ public class StandardScript implements SoundChangeScript {
 					} else if (CLOSE.matcher(command).lookingAt()) {
 						closeLexicon(command, formatterMode);
 					} else if (command.contains("=")) {
+						if (it.hasNext()) {
+							shouldAdvance = false;
+							String next = it.next();
+							while (next != null && VAR_NEXTLINE.matcher(next).matches()) {
+								command += "\n" + next;
+								next = it.hasNext() ? it.next() : null;
+							}
+							string = next;
+						}
 						variables.add(command);
 					} else if (command.contains(">")) {
-						// This is probably the correct scope; if other commands change the variables or segmentation mode,
-						// we could get unexpected behavior if this is initialized outside the loop
+						// This is probably the correct scope; if other commands
+						// change the variables or segmentation mode, we could
+						// get unexpected behavior if this is initialized out of
+						// the loop
 						SequenceFactory factory = new SequenceFactory(
 							featureModel,
 							new VariableStore(variables),
@@ -202,7 +223,10 @@ public class StandardScript implements SoundChangeScript {
 					LOGGER.error("Script: {} Line: {} --- Compilation Error", id, lineNumber, e);
 				}
 			}
-		}
+			if (shouldAdvance) {
+				string = it.hasNext() ? it.next() : null;
+			}
+		} while (string != null);
 		return fail;
 	}
 
