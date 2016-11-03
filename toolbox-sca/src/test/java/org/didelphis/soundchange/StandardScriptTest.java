@@ -348,6 +348,33 @@ public class StandardScriptTest {
 	}
 
 	@Test
+	public void testMultilineRuleOrNot() {
+		String commands = "" +
+				"OPEN 'default.lex' AS DEFAULT\n" +
+				"e > a / h_ \n" +
+				"   or    _h\n" +
+				"   not  y_\n" +
+				"WRITE DEFAULT AS 'received.lex'";
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("default.lex", 
+				"teha\n" + 
+				"hen\n" + 
+				"yeh");
+		
+		FileHandler handler = new MockFileHandler(map);
+		SoundChangeScript script = new StandardScript(commands, handler);
+		script.process();
+
+		String received = map.get("received.lex");
+		String expected = "" +
+				"taha\n" +
+				"han\n" +
+				"yeh";
+		assertEquals(expected, received);
+	}
+	
+	@Test
 	public void testWrite01() {
 		String lexicon = "" +
 				"apat\n" +

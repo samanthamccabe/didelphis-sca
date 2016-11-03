@@ -17,12 +17,12 @@ package org.didelphis.soundchange;
 import org.didelphis.enums.FormatterMode;
 import org.didelphis.exceptions.ParseException;
 import org.didelphis.io.FileHandler;
-import org.didelphis.phonetic.model.FeatureModel;
-import org.didelphis.phonetic.model.FeatureModelLoader;
 import org.didelphis.phonetic.Lexicon;
 import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
+import org.didelphis.phonetic.model.FeatureModel;
+import org.didelphis.phonetic.model.FeatureModelLoader;
 import org.didelphis.phonetic.model.StandardFeatureModel;
 import org.didelphis.soundchange.command.LexiconCloseCommand;
 import org.didelphis.soundchange.command.LexiconOpenCommand;
@@ -56,32 +56,39 @@ public class StandardScript implements SoundChangeScript {
 	private static final String COMMENT_STRING = "%";
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
 	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
-
-	private static final Pattern MODE    = Pattern.compile("(MODE|mode)");
-	private static final Pattern EXECUTE = Pattern.compile("(EXECUTE|execute)");
-	private static final Pattern IMPORT  = Pattern.compile("(IMPORT|import)");
-	private static final Pattern OPEN    = Pattern.compile("(OPEN|open)");
-	private static final Pattern WRITE   = Pattern.compile("(WRITE|write)");
-	private static final Pattern CLOSE   = Pattern.compile("(CLOSE|close)");
-	private static final Pattern BREAK   = Pattern.compile("(BREAK|break)");
-	private static final Pattern LOAD    = Pattern.compile("(LOAD|load)");
-	private static final Pattern RESERVE = Pattern.compile("(RESERVE|reserve)");
-
-	private static final Pattern COMMENT_PATTERN    = Pattern.compile(COMMENT_STRING + ".*");
-	private static final Pattern NEWLINE_PATTERN    = Pattern.compile("\\s*(\\r?\\n|\\r)\\s*");
-	private static final Pattern RESERVE_PATTERN    = Pattern.compile(RESERVE.pattern() + ":? *");
-	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
-
-	private static final Pattern CLOSE_PATTERN   = Pattern.compile(CLOSE.pattern() + "\\s+" + FILEHANDLE + "\\s+((as|AS)\\s)?" + FILEPATH);
-	private static final Pattern WRITE_PATTERN   = Pattern.compile(WRITE.pattern() + "\\s+" + FILEHANDLE + "\\s+((as|AS)\\s)?" + FILEPATH);
-	private static final Pattern OPEN_PATTERN    = Pattern.compile(OPEN.pattern() + "\\s+" + FILEPATH + "\\s+((as|AS)\\s)?" + FILEHANDLE);
-	private static final Pattern MODE_PATTERN    = Pattern.compile(MODE.pattern() + ":? *");
-	private static final Pattern EXECUTE_PATTERN = Pattern.compile(EXECUTE.pattern() + "\\s+");
-	private static final Pattern IMPORT_PATTERN  = Pattern.compile(IMPORT.pattern() + "\\s+");
-	private static final Pattern LOAD_PATTERN    = Pattern.compile(LOAD.pattern() + "\\s+");
-	private static final Pattern QUOTES_PATTERN  = Pattern.compile("\"|\'");
 	private static final String VAR_ELEMENT = "([^\\s/_>=<\\-:;,\\.\\$#!\\*\\+\\?\\{\\}\\(\\)\\|\\\\]|\\[[^\\]]+\\])+";
-	private static final Pattern VAR_NEXTLINE = Pattern.compile("(" + VAR_ELEMENT + "\\s+)*"+VAR_ELEMENT);
+
+	private static final String AS = "\\s+(as\\s)?";
+	private static final String S = "\\s+";
+	
+	private static final Pattern MODE    = compile("MODE");    
+	private static final Pattern EXECUTE = compile("EXECUTE");
+	private static final Pattern IMPORT  = compile("IMPORT");
+	private static final Pattern OPEN    = compile("OPEN");
+	private static final Pattern WRITE   = compile("WRITE");  
+	private static final Pattern CLOSE   = compile("CLOSE");  
+	private static final Pattern BREAK   = compile("BREAK");  
+	private static final Pattern LOAD    = compile("LOAD");
+	private static final Pattern RESERVE = compile("RESERVE");
+
+	private static final Pattern COMMENT_PATTERN    = compile(COMMENT_STRING,".*");
+	private static final Pattern NEWLINE_PATTERN    = compile("\\s*(\\r?\\n|\\r)\\s*");
+	private static final Pattern RESERVE_PATTERN    = compile(RESERVE.pattern(), S);
+	private static final Pattern WHITESPACE_PATTERN = compile(S);
+
+
+	private static final Pattern CLOSE_PATTERN = compile(CLOSE.pattern(), S, FILEHANDLE, AS, FILEPATH);
+	private static final Pattern WRITE_PATTERN = compile(WRITE.pattern(), S, FILEHANDLE, AS, FILEPATH);
+	private static final Pattern OPEN_PATTERN = compile(OPEN.pattern(), S, FILEPATH, AS, FILEHANDLE);
+	private static final Pattern MODE_PATTERN = compile(MODE.pattern(), S);
+	private static final Pattern EXECUTE_PATTERN = compile(EXECUTE.pattern(), S);
+	private static final Pattern IMPORT_PATTERN = compile(IMPORT.pattern(), S);
+	private static final Pattern LOAD_PATTERN = compile(LOAD.pattern(), S);
+	private static final Pattern QUOTES_PATTERN  = compile("\"|\'");
+	
+	private static final Pattern RULE_PATTERN = compile("(\\[[^\\]]+\\]|[^>])\\s+>");
+	private static final Pattern VAR_NEXTLINE = compile("(",VAR_ELEMENT,"\\s+)*",VAR_ELEMENT);
+	private static final Pattern RULE_CONTINUATION = compile("\\s*(/|or|not)");
 
 	private final String         scriptId;
 	private final FileHandler    fileHandler;
@@ -207,6 +214,15 @@ public class StandardScript implements SoundChangeScript {
 							new HashSet<String>(reserved),
 							formatterMode
 						);
+						if (it.hasNext()) {
+							shouldAdvance = false;
+							String next = it.next();
+							while (next != null && RULE_CONTINUATION.matcher(next).lookingAt()) {
+								command += "\n" + next;
+								next = it.hasNext() ? it.next() : null;
+							}
+							string = next;
+						}
 						commands.add(new Rule(command, lexicons, factory));
 					} else if (MODE.matcher(command).lookingAt()) {
 						formatterMode = setNormalizer(command);
@@ -247,8 +263,8 @@ public class StandardScript implements SoundChangeScript {
 	private void openLexicon(String command, SequenceFactory factory) {
 		Matcher matcher = OPEN_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String path   = matcher.group(2);
-			String handle = matcher.group(5);
+			String path   = matcher.group(1);
+			String handle = matcher.group(3);
 			commands.add(new LexiconOpenCommand(lexicons, path, handle, fileHandler, factory));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -264,8 +280,8 @@ public class StandardScript implements SoundChangeScript {
 	private void closeLexicon(String command, FormatterMode mode) {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String handle = matcher.group(2);
-			String path   = matcher.group(5);
+			String handle = matcher.group(1);
+			String path   = matcher.group(3);
 			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -282,8 +298,8 @@ public class StandardScript implements SoundChangeScript {
 	private void writeLexicon(String command, FormatterMode mode) {
 		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
-			String handle = matcher.group(2);
-			String path   = matcher.group(5);
+			String handle = matcher.group(1);
+			String path   = matcher.group(3);
 			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
@@ -303,12 +319,6 @@ public class StandardScript implements SoundChangeScript {
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(data));
 		parse(path, lines);
-//		StandardScript script = new StandardScript(path, data, fileHandler);
-//		commands.addAll(script.getCommands());
-//		variables.addAll(script.variables);
-//		reserved.addAll(script.reserved);
-//		if (script.formatterMode != null) { formatterMode = script.formatterMode; }
-//		if (script.featureModel  != null) { featureModel  = script.featureModel;  }
 	}
 
 	/**
@@ -334,5 +344,13 @@ public class StandardScript implements SoundChangeScript {
 	@Override
 	public String toString() {
 		return "StandardScript{"+scriptId+'}';
+	}
+	
+	private static Pattern compile(String... pattern) {
+		StringBuilder sb = new StringBuilder();
+		for (String p : pattern) {
+			sb.append(p);
+		}
+		return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
 	}
 }
