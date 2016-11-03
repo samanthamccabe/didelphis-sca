@@ -27,8 +27,8 @@ import org.didelphis.phonetic.model.StandardFeatureModel;
 import org.didelphis.soundchange.command.LexiconCloseCommand;
 import org.didelphis.soundchange.command.LexiconOpenCommand;
 import org.didelphis.soundchange.command.LexiconWriteCommand;
-import org.didelphis.soundchange.command.Rule;
 import org.didelphis.soundchange.command.ScriptExecuteCommand;
+import org.didelphis.soundchange.command.StandardRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +223,7 @@ public class StandardScript implements SoundChangeScript {
 							}
 							string = next;
 						}
-						commands.add(new Rule(command, lexicons, factory));
+						commands.add(new StandardRule(command, lexicons, factory));
 					} else if (MODE.matcher(command).lookingAt()) {
 						formatterMode = setNormalizer(command);
 					} else if (RESERVE.matcher(command).lookingAt()) {
