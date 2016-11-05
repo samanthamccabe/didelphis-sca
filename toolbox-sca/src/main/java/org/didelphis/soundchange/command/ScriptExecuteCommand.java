@@ -17,10 +17,13 @@ package org.didelphis.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.didelphis.io.FileHandler;
+import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.SoundChangeScript;
 import org.didelphis.soundchange.StandardScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 /**
  * Author: Samantha Fiona Morrigan McCabe
@@ -32,16 +35,19 @@ public class ScriptExecuteCommand implements Runnable {
 
 	private final String path;
 	private final FileHandler handler;
-
-	public ScriptExecuteCommand(String pathParam, FileHandler handlerParam) {
+	private final ErrorLogger logger;
+	
+	
+	public ScriptExecuteCommand(String pathParam, FileHandler handlerParam, ErrorLogger logger) {
 		path    = pathParam;
 		handler = handlerParam;
+		this.logger = logger;
 	}
 
 	@Override
 	public void run() {
 		String data = handler.read(path);
-		SoundChangeScript script = new StandardScript(path, data, handler);
+		SoundChangeScript script = new StandardScript(path, data, handler, logger);
 		script.process();
 	}
 

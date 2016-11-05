@@ -21,12 +21,8 @@ import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.phonetic.Lexicon;
-import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
-import org.didelphis.soundchange.command.BaseRule;
-import org.didelphis.soundchange.command.CompoundRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,11 +56,6 @@ public class StandardScriptTest {
 	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
 	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
 	public static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
-
-	@Test(expected = ParseException.class)
-	public void testBadMode() {
-		new StandardScript("MODE:XXX", NullFileHandler.INSTANCE);
-	}
 
 	@Test
 	public void testImportVariables() throws Exception {
@@ -214,7 +204,7 @@ public class StandardScriptTest {
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript script = new StandardScript("testExecute", executeRule, fileHandler);
+		StandardScript script = new StandardScript(executeRule, fileHandler);
 
 		script.process();
 

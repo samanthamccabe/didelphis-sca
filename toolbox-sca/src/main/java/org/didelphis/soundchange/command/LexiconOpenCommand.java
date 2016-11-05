@@ -32,10 +32,10 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 	private final LexiconMap      lexicons;
 	private final SequenceFactory factory;
 
-	public LexiconOpenCommand(LexiconMap lexiconParam, String pathParam, String handleParam, FileHandler handlerParam, SequenceFactory factoryParam) {
-		super(pathParam, handleParam, handlerParam);
-		lexicons = lexiconParam;
-		factory = factoryParam;
+	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle, FileHandler handler, SequenceFactory factory) {
+		super(path, handle, handler);
+		this.lexicons = lexicons;
+		this.factory = factory;
 	}
 
 	@Override

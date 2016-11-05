@@ -15,7 +15,7 @@
 package org.didelphis.phonetic;
 
 import org.didelphis.enums.FormatterMode;
-import org.didelphis.exceptions.VariableDefinitionFormatException;
+import org.didelphis.exceptions.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +83,7 @@ public class VariableStore {
 		return sb.toString().trim();
 	}
 
-	public void add(String command) throws VariableDefinitionFormatException {
+	public void add(String command) throws ParseException {
 		String[] parts = EQUALS_PATTERN.split(command.trim());
 
 		if (parts.length == 2) {
@@ -96,7 +96,7 @@ public class VariableStore {
 			}
 			variables.put(key, expanded);
 		} else {
-			throw new VariableDefinitionFormatException(command);
+			throw new ParseException(command);
 		}
 	}
 
