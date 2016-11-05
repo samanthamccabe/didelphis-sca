@@ -21,8 +21,12 @@ import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.phonetic.Lexicon;
+import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
+import org.didelphis.soundchange.command.BaseRule;
+import org.didelphis.soundchange.command.CompoundRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -415,6 +420,15 @@ public class StandardScriptTest {
 		while (c >= 0) {
 			sb.append((char) c);
 			c = bufferedReader.read();
+		}
+		return sb.toString();
+	}
+
+	private static String lineConcat(String... strings) {
+		StringBuilder sb = new StringBuilder() ;
+		for (String string : strings) {
+			sb.append(string);
+			sb.append('\n');
 		}
 		return sb.toString();
 	}

@@ -24,6 +24,10 @@ public class ParseException extends RuntimeException {
 		super(cause);
 	}
 
+	public ParseException(String message, String data) {
+		super(message + ": " + data);
+	}
+	
 	public ParseException(String message) {
 		super(message);
 	}

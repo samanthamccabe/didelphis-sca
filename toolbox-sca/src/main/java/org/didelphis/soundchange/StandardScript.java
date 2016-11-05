@@ -29,6 +29,7 @@ import org.didelphis.soundchange.command.LexiconOpenCommand;
 import org.didelphis.soundchange.command.LexiconWriteCommand;
 import org.didelphis.soundchange.command.ScriptExecuteCommand;
 import org.didelphis.soundchange.command.StandardRule;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,32 +62,33 @@ public class StandardScript implements SoundChangeScript {
 	private static final String AS = "\\s+(as\\s)?";
 	private static final String S = "\\s+";
 	
-	private static final Pattern MODE    = compile("MODE");    
-	private static final Pattern EXECUTE = compile("EXECUTE");
-	private static final Pattern IMPORT  = compile("IMPORT");
-	private static final Pattern OPEN    = compile("OPEN");
-	private static final Pattern WRITE   = compile("WRITE");  
-	private static final Pattern CLOSE   = compile("CLOSE");  
-	private static final Pattern BREAK   = compile("BREAK");  
-	private static final Pattern LOAD    = compile("LOAD");
-	private static final Pattern RESERVE = compile("RESERVE");
+	private static final Pattern MODE     = compile("MODE");    
+	private static final Pattern EXECUTE  = compile("EXECUTE");
+	private static final Pattern IMPORT   = compile("IMPORT");
+	private static final Pattern OPEN     = compile("OPEN");
+	private static final Pattern WRITE    = compile("WRITE");  
+	private static final Pattern CLOSE    = compile("CLOSE");  
+	private static final Pattern BREAK    = compile("BREAK");  
+	private static final Pattern LOAD     = compile("LOAD");
+	private static final Pattern RESERVE  = compile("RESERVE");
+	private static final Pattern COMPOUND = compile("COMPOUND");
+	private static final Pattern END      = compile("END");
 
 	private static final Pattern COMMENT_PATTERN    = compile(COMMENT_STRING,".*");
 	private static final Pattern NEWLINE_PATTERN    = compile("\\s*(\\r?\\n|\\r)\\s*");
 	private static final Pattern RESERVE_PATTERN    = compile(RESERVE.pattern(), S);
 	private static final Pattern WHITESPACE_PATTERN = compile(S);
-
-
-	private static final Pattern CLOSE_PATTERN = compile(CLOSE.pattern(), S, FILEHANDLE, AS, FILEPATH);
-	private static final Pattern WRITE_PATTERN = compile(WRITE.pattern(), S, FILEHANDLE, AS, FILEPATH);
-	private static final Pattern OPEN_PATTERN = compile(OPEN.pattern(), S, FILEPATH, AS, FILEHANDLE);
-	private static final Pattern MODE_PATTERN = compile(MODE.pattern(), S);
+	
+	private static final Pattern CLOSE_PATTERN   = compile(CLOSE.pattern(), S, FILEHANDLE, AS, FILEPATH);
+	private static final Pattern WRITE_PATTERN   = compile(WRITE.pattern(), S, FILEHANDLE, AS, FILEPATH);
+	private static final Pattern OPEN_PATTERN    = compile(OPEN.pattern(), S, FILEPATH, AS, FILEHANDLE);
+	private static final Pattern MODE_PATTERN    = compile(MODE.pattern(), S);
 	private static final Pattern EXECUTE_PATTERN = compile(EXECUTE.pattern(), S);
-	private static final Pattern IMPORT_PATTERN = compile(IMPORT.pattern(), S);
-	private static final Pattern LOAD_PATTERN = compile(LOAD.pattern(), S);
+	private static final Pattern IMPORT_PATTERN  = compile(IMPORT.pattern(), S);
+	private static final Pattern LOAD_PATTERN    = compile(LOAD.pattern(), S);
 	private static final Pattern QUOTES_PATTERN  = compile("\"|\'");
 	
-	private static final Pattern RULE_PATTERN = compile("(\\[[^\\]]+\\]|[^>])\\s+>");
+	private static final Pattern RULE_PATTERN = compile("(\\[[^\\]]+\\]|[^>])+\\s+>");
 	private static final Pattern VAR_NEXTLINE = compile("(",VAR_ELEMENT,"\\s+)*",VAR_ELEMENT);
 	private static final Pattern RULE_CONTINUATION = compile("\\s*(/|or|not)");
 
@@ -107,7 +109,7 @@ public class StandardScript implements SoundChangeScript {
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(script));
 
-		boolean fail = parse(id, lines);
+		boolean fail = parse(id, 1, lines);
 		if (fail) {
 			throw new ParseException("There were problems compiling the script " + id + "; please see logs for details");
 		}
@@ -161,10 +163,10 @@ public class StandardScript implements SoundChangeScript {
 		return variables;
 	}
 
-	private boolean parse(String id, Iterable<String> strings) {
+	private boolean parse(String id, int startLine, Iterable<String> strings) {
 
 		// For error reporting
-		int lineNumber = 1;
+		int lineNumber = startLine;
 		boolean fail = false;
 
 		Iterator<String> it = strings.iterator();
@@ -193,37 +195,36 @@ public class StandardScript implements SoundChangeScript {
 					} else if (CLOSE.matcher(command).lookingAt()) {
 						closeLexicon(command, formatterMode);
 					} else if (command.contains("=")) {
+						StringBuilder sb = new StringBuilder(command);
 						if (it.hasNext()) {
 							shouldAdvance = false;
 							String next = it.next();
-							while (next != null && VAR_NEXTLINE.matcher(next).matches()) {
-								command += "\n" + next;
+							while (next != null && VAR_NEXTLINE.matcher(next).matches()
+									&& !matchesOr(next, BREAK, COMPOUND, MODE)) {
+								sb.append('\n').append(next);
 								next = it.hasNext() ? it.next() : null;
 							}
 							string = next;
 						}
-						variables.add(command);
-					} else if (command.contains(">")) {
-						// This is probably the correct scope; if other commands
-						// change the variables or segmentation mode, we could
-						// get unexpected behavior if this is initialized out of
-						// the loop
+						variables.add(sb.toString());
+					} else if (RULE_PATTERN.matcher(command).lookingAt()) {
 						SequenceFactory factory = new SequenceFactory(
 							featureModel,
 							new VariableStore(variables),
 							new HashSet<String>(reserved),
 							formatterMode
 						);
+						StringBuilder sb = new StringBuilder(command);
 						if (it.hasNext()) {
 							shouldAdvance = false;
 							String next = it.next();
 							while (next != null && RULE_CONTINUATION.matcher(next).lookingAt()) {
-								command += "\n" + next;
+								sb.append('\n').append(next);
 								next = it.hasNext() ? it.next() : null;
 							}
 							string = next;
 						}
-						commands.add(new StandardRule(command, lexicons, factory));
+						commands.add(new StandardRule(sb.toString(), lexicons, factory));
 					} else if (MODE.matcher(command).lookingAt()) {
 						formatterMode = setNormalizer(command);
 					} else if (RESERVE.matcher(command).lookingAt()) {
@@ -232,7 +233,8 @@ public class StandardScript implements SoundChangeScript {
 					} else if (BREAK.matcher(command).lookingAt()) {
 						break; // Stop parsing commands
 					} else {
-						LOGGER.warn("Unrecognized Command: {}", string);
+						// TODO:
+//						throw new ParseException(lineNumber, "Unrecognized command", string);
 					}
 				} catch (Exception e) {
 					fail = true;
@@ -244,6 +246,19 @@ public class StandardScript implements SoundChangeScript {
 			}
 		} while (string != null);
 		return fail;
+	}
+
+	@NotNull
+	private static Collection<String> getBlock(Iterator<String> it) {
+		Collection<String> compound = new ArrayList<String>();
+		if (it.hasNext()) {
+			String next = it.next();
+			while (next != null && !END.matcher(next).lookingAt()) {
+				compound.add(next);
+				next = it.hasNext() ? it.next() : null;
+			}
+		}
+		return compound;
 	}
 
 	private static FeatureModel loadModel(CharSequence command, FileHandler handler, FormatterMode mode) {
@@ -318,7 +333,7 @@ public class StandardScript implements SoundChangeScript {
 		String data = fileHandler.read(path);
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(data));
-		parse(path, lines);
+		parse(path, 0, lines);
 	}
 
 	/**
@@ -346,11 +361,21 @@ public class StandardScript implements SoundChangeScript {
 		return "StandardScript{"+scriptId+'}';
 	}
 	
-	private static Pattern compile(String... pattern) {
+	private static Pattern compile(String... regex) {
 		StringBuilder sb = new StringBuilder();
-		for (String p : pattern) {
+		for (String p : regex) {
 			sb.append(p);
 		}
 		return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
+	}
+	
+	private static boolean matchesOr(CharSequence string, Pattern... patterns) {
+		for (Pattern pattern : patterns) {
+			boolean matches = pattern.matcher(string).lookingAt();
+			if (matches) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
