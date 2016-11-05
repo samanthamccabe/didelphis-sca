@@ -5,7 +5,7 @@
 mode intelligent
 
 % Set the normalization mode before loading the lexicon
-open 'examples/pie_lexicon.txt' as LEXICON
+open 'pie_lexicon.txt' as LEXICON
 
 % Normalize [i u] vs [y w] use
 y w > i u
