@@ -46,9 +46,10 @@ public class Main {
 				File file = new File(arg);
 				String rules = FileUtils.readFileToString(file, UTF_8);
 				SoundChangeScript script = new StandardScript(
-					file.getName(),
-					rules,
-					DiskFileHandler.getDefaultInstance()
+						arg,
+						rules,
+						DiskFileHandler.getDefaultInstance(),
+						new ErrorLogger()
 				);
 				script.process();
 

@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this scriptPath except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
@@ -89,36 +89,37 @@ public class StandardScript implements SoundChangeScript {
 	private static final Pattern QUOTES_PATTERN  = compile("\"|\'");
 	
 	private static final Pattern RULE_PATTERN = compile("(\\[[^\\]]+\\]|[^>])+\\s+>");
-	private static final Pattern VAR_NEXTLINE = compile("(",VAR_ELEMENT,"\\s+)*",VAR_ELEMENT);
+	private static final Pattern VAR_NEXT_LINE = compile("(",VAR_ELEMENT,"\\s+)*",VAR_ELEMENT);
 	private static final Pattern RULE_CONTINUATION = compile("\\s*(/|or|not)");
+	private static final Pattern PATH_PATTERN = compile("[\\\\/][^/\\\\]*$");
 
-	private final String         scriptId;
-	private final FileHandler    fileHandler;
+	private final String scriptPath;
+	private final ErrorLogger logger;
+	private final FileHandler fileHandler;
 	private final Queue<Runnable> commands;
-	private final LexiconMap     lexicons;
-	private final VariableStore  variables;
-	private final Set<String>    reserved;
+	private final LexiconMap lexicons;
+	private final VariableStore variables;
+	private final Set<String> reserved;
 
 	// Need these as fields or IMPORT doesn't work correctly
 	private FormatterMode formatterMode;
 	private FeatureModel  featureModel;
 
-	public StandardScript(String id, CharSequence script, FileHandler handler) {
-		this(id, handler, FormatterMode.NONE, StandardFeatureModel.EMPTY_MODEL);
+	public StandardScript(String filePath, CharSequence script, FileHandler handler,  ErrorLogger logger) {
+		this(filePath, handler, logger, FormatterMode.NONE, StandardFeatureModel.EMPTY_MODEL);
 
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(script));
 
-		boolean fail = parse(id, 1, lines);
-		if (fail) {
-			throw new ParseException("There were problems compiling the script " + id + "; please see logs for details");
-		}
+		parse(filePath, 1, lines);
 	}
 
-	private StandardScript(String id, FileHandler handler, FormatterMode mode, FeatureModel model) {
-		scriptId    = id;
+	private StandardScript(String filePath, FileHandler handler, ErrorLogger logger, FormatterMode mode, FeatureModel model) {
+		scriptPath = filePath;
 		fileHandler = handler;
 
+		this.logger = logger; 
+		
 		lexicons  = new LexiconMap();
 		commands  = new ArrayDeque<Runnable>();
 		variables = new VariableStore();
@@ -130,7 +131,7 @@ public class StandardScript implements SoundChangeScript {
 
 	// Visible for testing
 	StandardScript(CharSequence script, FileHandler fileHandlerParam) {
-		this("DEFAULT", script, fileHandlerParam);
+		this("", script, fileHandlerParam, new ErrorLogger());
 	}
 
 	@Override
@@ -163,12 +164,9 @@ public class StandardScript implements SoundChangeScript {
 		return variables;
 	}
 
-	private boolean parse(String id, int startLine, Iterable<String> strings) {
-
+	private void parse(String filePath, int startLine, Iterable<String> strings) {
 		// For error reporting
 		int lineNumber = startLine;
-		boolean fail = false;
-
 		Iterator<String> it = strings.iterator();
 		String string = it.next();
 		do {
@@ -177,11 +175,11 @@ public class StandardScript implements SoundChangeScript {
 				String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
 				try {
 					if (LOAD.matcher(command).lookingAt()) {
-						featureModel = loadModel(command, fileHandler, formatterMode);
+						featureModel = loadModel(filePath, command, fileHandler, formatterMode);
 					} else if (EXECUTE.matcher(command).lookingAt()) {
-						executeScript(command);
+						executeScript(filePath, command);
 					} else if (IMPORT.matcher(command).lookingAt()) {
-						importScript(command);
+						importScript(filePath, command);
 					} else if (OPEN.matcher(command).lookingAt()) {
 						SequenceFactory factory = new SequenceFactory(
 							featureModel,
@@ -189,20 +187,21 @@ public class StandardScript implements SoundChangeScript {
 							new HashSet<String>(reserved), // Be sure to defensively copy
 							formatterMode
 						);
-						openLexicon(command, factory);
+						openLexicon(filePath, command, factory);
 					} else if (WRITE.matcher(command).lookingAt()) {
-						writeLexicon(command, formatterMode);
+						writeLexicon(filePath, command, formatterMode);
 					} else if (CLOSE.matcher(command).lookingAt()) {
-						closeLexicon(command, formatterMode);
+						closeLexicon(filePath, command, formatterMode);
 					} else if (command.contains("=")) {
 						StringBuilder sb = new StringBuilder(command);
 						if (it.hasNext()) {
 							shouldAdvance = false;
 							String next = it.next();
-							while (next != null && VAR_NEXTLINE.matcher(next).matches()
+							while (next != null && VAR_NEXT_LINE.matcher(next).matches()
 									&& !matchesOr(next, BREAK, COMPOUND, MODE)) {
 								sb.append('\n').append(next);
 								next = it.hasNext() ? it.next() : null;
+								lineNumber++;
 							}
 							string = next;
 						}
@@ -221,6 +220,7 @@ public class StandardScript implements SoundChangeScript {
 							while (next != null && RULE_CONTINUATION.matcher(next).lookingAt()) {
 								sb.append('\n').append(next);
 								next = it.hasNext() ? it.next() : null;
+								lineNumber++;
 							}
 							string = next;
 						}
@@ -233,19 +233,18 @@ public class StandardScript implements SoundChangeScript {
 					} else if (BREAK.matcher(command).lookingAt()) {
 						break; // Stop parsing commands
 					} else {
-						// TODO:
-//						throw new ParseException(lineNumber, "Unrecognized command", string);
+						logger.add(filePath, lineNumber, string, null);
 					}
-				} catch (Exception e) {
-					fail = true;
-					LOGGER.error("Script: {} Line: {} --- Compilation Error", id, lineNumber, e);
+				} catch (ParseException e) {
+					LOGGER.error("Script: {} Line: {} --- Compilation Error", scriptPath, lineNumber, e);
+					logger.add(filePath, lineNumber, string, e);
 				}
 			}
 			if (shouldAdvance) {
 				string = it.hasNext() ? it.next() : null;
+				lineNumber++;
 			}
 		} while (string != null);
-		return fail;
 	}
 
 	@NotNull
@@ -261,90 +260,111 @@ public class StandardScript implements SoundChangeScript {
 		return compound;
 	}
 
-	private static FeatureModel loadModel(CharSequence command, FileHandler handler, FormatterMode mode) {
+	private static FeatureModel loadModel(String filePath, CharSequence command, FileHandler handler, FormatterMode mode) {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
-
-		FeatureModelLoader loader = new FeatureModelLoader(path, handler.readLines(path), mode);
+		String fullPath = getPath(filePath, path);
+		FeatureModelLoader loader = new FeatureModelLoader(fullPath, handler.readLines(fullPath), mode);
 		return new StandardFeatureModel(loader);
 	}
 
 	/**
-	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that file into a lexicon
-	 * stored against the file-handle;
+	 * OPEN "some_lexicon.txt" (as) FILEHANDLE to load the contents of that scriptPath into a lexicon
+	 * stored against the scriptPath-handle;
 	 *
-	 * @param command the whole command staring from OPEN, specifying the path and file-handle
+	 * @param filePath path of the parent script
+	 * @param command the whole command staring from OPEN, specifying the path and scriptPath-handle
 	 */
-	private void openLexicon(String command, SequenceFactory factory) {
+	private void openLexicon(String filePath, String command, SequenceFactory factory) {
 		Matcher matcher = OPEN_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String path   = matcher.group(1);
 			String handle = matcher.group(3);
-			commands.add(new LexiconOpenCommand(lexicons, path, handle, fileHandler, factory));
+			String fullPath = getPath(filePath, path);
+			commands.add(new LexiconOpenCommand(lexicons, fullPath, handle, fileHandler, factory));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}
 	}
 
 	/**
-	 * CLOSE FILEHANDLE (as) "some_output2.txt" to close the file-handle and save the lexicon to the specified file.
+	 * CLOSE FILEHANDLE (as) "some_output2.txt" to close the scriptPath-handle and save the lexicon to the specified scriptPath.
 	 *
-	 * @param command the whole command starting from CLOSE, specifying the file-handle and path
+	 * @param filePath path of the parent script
+	 * @param command the whole command starting from CLOSE, specifying the scriptPath-handle and path
 	 * @throws  ParseException
 	 */
-	private void closeLexicon(String command, FormatterMode mode) {
+	private void closeLexicon(String filePath, String command, FormatterMode mode) {
 		Matcher matcher = CLOSE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(1);
 			String path   = matcher.group(3);
-			commands.add(new LexiconCloseCommand(lexicons, path, handle, fileHandler, mode));
+			String fullPath = getPath(filePath, path);
+			commands.add(new LexiconCloseCommand(lexicons, fullPath, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}
 	}
-
+	
 	/**
-	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified file,
+	 * WRITE FILEHANDLE (as) "some_output1.txt" to save the current state of the lexicon to the specified scriptPath,
 	 * but leave the handle open
 	 *
-	 * @param command the whole command starting from WRITE, specifying the file-handle and path
+	 * @param filePath path of the parent script
+	 * @param command the whole command starting from WRITE, specifying the scriptPath-handle and path
 	 * @throws ParseException
 	 */
-	private void writeLexicon(String command, FormatterMode mode) {
+	private void writeLexicon(String filePath, String command, FormatterMode mode) {
 		Matcher matcher = WRITE_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String handle = matcher.group(1);
 			String path   = matcher.group(3);
-			commands.add(new LexiconWriteCommand(lexicons, path, handle, fileHandler, mode));
+			String fullPath = getPath(filePath, path);
+			commands.add(new LexiconWriteCommand(lexicons, fullPath, handle, fileHandler, mode));
 		} else {
 			throw new ParseException("Command seems to be ill-formatted: " + command);
 		}
 	}
 
 	/**
-	 * IMPORT other rule files, which basically inserts those commands into your current rule file;
+	 * IMPORT other rule files, which basically inserts those commands into your current rule scriptPath;
 	 * Unlike other commands, this runs immediately and inserts the new commands into the current sound change applier
 	 *
+	 * @param filePath path of the parent script
 	 * @param command the whole command starting with 'IMPORT'
 	 */
-	private void importScript(CharSequence command) {
+	private void importScript(String filePath, CharSequence command) {
 		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String data = fileHandler.read(path);
 		Collection<String> lines = new ArrayList<String>();
 		Collections.addAll(lines, NEWLINE_PATTERN.split(data));
-		parse(path, 0, lines);
+		String fullPath = getPath(filePath, path);
+		parse(fullPath, 0, lines);
 	}
 
 	/**
-	 * EXECUTE other rule files, which just does what that rule file does in a separate process;
+	 * EXECUTE other rule files, which just does what that rule scriptPath does in a separate process;
 	 *
+	 * @param filePath path of the parent script
 	 * @param command the whole command starting with 'EXECUTE'
 	 */
-	private void executeScript(CharSequence command) {
+	private void executeScript(String filePath, CharSequence command) {
 		String input = EXECUTE_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
-		commands.add(new ScriptExecuteCommand(path, fileHandler));
+		String fullPath = getPath(filePath, path);
+		commands.add(new ScriptExecuteCommand(fullPath, fileHandler, logger));
+	}
+
+	@NotNull
+	private static String getPath(String filePath, String path) {
+		String parentPath;
+		if (filePath.contains("/") || filePath.contains("\\")) {
+			parentPath = PATH_PATTERN.matcher(filePath).replaceAll("/");
+		} else {
+			parentPath = "";
+		}
+		return parentPath + path;
 	}
 
 	private static FormatterMode setNormalizer(CharSequence command) {
@@ -358,7 +378,7 @@ public class StandardScript implements SoundChangeScript {
 
 	@Override
 	public String toString() {
-		return "StandardScript{"+scriptId+'}';
+		return "StandardScript{"+ scriptPath +'}';
 	}
 	
 	private static Pattern compile(String... regex) {
