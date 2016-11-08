@@ -16,9 +16,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.haedus.toolbox</groupId>
-    <artifactId>haedus-toolbox</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <groupId>org.didelphis.toolbox</groupId>
+    <artifactId>didelphis-toolbox</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
     <modules>
         <module>toolbox-datatypes</module>
@@ -27,7 +27,7 @@
 
     <packaging>pom</packaging>
 
-    <name>Toolbox SCA</name>
+    <name>Didelphis Toolbox Sound Change Applier</name>
 
     <build>
         <plugins>
