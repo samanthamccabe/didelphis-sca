@@ -14,7 +14,7 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.phonetic.Lexicon;
+import org.didelphis.phonetic.LexiconMap;
 
 import java.util.Queue;
 
@@ -26,9 +26,7 @@ public interface SoundChangeScript {
 
 	void process();
 
-	boolean hasLexicon(String handle);
-
-	Lexicon getLexicon(String handle);
-	
 	Queue<Runnable> getCommands();
+
+	LexiconMap getLexicons();
 }
