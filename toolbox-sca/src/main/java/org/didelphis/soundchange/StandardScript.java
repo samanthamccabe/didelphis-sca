@@ -16,15 +16,11 @@ package org.didelphis.soundchange;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.phonetic.LexiconMap;
-import org.didelphis.phonetic.VariableStore;
 import org.didelphis.soundchange.parser.ScriptParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayDeque;
-import java.util.LinkedHashSet;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * User: Samantha Fiona Morrigan McCabe
