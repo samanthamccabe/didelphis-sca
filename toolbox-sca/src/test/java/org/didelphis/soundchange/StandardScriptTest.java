@@ -15,7 +15,6 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.enums.FormatterMode;
-import org.didelphis.exceptions.ParseException;
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
@@ -23,6 +22,7 @@ import org.didelphis.io.NullFileHandler;
 import org.didelphis.phonetic.Lexicon;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +53,9 @@ public class StandardScriptTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScriptTest.class);
 
-	public static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
-	public static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
-	public static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
+	private static final ClassPathFileHandler CLASSPATH_HANDLER   = ClassPathFileHandler.getDefaultInstance();
+	private static final SequenceFactory      FACTORY_NONE        = new SequenceFactory(FormatterMode.NONE);
+	private static final SequenceFactory      FACTORY_INTELLIGENT = new SequenceFactory(FormatterMode.INTELLIGENT);
 
 	@Test
 	public void testImportVariables() throws Exception {
@@ -78,7 +78,7 @@ public class StandardScriptTest {
 		fileSystem.put("script1", script1);
 		fileSystem.put("lexicon", lexicon);
 
-		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+		getScript(script2, new MockFileHandler(fileSystem)).process();
 
 		String received = fileSystem.get("newlex");
 		String expected = "" +
@@ -108,7 +108,7 @@ public class StandardScriptTest {
 		fileSystem.put("script1", script1);
 		fileSystem.put("lexicon", lexicon);
 
-		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+		getScript(script2, new MockFileHandler(fileSystem)).process();
 
 		String received = fileSystem.get("newlex");
 		String expected = "" +
@@ -142,7 +142,7 @@ public class StandardScriptTest {
 		fileSystem.put("script1", script1);
 		fileSystem.put("lexicon", lexicon);
 
-		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+		getScript(script2, new MockFileHandler(fileSystem)).process();
 
 		String received = fileSystem.get("newlex");
 		String expected = "" +
@@ -176,7 +176,7 @@ public class StandardScriptTest {
 		fileSystem.put("script1", script1);
 		fileSystem.put("lexicon", lexicon);
 
-		new StandardScript(script2, new MockFileHandler(fileSystem)).process();
+		getScript(script2, new MockFileHandler(fileSystem)).process();
 
 		String received = fileSystem.get("newlex");
 		String expected = "" +
@@ -204,7 +204,7 @@ public class StandardScriptTest {
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript script = new StandardScript(executeRule, fileHandler);
+		StandardScript script = getScript(executeRule, fileHandler);
 
 		script.process();
 
@@ -219,10 +219,10 @@ public class StandardScriptTest {
 
 		String script = "IMPORT 'testRuleLarge01.txt'";
 
-		SoundChangeScript sca = new StandardScript(script, CLASSPATH_HANDLER);
+		SoundChangeScript sca = getScript(script, CLASSPATH_HANDLER);
 		sca.process();
 
-		Lexicon received = sca.getLexicon("LEXICON");
+		Lexicon received = sca.getLexicons().get("LEXICON");
 		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(output);
 		assertEquals(expected, received);
 	}
@@ -239,20 +239,7 @@ public class StandardScriptTest {
 				"B = b d g"    + '\n' +
 				"B > 0 / #_c";
 
-		new StandardScript(commands, NullFileHandler.INSTANCE);
-	}
-
-	@Test
-	public void reserveTest() {
-		String commands = "RESERVE ph th kh";
-		StandardScript sca = new StandardScript(commands, NullFileHandler.INSTANCE);
-		sca.process();
-		Collection<String> received = sca.getReservedSymbols();
-		Collection<String> expected = new HashSet<String>();
-		expected.add("ph");
-		expected.add("th");
-		expected.add("kh");
-		assertEquals(expected, received);
+		StandardScript ignored = getScript(commands, NullFileHandler.INSTANCE);
 	}
 
 	@Test
@@ -266,80 +253,11 @@ public class StandardScriptTest {
 				"ket"
 		};
 
-		SoundChangeScript sca = new StandardScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH_HANDLER);
+		SoundChangeScript sca = getScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH_HANDLER);
 		sca.process();
-		assertTrue("Lexicon 'TEST' not found.", sca.hasLexicon("TEST"));
 		Lexicon expected = FACTORY_NONE.getLexiconFromSingleColumn(lexicon);
-		Lexicon received = sca.getLexicon("TEST");
+		Lexicon received = sca.getLexicons().get("TEST");
 		assertEquals(expected, received);
-	}
-
-	@Test
-	public void testOpen02() {
-		String lexicon = "" +
-				"apat\n" +
-				"takan\n" +
-				"kepak\n" +
-				"pik\n" +
-				"ket";
-
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("test.lex", lexicon);
-
-		SoundChangeScript sca = new StandardScript("OPEN 'test.lex' as TEST", new MockFileHandler(map));
-		sca.process();
-
-		Lexicon expected = FACTORY_NONE.getLexiconFromSingleColumn(lexicon.split("\\n\\r?"));
-		Lexicon received = sca.getLexicon("TEST");
-		assertEquals(expected, received);
-	}
-
-	@Test
-	public void testMultilineVariable() {
-		String commands = "" +
-				"C = p  t  k \n" +
-				"    ph th kh\n" +
-				"    f  s  x \n";
-
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		StandardScript script = new StandardScript(commands, handler);
-
-		VariableStore variableStore = script.getVariableStore();
-		List<String> list = variableStore.get("C");
-
-		assertEquals(9, list.size());
-	}
-
-	@Test
-	public void testMultilineVariableBracket() {
-		String commands = "" +
-				"C = p   t   k  \n" +
-				"    ph  th  kh \n" +
-				"    [P] [T] [K]\n";
-
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		StandardScript script = new StandardScript(commands, handler);
-
-		VariableStore variableStore = script.getVariableStore();
-		List<String> list = variableStore.get("C");
-
-		assertEquals(9, list.size());
-	}
-
-	@Test
-	public void testMultilineVariableOverparse() {
-		String commands = "" +
-				"C   =  p   t   k \n" +
-				"[W] = [X] [Y] [Z]";
-
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		StandardScript script = new StandardScript(commands, handler);
-
-		VariableStore variableStore = script.getVariableStore();
-		List<String> cList = variableStore.get("C");
-		List<String> xList = variableStore.get("[W]");
-		assertEquals(3, cList.size());
-		assertEquals(3, xList.size());
 	}
 
 	@Test
@@ -358,7 +276,7 @@ public class StandardScriptTest {
 				"yeh");
 		
 		FileHandler handler = new MockFileHandler(map);
-		SoundChangeScript script = new StandardScript(commands, handler);
+		SoundChangeScript script = getScript(commands, handler);
 		script.process();
 
 		String received = map.get("received.lex");
@@ -368,7 +286,7 @@ public class StandardScriptTest {
 				"yeh";
 		assertEquals(expected, received);
 	}
-	
+
 	@Test
 	public void testWrite01() {
 		String lexicon = "" +
@@ -386,10 +304,9 @@ public class StandardScriptTest {
 				"WRITE TEST as 'write.lex'\n" +
 				"CLOSE TEST as 'close.lex'";
 
-		SoundChangeScript sca = new StandardScript(commands, new MockFileHandler(map));
+		SoundChangeScript sca = getScript(commands, new MockFileHandler(map));
 		sca.process();
 
-		assertFalse(sca.hasLexicon("TEST"));
 		assertTrue(map.containsKey("close.lex"));
 		assertTrue(map.containsKey("write.lex"));
 		assertEquals(lexicon, map.get("write.lex"));
@@ -414,12 +331,9 @@ public class StandardScriptTest {
 		return sb.toString();
 	}
 
-	private static String lineConcat(String... strings) {
-		StringBuilder sb = new StringBuilder() ;
-		for (String string : strings) {
-			sb.append(string);
-			sb.append('\n');
-		}
-		return sb.toString();
+	@NotNull
+	private static StandardScript getScript(String commands, FileHandler handler) {
+		return new StandardScript("", commands, handler, null);
 	}
+
 }
