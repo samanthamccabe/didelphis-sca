@@ -115,8 +115,8 @@ public final class Segmenter {
 				if (tail.isEmpty()) {
 					return specification.getSegmentFromFeatures(head);
 				} else {
-					throw new ParseException("Attempting to attach diacritics "
-							+ tail + " to a feature definition: " + head);
+					throw new ParseException("Attempting to attach diacritics" +
+							" to a feature definition.", string);
 				}
 			} else {
 				return model.getSegment(head, tail);

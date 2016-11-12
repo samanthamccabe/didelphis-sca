@@ -20,7 +20,6 @@ import org.didelphis.phonetic.Sequence;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
 import org.didelphis.phonetic.model.StandardFeatureModel;
-import org.didelphis.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -70,8 +69,17 @@ public class BaseRuleTest {
 	public void testUnbalancedTransform2() {
 		new BaseRule("a b c > x y", FACTORY);
 	}
+	
+	@Test(expected = ParseException.class)
+	public void testDanglingOr1() {
+		new BaseRule("a > b / _ or", FACTORY);
+	}
 
-
+	@Test(expected = ParseException.class)
+	public void testDanglingOr2() {
+		new BaseRule("a > b / or", FACTORY);
+	}
+	
 	@Test
 	public void testBrackets01() throws Exception {
 
@@ -451,7 +459,7 @@ public class BaseRuleTest {
 		testRule(rule, factory, "a",   "b");
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testCompound06() {
 		VariableStore store = new VariableStore();
 
@@ -476,27 +484,27 @@ public class BaseRuleTest {
 	/*======================================================================+
 	 | Exception Tests                                                      |
 	 +======================================================================*/
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testRuleException01() {
 		new BaseRule(" > ", FACTORY);
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testRuleException02() {
 		new BaseRule("a > b /", FACTORY);
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testRuleException03() {
 		new BaseRule("a > / b", FACTORY);
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testRuleException04() {
 		new BaseRule(" > a / b", FACTORY);
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testRuleException05() {
 		new BaseRule(" > / b", FACTORY);
 	}

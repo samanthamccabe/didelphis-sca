@@ -45,7 +45,7 @@ public class StateMachine implements Machine {
 
 	public static final StateMachine EMPTY_MACHINE = new StateMachine();
 
-	private static final Pattern ILLEGAL_PATTERN  = Pattern.compile("#(\\*|\\+|\\?)");
+	private static final Pattern ILLEGAL_PATTERN  = Pattern.compile("#(\\*|\\+|\\?)|(\\*|\\+|\\?)(\\*|\\+|\\?)");
 
 	private final SequenceFactory factory;
 
@@ -62,7 +62,7 @@ public class StateMachine implements Machine {
 		StateMachine stateMachine = new StateMachine(id, factoryParam);
 
 		if (ILLEGAL_PATTERN.matcher(expression).find()) {
-			throw new ParseException("Illegal modification of boundary characters in expression " + expression);
+			throw new ParseException("Illegal modification of boundary characters.", expression);
 		}
 
 		List<Expression> expressions = factoryParam.getExpressions(expression);
@@ -234,6 +234,9 @@ public class StateMachine implements Machine {
 				previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
 			} else {
 				if (expr.startsWith("(")) {
+					if (!expr.contains(")")) {
+						throw new ParseException("Unmatched parenthesis.", expr);
+					}
 					String substring = expr.substring(1, expr.length() - 1);
 					Machine machine = create(currentNode, substring, factory, direction);
 					machinesMap.put(currentNode, machine);
@@ -242,6 +245,9 @@ public class StateMachine implements Machine {
 					nodes.add(nextNode);
 					previousNode = constructRecursiveNode(nextNode, previousNode, currentNode, meta);
 				} else if (expr.startsWith("{")) {
+					if (!expr.contains("}")) {
+						throw new ParseException("Unmatched parenthesis.", expr);
+					}
 					String substring = expr.substring(1, expr.length() - 1); // Remove braces
 					Machine machine = createParallel(currentNode, substring, factory, direction);
 					machinesMap.put(currentNode, machine);
@@ -257,7 +263,7 @@ public class StateMachine implements Machine {
 				acceptingStates.add(previousNode);
 			}
 		}
-	}
+	}   
 
 	private String constructRecursiveNode(String nextNode, String previousNode, String machineNode, String meta) {
 

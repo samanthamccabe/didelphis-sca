@@ -211,7 +211,7 @@ public final class FeatureSpecification {
 				arr.set(value, featureValue.equals("+") ? 1.0 : -1.0);
 			} else {
 				throw new ParseException("Unrecognized feature \"" + element
-						+ "\" in definition " + features);
+						+ "\" in definition.", features);
 			}
 		}
 		return arr;
@@ -221,8 +221,7 @@ public final class FeatureSpecification {
 		if (names.containsKey(label)) {
 			return names.get(label);
 		}
-		throw new ParseException("Invalid feature label \"" + label
-		                         + "\" provided in \"" + features + '"');
+		throw new ParseException("Invalid feature label", features);
 	}
 
 	private static class Loader {
@@ -320,17 +319,17 @@ public final class FeatureSpecification {
 					try { // catch and rethrow if type is invalid\
 						featureTypes.add(FeatureType.valueOf(type.toUpperCase()));
 					} catch (IllegalArgumentException e) {
-						throw new ParseException("Illegal feature type " + type
-								+" in definition: " + entry, e);
+						throw new ParseException("Illegal feature type  in " +
+								"definition.", entry, e);
 					}
 					featureNames.add(name);
 					featureIndices.put(name, i);
 					featureIndices.put(alias, i);
 
 				} else {
-					LOG.error("Unrecognized command in FEATURE block: {}", entry);
-					throw new ParseException("Unrecognized command in FEATURE block"
-							+ ' ' + entry);
+					throw new ParseException(
+							"Unrecognized command in FEATURE block", entry
+					);
 				}
 				i++;
 			}

@@ -17,11 +17,11 @@ package org.didelphis.soundchange;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.didelphis.enums.ParseDirection;
+import org.didelphis.exceptions.ParseException;
 import org.didelphis.machines.Machine;
 import org.didelphis.machines.StateMachine;
 import org.didelphis.phonetic.Sequence;
 import org.didelphis.phonetic.SequenceFactory;
-import org.didelphis.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class Condition {
 	public Condition(String condition, SequenceFactory factoryParam) {
 		conditionText = cleanup(condition);
 		if (conditionText.contains("_")) {
-			String[] conditions = conditionText.split("_");
+			String[] conditions = conditionText.split("_", -1);
 			if (conditions.length == 1) {
 				preCondition  = StateMachine.create("M", conditions[0], factoryParam, ParseDirection.BACKWARD);
 				postCondition = StateMachine.EMPTY_MACHINE;
@@ -63,11 +63,10 @@ public class Condition {
 				preCondition  = StateMachine.EMPTY_MACHINE;
 				postCondition = StateMachine.EMPTY_MACHINE;
 			} else {
-				LOGGER.error("Malformed Condition, multiple _ characters in condition: {}", condition);
-				throw new RuleFormatException("Malformed Condition, multiple _ characters");
+				throw new ParseException("Malformed Condition, multiple _ characters", condition);
 			}
 		} else {
-			throw new RuleFormatException("Malformed Condition, no _ character");
+			throw new ParseException("Malformed Condition, no _ character", condition);
 		}
 	}
 

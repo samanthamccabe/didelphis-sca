@@ -20,19 +20,20 @@ package org.didelphis.exceptions;
  */
 public class ParseException extends RuntimeException {
 
-	public ParseException(Throwable cause) {
-		super(cause);
-	}
+	private final String data;
 
 	public ParseException(String message, String data) {
-		super(message + ": " + data);
+		super(message);
+		this.data = data;
 	}
 	
-	public ParseException(String message) {
-		super(message);
-	}
-
-	public ParseException(String message, Throwable cause) {
+	public ParseException(String message, String data, Throwable cause) {
 		super(message, cause);
+		this.data = data;
+	}
+	
+	@Override
+	public String toString() {
+		return super.toString() + ' ' + data;
 	}
 }
