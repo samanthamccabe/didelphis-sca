@@ -128,20 +128,20 @@ public class ScriptParser {
 		List<String> lines = getStrings(scriptData);
 		for (; lineNumber < lines.size(); lineNumber++) {
 			String string = lines.get(lineNumber);
-			if (!COMMENT_PATTERN.matcher(string).matches() && !string.isEmpty()) {
+			String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
+			if (!command.isEmpty()) {
 				int errorLine = lineNumber + 1;
 				try {
-					parseCommand(lines, string.trim());
+					parseCommand(lines, command);
 				} catch (ParseException e) {
-					logger.add(scriptPath, errorLine, string, e);
+					logger.add(scriptPath, errorLine, string, e.getMessage());
 				}
 			}
 		}
 		isParsed = true;
 	}
 
-	private void parseCommand(List<String> lines, String string) {
-		String command = COMMENT_PATTERN.matcher(string).replaceAll("").trim();
+	private void parseCommand(List<String> lines, String command) {
 		FormatterMode formatterMode = memory.getFormatterMode();
 		if (LOAD.matcher(command).lookingAt()) {
 			FeatureModel featureModel = loadModel(scriptPath, command, fileHandler, formatterMode);
@@ -184,7 +184,7 @@ public class ScriptParser {
 		} else if (BREAK.matcher(command).lookingAt()) {
 			lineNumber = Integer.MAX_VALUE; 
 		} else {
-			logger.add(scriptPath, lineNumber, string, null);
+			logger.add(scriptPath, lineNumber, command, "Unrecognized Command");
 		}
 	}
 

@@ -22,8 +22,8 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 		errors = new ArrayList<Error>();
 	}
 	
-	public void add(String filePath, int line, String data, Exception ex) {
-		errors.add(new Error(filePath, line, data, ex));
+	public void add(String filePath, int line, String data, String message) {
+		errors.add(new Error(filePath, line, data, message));
 	}
 	
 	public void clear() {
@@ -38,18 +38,23 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 	public Iterator<Error> iterator() {
 		return errors.iterator();
 	}
-
+		
+	@Override
+	public String toString() {
+		return "ErrorLogger{" + "errors=" + errors + '}';
+	}
+	
 	public static class Error {
 		private final String script;
 		private final int line;
 		private final String data;
-		private final Exception exception;
+		private final String message;
 		
-		public Error(String script, int line, String data, Exception exception) {
+		public Error(String script, int line, String data, String message) {
 			this.script = script;
 			this.line = line;
 			this.data = data;
-			this.exception = exception;
+			this.message = message;
 		}
 
 		@Override
@@ -72,15 +77,8 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 			return data;
 		}
 
-		public Exception getException() {
-			return exception;
+		public String getMessage() {
+			return message;
 		}
-	}
-
-	@Override
-	public String toString() {
-		return "ErrorLogger{" +
-				"errors=" + errors +
-				'}';
 	}
 }
