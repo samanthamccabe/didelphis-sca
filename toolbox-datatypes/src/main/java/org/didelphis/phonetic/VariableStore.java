@@ -96,7 +96,7 @@ public class VariableStore {
 			}
 			variables.put(key, expanded);
 		} else {
-			throw new ParseException(command);
+			throw new ParseException("Variable definition can only contain one = sign.", command);
 		}
 	}
 

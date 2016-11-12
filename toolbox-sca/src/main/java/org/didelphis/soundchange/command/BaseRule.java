@@ -17,8 +17,6 @@ package org.didelphis.soundchange.command;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.didelphis.exceptions.ParseException;
-import org.didelphis.phonetic.Lexicon;
-import org.didelphis.phonetic.LexiconMap;
 import org.didelphis.phonetic.Segment;
 import org.didelphis.phonetic.Sequence;
 import org.didelphis.phonetic.SequenceFactory;
@@ -26,7 +24,6 @@ import org.didelphis.phonetic.features.FeatureArray;
 import org.didelphis.phonetic.features.SparseFeatureArray;
 import org.didelphis.phonetic.model.FeatureModel;
 import org.didelphis.soundchange.Condition;
-import org.didelphis.soundchange.exceptions.RuleFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,7 +245,7 @@ public class BaseRule implements Rule {
 		if (ruleText.contains("/")) {
 			String[] array = ruleText.split("/");
 			if (array.length <= 1) {
-				throw new RuleFormatException("Condition was empty!");
+				throw new ParseException("Condition was empty.", ruleText);
 			} else {
 				transformString = array[0].trim();
 
@@ -263,8 +260,8 @@ public class BaseRule implements Rule {
 
 					for (String clause : split) {
 						if (OR_PATTERN.matcher(clause).find()) {
-							throw new RuleFormatException("OR is not allowed " +
-									"following a NOT");
+							throw new ParseException("OR is not allowed " +
+									"following a NOT", conditionString);
 						}
 						exceptions.add(new Condition(clause.trim(), factory));
 					}
@@ -274,15 +271,15 @@ public class BaseRule implements Rule {
 					String conditionClauses = split[0];
 					String exceptionClauses = split[1];
 
-					for (String con : OR_PATTERN.split(conditionClauses)) {
+					for (String con : OR_PATTERN.split(conditionClauses, -1)) {
 						conditions.add(new Condition(con, factory));
 					}
 
-					for (String exc : NOT_PATTERN.split(exceptionClauses)) {
+					for (String exc : NOT_PATTERN.split(exceptionClauses, -1)) {
 						exceptions.add(new Condition(exc, factory));
 					}
 				} else {
-					for (String s : OR_PATTERN.split(conditionString)) {
+					for (String s : OR_PATTERN.split(conditionString, -1)) {
 						conditions.add(new Condition(s, factory));
 					}
 				}
@@ -428,12 +425,11 @@ public class BaseRule implements Rule {
 			String[] array = TRANSFORM.split(transformation);
 
 			if (array.length <= 1) {
-				throw new RuleFormatException("Malformed transformation! " +
+				throw new ParseException("Malformed transformation.", 
 						transformation);
 			} else if (transformation.contains("$[")) {
-				throw new RuleFormatException("Malformed transformation! use " +
-						"of indexing with $[] is not permitted! " +
-						transformation);
+				throw new ParseException("Malformed transformation! Indexing " +
+						"with $[] is not permitted! ", transformation);
 			} else {
 				String sourceString = WHITESPACE.matcher(array[0]).replaceAll(" ");
 				String targetString = WHITESPACE.matcher(array[1]).replaceAll(" ");
@@ -444,10 +440,14 @@ public class BaseRule implements Rule {
 
 				// fill in target for cases like "a b c > d"
 				if (sourceList.contains("0") && (sourceList.size() != 1 || targetList.size() != 1)) {
-					throw new ParseException("A rule may only use \"0\" in the \"source\" if that ");
+					throw new ParseException("A rule may only use \"0\" in " +
+							"the \"source\" if it is the only symbol in the " +
+							"source pattern and the target size is exactly 1",
+							transformation
+					);
 				}
 				
-				balanceTransform(sourceList, targetList);
+				balanceTransform(sourceList, targetList, transformation);
 
 				for (int i = 0; i < sourceList.size(); i++) {
 					// Also, we need to correctly tokenize $1, $2 etc or $C1,$N2
@@ -458,7 +458,7 @@ public class BaseRule implements Rule {
 				}
 			}
 		} else {
-			throw new RuleFormatException("Missing \">\" sign! in rule " + ruleText);
+			throw new ParseException("Missing \">\" sign!", ruleText);
 		}
 	}
 
@@ -472,9 +472,8 @@ public class BaseRule implements Rule {
 			FeatureArray<Double> features = segment.getFeatures();
 			boolean underspecified = features.contains(null) || features instanceof SparseFeatureArray;
 			if (underspecified && source.size() <= j) {
-				throw new RuleFormatException(
-						"Unmatched underspecified segment " + segment +
-								" in target of rule " + ruleText);
+				throw new ParseException("Unmatched underspecified segment in" +
+						" target of rule.", ruleText);
 			}
 			j++;
 		}
@@ -501,10 +500,10 @@ public class BaseRule implements Rule {
 		return list;
 	}
 
-	private static void balanceTransform(List<String> source, List<String> target) {
+	private static void balanceTransform(List<String> source, List<String> target, String transformation) {
 		if (target.size() > source.size()) {
-			throw new RuleFormatException("Target size cannot be greater than" +
-					" source size! " + source + " < " + target);
+			throw new ParseException("Target size cannot be greater than " +
+					"source size.", transformation);
 		} else if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);
@@ -512,9 +511,8 @@ public class BaseRule implements Rule {
 					target.add(first);
 				}
 			} else {
-				throw new RuleFormatException("Target and source sizes may" +
-						" only be uneven if target size is exactly 1! " +
-						source + " > " + target);
+				throw new ParseException("Target and source sizes may only be" +
+						" uneven if target size is exactly 1.", transformation);
 			}
 		}
 	}

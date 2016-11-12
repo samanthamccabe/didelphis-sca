@@ -15,12 +15,12 @@
 package org.didelphis.soundchange.command;
 
 import org.didelphis.enums.FormatterMode;
+import org.didelphis.exceptions.ParseException;
 import org.didelphis.phonetic.model.FeatureModel;
 import org.didelphis.phonetic.Sequence;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
 import org.didelphis.phonetic.model.StandardFeatureModel;
-import org.didelphis.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class BaseRuleModelTest {
 	private static final FeatureModel    MODEL       = loadModel();
 	private static final SequenceFactory FACTORY = new SequenceFactory(MODEL, FormatterMode.INTELLIGENT);
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testFeatureTransformOutOfRange() {
 		new BaseRule("a > g[+hgh]", FACTORY);
 	}
@@ -93,7 +93,7 @@ public class BaseRuleModelTest {
 		testRule(rule, "ca", "ak");
 	}
 
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testFeaturesIndexing02() {
 		new BaseRule("c[-con, +son, +voice] > $[+hgh]1k", FACTORY);
 	}

@@ -15,11 +15,11 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.enums.FormatterMode;
+import org.didelphis.exceptions.ParseException;
 import org.didelphis.phonetic.Sequence;
 import org.didelphis.phonetic.SequenceFactory;
 import org.didelphis.phonetic.VariableStore;
 import org.didelphis.phonetic.model.StandardFeatureModel;
-import org.didelphis.soundchange.exceptions.RuleFormatException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +49,16 @@ public class ConditionTest {
 	}
 
 	// We just need to see that this parses correctly
-	@Test(expected = RuleFormatException.class)
+	@Test(expected = ParseException.class)
 	public void testBadCondition() {
 		new Condition("a_b_c");
 	}
 
+	@Test(expected = ParseException.class)
+	public void testDoubleUnderscore() {
+		new Condition("_ _");
+	}
+	
 	@Test
 	public void testPostconditionMatching01() {
 		Condition condition = new Condition("a_x");

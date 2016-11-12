@@ -56,6 +56,32 @@ public class StateMachineTest extends MachineTestBase{
 		getMachine("#*a");
 	}
 
+	@Test(expected = ParseException.class)
+	public void testStarQuestionMark() {
+		getMachine("a*?");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testPlusQuestionMark() {
+		getMachine("a+?");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testPlusStarMark() {
+		getMachine("a+*");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testUnmatchedCurly() {
+		getMachine("{a");
+	}
+
+	@Test(expected = ParseException.class)
+	public void testUnmatchedParen() {
+		getMachine("(a");
+	}
+
+
 	@Test
 	public void testBasic01() {
 		Machine machine = getMachine("a");

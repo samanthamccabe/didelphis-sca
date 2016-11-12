@@ -218,7 +218,8 @@ public class ScriptParser {
 			String fullPath = getPath(filePath, path);
 			commands.add(new LexiconOpenCommand(memory.getLexicons(), fullPath, handle, fileHandler, factory));
 		} else {
-			throw new ParseException("Command seems to be ill-formatted: " + command);
+			throw new ParseException("Incorrectly formatted OPEN statement.",
+					command);
 		}
 	}
 
@@ -240,7 +241,8 @@ public class ScriptParser {
 			commands.add(new LexiconCloseCommand(
 					memory.getLexicons(), fullPath, handle, fileHandler, mode));
 		} else {
-			throw new ParseException("Command seems to be ill-formatted: " + command);
+			throw new ParseException("Incorrectly formatted CLOSE statement.",
+					command);
 		}
 	}
 
@@ -262,7 +264,8 @@ public class ScriptParser {
 			commands.add(new LexiconWriteCommand(
 					memory.getLexicons(), fullPath, handle, fileHandler, mode));
 		} else {
-			throw new ParseException("Command seems to be ill-formatted: " + command);
+			throw new ParseException("Incorrectly formatted WRITE statement.",
+					command);
 		}
 	}
 
@@ -329,7 +332,7 @@ public class ScriptParser {
 		try {
 			return FormatterMode.valueOf(mode.toUpperCase());
 		} catch (IllegalArgumentException e) {
-			throw new ParseException("Unsupported mode: " + mode, e);
+			throw new ParseException("Unsupported formatter mode.", mode, e);
 		}
 	}
 
