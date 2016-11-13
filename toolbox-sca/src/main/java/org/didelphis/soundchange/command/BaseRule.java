@@ -248,40 +248,10 @@ public class BaseRule implements Rule {
 				throw new ParseException("Condition was empty.", ruleText);
 			} else {
 				transformString = array[0].trim();
-
-				String conditionString = array[1].trim();
-
-				Matcher notMatcher = NOT_PATTERN.matcher(conditionString);
-				if (notMatcher.lookingAt()) {
-					// if there is no regular condition
-					// Takes the first one off, and splits on the rest
-					String first = notMatcher.replaceFirst("");
-					String[] split = NOT_PATTERN.split(first);
-
-					for (String clause : split) {
-						if (OR_PATTERN.matcher(clause).find()) {
-							throw new ParseException("OR is not allowed " +
-									"following a NOT", conditionString);
-						}
-						exceptions.add(new Condition(clause.trim(), factory));
-					}
-
-				} else if (notMatcher.find()) {
-					String[] split = NOT_PATTERN.split(conditionString, 2);
-					String conditionClauses = split[0];
-					String exceptionClauses = split[1];
-
-					for (String con : OR_PATTERN.split(conditionClauses, -1)) {
-						conditions.add(new Condition(con, factory));
-					}
-
-					for (String exc : NOT_PATTERN.split(exceptionClauses, -1)) {
-						exceptions.add(new Condition(exc, factory));
-					}
-				} else {
-					for (String s : OR_PATTERN.split(conditionString, -1)) {
-						conditions.add(new Condition(s, factory));
-					}
+				try {
+					parseCondition(array[1].trim());
+				} catch (ParseException e) {
+					throw new ParseException(e.getMessage(), ruleText, e);
 				}
 			}
 		} else {
@@ -289,6 +259,41 @@ public class BaseRule implements Rule {
 			conditions.add(new Condition("_", factory));
 		}
 		parseTransform(transformString);
+	}
+
+	private void parseCondition(String conditionString) {
+		Matcher notMatcher = NOT_PATTERN.matcher(conditionString);
+		if (notMatcher.lookingAt()) {
+			// if there is no regular condition
+			// Takes the first one off, and splits on the rest
+			String first = notMatcher.replaceFirst("");
+			String[] split = NOT_PATTERN.split(first);
+
+			for (String clause : split) {
+				if (OR_PATTERN.matcher(clause).find()) {
+					throw new ParseException("OR not allowed following a NOT",
+							conditionString);
+				}
+				exceptions.add(new Condition(clause.trim(), factory));
+			}
+
+		} else if (notMatcher.find()) {
+			String[] split = NOT_PATTERN.split(conditionString, 2);
+			String conditionClauses = split[0];
+			String exceptionClauses = split[1];
+
+			for (String con : OR_PATTERN.split(conditionClauses, -1)) {
+				conditions.add(new Condition(con, factory));
+			}
+
+			for (String exc : NOT_PATTERN.split(exceptionClauses, -1)) {
+				exceptions.add(new Condition(exc, factory));
+			}
+		} else {
+			for (String s : OR_PATTERN.split(conditionString, -1)) {
+				conditions.add(new Condition(s, factory));
+			}
+		}
 	}
 
 	/**

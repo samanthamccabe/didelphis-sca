@@ -36,4 +36,8 @@ public class ParseException extends RuntimeException {
 	public String toString() {
 		return super.toString() + ' ' + data;
 	}
+	
+	public String getData() {
+		return data;
+	}
 }

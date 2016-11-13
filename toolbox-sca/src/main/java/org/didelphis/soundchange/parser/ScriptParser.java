@@ -134,7 +134,7 @@ public class ScriptParser {
 				try {
 					parseCommand(lines, command);
 				} catch (ParseException e) {
-					logger.add(scriptPath, errorLine, string, e.getMessage());
+					logger.add(scriptPath, errorLine, e.getData(), e.getMessage());
 				}
 			}
 		}
