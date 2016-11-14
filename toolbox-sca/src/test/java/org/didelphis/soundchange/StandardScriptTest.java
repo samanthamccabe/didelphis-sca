@@ -21,7 +21,6 @@ import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.phonetic.Lexicon;
 import org.didelphis.phonetic.SequenceFactory;
-import org.didelphis.phonetic.VariableStore;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,10 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -222,7 +218,7 @@ public class StandardScriptTest {
 		SoundChangeScript sca = getScript(script, CLASSPATH_HANDLER);
 		sca.process();
 
-		Lexicon received = sca.getLexicons().get("LEXICON");
+		Lexicon received = sca.getLexicons().getLexicon("LEXICON");
 		Lexicon expected = FACTORY_INTELLIGENT.getLexiconFromSingleColumn(output);
 		assertEquals(expected, received);
 	}
@@ -256,7 +252,7 @@ public class StandardScriptTest {
 		SoundChangeScript sca = getScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH_HANDLER);
 		sca.process();
 		Lexicon expected = FACTORY_NONE.getLexiconFromSingleColumn(lexicon);
-		Lexicon received = sca.getLexicons().get("TEST");
+		Lexicon received = sca.getLexicons().getLexicon("TEST");
 		assertEquals(expected, received);
 	}
 

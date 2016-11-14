@@ -55,4 +55,16 @@ public abstract class LexiconIOCommand implements Runnable  {
 				.append(fileHandler)
 				.toHashCode();
 	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public String getFileHandle() {
+		return fileHandle;
+	}
+
+	public FileHandler getFileHandler() {
+		return fileHandler;
+	}
 }

@@ -61,7 +61,7 @@ public class CompoundRuleTest {
 		);
 
 		LexiconMap lexiconMap = new LexiconMap();
-		lexiconMap.addLexicon("default", lexicon);
+		lexiconMap.addLexicon("default", "", lexicon);
 		new CompoundRule(rules, lexiconMap).run();
 		assertEquals(expected, lexicon);
 	}

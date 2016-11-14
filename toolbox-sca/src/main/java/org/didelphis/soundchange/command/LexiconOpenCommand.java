@@ -42,7 +42,7 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 	public void run() {
 		List<List<String>> rows = fileHandler.readTable(filePath);
 		Lexicon lexicon = factory.getLexicon(rows);
-		lexicons.addLexicon(fileHandle, lexicon);
+		lexicons.addLexicon(fileHandle, filePath, lexicon);
 	}
 
 	@Override
@@ -50,7 +50,6 @@ public class LexiconOpenCommand extends LexiconIOCommand {
 		if (this == obj) { return true; }
 		if (!(obj instanceof LexiconOpenCommand)) { return false; }
 		
-		LexiconOpenCommand rhs = (LexiconOpenCommand) obj;
 		return new EqualsBuilder()
 				.appendSuper(super.equals(obj))
 				.isEquals();

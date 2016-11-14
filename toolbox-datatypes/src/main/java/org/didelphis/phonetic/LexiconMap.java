@@ -16,6 +16,7 @@ package org.didelphis.phonetic;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -24,42 +25,51 @@ import java.util.Map;
  */
 public class LexiconMap {
 
-	private final Map<String, Lexicon> map;
+	private final Map<String, String>  paths;
+	private final Map<String, Lexicon> lexicons;
 
 	public LexiconMap() {
-		map = new HashMap<String, Lexicon>();
+		paths = new LinkedHashMap<String, String>();
+		lexicons = new LinkedHashMap<String, Lexicon>();
 	}
 
-	public void addLexicon(String handle, Lexicon words) {
-		map.put(handle, words);
+	public void addLexicon(String handle, String path, Lexicon words) {
+		paths.put(handle, path);
+		lexicons.put(handle, words);
 	}
 
 	public void addAll(LexiconMap m) {
-		map.putAll(m.map);
+		paths.putAll(m.paths);
+		lexicons.putAll(m.lexicons);
 	}
 
-	public Lexicon get(String handle) {
-		return map.get(handle);
+	public Lexicon getLexicon(String handle) {
+		return lexicons.get(handle);
+	}
+
+	public String getPath(String handle) {
+		return paths.get(handle);
 	}
 
 	public boolean hasHandle(String handle) {
-		return map.containsKey(handle);
+		return lexicons.containsKey(handle);
 	}
 
 	public Collection<String> getHandles() {
-		return map.keySet();
+		return lexicons.keySet();
 	}
 
 	public Collection<Lexicon> values() {
-		return map.values();
+		return lexicons.values();
 	}
 
 	public Lexicon remove(String handle) {
-		return  map.remove(handle);
+		paths.remove(handle);
+		return lexicons.remove(handle);
 	}
 
 	@Override
 	public String toString() {
-		return "LexiconMap:" + map;
+		return "LexiconMap:" + lexicons;
 	}
 }

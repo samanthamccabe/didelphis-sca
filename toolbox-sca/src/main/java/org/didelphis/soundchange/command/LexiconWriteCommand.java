@@ -43,7 +43,7 @@ public class LexiconWriteCommand extends LexiconIOCommand {
 	@Override
 	public void run() {
 		// GET data from lexicons
-		Lexicon lexicon = lexicons.get(fileHandle);
+		Lexicon lexicon = lexicons.getLexicon(fileHandle);
 		
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();
