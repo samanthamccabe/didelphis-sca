@@ -1,18 +1,10 @@
-/*******************************************************************************
- * Copyright (c) 2015. Samantha Fiona McCabe
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/******************************************************************************
+ * Copyright (c) 2016 Samantha Fiona McCabe                                   *
+ *                                                                            *
+ * This software is not licensed for any purpose                              *
  ******************************************************************************/
 
-package org.didelphis.soundchange.command;
+package org.didelphis.soundchange.command.io;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -29,12 +21,12 @@ import java.util.List;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class LexiconCloseCommand extends LexiconIOCommand {
+public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 
 	private final LexiconMap lexicons;
 	private final FormatterMode mode;
 
-	public LexiconCloseCommand(LexiconMap lexParam, String path, String handle, FileHandler name, FormatterMode modeParam) {
+	public LexiconWriteCommand(LexiconMap lexParam, String path, String handle, FileHandler name, FormatterMode modeParam) {
 		super(path, handle, name);
 		lexicons = lexParam;
 		mode = modeParam;
@@ -42,9 +34,9 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 
 	@Override
 	public void run() {
-		// REMOVE data from lexicons
-		Lexicon lexicon = lexicons.remove(fileHandle);
-
+		// GET data from lexicons
+		Lexicon lexicon = lexicons.getLexicon(getHandle());
+		
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();
 		while (i1.hasNext()) {
@@ -59,15 +51,15 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 		}
 		String data = sb.toString().trim();
 		String normalized = mode.normalize(data);
-		fileHandler.writeString(filePath, normalized);
+		getHandler().writeString(getPath(), normalized);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if (!(obj instanceof LexiconCloseCommand)) { return false; }
+		if (!(obj instanceof LexiconWriteCommand)) { return false; }
 
-		LexiconCloseCommand other = (LexiconCloseCommand) obj;
+		LexiconWriteCommand other = (LexiconWriteCommand) obj;
 		return new EqualsBuilder()
 			.appendSuper(super.equals(obj))
 			.append(mode, other.mode)
@@ -78,14 +70,14 @@ public class LexiconCloseCommand extends LexiconIOCommand {
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
-			.appendSuper(super.hashCode())
-			.append(lexicons)
-			.toHashCode();
+				.appendSuper(super.hashCode())
+				.append(lexicons)
+				.toHashCode();
 	}
 
 	@Override
 	public String toString() {
-		return "LexiconCloseCommand{" +
+		return "LexiconWriteCommand{" +
 				"lexicons=" + lexicons +
 				", mode=" + mode +
 				'}';

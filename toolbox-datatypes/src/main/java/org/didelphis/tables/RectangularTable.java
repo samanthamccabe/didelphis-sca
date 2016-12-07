@@ -78,17 +78,16 @@ public final class RectangularTable<E> extends AbstractTable<E> {
 		if (o == null || getClass() != o.getClass()) return false;
 
 		RectangularTable<?> that = (RectangularTable<?>) o;
-
 		return array.equals(that.array) &&
-				nRows != that.nRows &&
-				nCols != that.nCols;
+				(nRows != that.nRows) &&
+				(nCols != that.nCols);
 	}
 
 	@Override
 	public int hashCode() {
 		int result = array.hashCode();
-		result = 31 * result + nRows;
-		result = 31 * result + nCols;
+		result *= 31 + nRows;
+		result *= 31 + nCols;
 		return result;
 	}
 

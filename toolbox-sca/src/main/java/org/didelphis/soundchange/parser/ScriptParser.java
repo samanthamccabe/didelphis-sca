@@ -25,11 +25,12 @@ import org.didelphis.phonetic.model.FeatureModel;
 import org.didelphis.phonetic.model.FeatureModelLoader;
 import org.didelphis.phonetic.model.StandardFeatureModel;
 import org.didelphis.soundchange.ErrorLogger;
-import org.didelphis.soundchange.command.LexiconCloseCommand;
-import org.didelphis.soundchange.command.LexiconOpenCommand;
-import org.didelphis.soundchange.command.LexiconWriteCommand;
-import org.didelphis.soundchange.command.ScriptExecuteCommand;
-import org.didelphis.soundchange.command.StandardRule;
+import org.didelphis.soundchange.command.io.LexiconCloseCommand;
+import org.didelphis.soundchange.command.io.LexiconOpenCommand;
+import org.didelphis.soundchange.command.io.LexiconWriteCommand;
+import org.didelphis.soundchange.command.io.ScriptExecuteCommand;
+import org.didelphis.soundchange.command.io.ScriptImportCommand;
+import org.didelphis.soundchange.command.rule.StandardRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,24 +98,19 @@ public class ScriptParser {
 	
 	public ScriptParser(String scriptPath, CharSequence scriptData,
 			FileHandler fileHandler, ErrorLogger logger) {
+		this(scriptPath, scriptData, fileHandler, logger, new ParserMemory());
+	}
+
+	private ScriptParser(String scriptPath, CharSequence scriptData,
+			FileHandler fileHandler, ErrorLogger logger, ParserMemory memory) {
+		
 		this.scriptPath = scriptPath;
 		this.scriptData = scriptData;
 		this.fileHandler = fileHandler;
 		this.logger = logger;
-		
-		commands = new ArrayDeque<Runnable>();
-		memory = new ParserMemory();
-	}
+		this.memory = memory;
 
-	private ScriptParser(String scriptPath, CharSequence scriptData,
-			ScriptParser scriptParser) {
-		this.scriptPath = scriptPath;
-		this.scriptData = scriptData;
-		
-		fileHandler = scriptParser.fileHandler;
-		logger = scriptParser.logger;
-		commands = scriptParser.commands;
-		memory = scriptParser.memory;
+		commands = new ArrayDeque<Runnable>();
 	}
 	
 	@Override
@@ -159,7 +155,8 @@ public class ScriptParser {
 		} else if (command.contains("=")) {
 			StringBuilder sb = new StringBuilder(command);
 			String next = nextLine(lines);
-			while (next != null && VAR_NEXT_LINE.matcher(next).matches()
+			while ((next != null)
+					&& VAR_NEXT_LINE.matcher(next).matches()
 					&& !matchesOr(next, BREAK, COMPOUND, MODE)) {
 				sb.append('\n').append(next);
 				lineNumber++;
@@ -169,7 +166,7 @@ public class ScriptParser {
 		} else if (RULE_PATTERN.matcher(command).lookingAt()) {
 			StringBuilder sb = new StringBuilder(command);
 			String next = nextLine(lines);
-			while (next != null && RULE_CONTINUATION.matcher(next).lookingAt()) {
+			while ((next != null) && RULE_CONTINUATION.matcher(next).lookingAt()) {
 				sb.append('\n').append(next);
 				lineNumber++;
 				next = nextLine(lines);
@@ -180,9 +177,9 @@ public class ScriptParser {
 			memory.setFormatterMode(setNormalizer(command));
 		} else if (RESERVE.matcher(command).lookingAt()) {
 			String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
-			Collections.addAll(memory.getReserved(),WHITESPACE_PATTERN.split(reserve));
+			Collections.addAll(memory.getReserved(), WHITESPACE_PATTERN.split(reserve));
 		} else if (BREAK.matcher(command).lookingAt()) {
-			lineNumber = Integer.MAX_VALUE; 
+			lineNumber = Integer.MAX_VALUE;
 		} else {
 			logger.add(scriptPath, lineNumber, command, "Unrecognized Command");
 		}
@@ -199,7 +196,9 @@ public class ScriptParser {
 	@Nullable
 	private String nextLine(List<String> lines) {
 		String next;
-		next = lineNumber + 1 < lines.size() ? lines.get(lineNumber + 1).trim() : null;
+		next = ((lineNumber + 1) < lines.size())
+				? lines.get(lineNumber + 1).trim()
+				: null;
 		return next;
 	}
 	
@@ -282,7 +281,11 @@ public class ScriptParser {
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String data = fileHandler.read(path);
 		String fullPath = getPath(filePath, path);
-		new ScriptParser(fullPath, data, this).parse();
+		ScriptParser scriptParser = new ScriptParser(
+				fullPath,data, fileHandler, logger, memory);
+		scriptParser.parse();
+		commands.add(new ScriptImportCommand(
+				filePath, fileHandler, logger, scriptParser.getCommands()));
 	}
 
 	/**
