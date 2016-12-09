@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Samantha Fiona McCabe
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this scriptPath except in compliance with the License.
+ * you may not use this filePath except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
@@ -31,12 +31,14 @@ public class StandardScript implements SoundChangeScript {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
-	private final String scriptPath;
+	private final FileHandler handler;
+	private final String filePath;
 	private final Queue<Runnable> commands;
 	private final LexiconMap lexicons;
 
 	public StandardScript(String filePath, CharSequence script, FileHandler handler,  ErrorLogger logger) {
-		scriptPath = filePath;
+		this.filePath = filePath;
+		this.handler  = handler;
 
 		ScriptParser scriptParser = new ScriptParser(filePath, script, handler, logger);
 		scriptParser.parse();
@@ -45,6 +47,11 @@ public class StandardScript implements SoundChangeScript {
 		commands = scriptParser.getCommands();
 	}
 
+	@Override
+	public FileHandler getHandler() {
+		return handler;
+	}
+	
 	@Override
 	public Queue<Runnable> getCommands() {
 		return commands;
@@ -64,7 +71,6 @@ public class StandardScript implements SoundChangeScript {
 
 	@Override
 	public String toString() {
-		return "StandardScript{"+ scriptPath +'}';
+		return "StandardScript{"+ filePath +'}';
 	}
-
 }
