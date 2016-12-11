@@ -92,7 +92,7 @@ public class StandardFeatureModel implements FeatureModel {
 
 		StringBuilder sb = new StringBuilder();
 		if (minimum > 0.0) {
-			Collection collection = getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
+			Collection<String> collection = getBestDiacritic(featureArray, bestFeatures, Double.MAX_VALUE);
 			for (String diacritic : modifiers.keySet()) {
 				if (collection.contains(diacritic)) {
 					sb.append(diacritic);

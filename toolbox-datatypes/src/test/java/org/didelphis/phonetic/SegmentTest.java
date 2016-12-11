@@ -53,19 +53,7 @@ public class SegmentTest {
 	public void testUnderspecifiedSegment01() {
 		String string = "[-continuant, +release]";
 		Segment received = FACTORY.getSegment(string);
-		FeatureModel model = FACTORY.getFeatureModel();
-
-		List<Double> array = new ArrayList<Double>();
-		int size = model.getSpecification().size();
-		for (int i = 0; i < size; i++) {
-			array.add(null);
-		}
-		
-		array.set(1, -1.0);
-		array.set(3,  1.0);
-
 		Segment expected = FACTORY.getSegment("[-continuant, +release]");
-
 		assertEquals(expected, received);
 	}
 	

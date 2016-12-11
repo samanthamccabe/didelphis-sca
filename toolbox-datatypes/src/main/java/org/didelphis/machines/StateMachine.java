@@ -46,6 +46,7 @@ public class StateMachine implements Machine {
 	public static final StateMachine EMPTY_MACHINE = new StateMachine();
 
 	private static final Pattern ILLEGAL_PATTERN  = Pattern.compile("#(\\*|\\+|\\?)|(\\*|\\+|\\?)(\\*|\\+|\\?)");
+	private static final int A_ASCII = 65;
 
 	private final SequenceFactory factory;
 
@@ -72,7 +73,7 @@ public class StateMachine implements Machine {
 
 	private static StateMachine createParallel(String id, String expression, SequenceFactory factoryParam, ParseDirection direction) {
 		StateMachine stateMachine = new StateMachine(id, factoryParam);
-		int i = 65; // A
+		int i = A_ASCII; // A
 		for (String subExpression : parseSubExpressions(expression)) {
 			List<Expression> expressions = factoryParam.getExpressions(subExpression);
 			String prefix = String.valueOf((char) i);

@@ -32,6 +32,7 @@ import java.io.IOException;
 public class Main {
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	public static final String UTF_8 = "UTF-8";
+	private static final double NANO = 10.0E-9;
 
 	private Main() {
 	}
@@ -54,7 +55,7 @@ public class Main {
 				script.process();
 
 				double elapsedTime = System.nanoTime() - startTime;
-				double time = elapsedTime / StrictMath.pow(10.0,9.0);
+				double time = elapsedTime * NANO;
 				LOGGER.info("Finished script {} in {} seconds", file.getName(), time);
 			}
 		}

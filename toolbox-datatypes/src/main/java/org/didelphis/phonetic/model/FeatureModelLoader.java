@@ -161,7 +161,7 @@ public class FeatureModelLoader {
 					modifierZone.add(line);
 				}
 			} else {
-				// ignore and log (at the end?)
+				//TODO: ignore and log (at the end?)
 			}
 		}
 		
