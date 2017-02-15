@@ -182,6 +182,12 @@ public class StandardScriptTest {
 	}
 
 	@Test
+	public void testUnknown() {
+		String words = "tusscyos";
+		String outpt = "tuscyos";
+	}
+	
+	@Test
 	public void testExecute() throws Exception {
 		Map<String, CharSequence> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);

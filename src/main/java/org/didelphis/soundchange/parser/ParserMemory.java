@@ -48,9 +48,10 @@ public class ParserMemory {
 
 	public SequenceFactory factorySnapshot() {
 		return new SequenceFactory(
-				                          featureModel,
-				                          new VariableStore(variables), new HashSet<>(reserved),
-				                          formatterMode
+			  featureModel,
+			  new VariableStore(variables), 
+			  new HashSet<>(reserved),
+			  formatterMode
 		);
 	}
 
@@ -72,6 +73,7 @@ public class ParserMemory {
 
 	public void setFormatterMode(FormatterMode formatterMode) {
 		this.formatterMode = formatterMode;
+		variables.setSegmenter(this.formatterMode);
 	}
 
 	public FeatureModel getFeatureModel() {
