@@ -6,32 +6,32 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import org.didelphis.common.language.phonetic.Lexicon;
-import org.didelphis.common.language.phonetic.LexiconMap;
-import org.didelphis.common.language.phonetic.sequences.BasicSequence;
-import org.didelphis.common.language.phonetic.sequences.Sequence;
+import org.didelphis.language.phonetic.Lexicon;
+import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.phonetic.sequences.BasicSequence;
+import org.didelphis.language.phonetic.sequences.Sequence;
 
 import java.util.List;
 
 /**
  * Created by samantha on 10/23/16.
  */
-public class CompoundRule implements Rule {
+public class CompoundRule<T> implements Rule<T> {
 
-	private final Iterable<BaseRule> rules;
-	private final LexiconMap lexicons;
+	private final Iterable<BaseRule<T>> rules;
+	private final LexiconMap<T> lexicons;
 
-	public CompoundRule(Iterable<BaseRule> rules, LexiconMap lexicons) {
+	public CompoundRule(Iterable<BaseRule<T>> rules, LexiconMap<T> lexicons) {
 		this.rules = rules;
 		this.lexicons = lexicons;
 	}
 
 	@Override
 	public void run() {
-		for (Lexicon lexicon : lexicons.values()) {
-			for (List<Sequence> row : lexicon) {
+		for (Lexicon<T> lexicon : lexicons.values()) {
+			for (List<Sequence<T>> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence word = apply(row.get(i));
+					Sequence<T> word = apply(row.get(i));
 					row.set(i, word);
 				}
 			}
@@ -39,10 +39,10 @@ public class CompoundRule implements Rule {
 	}
 
 	@Override
-	public Sequence apply(Sequence sequence) {
-		Sequence output = new BasicSequence(sequence);
+	public Sequence<T> apply(Sequence<T> sequence) {
+		Sequence<T> output = new BasicSequence<>(sequence);
 		for (int index = 0; index < output.size(); index++) {
-			for (BaseRule rule : rules) {
+			for (BaseRule<T> rule : rules) {
 				rule.applyAtIndex(output, index);
 			}
 		}
@@ -50,7 +50,7 @@ public class CompoundRule implements Rule {
 	}
 
 	@Override
-	public int applyAtIndex(Sequence sequence, int index) {
+	public int applyAtIndex(Sequence<T> sequence, int index) {
 		return 0;
 	}
 }

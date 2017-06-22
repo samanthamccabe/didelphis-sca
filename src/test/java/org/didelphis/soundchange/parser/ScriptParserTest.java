@@ -17,32 +17,34 @@
 
 package org.didelphis.soundchange.parser;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.io.NullFileHandler;
-import org.didelphis.common.language.phonetic.VariableStore;
-import org.junit.Test;
+import org.didelphis.io.FileHandler;
+import org.didelphis.io.NullFileHandler;
+import org.didelphis.language.phonetic.VariableStore;
+import org.didelphis.language.phonetic.features.IntegerFeature;
+import org.didelphis.soundchange.ErrorLogger;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by samantha on 11/8/16.
  */
-public class ScriptParserTest {
+class ScriptParserTest {
 	@Test
-	public void testMultilineVariable() {
+	void testMultilineVariable() {
 		String commands = "" +
 				"C = p  t  k \n" +
 				"    ph th kh\n" +
 				"    f  s  x \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		ScriptParser<Integer> parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory memory = parser.getMemory();
+		ParserMemory<Integer> memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> list = variableStore.get("C");
 
@@ -50,16 +52,16 @@ public class ScriptParserTest {
 	}
 
 	@Test
-	public void testMultilineVariableBracket() {
+	void testMultilineVariableBracket() {
 		String commands = "" +
 				"C = p   t   k  \n" +
 				"    ph  th  kh \n" +
 				"    [P] [T] [K]\n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		ScriptParser<Integer> parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory memory = parser.getMemory();
+		ParserMemory<Integer> memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> list = variableStore.get("C");
 
@@ -67,15 +69,15 @@ public class ScriptParserTest {
 	}
 
 	@Test
-	public void testMultilineVariableOverparse() {
+	void testMultilineVariableOverparse() {
 		String commands = "" +
 				"C   =  p   t   k \n" +
 				"[W] = [X] [Y] [Z]";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		ScriptParser<Integer> parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory memory = parser.getMemory();
+		ParserMemory<Integer> memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> cList = variableStore.get("C");
 		List<String> xList = variableStore.get("[W]");
@@ -84,11 +86,11 @@ public class ScriptParserTest {
 	}
 
 	@Test
-	public void reserveTest() {
+	void reserveTest() {
 		String commands = "RESERVE ph th kh";
-		ScriptParser parser = getParser(commands, NullFileHandler.INSTANCE);
+		ScriptParser<Integer> parser = getParser(commands, NullFileHandler.INSTANCE);
 		parser.parse();
-		ParserMemory memory = parser.getMemory();
+		ParserMemory<Integer> memory = parser.getMemory();
 		Collection<String> received = memory.getReserved();
 		Collection<String> expected = new HashSet<>();
 		expected.add("ph");
@@ -97,7 +99,7 @@ public class ScriptParserTest {
 		assertEquals(expected, received);
 	}
 
-	private static ScriptParser getParser(String commands, FileHandler handler) {
-		return new ScriptParser("", commands, handler, null);
+	private static ScriptParser<Integer> getParser(String commands, FileHandler handler) {
+		return new ScriptParser<>("", IntegerFeature.INSTANCE, commands, handler, new ErrorLogger());
 	}
 }

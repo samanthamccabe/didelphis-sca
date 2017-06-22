@@ -14,17 +14,17 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.common.language.enums.FormatterMode;
-import org.didelphis.common.language.phonetic.SequenceFactory;
-import org.didelphis.common.language.phonetic.model.StandardFeatureModel;
-import org.junit.Test;
+import org.didelphis.io.ClassPathFileHandler;
+import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.phonetic.SequenceFactory;
+import org.didelphis.language.phonetic.features.IntegerFeature;
+import org.didelphis.language.phonetic.model.FeatureModelLoader;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Samantha Fiona Morrigan McCabe
@@ -34,11 +34,11 @@ public class ConditionModelTest {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionModelTest.class);
 
-	private static final SequenceFactory FACTORY = loadModel();
+	private static final SequenceFactory<Integer> FACTORY = loadModel();
 	
 	@Test
-	public void testBasicStateMachine01() {
-		Condition condition = new Condition("_a[+son, -hgh, +frn, -atr]+", FACTORY);
+	void testBasicStateMachine01() {
+		Condition<Integer> condition = new Condition<>("_a[+son, -hgh, +frn, -atr]+", FACTORY);
 
 		fail(condition, "xa");
 		test(condition, "xaa");
@@ -54,8 +54,8 @@ public class ConditionModelTest {
 	}
 
 	@Test
-	public void testComplex01() {
-		Condition condition = new Condition("_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
+	void testComplex01() {
+		Condition<Integer> condition = new Condition<>("_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -104,8 +104,8 @@ public class ConditionModelTest {
 	}
 
 	@Test
-	public void testComplex02() {
-		Condition condition = new Condition("_[-con][-son]us#", FACTORY);
+	void testComplex02() {
+		Condition<Integer> condition = new Condition<>("_[-con][-son]us#", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -143,17 +143,21 @@ public class ConditionModelTest {
 		fail(condition, "xcʰeus");
 	}
 
-	private static void test(Condition condition, String target) {
+	private static void test(Condition<Integer> condition, String target) {
 		assertTrue(condition.isMatch(FACTORY.getSequence(target), 0));
 	}
 
-	private static void fail(Condition condition, String target) {
+	private static void fail(Condition<Integer> condition, String target) {
 		assertFalse(condition.isMatch(FACTORY.getSequence(target), 0));
 	}
 
-	private static SequenceFactory loadModel() {
-		InputStream stream = ConditionModelTest.class.getClassLoader().getResourceAsStream("AT_hybrid.model");
+	private static SequenceFactory<Integer> loadModel() {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		return new SequenceFactory(new StandardFeatureModel(stream, mode),mode);
+
+		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
+				IntegerFeature.INSTANCE, ClassPathFileHandler.INSTANCE,
+				"AT_hybrid.model");
+
+		return new SequenceFactory<>(loader.getFeatureMapping(),mode);
 	}
 }

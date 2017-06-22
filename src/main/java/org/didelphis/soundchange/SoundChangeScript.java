@@ -14,8 +14,8 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.language.phonetic.LexiconMap;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.phonetic.LexiconMap;
 
 import java.util.Queue;
 
@@ -23,13 +23,13 @@ import java.util.Queue;
  * Samantha Fiona Morrigan McCabe
  * Created: 1/14/2015
  */
-public interface SoundChangeScript {
+public interface SoundChangeScript<T> {
 
 	void process();
 
 	Queue<Runnable> getCommands();
 
-	LexiconMap getLexicons();
+	LexiconMap<T> getLexicons();
 
 	FileHandler getHandler();
 }

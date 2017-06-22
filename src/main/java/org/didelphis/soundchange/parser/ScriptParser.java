@@ -17,13 +17,15 @@
 
 package org.didelphis.soundchange.parser;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.language.enums.FormatterMode;
-import org.didelphis.common.language.exceptions.ParseException;
-import org.didelphis.common.language.phonetic.SequenceFactory;
-import org.didelphis.common.language.phonetic.model.FeatureModel;
-import org.didelphis.common.language.phonetic.model.FeatureModelLoader;
-import org.didelphis.common.language.phonetic.model.StandardFeatureModel;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.exceptions.ParseException;
+import org.didelphis.language.phonetic.SequenceFactory;
+import org.didelphis.language.phonetic.features.FeatureType;
+import org.didelphis.language.phonetic.model.FeatureMapping;
+import org.didelphis.language.phonetic.model.FeatureModel;
+import org.didelphis.language.phonetic.model.FeatureModelLoader;
+import org.didelphis.language.phonetic.model.GeneralFeatureModel;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.command.io.LexiconCloseCommand;
 import org.didelphis.soundchange.command.io.LexiconOpenCommand;
@@ -43,7 +45,7 @@ import java.util.regex.Pattern;
 /**
  * Created by samantha on 11/8/16.
  */
-public class ScriptParser {
+public class ScriptParser<T> {
 	
 	private static final String FILEHANDLE     = "([A-Z0-9_]+)";
 	private static final String FILEPATH       = "[\"\']([^\"\']+)[\"\']";
@@ -84,25 +86,27 @@ public class ScriptParser {
 	private static final Pattern PATH_PATTERN      = compile("[\\\\/][^/\\\\]*$");
 	
 	private final String scriptPath;
+	private final FeatureType<T> type;
 	private final CharSequence scriptData;
 	private final FileHandler fileHandler;
 	private final ErrorLogger logger;
 
 	private final Queue<Runnable> commands;
-	private final ParserMemory memory;
+	private final ParserMemory<T> memory;
 
 	private boolean isParsed;
 	private int lineNumber;
 	
-	public ScriptParser(String scriptPath, CharSequence scriptData,
+	public ScriptParser(String scriptPath, FeatureType<T> type, CharSequence scriptData,
 			FileHandler fileHandler, ErrorLogger logger) {
-		this(scriptPath, scriptData, fileHandler, logger, new ParserMemory());
+		this(scriptPath, type, scriptData, fileHandler, logger, new ParserMemory<>(type));
 	}
 
-	private ScriptParser(String scriptPath, CharSequence scriptData,
-			FileHandler fileHandler, ErrorLogger logger, ParserMemory memory) {
+	private ScriptParser(String scriptPath, FeatureType<T> type, CharSequence scriptData,
+			FileHandler fileHandler, ErrorLogger logger, ParserMemory<T> memory) {
 		
 		this.scriptPath = scriptPath;
+		this.type = type;
 		this.scriptData = scriptData;
 		this.fileHandler = fileHandler;
 		this.logger = logger;
@@ -138,8 +142,10 @@ public class ScriptParser {
 	private void parseCommand(List<String> lines, String command) {
 		FormatterMode formatterMode = memory.getFormatterMode();
 		if (LOAD.matcher(command).lookingAt()) {
-			FeatureModel featureModel = loadModel(scriptPath, command, fileHandler, formatterMode);
-			memory.setFeatureModel(featureModel);
+			FeatureMapping<T> featureModel = loadModel(scriptPath, command,
+					type,
+					fileHandler, formatterMode);
+			memory.setFeatureMapping(featureModel);
 		} else if (EXECUTE.matcher(command).lookingAt()) {
 			executeScript(scriptPath, command);
 		} else if (IMPORT.matcher(command).lookingAt()) {
@@ -169,7 +175,7 @@ public class ScriptParser {
 				lineNumber++;
 				next = nextLine(lines);
 			}
-			commands.add(new StandardRule(sb.toString(), memory.getLexicons(),
+			commands.add(new StandardRule<>(sb.toString(), memory.getLexicons(),
 					memory.factorySnapshot()));
 		} else if (MODE.matcher(command).lookingAt()) {
 			memory.setFormatterMode(setNormalizer(command));
@@ -187,7 +193,7 @@ public class ScriptParser {
 		return commands;
 	}
 
-	public ParserMemory getMemory() {
+	public ParserMemory<T> getMemory() {
 		return memory;
 	}
 	
@@ -206,7 +212,7 @@ public class ScriptParser {
 	 * @param filePath path of the parent script
 	 * @param command the whole command staring from OPEN, specifying the path and scriptPath-handle
 	 */
-	private void openLexicon(String filePath, String command, SequenceFactory factory) {
+	private void openLexicon(String filePath, String command, SequenceFactory<T> factory) {
 		Matcher matcher = OPEN_PATTERN.matcher(command);
 		if (matcher.lookingAt()) {
 			String path   = matcher.group(1);
@@ -278,8 +284,8 @@ public class ScriptParser {
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		CharSequence data = fileHandler.read(path);
 		String fullPath = getPath(filePath, path);
-		ScriptParser scriptParser = new ScriptParser(
-				fullPath,data, fileHandler, logger, memory);
+		ScriptParser<T> scriptParser = new ScriptParser<>(
+				fullPath, type ,data, fileHandler, logger, memory);
 		scriptParser.parse();
 		commands.add(new ScriptImportCommand(
 				filePath, fileHandler, logger, scriptParser.getCommands()));
@@ -296,7 +302,7 @@ public class ScriptParser {
 		String input = EXECUTE_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String fullPath = getPath(filePath, path);
-		commands.add(new ScriptExecuteCommand(fullPath, fileHandler, logger));
+		commands.add(new ScriptExecuteCommand<>(fullPath, type, fileHandler, logger));
 	}
 	
 	private static List<String> getStrings(CharSequence scriptData) {
@@ -305,16 +311,18 @@ public class ScriptParser {
 		return lines;
 	}
 
-	private static FeatureModel loadModel(String filePath,CharSequence command,
-	                                      FileHandler handler, FormatterMode mode) {
+	private static <T> FeatureMapping<T> loadModel(String filePath,
+			CharSequence command,
+			FeatureType<T> type,
+			FileHandler handler, FormatterMode mode) {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path  = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String fullPath = getPath(filePath, path);
 
 		List<String> list = new ArrayList<>();
 		Collections.addAll(list,String.valueOf(handler.read(fullPath)).split("\r?\n|\r") );
-		FeatureModelLoader loader = new FeatureModelLoader(fullPath, list, mode);
-		return new StandardFeatureModel(loader);
+		FeatureModelLoader<T> loader = new FeatureModelLoader<>(type, handler, list);
+		return loader.getFeatureMapping();
 	}
 
 	private static String getPath(String filePath, String path) {

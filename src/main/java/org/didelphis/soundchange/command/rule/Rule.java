@@ -6,12 +6,12 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import org.didelphis.common.language.phonetic.sequences.Sequence;
+import org.didelphis.language.phonetic.sequences.Sequence;
 
 /**
  * Created by samantha on 10/23/16.
  */
-public interface Rule extends Runnable {
+public interface Rule<T> extends Runnable {
 
 	/**
 	 * Applies the rule to the provided <code>Sequence</code>. It is not
@@ -22,7 +22,7 @@ public interface Rule extends Runnable {
 	 * be null
 	 * @return the modified <code>Sequence</code>. This can be
 	 */
-	Sequence apply(Sequence sequence);
+	Sequence<T> apply(Sequence<T> sequence);
 
 	/**
 	 * Applies the rule to the given input <i>in place</i>, that is, the object
@@ -34,5 +34,5 @@ public interface Rule extends Runnable {
 	 * <code>Sequence</code>, <i>i.e.</i> the position of the cursor after this
 	 * method has been called
 	 */
-	int applyAtIndex(Sequence sequence, int index);
+	int applyAtIndex(Sequence<T> sequence, int index);
 }

@@ -6,7 +6,7 @@
 
 package org.didelphis.soundchange.command.io;
 
-import org.didelphis.common.io.FileHandler;
+import org.didelphis.io.FileHandler;
 import org.didelphis.soundchange.ErrorLogger;
 
 import java.util.Objects;

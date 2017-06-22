@@ -17,12 +17,15 @@
 
 package org.didelphis.soundchange.parser;
 
-import org.didelphis.common.language.enums.FormatterMode;
-import org.didelphis.common.language.phonetic.LexiconMap;
-import org.didelphis.common.language.phonetic.SequenceFactory;
-import org.didelphis.common.language.phonetic.VariableStore;
-import org.didelphis.common.language.phonetic.model.FeatureModel;
-import org.didelphis.common.language.phonetic.model.StandardFeatureModel;
+import org.didelphis.io.NullFileHandler;
+import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.phonetic.SequenceFactory;
+import org.didelphis.language.phonetic.VariableStore;
+import org.didelphis.language.phonetic.features.FeatureType;
+import org.didelphis.language.phonetic.model.FeatureMapping;
+import org.didelphis.language.phonetic.model.FeatureModel;
+import org.didelphis.language.phonetic.model.FeatureModelLoader;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,32 +33,31 @@ import java.util.Set;
 /**
  * Created by samantha on 11/8/16.
  */
-public class ParserMemory {
-	private final LexiconMap lexicons;
+public class ParserMemory<T> {
+	private final LexiconMap<T> lexicons;
 	private final VariableStore variables;
 	private final Set<String> reserved;
 
 	private FormatterMode formatterMode;
-	private FeatureModel featureModel;
+	private FeatureMapping<T> featureMapping;
 
-	public ParserMemory() {
-		lexicons = new LexiconMap();
+	public ParserMemory(FeatureType<T> type) {
+		lexicons = new LexiconMap<>();
 		variables = new VariableStore(FormatterMode.NONE);
 		reserved = new HashSet<>();
 		formatterMode = FormatterMode.NONE;
-		featureModel = StandardFeatureModel.EMPTY_MODEL;
+		featureMapping = new FeatureModelLoader<>(type, NullFileHandler.INSTANCE, "").getFeatureMapping();
 	}
 
-	public SequenceFactory factorySnapshot() {
-		return new SequenceFactory(
-			  featureModel,
+	public SequenceFactory<T> factorySnapshot() {
+		return new SequenceFactory<>(featureMapping,
 			  new VariableStore(variables), 
 			  new HashSet<>(reserved),
 			  formatterMode
 		);
 	}
 
-	public LexiconMap getLexicons() {
+	public LexiconMap<T> getLexicons() {
 		return lexicons;
 	}
 
@@ -76,12 +78,12 @@ public class ParserMemory {
 		variables.setSegmenter(this.formatterMode);
 	}
 
-	public FeatureModel getFeatureModel() {
-		return featureModel;
+	public FeatureMapping<T> getFeatureMapping() {
+		return featureMapping;
 	}
 
-	public void setFeatureModel(FeatureModel featureModel) {
-		this.featureModel = featureModel;
+	public void setFeatureMapping(FeatureMapping<T> featureMapping) {
+		this.featureMapping = featureMapping;
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class ParserMemory {
 				", variables=" + variables +
 				", reserved=" + reserved +
 				", formatterMode=" + formatterMode +
-				", featureModel=" + featureModel +
+				", featureMapping=" + featureMapping +
 				'}';
 	}
 }

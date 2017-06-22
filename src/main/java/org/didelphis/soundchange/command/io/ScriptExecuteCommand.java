@@ -6,7 +6,8 @@
 
 package org.didelphis.soundchange.command.io;
 
-import org.didelphis.common.io.FileHandler;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.SoundChangeScript;
 import org.didelphis.soundchange.StandardScript;
@@ -19,14 +20,16 @@ import java.util.Objects;
  * Author: Samantha Fiona Morrigan McCabe
  * Created: 10/13/2014
  */
-public class ScriptExecuteCommand extends AbstractIoCommand {
+public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(ScriptExecuteCommand.class);
-	
+
+	private final FeatureType<T> type;
 	private final ErrorLogger logger;
 	
-	public ScriptExecuteCommand(String path, FileHandler handler, ErrorLogger logger) {
+	public ScriptExecuteCommand(String path, FeatureType<T> type, FileHandler handler, ErrorLogger logger) {
 		super(path, handler);
+		this.type = type;
 		this.logger = logger;
 	}
 
@@ -36,7 +39,7 @@ public class ScriptExecuteCommand extends AbstractIoCommand {
 		FileHandler handler = getHandler();
 		
 		CharSequence data = handler.read(path);
-		SoundChangeScript script = new StandardScript(path, data, handler, logger);
+		SoundChangeScript<T> script = new StandardScript<>(path, type, data, handler, logger);
 		script.process();
 	}
 

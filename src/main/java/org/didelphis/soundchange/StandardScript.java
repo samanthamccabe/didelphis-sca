@@ -14,8 +14,9 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.language.phonetic.LexiconMap;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.parser.ScriptParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,20 +28,20 @@ import java.util.Queue;
  * Date: 4/18/13
  * Time: 11:46 PM
  */
-public class StandardScript implements SoundChangeScript {
+public class StandardScript<T> implements SoundChangeScript<T> {
 
 	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
 	private final FileHandler handler;
 	private final String filePath;
 	private final Queue<Runnable> commands;
-	private final LexiconMap lexicons;
+	private final LexiconMap<T> lexicons;
 
-	public StandardScript(String filePath, CharSequence script, FileHandler handler,  ErrorLogger logger) {
+	public StandardScript(String filePath, FeatureType<T> type,  CharSequence script, FileHandler handler,  ErrorLogger logger) {
 		this.filePath = filePath;
 		this.handler  = handler;
 
-		ScriptParser scriptParser = new ScriptParser(filePath, script, handler, logger);
+		ScriptParser<T> scriptParser = new ScriptParser<>(filePath, type, script, handler, logger);
 		scriptParser.parse();
 
 		lexicons = scriptParser.getMemory().getLexicons();
@@ -58,7 +59,7 @@ public class StandardScript implements SoundChangeScript {
 	}
 
 	@Override
-	public LexiconMap getLexicons() {
+	public LexiconMap<T> getLexicons() {
 		return lexicons;
 	}
 

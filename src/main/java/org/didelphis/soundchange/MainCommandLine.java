@@ -14,16 +14,16 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.common.io.DiskFileHandler;
+import org.didelphis.io.DiskFileHandler;
+import org.didelphis.language.phonetic.features.FeatureType;
+import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.stream.Collectors;
 
 /**
@@ -33,15 +33,15 @@ import java.util.stream.Collectors;
  * Time: 5:23 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Main {
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(Main.class);
+public final class MainCommandLine {
+	private static final transient Logger LOGGER = LoggerFactory.getLogger(MainCommandLine.class);
 	public static final String UTF_8 = "UTF-8";
 	private static final double NANO = 10.0E-9;
 
-	private Main() {
+	private MainCommandLine() {
 	}
 
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		
 		if (args.length == 0) {
 			throw new IllegalArgumentException("No arguments were provided!");
@@ -53,15 +53,20 @@ public class Main {
 				try (BufferedReader reader = new BufferedReader(new FileReader(file))){
 					String rules = reader.lines().collect(Collectors.joining());
 
-					SoundChangeScript script = new StandardScript(
+					// TODO: read dynamically somehow
+					FeatureType<?> type = IntegerFeature.INSTANCE;
+
+					SoundChangeScript<?> script = new StandardScript<>(
 							arg,
+							type,
 							rules,
-							DiskFileHandler.getDefaultInstance(),
+							new DiskFileHandler("UTF-8"),
 							new ErrorLogger()
 					);
 					script.process();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error("Failed to open script {}",
+							file.getAbsolutePath(), e);
 				}
 
 				double elapsedTime = System.nanoTime() - startTime;

@@ -6,11 +6,11 @@
 
 package org.didelphis.soundchange.command.io;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.language.enums.FormatterMode;
-import org.didelphis.common.language.phonetic.Lexicon;
-import org.didelphis.common.language.phonetic.LexiconMap;
-import org.didelphis.common.language.phonetic.sequences.Sequence;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.phonetic.Lexicon;
+import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.phonetic.sequences.Sequence;
 
 import java.util.Iterator;
 import java.util.List;

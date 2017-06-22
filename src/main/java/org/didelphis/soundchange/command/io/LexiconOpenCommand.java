@@ -6,10 +6,10 @@
 
 package org.didelphis.soundchange.command.io;
 
-import org.didelphis.common.io.FileHandler;
-import org.didelphis.common.language.phonetic.Lexicon;
-import org.didelphis.common.language.phonetic.LexiconMap;
-import org.didelphis.common.language.phonetic.SequenceFactory;
+import org.didelphis.io.FileHandler;
+import org.didelphis.language.phonetic.Lexicon;
+import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.phonetic.SequenceFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
