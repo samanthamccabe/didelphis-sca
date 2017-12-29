@@ -6,26 +6,30 @@
 
 package org.didelphis.soundchange;
 
+import lombok.Data;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 11/5/2016
+ * @author Samantha Fiona McCabe
+ * @date 2016-11-05
  */
+@Data
 public class ErrorLogger implements Iterable<ErrorLogger.Error> {
-	
-	private final List<Error> errors;
-	
+
+	private final Collection<Error> errors;
+
 	public ErrorLogger() {
 		errors = new ArrayList<>();
 	}
-	
+
 	public void add(String filePath, int line, String data, String message) {
 		errors.add(new Error(filePath, line, data, message));
 	}
-	
+
 	public void clear() {
 		errors.clear();
 	}
@@ -35,21 +39,16 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 	}
 
 	@Override
-	public Iterator<Error> iterator() {
+	public @NotNull Iterator<Error> iterator() {
 		return errors.iterator();
 	}
-		
-	@Override
-	public String toString() {
-		return "ErrorLogger{" + "errors=" + errors + '}';
-	}
-	
+
 	public static class Error {
 		private final String script;
 		private final int line;
 		private final String data;
 		private final String message;
-		
+
 		public Error(String script, int line, String data, String message) {
 			this.script = script;
 			this.line = line;
@@ -59,10 +58,7 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 
 		@Override
 		public String toString() {
-			return new StringBuilder()
-					.append(line)
-					.append(script)
-					.toString();
+			return String.valueOf(line) + script;
 		}
 
 		public String getScript() {

@@ -15,7 +15,7 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.io.ClassPathFileHandler;
-import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
@@ -27,18 +27,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 4/19/2015
+ * @author Samantha Fiona McCabe
+ * @date 4/19/2015
  */
 public class ConditionModelTest {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(ConditionModelTest.class);
+	private static final transient Logger LOGGER =
+			LoggerFactory.getLogger(ConditionModelTest.class);
 
 	private static final SequenceFactory<Integer> FACTORY = loadModel();
-	
+
 	@Test
 	void testBasicStateMachine01() {
-		Condition<Integer> condition = new Condition<>("_a[+son, -hgh, +frn, -atr]+", FACTORY);
+		Condition<Integer> condition =
+				new Condition<>("_a[+son, -hgh, +frn, -atr]+", FACTORY);
 
 		fail(condition, "xa");
 		test(condition, "xaa");
@@ -55,7 +57,8 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex01() {
-		Condition<Integer> condition = new Condition<>("_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
+		Condition<Integer> condition = new Condition<>(
+				"_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -105,7 +108,8 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex02() {
-		Condition<Integer> condition = new Condition<>("_[-con][-son]us#", FACTORY);
+		Condition<Integer> condition =
+				new Condition<>("_[-con][-son]us#", FACTORY);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -144,20 +148,20 @@ public class ConditionModelTest {
 	}
 
 	private static void test(Condition<Integer> condition, String target) {
-		assertTrue(condition.isMatch(FACTORY.getSequence(target), 0));
+		assertTrue(condition.isMatch(FACTORY.toSequence(target), 0));
 	}
 
 	private static void fail(Condition<Integer> condition, String target) {
-		assertFalse(condition.isMatch(FACTORY.getSequence(target), 0));
+		assertFalse(condition.isMatch(FACTORY.toSequence(target), 0));
 	}
 
 	private static SequenceFactory<Integer> loadModel() {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 
-		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
-				IntegerFeature.INSTANCE, ClassPathFileHandler.INSTANCE,
-				"AT_hybrid.model");
+		FeatureModelLoader<Integer> loader =
+				new FeatureModelLoader<>(IntegerFeature.INSTANCE,
+						ClassPathFileHandler.INSTANCE, "AT_hybrid.model");
 
-		return new SequenceFactory<>(loader.getFeatureMapping(),mode);
+		return new SequenceFactory<>(loader.getFeatureMapping(), mode);
 	}
 }

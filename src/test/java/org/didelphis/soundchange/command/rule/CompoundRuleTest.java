@@ -6,50 +6,43 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.LexiconMap;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.LexiconMap;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by samantha on 10/27/16.
  */
-public class CompoundRuleTest {
+class CompoundRuleTest {
 
-	private static final FormatterMode INTEL = FormatterMode.INTELLIGENT;
-	private static final SequenceFactory<Integer> FACTORY = new SequenceFactory<>(
-			IntegerFeature.emptyLoader().getFeatureMapping(), FormatterMode.INTELLIGENT);
+	private static final SequenceFactory<Integer> FACTORY =
+			new SequenceFactory<>(
+					IntegerFeature.emptyLoader().getFeatureMapping(),
+					FormatterMode.INTELLIGENT);
 
 	@Test
-	public void testCompound01() {
-		List<BaseRule<Integer>> rules = buildRules   (
-				"a i u > e / #{m p t k}?{a i u}{p t k l n}_",
-				"e > 0 / {l n}_{p t k} or {p t k}_l"
-		);
+	void testCompound01() {
+		List<? extends Rule<Integer>> rules =
+				buildRules("a i u > e / #{m p t k}?{a i u}{p t k l n}_",
+						"e > 0 / {l n}_{p t k} or {p t k}_l");
 
-		Lexicon<Integer>lexicon = buildLexicon(
-				"apana",
-				"kalapan",
-				"takulita",
-				"manatinalu",
-				"matapulu"
-		);
+		Lexicon<Integer> lexicon =
+				buildLexicon("apana", "kalapan", "takulita", "manatinalu",
+						"matapulu");
 
-		Lexicon<Integer>expected = buildLexicon(
-				"apena",
-				"kalpan",
-				"taklita",
-				"mantinalu",
-				"matepulu"
-		);
+		Lexicon<Integer> expected =
+				buildLexicon("apena", "kalpan", "taklita", "mantinalu",
+						"matepulu");
 
 		LexiconMap<Integer> lexiconMap = new LexiconMap<>();
 		lexiconMap.addLexicon("default", "", lexicon);
@@ -57,18 +50,16 @@ public class CompoundRuleTest {
 		assertEquals(expected, lexicon);
 	}
 
-	private static List<BaseRule<Integer>> buildRules(String... strings) {
-		List<BaseRule<Integer>> rules = new ArrayList<>();
-		for (String string : strings) {
-			rules.add(new BaseRule<>(string, FACTORY));
-		}
-		return rules;
+	private static List<? extends Rule<Integer>> buildRules(String... strings) {
+		return Arrays.stream(strings)
+				.map(string -> new BaseRule<>(string, FACTORY))
+				.collect(Collectors.toList());
 	}
 
-	private static Lexicon<Integer>buildLexicon(String... strings) {
-		Lexicon<Integer>lexicon = new Lexicon<>();
+	private static Lexicon<Integer> buildLexicon(String... strings) {
+		Lexicon<Integer> lexicon = new Lexicon<>();
 		for (String string : strings) {
-			lexicon.add(FACTORY.getSequence(string));
+			lexicon.add(FACTORY.toSequence(string));
 		}
 		return lexicon;
 	}
@@ -77,9 +68,10 @@ public class CompoundRuleTest {
 		testRule(rule, FACTORY, seq, exp);
 	}
 
-	private static void testRule(Rule<Integer> rule, SequenceFactory<Integer> factory, String seq, String exp) {
-		Sequence<Integer> sequence = factory.getSequence(seq);
-		Sequence<Integer> expected = factory.getSequence(exp);
+	private static void testRule(Rule<Integer> rule,
+			SequenceFactory<Integer> factory, String seq, String exp) {
+		Sequence<Integer> sequence = factory.toSequence(seq);
+		Sequence<Integer> expected = factory.toSequence(exp);
 		Sequence<Integer> received = rule.apply(sequence);
 
 		assertEquals(expected, received);

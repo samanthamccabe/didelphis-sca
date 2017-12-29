@@ -15,13 +15,12 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.phonetic.LexiconMap;
 
 import java.util.Queue;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 1/14/2015
+ * @author Samantha Fiona McCabe
+ * @date 2015-01-14
  */
 public interface SoundChangeScript<T> {
 

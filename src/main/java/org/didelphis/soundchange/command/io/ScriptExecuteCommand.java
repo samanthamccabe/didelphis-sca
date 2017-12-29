@@ -17,17 +17,19 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/13/2014
+ * @author Samantha Fiona McCabe
+ * @date 2014-10-13
  */
 public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(ScriptExecuteCommand.class);
+	private static final transient Logger LOGGER =
+			LoggerFactory.getLogger(ScriptExecuteCommand.class);
 
 	private final FeatureType<T> type;
 	private final ErrorLogger logger;
-	
-	public ScriptExecuteCommand(String path, FeatureType<T> type, FileHandler handler, ErrorLogger logger) {
+
+	public ScriptExecuteCommand(String path, FeatureType<T> type,
+			FileHandler handler, ErrorLogger logger) {
 		super(path, handler);
 		this.type = type;
 		this.logger = logger;
@@ -37,9 +39,10 @@ public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 	public void run() {
 		String path = getPath();
 		FileHandler handler = getHandler();
-		
+
 		CharSequence data = handler.read(path);
-		SoundChangeScript<T> script = new StandardScript<>(path, type, data, handler, logger);
+		SoundChangeScript<T> script =
+				new StandardScript<>(path, type, data, handler, logger);
 		script.process();
 	}
 

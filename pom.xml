@@ -12,19 +12,20 @@
   ~ limitations under the License.
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.didelphis</groupId>
         <artifactId>didelphis-root</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0</version>
     </parent>
 
     <groupId>org.didelphis.sca</groupId>
     <artifactId>didelphis-sca</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     
     <name>Didelphis Sound Change Applier</name>
 
@@ -71,9 +72,9 @@
         </plugins>
     </build>
 
-    <properties>
+    <properties>    
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <didelphis-common.version>0.1.0-SNAPSHOT</didelphis-common.version>
+        <didelphis-common.version>0.2.0-SNAPSHOT</didelphis-common.version>
     </properties>
 
     <dependencies>
@@ -96,6 +97,12 @@
             <version>${didelphis-common.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.didelphis.common</groupId>
+            <artifactId>didelphis-common-utilities</artifactId>
+            <version>${didelphis-common.version}</version>
+        </dependency>
+        
     </dependencies>
 
 </project>

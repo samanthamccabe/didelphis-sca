@@ -19,7 +19,7 @@ package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.io.NullFileHandler;
-import org.didelphis.language.phonetic.VariableStore;
+import org.didelphis.soundchange.VariableStore;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.soundchange.ErrorLogger;
 import org.junit.jupiter.api.Test;
@@ -36,10 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ScriptParserTest {
 	@Test
 	void testMultilineVariable() {
-		String commands = "" +
-				"C = p  t  k \n" +
-				"    ph th kh\n" +
-				"    f  s  x \n";
+		String commands =
+				"" + "C = p  t  k \n" + "    ph th kh\n" + "    f  s  x \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -53,9 +51,7 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableBracket() {
-		String commands = "" +
-				"C = p   t   k  \n" +
-				"    ph  th  kh \n" +
+		String commands = "" + "C = p   t   k  \n" + "    ph  th  kh \n" +
 				"    [P] [T] [K]\n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
@@ -70,9 +66,7 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableOverparse() {
-		String commands = "" +
-				"C   =  p   t   k \n" +
-				"[W] = [X] [Y] [Z]";
+		String commands = "" + "C   =  p   t   k \n" + "[W] = [X] [Y] [Z]";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -88,7 +82,8 @@ class ScriptParserTest {
 	@Test
 	void reserveTest() {
 		String commands = "RESERVE ph th kh";
-		ScriptParser<Integer> parser = getParser(commands, NullFileHandler.INSTANCE);
+		ScriptParser<Integer> parser =
+				getParser(commands, NullFileHandler.INSTANCE);
 		parser.parse();
 		ParserMemory<Integer> memory = parser.getMemory();
 		Collection<String> received = memory.getReserved();
@@ -99,7 +94,9 @@ class ScriptParserTest {
 		assertEquals(expected, received);
 	}
 
-	private static ScriptParser<Integer> getParser(String commands, FileHandler handler) {
-		return new ScriptParser<>("", IntegerFeature.INSTANCE, commands, handler, new ErrorLogger());
+	private static ScriptParser<Integer> getParser(String commands,
+			FileHandler handler) {
+		return new ScriptParser<>("", IntegerFeature.INSTANCE, commands,
+				handler, new ErrorLogger());
 	}
 }

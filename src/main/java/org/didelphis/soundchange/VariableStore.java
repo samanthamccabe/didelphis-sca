@@ -14,10 +14,9 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.language.exceptions.ParseException;
-import org.didelphis.language.phonetic.Segmenter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.didelphis.language.parsing.FormatterMode;
+import org.didelphis.language.parsing.ParseException;
+import org.didelphis.language.parsing.Segmenter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,21 +25,18 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Samantha Fiona McCabe
- * Date: 9/23/13
- * Time: 11:18 PM
- * To change this template use File | Settings | File Templates.
+ * Class {@code VariableStore}
+ *
+ * @author Samantha Fiona McCabe
+ * @date 2013-09-23
+ * @since 0.0.0
  */
 public class VariableStore {
-
-	private static final Logger LOG = LoggerFactory.getLogger(
-			VariableStore.class);
 
 	private static final int INITIAL_CAPACITY = 20;
 
@@ -58,6 +54,10 @@ public class VariableStore {
 	public VariableStore(VariableStore otherStore) {
 		segmenter = otherStore.segmenter;
 		variables = new HashMap<>(otherStore.variables);
+	}
+
+	public VariableStore() {
+		this(FormatterMode.NONE);
 	}
 
 	public Segmenter getSegmenter() {
@@ -79,16 +79,15 @@ public class VariableStore {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-
-		for (Entry<String, List<String>> entry : variables.entrySet()) {
-			sb.append(entry.getKey());
+		variables.forEach((key, value) -> {
+			sb.append(key);
 			sb.append(" =");
-			for (String sequence : entry.getValue()) {
+			for (String sequence : value) {
 				sb.append(' ');
 				sb.append(sequence);
 			}
 			sb.append('\n');
-		}
+		});
 		return sb.toString().trim();
 	}
 
@@ -153,16 +152,9 @@ public class VariableStore {
 			}
 		}
 
-		Collection<String> expansions = new ArrayList<>();
-		for (List<String> strings : list) {
-			StringBuilder sb = new StringBuilder(strings.size());
-			for (String string : strings) {
-				sb.append(string);
-			}
-			expansions.add(sb.toString());
-		}
-
-		return expansions;
+		return list.stream()
+				.map(strings -> strings.stream().collect(Collectors.joining()))
+				.collect(Collectors.toList());
 	}
 
 	private String getBestMatch(String tail) {

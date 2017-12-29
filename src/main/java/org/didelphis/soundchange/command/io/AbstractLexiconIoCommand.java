@@ -11,14 +11,15 @@ import org.didelphis.io.FileHandler;
 import java.util.Objects;
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/15/2014
+ * @author Samantha Fiona McCabe
+ * @date 2014-10-15
  */
 public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
-	
+
 	private final String handle;
 
-	protected AbstractLexiconIoCommand(String path, String handle, FileHandler handler) {
+	protected AbstractLexiconIoCommand(String path, String handle,
+			FileHandler handler) {
 		super(path, handler);
 		this.handle = handle;
 	}

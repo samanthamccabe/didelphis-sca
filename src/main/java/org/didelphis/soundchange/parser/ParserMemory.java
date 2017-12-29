@@ -18,20 +18,21 @@
 package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.NullFileHandler;
-import org.didelphis.language.enums.FormatterMode;
-import org.didelphis.language.phonetic.LexiconMap;
+import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
-import org.didelphis.language.phonetic.VariableStore;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.model.FeatureMapping;
-import org.didelphis.language.phonetic.model.FeatureModel;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
+import org.didelphis.soundchange.LexiconMap;
+import org.didelphis.soundchange.VariableStore;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by samantha on 11/8/16.
+ * @author Samantha Fiona McCabe
+ * @date 2016-11-08
+ * @since 0.2.0
  */
 public class ParserMemory<T> {
 	private final LexiconMap<T> lexicons;
@@ -46,15 +47,23 @@ public class ParserMemory<T> {
 		variables = new VariableStore(FormatterMode.NONE);
 		reserved = new HashSet<>();
 		formatterMode = FormatterMode.NONE;
-		featureMapping = new FeatureModelLoader<>(type, NullFileHandler.INSTANCE, "").getFeatureMapping();
+		featureMapping =
+				new FeatureModelLoader<>(type, NullFileHandler.INSTANCE,
+						"").getFeatureMapping();
+	}
+
+	public ParserMemory(ParserMemory<T> memory) {
+		lexicons = new LexiconMap<>(memory.lexicons);
+		variables = new VariableStore(memory.getVariables());
+		reserved = new HashSet<>(memory.reserved);
+		formatterMode = memory.formatterMode;
+		featureMapping = memory.featureMapping;
 	}
 
 	public SequenceFactory<T> factorySnapshot() {
-		return new SequenceFactory<>(featureMapping,
-			  new VariableStore(variables), 
-			  new HashSet<>(reserved),
-			  formatterMode
-		);
+		HashSet<String> set = new HashSet<>(reserved);
+		set.addAll(variables.getKeys());
+		return new SequenceFactory<>(featureMapping, set, formatterMode);
 	}
 
 	public LexiconMap<T> getLexicons() {
@@ -88,12 +97,8 @@ public class ParserMemory<T> {
 
 	@Override
 	public String toString() {
-		return "ParserMemory{" +
-				"lexicons=" + lexicons +
-				", variables=" + variables +
-				", reserved=" + reserved +
-				", formatterMode=" + formatterMode +
-				", featureMapping=" + featureMapping +
-				'}';
+		return "ParserMemory{" + "lexicons=" + lexicons + ", variables=" +
+				variables + ", reserved=" + reserved + ", formatterMode=" +
+				formatterMode + ", featureMapping=" + featureMapping + '}';
 	}
 }

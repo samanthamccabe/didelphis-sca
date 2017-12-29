@@ -15,33 +15,29 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.phonetic.LexiconMap;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.parser.ScriptParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
 
 /**
- * User: Samantha Fiona Morrigan McCabe
- * Date: 4/18/13
- * Time: 11:46 PM
+ * @author Samantha Fiona McCabe
+ * @date 2013-04-13
  */
 public class StandardScript<T> implements SoundChangeScript<T> {
-
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(StandardScript.class);
 
 	private final FileHandler handler;
 	private final String filePath;
 	private final Queue<Runnable> commands;
 	private final LexiconMap<T> lexicons;
 
-	public StandardScript(String filePath, FeatureType<T> type,  CharSequence script, FileHandler handler,  ErrorLogger logger) {
+	public StandardScript(String filePath, FeatureType<T> type,
+			CharSequence script, FileHandler handler, ErrorLogger logger) {
 		this.filePath = filePath;
-		this.handler  = handler;
+		this.handler = handler;
 
-		ScriptParser<T> scriptParser = new ScriptParser<>(filePath, type, script, handler, logger);
+		ScriptParser<T> scriptParser =
+				new ScriptParser<>(filePath, type, script, handler, logger);
 		scriptParser.parse();
 
 		lexicons = scriptParser.getMemory().getLexicons();
@@ -52,7 +48,7 @@ public class StandardScript<T> implements SoundChangeScript<T> {
 	public FileHandler getHandler() {
 		return handler;
 	}
-	
+
 	@Override
 	public Queue<Runnable> getCommands() {
 		return commands;
@@ -72,6 +68,6 @@ public class StandardScript<T> implements SoundChangeScript<T> {
 
 	@Override
 	public String toString() {
-		return "StandardScript{"+ filePath +'}';
+		return "StandardScript{" + filePath + '}';
 	}
 }

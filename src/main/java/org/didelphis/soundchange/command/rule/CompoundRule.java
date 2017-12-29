@@ -6,22 +6,28 @@
 
 package org.didelphis.soundchange.command.rule;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.LexiconMap;
 import org.didelphis.language.phonetic.sequences.BasicSequence;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.LexiconMap;
 
 import java.util.List;
 
 /**
- * Created by samantha on 10/23/16.
+ * @author Samantha Fiona McCabe
+ * @date 2016-10-23
  */
+@EqualsAndHashCode
+@ToString
 public class CompoundRule<T> implements Rule<T> {
 
-	private final Iterable<BaseRule<T>> rules;
+	private final Iterable<? extends Rule<T>> rules;
 	private final LexiconMap<T> lexicons;
 
-	public CompoundRule(Iterable<BaseRule<T>> rules, LexiconMap<T> lexicons) {
+	public CompoundRule(Iterable<? extends Rule<T>> rules,
+			LexiconMap<T> lexicons) {
 		this.rules = rules;
 		this.lexicons = lexicons;
 	}
@@ -42,7 +48,7 @@ public class CompoundRule<T> implements Rule<T> {
 	public Sequence<T> apply(Sequence<T> sequence) {
 		Sequence<T> output = new BasicSequence<>(sequence);
 		for (int index = 0; index < output.size(); index++) {
-			for (BaseRule<T> rule : rules) {
+			for (Rule<T> rule : rules) {
 				rule.applyAtIndex(output, index);
 			}
 		}

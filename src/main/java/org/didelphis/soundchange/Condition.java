@@ -14,67 +14,119 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.language.enums.ParseDirection;
-import org.didelphis.language.exceptions.ParseException;
-import org.didelphis.language.machines.EmptyStateMachine;
-import org.didelphis.language.machines.StandardStateMachine;
-import org.didelphis.language.machines.interfaces.StateMachine;
-import org.didelphis.language.machines.sequences.SequenceMatcher;
-import org.didelphis.language.machines.sequences.SequenceParser;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.didelphis.language.automata.EmptyStateMachine;
+import org.didelphis.language.automata.expressions.Expression;
+import org.didelphis.language.automata.interfaces.StateMachine;
+import org.didelphis.language.automata.sequences.SequenceMatcher;
+import org.didelphis.language.automata.sequences.SequenceParser;
+import org.didelphis.language.parsing.ParseDirection;
+import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
-import org.didelphis.language.phonetic.sequences.BasicSequence;
 import org.didelphis.language.phonetic.sequences.Sequence;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.didelphis.structures.Suppliers;
+import org.didelphis.structures.maps.GeneralMultiMap;
+import org.didelphis.structures.maps.interfaces.MultiMap;
 
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static java.util.regex.Pattern.compile;
+import static org.didelphis.language.automata.StandardStateMachine.create;
 
 /**
- * User: Samantha Fiona Morrigan McCabe
- * Date: 4/28/13
- * Time: 2:28 PM
+ * @author Samantha Fiona McCabe
+ * @date 2013-04-28
  */
+@Slf4j
+@EqualsAndHashCode
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@ToString(of = "conditionText", includeFieldNames = false)
 public class Condition<T> {
 
-	private static final transient Logger LOGGER = LoggerFactory.getLogger(Condition.class);
+	static Pattern WHITESPACE_PATTERN = compile("\\s+");
+	static Pattern OPEN_BRACE_PATTERN = compile("([\\[{(]) ");
+	static Pattern CLOSE_BRACE_PATTERN = compile("\\s([]})])");
 
-	private static final Pattern WHITESPACE_PATTERN  = Pattern.compile("\\s+");
-	private static final Pattern OPEN_BRACE_PATTERN  = Pattern.compile("([\\[{(]) ");
-	private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile(" ([]})])");
+	String conditionText;
+	StateMachine<Sequence<T>> preCondition;
+	StateMachine<Sequence<T>> postCondition;
 
-	private final String  conditionText;
-	private final StateMachine<Sequence<T>> preCondition;
-	private final StateMachine<Sequence<T>> postCondition;
+	public Condition(String condition, SequenceFactory<T> factory) {
+		this(condition, new VariableStore(), factory);
+	}
 
-	public Condition(String condition, SequenceFactory<T> sequenceFactory) {
+	public Condition(String condition, VariableStore variables,
+			SequenceFactory<T> factory) {
 		conditionText = cleanup(condition);
 
-		SequenceParser<T> parser = new SequenceParser<>(sequenceFactory);
+		Map<String, Collection<Sequence<T>>> map = new HashMap<>();
+		for (String key : variables.getKeys()) {
+			Collection<Sequence<T>> collection = variables.get(key)
+					.stream()
+					.map(factory::toSequence)
+					.collect(Collectors.toList());
+			map.put(key, collection);
+		}
+
+		MultiMap<String, Sequence<T>> multiMap =
+				new GeneralMultiMap<>(map, Suppliers.ofList());
+
+		SequenceParser<T> parser = new SequenceParser<>(factory, multiMap);
 		SequenceMatcher<T> matcher = new SequenceMatcher<>(parser);
 
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_", -1);
 			if (conditions.length == 1) {
-				preCondition  = StandardStateMachine.create("M", conditions[0], parser, matcher, ParseDirection.BACKWARD);
+				Expression expression = parser.parseExpression(conditions[0]);
+				preCondition = create(
+						"M",
+						expression,
+						parser,
+						matcher,
+						ParseDirection.BACKWARD
+				);
 				postCondition = EmptyStateMachine.getInstance();
 			} else if (conditions.length == 2) {
-				preCondition  = StandardStateMachine.create("X", conditions[0], parser, matcher, ParseDirection.BACKWARD);
-				postCondition = StandardStateMachine.create("Y", conditions[1], parser, matcher, ParseDirection.FORWARD);
+				Expression expression1 = parser.parseExpression(conditions[0]);
+				Expression expression2 = parser.parseExpression(conditions[1]);
+
+				preCondition = create(
+						"X",
+						expression1,
+						parser,
+						matcher,
+						ParseDirection.BACKWARD
+				);
+				postCondition = create(
+						"Y",
+						expression2,
+						parser,
+						matcher,
+						ParseDirection.FORWARD
+				);
 			} else if (conditions.length == 0) {
-				preCondition  = EmptyStateMachine.getInstance();
+				preCondition = EmptyStateMachine.getInstance();
 				postCondition = EmptyStateMachine.getInstance();
 			} else {
-				throw new ParseException("Malformed Condition, multiple _ characters", condition);
+				throw ParseException.builder()
+						.add("Malformed Condition, multiple _ characters")
+						.data(condition)
+						.build();
 			}
 		} else {
-			throw new ParseException("Malformed Condition, no _ character", condition);
+			throw ParseException.builder()
+					.add("Malformed Condition, no _ character")
+					.data(condition)
+					.build();
 		}
-	}
-
-	@Override
-	public String toString() {
-		return conditionText;
 	}
 
 	private static String cleanup(String string) {
@@ -88,28 +140,30 @@ public class Condition<T> {
 	}
 
 	/**
-	 * Checks if this condition is applicable to the Sequence at the provided index
+	 * Checks if this condition is applicable to the Sequence at the provided
+	 * index
 	 *
 	 * @param word       the Sequence to check
-	 * @param startIndex the first index of the targeted Sequence; cannot be negative
-	 * @param endIndex   the last index of the targeted Sequence (exclusive); cannot be negative
+	 * @param startIndex the first index of the targeted Sequence; cannot be
+	 *                   negative
+	 * @param endIndex   the last index of the targeted Sequence (exclusive);
+	 *                   cannot be negative
+	 *
 	 * @return Returns true if the condition isMatch
 	 */
 	public boolean isMatch(Sequence<T> word, int startIndex, int endIndex) {
-		boolean preconditionMatch  = false;
-		boolean postconditionMatch = false;
+		boolean preMatch = false;
+		boolean postMatch = false;
 
 		if (endIndex <= word.size() && startIndex <= endIndex) {
 			Sequence<T> head = word.subsequence(0, startIndex);
 			Sequence<T> tail = word.subsequence(endIndex);
-			Sequence<T> reverse = new BasicSequence<>(head);
-
-			Collections.reverse(reverse);
+			Sequence<T> reverse = head.getReverseSequence();
 			
-			preconditionMatch  = !preCondition.getMatchIndices(0, reverse).isEmpty();
-			postconditionMatch = !postCondition.getMatchIndices(0, tail).isEmpty();
+			preMatch = !preCondition.getMatchIndices(0, reverse).isEmpty();
+			postMatch = !postCondition.getMatchIndices(0, tail).isEmpty();
 		}
-		return preconditionMatch && postconditionMatch;
+		return preMatch && postMatch;
 	}
 
 }

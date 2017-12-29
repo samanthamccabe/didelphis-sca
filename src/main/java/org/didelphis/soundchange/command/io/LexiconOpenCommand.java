@@ -8,8 +8,8 @@ package org.didelphis.soundchange.command.io;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.LexiconMap;
 import org.didelphis.language.phonetic.SequenceFactory;
+import org.didelphis.soundchange.LexiconMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,15 +18,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/13/2014
+ * @author Samantha Fiona McCabe
+ * @date 2014-10-13
  */
 public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 
 	private final LexiconMap lexicons;
 	private final SequenceFactory factory;
 
-	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle, FileHandler handler, SequenceFactory factory) {
+	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle,
+			FileHandler handler, SequenceFactory factory) {
 		super(path, handle, handler);
 		this.lexicons = lexicons;
 		this.factory = factory;
@@ -38,7 +39,8 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 		if (!(o instanceof LexiconOpenCommand)) return false;
 		if (!super.equals(o)) return false;
 		LexiconOpenCommand that = (LexiconOpenCommand) o;
-		return Objects.equals(lexicons, that.lexicons) && Objects.equals(factory, that.factory);
+		return Objects.equals(lexicons, that.lexicons) &&
+				Objects.equals(factory, that.factory);
 	}
 
 	@Override
@@ -59,15 +61,13 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 			rows.add(cells);
 		}
 
-		Lexicon lexicon = factory.getLexicon(rows);
+		Lexicon lexicon = Lexicon.fromRows(factory, rows);
 		lexicons.addLexicon(getHandle(), path, lexicon);
 	}
-	
+
 	@Override
 	public String toString() {
-		return "LexiconOpenCommand{" +
-				"lexicons=" + lexicons +
-				", factory=" + factory +
-				'}';
+		return "LexiconOpenCommand{" + "lexicons=" + lexicons + ", factory=" +
+				factory + '}';
 	}
 }

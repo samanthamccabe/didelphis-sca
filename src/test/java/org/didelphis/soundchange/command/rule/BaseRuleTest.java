@@ -6,39 +6,34 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import org.didelphis.language.enums.FormatterMode;
-import org.didelphis.language.exceptions.ParseException;
+import org.didelphis.language.parsing.FormatterMode;
+import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
-import org.didelphis.language.phonetic.VariableStore;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.VariableStore;
 import org.junit.jupiter.api.Test;
 
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Created with IntelliJ IDEA. User: Samantha Fiona Morrigan McCabe Date:
- * 6/22/13 Time: 3:37 PM To change this template use File | Settings | File
- * Templates.
+ * Created with IntelliJ IDEA. @author Samantha Fiona McCabe
+ *
+ * @date 6/22/13 Templates.
  */
 class BaseRuleTest {
 
-	private static final FeatureModelLoader<Integer> LOADER = IntegerFeature
-			.emptyLoader();
+	private static final FeatureModelLoader<Integer> LOADER =
+			IntegerFeature.emptyLoader();
 
-	private static final Set<String> EMPTY_SET = new HashSet<>();
-	private static final SequenceFactory<Integer> INTELLIGENT = new SequenceFactory<>(
-			LOADER.getFeatureMapping(), FormatterMode.INTELLIGENT);
-	private static final SequenceFactory<Integer> FACTORY = new SequenceFactory<>(
-			LOADER.getFeatureMapping(), FormatterMode.NONE);
+	private static final SequenceFactory<Integer> INTELLIGENT =
+			new SequenceFactory<>(LOADER.getFeatureMapping(),
+					FormatterMode.INTELLIGENT);
+	private static final SequenceFactory<Integer> FACTORY =
+			new SequenceFactory<>(LOADER.getFeatureMapping(),
+					FormatterMode.NONE);
 
 	@Test
 	void testMultipleSourceZeroes() {
@@ -95,17 +90,20 @@ class BaseRuleTest {
 		store.add("VL = ā ē ī ō ū ə̄ â ê î ô û");
 		store.add("V  = VS VL");
 		store.add("X  = x ʔ");
-		store.add("[Obstruent] = X s");
+		store.add("[Obs] = X s");
 
 		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+				LOADER.getFeatureMapping(),
+				store.getKeys(), 
+				FormatterMode.INTELLIGENT
+		);
 
-		BaseRule<Integer> ignored = new BaseRule<>("X  > 0   / [Obstruent]_V",
-				factory);
+		Rule<Integer> rule = new BaseRule<>("X > 0 / [Obs]_V", store, factory);
 
-		assertFalse(ignored.getConditions().isEmpty());
-		assertTrue(ignored.getConditions().get(0).isMatch(factory.getSequence("[Obstruent]"),0));
+		testRule(rule, factory, "sxa", "sa");
+		testRule(rule, factory, "sʔa", "sa");
+		testRule(rule, factory, "xʔe", "xe");
+		testRule(rule, factory, "sʔū", "sū");
 	}
 
 	@Test
@@ -115,10 +113,12 @@ class BaseRuleTest {
 		store.add("N = m n");
 
 		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+				LOADER.getFeatureMapping(),
+				store.getKeys(), 
+				FormatterMode.INTELLIGENT
+		);
 
-		BaseRule<Integer> rule = new BaseRule<>("CN > $2$1", factory);
+		BaseRule<Integer> rule = new BaseRule<>("CN > $2$1", store, factory);
 
 		testRule(rule, "pn", "np");
 		testRule(rule, "tn", "nt");
@@ -141,11 +141,13 @@ class BaseRuleTest {
 		store.add("V = a i u");
 
 		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+				LOADER.getFeatureMapping(), 
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 
-		BaseRule<Integer> rule = new BaseRule<>("CVN > $3V$1", factory);
+		BaseRule<Integer> rule = new BaseRule<>("CVN > $3V$1", store, factory);
 
 		testRule(rule, "pan", "nap");
 		testRule(rule, "tin", "nit");
@@ -166,11 +168,11 @@ class BaseRuleTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory =
+				new SequenceFactory<>(LOADER.getFeatureMapping(),
+						store.getKeys(), FormatterMode.INTELLIGENT);
 
-		BaseRule<Integer> rule = new BaseRule<>("CN > $2$G1", factory);
+		BaseRule<Integer> rule = new BaseRule<>("CN > $2$G1", store, factory);
 
 		testRule(rule, "pn", "nb");
 		testRule(rule, "tn", "nd");
@@ -220,7 +222,7 @@ class BaseRuleTest {
 
 	@Test
 	void testRule03() {
-		Rule rule = new BaseRule<>("a b c d e f g > A B C D E F G", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a b c d e f g > A B C D E F G", FACTORY);
 
 		testRule(rule, FACTORY, "abcdefghijk", "ABCDEFGhijk");
 	}
@@ -254,7 +256,8 @@ class BaseRuleTest {
 
 	@Test
 	void testUnconditional04() {
-		Rule rule = new BaseRule<>("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
+		Rule<Integer> rule =
+				new BaseRule<>("eʔe aʔa eʔa aʔe > ē ā ā ē", INTELLIGENT);
 		testRule(rule, INTELLIGENT, "keʔe", "kē");
 		testRule(rule, INTELLIGENT, "kaʔa", "kā");
 		testRule(rule, INTELLIGENT, "keʔa", "kā");
@@ -263,8 +266,8 @@ class BaseRuleTest {
 
 	@Test
 	void testConditional05() {
-		Rule<Integer> rule = new BaseRule<>("rˌh lˌh > ər əl / _a",
-				INTELLIGENT);
+		Rule<Integer> rule =
+				new BaseRule<>("rˌh lˌh > ər əl / _a", INTELLIGENT);
 		testRule(rule, INTELLIGENT, "krˌha", "kəra");
 		testRule(rule, INTELLIGENT, "klˌha", "kəla");
 		testRule(rule, INTELLIGENT, "klˌhe", "klˌhe");
@@ -272,7 +275,7 @@ class BaseRuleTest {
 
 	@Test
 	void testConditional06() {
-		Rule rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"pʰ tʰ kʰ ḱʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}",
 				INTELLIGENT);
 
@@ -285,8 +288,9 @@ class BaseRuleTest {
 
 	@Test
 	void testConditional07() {
-		Rule rule = new BaseRule<>(
-				"pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}", INTELLIGENT);
+		Rule<Integer> rule =
+				new BaseRule<>("pʰ tʰ kʰ ḱʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ ḱʰ}",
+						INTELLIGENT);
 
 		testRule(rule, INTELLIGENT, "pʰaḱʰus", "baḱʰus");
 		testRule(rule, INTELLIGENT, "pʰāḱʰus", "pʰāḱʰus");
@@ -326,17 +330,18 @@ class BaseRuleTest {
 
 	@Test
 	void testUnconditional() {
-		Sequence word = INTELLIGENT.getSequence("h₁óh₁es-");
-		Sequence expected = INTELLIGENT.getSequence("ʔóʔes-");
+		Sequence<Integer> word = INTELLIGENT.toSequence("h₁óh₁es-");
+		Sequence<Integer> expected = INTELLIGENT.toSequence("ʔóʔes-");
 
-		Rule rule = new BaseRule<>("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
+		Rule<Integer> rule =
+				new BaseRule<>("h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(word));
 	}
 
 	@Test
 	void testUnconditional02() {
-		Sequence expected = INTELLIGENT.getSequence("telə");
+		Sequence<Integer> expected = INTELLIGENT.toSequence("telə");
 		Rule<Integer> rule = new BaseRule<>("eʔé > ê", INTELLIGENT);
 
 		assertEquals(expected, rule.apply(expected));
@@ -349,13 +354,15 @@ class BaseRuleTest {
 		store.add("V = a e i o u");
 
 		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+				LOADER.getFeatureMapping(),
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
-		Sequence original = factory.getSequence("mlan");
-		Sequence expected = factory.getSequence("blan");
+		Sequence<Integer> original = factory.toSequence("mlan");
+		Sequence<Integer> expected = factory.toSequence("blan");
 
-		Rule<Integer> rule = new BaseRule<>("ml > bl / #_V", factory);
+		Rule<Integer> rule = new BaseRule<>("ml > bl / #_V", store, factory);
 
 		assertEquals(expected, rule.apply(original));
 	}
@@ -385,22 +392,19 @@ class BaseRuleTest {
 		store.add("[OBSTRUENT] = [PLOSIVE] s");
 		store.add("C = [OBSTRUENT] A W");
 
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, new HashSet<>(),
-				FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory =
+				new SequenceFactory<>(LOADER.getFeatureMapping(),
+						store.getKeys(), FormatterMode.INTELLIGENT);
 
-		Sequence original = factory.getSequence("trh₂we");
-		Sequence expected = factory.getSequence("tə̄rwe");
+		Sequence<Integer> original = factory.toSequence("trh₂we");
+		Sequence<Integer> expected = factory.toSequence("tə̄rwe");
 
-		Rule<Integer> rule1 = new BaseRule<>(
-				"rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", factory);
-		Rule<Integer> rule2 = new BaseRule<>("r l > r̩ l̩ / [OBSTRUENT]_{C #}",
-				factory);
-		Rule<Integer> rule3 = new BaseRule<>("r̩ l̩ > r l / C_N{C #}", factory);
-		Rule<Integer> rule4 = new BaseRule<>("r̩X l̩X > ə̄r ə̄l   / _{C #}",
-				factory);
+		Rule<Integer> rule1 = new BaseRule<>("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_", store, factory);
+		Rule<Integer> rule2 = new BaseRule<>("r l > r̩ l̩ / [OBSTRUENT]_{C #}", factory);
+		Rule<Integer> rule3 = new BaseRule<>("r̩ l̩ > r l / C_N{C #}", store, factory);
+		Rule<Integer> rule4 = new BaseRule<>("r̩X l̩X > ə̄r ə̄l   / _{C #}", store, factory);
 
-		Sequence sequence = rule1.apply(original);
+		Sequence<Integer> sequence = rule1.apply(original);
 
 		sequence = rule2.apply(sequence);
 		sequence = rule3.apply(sequence);
@@ -411,12 +415,12 @@ class BaseRuleTest {
 
 	@Test
 	void testDebug03() {
-		Sequence original = FACTORY.getSequence("pʰabopa");
-		Sequence expected = FACTORY.getSequence("papoba");
+		Sequence<Integer> original = FACTORY.toSequence("pʰabopa");
+		Sequence<Integer> expected = FACTORY.toSequence("papoba");
 
 		Rule<Integer> rule = new BaseRule<>("pʰ p b > p b p", FACTORY);
 
-		Sequence received = rule.apply(original);
+		Sequence<Integer> received = rule.apply(original);
 		assertEquals(expected, received);
 	}
 
@@ -444,11 +448,12 @@ class BaseRuleTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = x y z");
 
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
+		SequenceFactory<Integer> factory = new SequenceFactory<>(LOADER.getFeatureMapping(),
+				store.getKeys(),
 				FormatterMode.INTELLIGENT);
 
-		Rule<Integer> rule = new BaseRule<>("a > b / C_ NOT x_", factory);
+		Rule<Integer> rule =
+				new BaseRule<>("a > b / C_ NOT x_", store, factory);
 
 		testRule(rule, factory, "axa", "axa");
 		testRule(rule, factory, "aya", "ayb");
@@ -461,11 +466,11 @@ class BaseRuleTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = x y z");
 
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory =
+				new SequenceFactory<>(LOADER.getFeatureMapping(),
+						store.getKeys(), FormatterMode.INTELLIGENT);
 
-		Rule<Integer> rule = new BaseRule<>("a > b / not x_", factory);
+		Rule<Integer> rule = new BaseRule<>("a > b / not x_", store, factory);
 
 		testRule(rule, factory, "xaa", "xab");
 		testRule(rule, factory, "axa", "bxa");
@@ -478,11 +483,12 @@ class BaseRuleTest {
 	void testCompound05() {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory =
+				new SequenceFactory<>(LOADER.getFeatureMapping(),
+						store.getKeys(), FormatterMode.INTELLIGENT);
 
-		Rule<Integer> rule = new BaseRule<>("a > b / not x_ not _y", factory);
+		Rule<Integer> rule =
+				new BaseRule<>("a > b / not x_ not _y", store, factory);
 
 		testRule(rule, factory, "xaa", "xab");
 		testRule(rule, factory, "axa", "bxa");
@@ -495,19 +501,18 @@ class BaseRuleTest {
 	void testCompound06() {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 
-		SequenceFactory<Integer> factory = new SequenceFactory<>(
-				LOADER.getFeatureMapping(), store, EMPTY_SET,
-				FormatterMode.INTELLIGENT);
-
-
+		SequenceFactory<Integer> factory =
+				new SequenceFactory<>(LOADER.getFeatureMapping(),
+						store.getKeys(), FormatterMode.INTELLIGENT);
+		
 		assertThrows(ParseException.class,
-				() -> new BaseRule<>("a > b / not x_ or _y", factory));
+				() -> new BaseRule<>("a > b / not x_ or _y", store, factory));
 	}
 
 	@Test
 	void testCompound07() {
-		Rule<Integer> rule = new BaseRule<>("a > b / x_ OR _y NOT _a NOT b_",
-				FACTORY);
+		Rule<Integer> rule =
+				new BaseRule<>("a > b / x_ OR _y NOT _a NOT b_", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "aya", "bya");
@@ -556,12 +561,15 @@ class BaseRuleTest {
 		testRule(rule, FACTORY, seq, exp);
 	}
 
-	private static void testRule(Rule<Integer> rule,
-			SequenceFactory<Integer> factory, String seq, String exp) {
-		Sequence sequence = factory.getSequence(seq);
-		Sequence expected = factory.getSequence(exp);
-		Sequence received = rule.apply(sequence);
-
+	private static <T> void testRule(
+			Rule<T> rule, 
+			SequenceFactory<T> factory, 
+			String seq, 
+			String exp
+	) {
+		Sequence<T> sequence = factory.toSequence(seq);
+		Sequence<T> expected = factory.toSequence(exp);
+		Sequence<T> received = rule.apply(sequence);
 		assertEquals(expected, received);
 	}
 }

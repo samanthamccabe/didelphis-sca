@@ -7,28 +7,25 @@
 package org.didelphis.soundchange.command.rule;
 
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.LexiconMap;
-import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.LexiconMap;
+import org.didelphis.soundchange.parser.ParserMemory;
 
 import java.util.List;
 
 /**
- * Created by samantha on 10/24/16.
+ * @author Samantha Fiona McCabe
+ * @date 2016-10-24
+ * @since 0.1.0
  */
 public class StandardRule<T> implements Rule<T> {
 
 	private final LexiconMap<T> lexicons;
 	private final BaseRule<T> rule;
 
-	public StandardRule(String rule, LexiconMap<T> lexicons, SequenceFactory<T> factory) {
-		this.rule = new BaseRule<>(rule, factory);
-		this.lexicons = lexicons;
-	}
-
-	public StandardRule(BaseRule<T> rule, LexiconMap<T> lexicons) {
-		this.rule = rule;
-		this.lexicons = lexicons;
+	public StandardRule(String rule, ParserMemory<T> memory) {
+		this.rule = new BaseRule<>(rule, memory);
+		lexicons = memory.getLexicons();
 	}
 
 	@Override

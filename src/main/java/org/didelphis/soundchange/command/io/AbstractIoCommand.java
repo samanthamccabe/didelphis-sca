@@ -11,16 +11,16 @@ import org.didelphis.io.FileHandler;
 import java.util.Objects;
 
 /**
- * Samantha Fiona Morrigan McCabe
- * Created: 12/4/2016
+ * @author Samantha Fiona McCabe
+ * @date 2016-12-04
  */
 public abstract class AbstractIoCommand implements Runnable {
-	
-	private final String      path;
+
+	private final String path;
 	private final FileHandler handler;
 
 	protected AbstractIoCommand(String path, FileHandler handler) {
-		this.path    = path;
+		this.path = path;
 		this.handler = handler;
 	}
 
@@ -37,7 +37,8 @@ public abstract class AbstractIoCommand implements Runnable {
 		if (this == o) return true;
 		if (!(o instanceof AbstractIoCommand)) return false;
 		AbstractIoCommand that = (AbstractIoCommand) o;
-		return Objects.equals(path, that.path) && Objects.equals(handler, that.handler);
+		return Objects.equals(path, that.path) &&
+				Objects.equals(handler, that.handler);
 	}
 
 	@Override

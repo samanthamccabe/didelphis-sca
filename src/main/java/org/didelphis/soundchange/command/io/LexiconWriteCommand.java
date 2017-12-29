@@ -7,10 +7,10 @@
 package org.didelphis.soundchange.command.io;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.enums.FormatterMode;
+import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.LexiconMap;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.LexiconMap;
 
 import java.util.Iterator;
 import java.util.List;
@@ -18,15 +18,16 @@ import java.util.Objects;
 
 
 /**
- * Author: Samantha Fiona Morrigan McCabe
- * Created: 10/13/2014
+ * @author Samantha Fiona McCabe
+ * @date 2014-10-13
  */
 public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 
 	private final LexiconMap lexicons;
 	private final FormatterMode mode;
 
-	public LexiconWriteCommand(LexiconMap lexParam, String path, String handle, FileHandler name, FormatterMode modeParam) {
+	public LexiconWriteCommand(LexiconMap lexParam, String path, String handle,
+			FileHandler name, FormatterMode modeParam) {
 		super(path, handle, name);
 		lexicons = lexParam;
 		mode = modeParam;
@@ -36,7 +37,7 @@ public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 	public void run() {
 		// GET data from lexicons
 		Lexicon lexicon = lexicons.getLexicon(getHandle());
-		
+
 		StringBuilder sb = new StringBuilder();
 		Iterator<List<Sequence>> i1 = lexicon.iterator();
 		while (i1.hasNext()) {
@@ -44,10 +45,14 @@ public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 			while (i2.hasNext()) {
 				Sequence sequence = i2.next();
 				sb.append(sequence);
-				if (i2.hasNext()) { sb.append('\t'); }
+				if (i2.hasNext()) {
+					sb.append('\t');
+				}
 
 			}
-			if (i1.hasNext()) { sb.append('\n'); }
+			if (i1.hasNext()) {
+				sb.append('\n');
+			}
 		}
 		String data = sb.toString().trim();
 		String normalized = mode.normalize(data);
@@ -70,9 +75,7 @@ public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 
 	@Override
 	public String toString() {
-		return "LexiconWriteCommand{" +
-				"lexicons=" + lexicons +
-				", mode=" + mode +
-				'}';
+		return "LexiconWriteCommand{" + "lexicons=" + lexicons + ", mode=" +
+				mode + '}';
 	}
 }

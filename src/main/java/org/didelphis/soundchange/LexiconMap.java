@@ -23,12 +23,17 @@ import java.util.Objects;
 
 /**
  * @author Samantha Fiona McCabe
- * Date: 1/16/2015
+ * @date 2015-01-16
  */
 public class LexiconMap<T> {
 
-	private final Map<String, String>  paths;
+	private final Map<String, String> paths;
 	private final Map<String, Lexicon<T>> lexicons;
+
+	public LexiconMap(LexiconMap<T> map) {
+		paths = map.paths;
+		lexicons = map.lexicons;
+	}
 
 	public LexiconMap() {
 		paths = new LinkedHashMap<>();
@@ -80,8 +85,8 @@ public class LexiconMap<T> {
 		if (this == o) return true;
 		if (!(o instanceof LexiconMap)) return false;
 		LexiconMap<?> that = (LexiconMap<?>) o;
-		return Objects.equals(paths, that.paths)
-				&& Objects.equals(lexicons, that.lexicons);
+		return Objects.equals(paths, that.paths) &&
+				Objects.equals(lexicons, that.lexicons);
 	}
 
 	@Override
