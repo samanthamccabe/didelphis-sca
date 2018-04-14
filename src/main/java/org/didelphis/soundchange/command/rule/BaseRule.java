@@ -120,20 +120,20 @@ public class BaseRule<T> implements Rule<T> {
 				// because it is possible, or even likely, that a language might
 				// have a set of multi-segment clusters which still pattern 
 				// together, or which are part of conditioning environments.
-				if (testIndex >= 0 &&
-						conditionsMatch(sequence, startIndex, testIndex)) {
+				if (testIndex >= 0 && conditionsMatch(sequence, startIndex, testIndex)) {
 					// Now at this point, if everything worked, we can
-					Sequence<T> removed =
-							(startIndex < testIndex) ? sequence.remove(
-									startIndex,
-									testIndex
-							) : new BasicSequence<>(model);
+					Sequence<T> removed;
+					if (startIndex < testIndex) {
+						removed = sequence.remove(startIndex, testIndex);
+					} else {
+						removed = new BasicSequence<>(model);
+					}
+					
 					Sequence<T> replacement = getReplacement(removed, target);
 					if (!replacement.isEmpty()) {
 						sequence.insert(replacement, startIndex);
 					}
-					startIndex =
-							testIndex + replacement.size() - removed.size();
+					startIndex = testIndex + replacement.size() - removed.size();
 					unmatched = false;
 				}
 			}
@@ -492,9 +492,11 @@ public class BaseRule<T> implements Rule<T> {
 		return list;
 	}
 
-	private static void balanceTransform(@NonNull List<String> source,
+	private static void balanceTransform(
+			@NonNull List<String> source,
 			@NonNull List<String> target,
-			@NonNull String transformation) {
+			@NonNull String transformation
+	) {
 		if (target.size() > source.size()) {
 			throw ParseException.builder()
 					.add("Target size cannot be greater than source size.")
@@ -518,7 +520,8 @@ public class BaseRule<T> implements Rule<T> {
 	private static <T> boolean isUnderspecified(Segment<T> segment) {
 		FeatureType<T> type = segment.getFeatureModel().getFeatureType();
 		FeatureArray<T> features = segment.getFeatures();
-		return type.listUndefined().stream().anyMatch(features::contains);
+		return features instanceof SparseFeatureArray || 
+				type.listUndefined().stream().anyMatch(features::contains);
 	}
 
 	private static final class RuleMatcher<T> {

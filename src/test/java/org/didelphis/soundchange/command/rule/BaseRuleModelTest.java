@@ -6,47 +6,56 @@
 
 package org.didelphis.soundchange.command.rule;
 
+import lombok.extern.slf4j.Slf4j;
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
+import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureMapping;
-import org.didelphis.language.phonetic.SequenceFactory;
-import org.didelphis.soundchange.VariableStore;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.VariableStore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /**
  * Created with IntelliJ IDEA. @author Samantha Fiona McCabe
  *
  * @date 6/22/13 Templates.
  */
+@Slf4j
 class BaseRuleModelTest {
 
 	private static final Set<String> EMPTY_SET = new HashSet<>();
 	private static final FeatureMapping<Integer> MODEL = loadModel();
 	private static final SequenceFactory<Integer> FACTORY =
 			new SequenceFactory<>(MODEL, FormatterMode.INTELLIGENT);
+	
+	private static final boolean TIMEOUT = true;
 
 	@Test
 	void testFeatureTransformOutOfRange() {
 		assertThrows(ParseException.class,
-				() -> new BaseRule<>("a > g[+hgh]", FACTORY));
+				() -> new BaseRule<>("a > g[+hgh]", FACTORY)
+		);
 	}
 
 	@Test
 	void testFeatureTransform01() {
-		BaseRule<Integer> rule =
-				new BaseRule<>("[-con, +son, -hgh, +frn, -atr] > [+hgh, +atr]",
-						FACTORY);
+		BaseRule<Integer> rule = new BaseRule<>(
+				"[-con, +son, -hgh, +frn, -atr] > [+hgh, +atr]",
+				FACTORY
+		);
 		testRule(rule, "a", "i");
 
 		testRule(rule, "ɐ", "ɐ");
@@ -56,9 +65,10 @@ class BaseRuleModelTest {
 
 	@Test
 	void testFeatureTransform02() {
-		BaseRule<Integer> rule =
-				new BaseRule<>("[+con, -son, -cnt, -rel, -voice] > [+rel]",
-						FACTORY);
+		BaseRule<Integer> rule = new BaseRule<>(
+				"[+con, -son, -cnt, -rel, -voice] > [+rel]",
+				FACTORY
+		);
 		testRule(rule, "t", "ts");
 		testRule(rule, "p", "pɸ");
 		testRule(rule, "tʰ", "tsʰ");
@@ -71,7 +81,8 @@ class BaseRuleModelTest {
 	void testFeatureTransform03() {
 		BaseRule<Integer> rule = new BaseRule<>(
 				"[+con, -son, +voice] > [-voice] / _[+con, -son, -voice]",
-				FACTORY);
+				FACTORY
+		);
 		testRule(rule, "dt", "tt");
 		testRule(rule, "bt", "pt");
 
@@ -82,8 +93,10 @@ class BaseRuleModelTest {
 
 	@Test
 	void testFeaturesIndexing01() {
-		BaseRule<Integer> rule =
-				new BaseRule<>("c[-con, +son, +voice] > $1k", FACTORY);
+		Rule<Integer> rule = new BaseRule<>(
+				"c[-con, +son, +voice] > $1k", 
+				FACTORY
+		);
 		testRule(rule, "ca", "ak");
 	}
 
@@ -91,7 +104,9 @@ class BaseRuleModelTest {
 	void testFeaturesIndexing02() {
 		assertThrows(ParseException.class,
 				() -> new BaseRule<>("c[-con, +son, +voice] > $[+hgh]1k",
-						FACTORY));
+						FACTORY
+				)
+		);
 	}
 
 	@Test
@@ -100,9 +115,10 @@ class BaseRuleModelTest {
 		store.add("C = p t k");
 		store.add("N = m n");
 
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, store.getKeys(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 		BaseRule<Integer> rule = new BaseRule<>("CN > $2$1", store, factory);
 
@@ -126,9 +142,10 @@ class BaseRuleModelTest {
 		store.add("N = m n");
 		store.add("V = a i u");
 
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, store.getKeys(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 		BaseRule<Integer> rule = new BaseRule<>("CVN > $3V$1", store, factory);
 
@@ -151,9 +168,10 @@ class BaseRuleModelTest {
 		store.add("C = p t k");
 		store.add("G = b d g");
 		store.add("N = m n");
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, store.getKeys(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 		BaseRule<Integer> rule = new BaseRule<>("CN > $2$G1", store, factory);
 
@@ -172,42 +190,38 @@ class BaseRuleModelTest {
 
 	@Test
 	void testDeletion01() {
-		BaseRule<Integer> rule = new BaseRule<>("∅ - > 0", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("∅ - > 0", FACTORY);
 		testRule(rule, FACTORY, "∅-s-irentu-pʰen", "sirentupʰen");
 	}
 
 	@Test
 	void testDeletion02() {
-		BaseRule<Integer> rule = new BaseRule<>("a > 0", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > 0", FACTORY);
 		testRule(rule, FACTORY, "aaaabbba", "bbb");
 	}
 
 	@Test
 	void testDeletion03() {
-		BaseRule<Integer> rule = new BaseRule<>("a b > 0", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a b > 0", FACTORY);
 		testRule(rule, FACTORY, "aaaaccbbccbba", "cccc");
 	}
 
 	@Test
 	void testRule01() {
-		BaseRule<Integer> rule = new BaseRule<>("a > b", FACTORY);
-
+		Rule<Integer> rule = new BaseRule<>("a > b", FACTORY);
 		testRule(rule, FACTORY, "aaaaaaccca", "bbbbbbcccb");
 	}
 
 	@Test
 	void testRule02() {
-		BaseRule<Integer> rule = new BaseRule<>("a e > æ ɛ", FACTORY);
-
+		Rule<Integer> rule = new BaseRule<>("a e > æ ɛ", FACTORY);
 		testRule(rule, FACTORY, "ate", "ætɛ");
 		testRule(rule, FACTORY, "atereyamane", "ætɛrɛyæmænɛ");
 	}
 
 	@Test
 	void testRule03() {
-		BaseRule<Integer> rule =
-				new BaseRule<>("a b c d e f g > A B C D E F G", FACTORY);
-
+		Rule<Integer> rule = new BaseRule<>("a b c d e f g > A B C D E F G", FACTORY);
 		testRule(rule, FACTORY, "abcdefghijk", "ABCDEFGhijk");
 	}
 
@@ -261,7 +275,8 @@ class BaseRuleModelTest {
 	void testConditional06() {
 		BaseRule<Integer> rule = new BaseRule<>(
 				"pʰ tʰ kʰ cʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ cʰ}",
-				FACTORY);
+				FACTORY
+		);
 
 		testRule(rule, FACTORY, "pʰācʰus", "bācʰus");
 		testRule(rule, FACTORY, "pʰentʰros", "bentʰros");
@@ -273,7 +288,9 @@ class BaseRuleModelTest {
 	@Test
 	void testConditional07() {
 		BaseRule<Integer> rule = new BaseRule<>(
-				"pʰ tʰ kʰ kʲʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ kʲʰ}", FACTORY);
+				"pʰ tʰ kʰ kʲʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ kʲʰ}",
+				FACTORY
+		);
 
 		testRule(rule, FACTORY, "pʰakʲʰus", "bakʲʰus");
 		testRule(rule, FACTORY, "pʰaːkʲʰus", "pʰaːkʲʰus");
@@ -296,9 +313,10 @@ class BaseRuleModelTest {
 
 	@Test
 	void testUnconditional() {
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, EMPTY_SET,
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				EMPTY_SET,
+				FormatterMode.INTELLIGENT
+		);
 		Sequence<Integer> word = factory.toSequence("h₁óh₁es-");
 		Sequence<Integer> expected = factory.toSequence("ʔóʔes-");
 
@@ -321,9 +339,10 @@ class BaseRuleModelTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("V = a e i o u");
 
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, store.getKeys(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 		Sequence<Integer> original = factory.toSequence("mlan");
 		Sequence<Integer> expected = factory.toSequence("blan");
@@ -354,23 +373,27 @@ class BaseRuleModelTest {
 		store.add("T  = pʰ  p  b");
 		store.add("P  = tʰ  t  d");
 
-		store.add("[PLOSIVE] = P T K KY Q");
-		store.add("[OBSTRUENT] = [PLOSIVE] s");
-		store.add("C = [OBSTRUENT] A W");
+		store.add("PLOSIVE = P T K KY Q");
+		store.add("OBSTRUENT = PLOSIVE s");
+		store.add("C = OBSTRUENT A W");
 
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, store.getKeys(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
 
 		Sequence<Integer> original = factory.toSequence("trh₂we");
 		Sequence<Integer> expected = factory.toSequence("tə̄rwe");
 
-		Rule<Integer> rule1 =
-				new BaseRule<>("rX lX nX mX > r̩X l̩X n̩X m̩X / [OBSTRUENT]_",
-						store, factory);
-		Rule<Integer> rule2 =
-				new BaseRule<>("r l > r̩ l̩ / [OBSTRUENT]_{C #}", store,
-						factory);
+		Rule<Integer> rule1 = new BaseRule<>(
+				"rX lX nX mX > r̩X l̩X n̩X m̩X / OBSTRUENT_",
+				store,
+				factory
+		);
+		Rule<Integer> rule2 = new BaseRule<>("r l > r̩ l̩ / OBSTRUENT_{C #}",
+				store,
+				factory
+		);
 		Rule<Integer> rule3 =
 				new BaseRule<>("r̩ l̩ > r l / C_N{C #}", store, factory);
 		Rule<Integer> rule4 =
@@ -420,9 +443,10 @@ class BaseRuleModelTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = x y z");
 
-		SequenceFactory<Integer> factory =
-				new SequenceFactory<>(MODEL, Collections.singleton("C"),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factory = new SequenceFactory<>(MODEL,
+				Collections.singleton("C"),
+				FormatterMode.INTELLIGENT
+		);
 
 		BaseRule<Integer> rule =
 				new BaseRule<>("a > b / C_ NOT x_", store, factory);
@@ -434,9 +458,11 @@ class BaseRuleModelTest {
 
 	@Test
 	void testAliases01() {
-		BaseRule<Integer> rule =
-				new BaseRule<>("[alveolar, -continuant] > [retroflex] / r_",
-						new VariableStore(), FACTORY);
+		BaseRule<Integer> rule = new BaseRule<>(
+				"[alveolar, -continuant] > [retroflex] / r_",
+				new VariableStore(),
+				FACTORY
+		);
 
 		testRule(rule, FACTORY, "arka", "arka");
 		testRule(rule, FACTORY, "arpa", "arpa");
@@ -454,7 +480,7 @@ class BaseRuleModelTest {
 		testRule(rule, FACTORY, "atya", "aca");
 		testRule(rule, FACTORY, "asya", "aça");
 	}
-	
+
 	@Test
 	void testAliases03() {
 		BaseRule<Integer> rule =
@@ -470,18 +496,35 @@ class BaseRuleModelTest {
 		testRule(rule, FACTORY, seq, exp);
 	}
 
-	private static <T> void testRule(Rule<T> rule, SequenceFactory<T> factory,
-			String seq, String exp) {
-		Sequence<T> sequence = factory.toSequence(seq);
-		Sequence<T> expected = factory.toSequence(exp);
-		Sequence<T> received = rule.apply(sequence);
-		assertEquals(expected, received);
+	private static <T> void testRule(Rule<T> rule,
+			SequenceFactory<T> factory,
+			String seq,
+			String exp) {
+
+		Executable executable = () -> {
+			Sequence<T> sequence = factory.toSequence(seq);
+			Sequence<T> expected = factory.toSequence(exp);
+			Sequence<T> received = rule.apply(sequence);
+			assertEquals(expected, received);
+		};
+		
+		if (TIMEOUT) {
+			assertTimeoutPreemptively(Duration.ofSeconds(1), executable);
+		} else {
+			try {
+				executable.execute();
+			} catch (Throwable throwable) {
+				log.error("Unexpected failure encountered: {}", throwable);
+			}
+		}
 	}
 
 	private static FeatureMapping<Integer> loadModel() {
-		FeatureModelLoader<Integer> loader =
-				new FeatureModelLoader<>(IntegerFeature.INSTANCE,
-						ClassPathFileHandler.INSTANCE, "AT_hybrid.model");
+		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
+				IntegerFeature.INSTANCE,
+				ClassPathFileHandler.INSTANCE,
+				"AT_hybrid.model"
+		);
 		return loader.getFeatureMapping();
 	}
 }

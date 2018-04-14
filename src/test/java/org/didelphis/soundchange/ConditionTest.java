@@ -67,7 +67,8 @@ class ConditionTest {
 		Condition<Integer> condition = new Condition<>("a_x", FACTORY);
 		Sequence<Integer> sequence = FACTORY.toSequence("balx");
 
-		assertTrue(condition.isMatch(sequence, 2), "");
+		boolean match = condition.isMatch(sequence, 2);
+		assertTrue(match, "");
 	}
 
 	@Test
@@ -559,12 +560,14 @@ class ConditionTest {
 
 	@Test
 	void testComplex01() {
-		SequenceFactory<Integer> factoryParam =
-				new SequenceFactory<>(EMPTY.getFeatureMapping(),
-						FormatterMode.INTELLIGENT);
+		SequenceFactory<Integer> factoryParam = new SequenceFactory<>(
+				EMPTY.getFeatureMapping(),
+				FormatterMode.INTELLIGENT
+		);
 		Condition<Integer> condition = new Condition<>(
 				"_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}",
-				factoryParam);
+				factoryParam
+		);
 
 		testTrue(factoryParam, condition, "pʰāḱʰus", 0);
 		testTrue(factoryParam, condition, "pʰentʰros", 0);
@@ -586,11 +589,17 @@ class ConditionTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory<Integer> sequenceFactory =
-				new SequenceFactory<>(EMPTY.getFeatureMapping(),
-						store.getKeys(), FormatterMode.INTELLIGENT);
-		Condition<Integer> condition =
-				new Condition<>("_C+#", store, sequenceFactory);
+		SequenceFactory<Integer> sequenceFactory = new SequenceFactory<>(
+				EMPTY.getFeatureMapping(),
+				store.getKeys(),
+				FormatterMode.INTELLIGENT
+		);
+		
+		Condition<Integer> condition = new Condition<>(
+				"_C+#",
+				store,
+				sequenceFactory
+		);
 
 		testTrue(sequenceFactory, condition, "abaptk", 2);
 		testTrue(sequenceFactory, condition, "abapppp", 2);
@@ -663,12 +672,17 @@ class ConditionTest {
 		testFalse(condition, "xc", 0);
 	}
 
-	private static void testTrue(SequenceFactory<Integer> factory,
-			Condition<Integer> condition, String testString, int index) {
+	private static void testTrue(
+			SequenceFactory<Integer> factory,
+			Condition<Integer> condition,
+			String testString,
+			int index
+	) {
 		Sequence<Integer> word = factory.toSequence(testString);
 		assertTrue(condition.isMatch(word, index),
 				testString + " should have matched " + condition +
-						" but did not.");
+						" but did not."
+		);
 	}
 
 	private static void testTrue(Condition<Integer> condition,

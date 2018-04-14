@@ -6,6 +6,7 @@
 
 package org.didelphis.soundchange.command.rule;
 
+import lombok.extern.slf4j.Slf4j;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -14,15 +15,20 @@ import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /**
  * Created with IntelliJ IDEA. @author Samantha Fiona McCabe
  *
  * @date 6/22/13 Templates.
  */
+@Slf4j
 class BaseRuleTest {
 
 	private static final FeatureModelLoader<Integer> LOADER =
@@ -34,6 +40,8 @@ class BaseRuleTest {
 	private static final SequenceFactory<Integer> FACTORY =
 			new SequenceFactory<>(LOADER.getFeatureMapping(),
 					FormatterMode.NONE);
+	
+	private static final boolean TIMEOUT = true;
 
 	@Test
 	void testMultipleSourceZeroes() {
@@ -567,9 +575,21 @@ class BaseRuleTest {
 			String seq, 
 			String exp
 	) {
-		Sequence<T> sequence = factory.toSequence(seq);
-		Sequence<T> expected = factory.toSequence(exp);
-		Sequence<T> received = rule.apply(sequence);
-		assertEquals(expected, received);
+		Executable executable = () -> {
+			Sequence<T> sequence = factory.toSequence(seq);
+			Sequence<T> expected = factory.toSequence(exp);
+			Sequence<T> received = rule.apply(sequence);
+			assertEquals(expected, received);
+		};
+		
+		if (TIMEOUT) {
+			assertTimeoutPreemptively(Duration.ofSeconds(5), executable);
+		} else {
+			try {
+				executable.execute();
+			} catch (Throwable throwable) {
+				log.error("Unexpected failure encountered: {}", throwable);
+			}
+		}
 	}
 }

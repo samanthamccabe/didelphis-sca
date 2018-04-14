@@ -43,7 +43,8 @@ public class StandardRule<T> implements Rule<T> {
 		for (Lexicon<T> lexicon : lexicons.values()) {
 			for (List<Sequence<T>> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence<T> word = apply(row.get(i));
+					Sequence<T> sequence = row.get(i);
+					Sequence<T> word = apply(sequence);
 					row.set(i, word);
 				}
 			}

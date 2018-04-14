@@ -19,11 +19,12 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.didelphis.language.automata.EmptyStateMachine;
 import org.didelphis.language.automata.expressions.Expression;
-import org.didelphis.language.automata.interfaces.StateMachine;
-import org.didelphis.language.automata.sequences.SequenceMatcher;
+import org.didelphis.language.automata.matchers.SequenceMatcher;
+import org.didelphis.language.automata.matches.Match;
 import org.didelphis.language.automata.sequences.SequenceParser;
+import org.didelphis.language.automata.statemachines.EmptyStateMachine;
+import org.didelphis.language.automata.statemachines.StateMachine;
 import org.didelphis.language.parsing.ParseDirection;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -39,7 +40,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.compile;
-import static org.didelphis.language.automata.StandardStateMachine.create;
+import static org.didelphis.language.automata.statemachines.StandardStateMachine.create;
 
 /**
  * @author Samantha Fiona McCabe
@@ -48,11 +49,11 @@ import static org.didelphis.language.automata.StandardStateMachine.create;
 @Slf4j
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@ToString(of = "conditionText", includeFieldNames = false)
+@ToString (of = "conditionText", includeFieldNames = false)
 public class Condition<T> {
 
 	static Pattern WHITESPACE_PATTERN = compile("\\s+");
-	static Pattern OPEN_BRACE_PATTERN = compile("([\\[{(]) ");
+	static Pattern OPEN_BRACE_PATTERN = compile("([\\[{(])\\s");
 	static Pattern CLOSE_BRACE_PATTERN = compile("\\s([]})])");
 
 	String conditionText;
@@ -152,18 +153,14 @@ public class Condition<T> {
 	 * @return Returns true if the condition isMatch
 	 */
 	public boolean isMatch(Sequence<T> word, int startIndex, int endIndex) {
-		boolean preMatch = false;
-		boolean postMatch = false;
-
 		if (endIndex <= word.size() && startIndex <= endIndex) {
-			Sequence<T> head = word.subsequence(0, startIndex);
-			Sequence<T> tail = word.subsequence(endIndex);
-			Sequence<T> reverse = head.getReverseSequence();
-			
-			preMatch = !preCondition.getMatchIndices(0, reverse).isEmpty();
-			postMatch = !postCondition.getMatchIndices(0, tail).isEmpty();
+			Sequence<T> sequence = word.getReverseSequence();
+			int start = word.size() - startIndex;
+			Match<Sequence<T>> preMatch  = preCondition.match(sequence, start);
+			Match<Sequence<T>> postMatch = postCondition.match(word, endIndex);
+			return preMatch.end() >= 0 && postMatch.end() >= 0;
 		}
-		return preMatch && postMatch;
+		return false;
 	}
 
 }

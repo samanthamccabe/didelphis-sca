@@ -12,6 +12,7 @@ import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.sequences.BasicSequence;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.LexiconMap;
+import org.didelphis.structures.contracts.Delegating;
 
 import java.util.List;
 
@@ -21,7 +22,8 @@ import java.util.List;
  */
 @EqualsAndHashCode
 @ToString
-public class CompoundRule<T> implements Rule<T> {
+public class CompoundRule<T>
+		implements Rule<T>, Delegating<Iterable<? extends Rule<T>>> {
 
 	private final Iterable<? extends Rule<T>> rules;
 	private final LexiconMap<T> lexicons;
@@ -58,5 +60,10 @@ public class CompoundRule<T> implements Rule<T> {
 	@Override
 	public int applyAtIndex(Sequence<T> sequence, int index) {
 		return 0;
+	}
+
+	@Override
+	public Iterable<? extends Rule<T>> getDelegate() {
+		return rules;
 	}
 }
