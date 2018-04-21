@@ -45,7 +45,7 @@ public class StandardScriptTest {
 	private static final transient Logger LOGGER =
 			LoggerFactory.getLogger(StandardScriptTest.class);
 
-	private static final ClassPathFileHandler CLASSPATH_HANDLER =
+	private static final ClassPathFileHandler CLASSPATH =
 			ClassPathFileHandler.INSTANCE;
 
 	private static final FeatureModelLoader<Integer> EMPTY =
@@ -159,10 +159,11 @@ public class StandardScriptTest {
 		Map<String, CharSequence> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
 
-		String rules = CLASSPATH_HANDLER.read("testRuleLarge01.txt");
+		String rules = CLASSPATH.read("testRuleLarge01.txt");
 
 		// Append output clause
-		rules = rules + '\n' + "MODE COMPOSITION\n" +
+		rules = "OPEN 'testRuleLarge01.lex' as LEXICON\n" +
+				rules + '\n' + "MODE COMPOSITION\n" +
 				"CLOSE LEXICON AS \'output.lex\'";
 
 		String words = "tussḱyos";
@@ -186,12 +187,15 @@ public class StandardScriptTest {
 		Map<String, CharSequence> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
 
-		String rules = CLASSPATH_HANDLER.read("testRuleLarge01.txt");
-		String words = CLASSPATH_HANDLER.read("testRuleLarge01.lex");
-		String outpt = CLASSPATH_HANDLER.read("testRuleLargeOut01.lex");
+		String rules = CLASSPATH.read("testRuleLarge01.txt");
+		String words = CLASSPATH.read("testRuleLarge01.lex");
+		String outpt = CLASSPATH.read("testRuleLargeOut01.lex");
 
 		// Append output clause
-		rules = rules + '\n' + "MODE COMPOSITION\n" +
+		rules = "MODE INTELLIGENT\n" +
+				"OPEN \"testRuleLarge01.lex\" as LEXICON\n" +
+				rules +
+				"\nMODE COMPOSITION\n" +
 				"CLOSE LEXICON AS \'output.lex\'";
 
 		fileSystem.put("testRuleLarge01.lex", words);
@@ -208,13 +212,43 @@ public class StandardScriptTest {
 	}
 
 	@Test
+	void testDebugLexiconFile() {
+		Map<String, CharSequence> fileSystem = new HashMap<>();
+		FileHandler fileHandler = new MockFileHandler(fileSystem);
+
+		String rules = CLASSPATH.read("testRuleLarge01.txt");
+		String words = "h₂rǵ-i-ḱuon-";
+		String outpt = "ərɟicwon";
+
+		// Append output clause
+		rules = "MODE INTELLIGENT\n" +
+				"OPEN \"testRuleLarge01.lex\" as LEXICON\n" +
+				rules +
+				"\nMODE COMPOSITION\n" +
+				"CLOSE LEXICON AS \'output.lex\'";
+
+		fileSystem.put("testRuleLarge01.lex", words);
+		fileSystem.put("testRuleLarge01.txt", rules);
+
+		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
+		StandardScript<Integer> script = getScript(executeRule, fileHandler);
+
+		script.process();
+
+		String received = fileSystem.get("output.lex").toString();
+
+		assertEquals(outpt.replaceAll("\r\n|\n|\r", "\n"), received);
+	}
+	
+	@Test
 	void testRuleLarge01() {
-		String[] output =
-				CLASSPATH_HANDLER.read("testRuleLargeOut01.lex").split("\n");
+		String[] output = CLASSPATH.read("testRuleLargeOut01.lex").split("\n");
 
-		String script = "IMPORT 'testRuleLarge01.txt'";
+		String script = "MODE INTELLIGENT\n" +
+				"OPEN \"testRuleLarge01.lex\" as LEXICON\n" +
+				"IMPORT 'testRuleLarge01.txt'";
 
-		SoundChangeScript<Integer> sca = getScript(script, CLASSPATH_HANDLER);
+		SoundChangeScript<Integer> sca = getScript(script, CLASSPATH);
 		sca.process();
 
 		Lexicon<Integer> received = sca.getLexicons().getLexicon("LEXICON");
@@ -239,8 +273,7 @@ public class StandardScriptTest {
 		String[] lexicon = {"apat", "takan", "kepak", "pik", "ket"};
 
 		SoundChangeScript<Integer> sca =
-				getScript("OPEN \'testLexicon.lex\' as TEST",
-						CLASSPATH_HANDLER);
+				getScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH);
 		sca.process();
 		Lexicon<Integer> expected =
 				Lexicon.fromSingleColumn(FACTORY_NONE, Arrays.asList(lexicon));
