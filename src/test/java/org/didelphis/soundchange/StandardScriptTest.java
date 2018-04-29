@@ -14,6 +14,8 @@
 
 package org.didelphis.soundchange;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
@@ -25,8 +27,6 @@ import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureMapping;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,25 +40,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @date 9/19/13 Templates.
  */
-public class StandardScriptTest {
+@FieldDefaults(makeFinal =  true, level = AccessLevel.PRIVATE)
+class StandardScriptTest {
 
-	private static final transient Logger LOGGER =
-			LoggerFactory.getLogger(StandardScriptTest.class);
-
-	private static final ClassPathFileHandler CLASSPATH =
-			ClassPathFileHandler.INSTANCE;
-
-	private static final FeatureModelLoader<Integer> EMPTY =
-			IntegerFeature.emptyLoader();
-
-	private static final FeatureMapping<Integer> MAPPING =
-			EMPTY.getFeatureMapping();
-
-
-	private static final SequenceFactory<Integer> FACTORY_NONE =
-			new SequenceFactory<>(MAPPING, FormatterMode.NONE);
-	private static final SequenceFactory<Integer> FACTORY_INTELLIGENT =
-			new SequenceFactory<>(MAPPING, FormatterMode.INTELLIGENT);
+	static ClassPathFileHandler CLASSPATH = ClassPathFileHandler.INSTANCE;
+	static FeatureModelLoader<Integer> EMPTY = IntegerFeature.emptyLoader();
+	static FeatureMapping<Integer> MAPPING = EMPTY.getFeatureMapping();
+	
+	static SequenceFactory<Integer> FACTORY_NONE 
+			= new SequenceFactory<>(MAPPING, FormatterMode.NONE);
+	static SequenceFactory<Integer> FACTORY_INTELLIGENT 
+			= new SequenceFactory<>(MAPPING, FormatterMode.INTELLIGENT);
 
 	@Test
 	void testImportVariables() {
@@ -166,6 +158,7 @@ public class StandardScriptTest {
 				rules + '\n' + "MODE COMPOSITION\n" +
 				"CLOSE LEXICON AS \'output.lex\'";
 
+		//              tusscyos
 		String words = "tussḱyos";
 		String outpt = "tusciyos";
 
