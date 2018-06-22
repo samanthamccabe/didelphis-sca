@@ -18,7 +18,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.didelphis.language.automata.expressions.Expression;
 import org.didelphis.language.automata.matchers.SequenceMatcher;
 import org.didelphis.language.automata.matches.Match;
@@ -46,7 +45,6 @@ import static org.didelphis.language.automata.statemachines.StandardStateMachine
  * @author Samantha Fiona McCabe
  * @date 2013-04-28
  */
-@Slf4j
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @ToString (of = "conditionText", includeFieldNames = false)

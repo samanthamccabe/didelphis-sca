@@ -36,8 +36,13 @@ public class StandardScript<T> implements SoundChangeScript<T> {
 		this.filePath = filePath;
 		this.handler = handler;
 
-		ScriptParser<T> scriptParser =
-				new ScriptParser<>(filePath, type, script, handler, logger);
+		ScriptParser<T> scriptParser = new ScriptParser<>(
+				filePath,
+				type,
+				script,
+				handler,
+				logger
+		);
 		scriptParser.parse();
 
 		lexicons = scriptParser.getMemory().getLexicons();

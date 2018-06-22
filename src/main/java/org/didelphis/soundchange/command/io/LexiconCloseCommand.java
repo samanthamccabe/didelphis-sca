@@ -20,12 +20,12 @@ import java.util.Objects;
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
-public class LexiconCloseCommand extends AbstractLexiconIoCommand {
+public class LexiconCloseCommand<T> extends AbstractLexiconIoCommand {
 
-	private final LexiconMap lexicons;
+	private final LexiconMap<T> lexicons;
 	private final FormatterMode mode;
 
-	public LexiconCloseCommand(LexiconMap lexParam, String path, String handle,
+	public LexiconCloseCommand(LexiconMap<T> lexParam, String path, String handle,
 			FileHandler name, FormatterMode modeParam) {
 		super(path, handle, name);
 		lexicons = lexParam;
@@ -35,25 +35,25 @@ public class LexiconCloseCommand extends AbstractLexiconIoCommand {
 	@Override
 	public void run() {
 		// REMOVE data from lexicons
-		Lexicon lexicon = lexicons.remove(getHandle());
+		Lexicon<T> lexicon = lexicons.remove(getHandle());
 
-		StringBuilder sb = new StringBuilder();
-		Iterator<List<Sequence>> i1 = lexicon.iterator();
+		String sb = "";
+		Iterator<List<Sequence<T>>> i1 = lexicon.iterator();
 		while (i1.hasNext()) {
-			Iterator<Sequence> i2 = i1.next().iterator();
+			Iterator<Sequence<T>> i2 = i1.next().iterator();
 			while (i2.hasNext()) {
-				Sequence sequence = i2.next();
-				sb.append(sequence);
+				Sequence<T> sequence = i2.next();
+				sb += sequence;
 				if (i2.hasNext()) {
-					sb.append('\t');
+					sb += '\t';
 				}
 
 			}
 			if (i1.hasNext()) {
-				sb.append('\n');
+				sb +='\n';
 			}
 		}
-		String data = sb.toString().trim();
+		String data = sb.trim();
 		String normalized = mode.normalize(data);
 		getHandler().writeString(getPath(), normalized);
 	}
@@ -63,7 +63,7 @@ public class LexiconCloseCommand extends AbstractLexiconIoCommand {
 		if (this == o) return true;
 		if (!(o instanceof LexiconCloseCommand)) return false;
 		if (!super.equals(o)) return false;
-		LexiconCloseCommand that = (LexiconCloseCommand) o;
+		LexiconCloseCommand<?> that = (LexiconCloseCommand<?>) o;
 		return Objects.equals(lexicons, that.lexicons) && mode == that.mode;
 	}
 

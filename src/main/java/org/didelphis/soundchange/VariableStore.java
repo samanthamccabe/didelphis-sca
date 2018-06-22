@@ -78,17 +78,18 @@ public class VariableStore {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		variables.forEach((key, value) -> {
-			sb.append(key);
-			sb.append(" =");
-			for (String sequence : value) {
-				sb.append(' ');
-				sb.append(sequence);
-			}
-			sb.append('\n');
-		});
-		return sb.toString().trim();
+//		StringBuilder sb = new StringBuilder();
+//		variables.forEach((key, value) -> {
+//			sb.append(key);
+//			sb.append(" =");
+//			for (String sequence : value) {
+//				sb.append(' ');
+//				sb.append(sequence);
+//			}
+//			sb.append('\n');
+//		});
+//		return sb.toString().trim();
+		return variables.toString();
 	}
 
 	public void add(String command) {
@@ -104,9 +105,10 @@ public class VariableStore {
 			}
 			variables.put(key, expanded);
 		} else {
-			throw new ParseException(
-					"Variable definition can only contain one = sign.",
-					command);
+			throw ParseException.builder()
+					.add("Variable definition can only contain one = sign.")
+					.data(command)
+					.build();
 		}
 	}
 

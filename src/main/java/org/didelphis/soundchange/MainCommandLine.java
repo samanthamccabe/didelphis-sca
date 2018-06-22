@@ -15,55 +15,49 @@
 package org.didelphis.soundchange;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.didelphis.io.DiskFileHandler;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.features.IntegerFeature;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.stream.Collectors;
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2013-09-28
  */
-@Slf4j
 @UtilityClass
 public final class MainCommandLine {
 	private static final double NANO = 10.0E-9;
-
+	
 	public static void main(String... args) {
 		if (args.length == 0) {
 			throw new IllegalArgumentException("No arguments were provided!");
 		} else {
 			for (String arg : args) {
 				double startTime = System.nanoTime();
-				File file = new File(arg);
 
-				try (BufferedReader reader = new BufferedReader(
-						new FileReader(file))) {
-					String rules = reader.lines().collect(Collectors.joining());
+				DiskFileHandler handler = new DiskFileHandler("UTF-8");
 
-					// TODO: read dynamically somehow
-					FeatureType<?> type = IntegerFeature.INSTANCE;
+				CharSequence read = handler.read(arg);
 
-					SoundChangeScript<?> script =
-							new StandardScript<>(arg, type, rules,
-									new DiskFileHandler("UTF-8"),
-									new ErrorLogger());
-					script.process();
-				} catch (IOException e) {
-					log.error("Failed to open script {}",
-							file.getAbsolutePath(), e);
+				if (read == null) {
+					System.out.println("Unable to load file " + arg);
+					return;
 				}
+				
+				FeatureType<?> type = IntegerFeature.INSTANCE;
+
+				SoundChangeScript<?> script = new StandardScript<>(arg,
+						type,
+						read,
+						handler,
+						new ErrorLogger()
+				);
+				script.process();
+
 
 				double elapsedTime = System.nanoTime() - startTime;
 				double time = elapsedTime * NANO;
-				log.info("Finished script {} in {} seconds", file.getName(),
-						time);
+				System.out.println("Finished script " + arg + " in " + time + 
+						" seconds");
 			}
 		}
 	}

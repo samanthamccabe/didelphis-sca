@@ -20,8 +20,6 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,10 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Samantha Fiona McCabe
  * @date 4/19/2015
  */
-public class ConditionModelTest {
-
-	private static final transient Logger LOGGER =
-			LoggerFactory.getLogger(ConditionModelTest.class);
+class ConditionModelTest {
 
 	private static final SequenceFactory<Integer> FACTORY = loadModel();
 
@@ -159,9 +154,4 @@ public class ConditionModelTest {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 
 		FeatureModelLoader<Integer> loader =
-				new FeatureModelLoader<>(IntegerFeature.INSTANCE,
-						ClassPathFileHandler.INSTANCE, "AT_hybrid.model");
-
-		return new SequenceFactory<>(loader.getFeatureMapping(), mode);
-	}
-}
+				newStr

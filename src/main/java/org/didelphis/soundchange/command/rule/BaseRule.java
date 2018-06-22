@@ -9,7 +9,6 @@ package org.didelphis.soundchange.command.rule;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.FeatureArray;
@@ -25,6 +24,7 @@ import org.didelphis.soundchange.Condition;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.soundchange.parser.ParserMemory;
 import org.didelphis.utilities.Exceptions;
+import org.didelphis.utilities.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +46,6 @@ import static java.util.regex.Pattern.compile;
  * @date 2013-04-07
  * @since 0.0.0
  */
-@Slf4j
 @EqualsAndHashCode
 public class BaseRule<T> implements Rule<T> {
 
@@ -56,6 +55,7 @@ public class BaseRule<T> implements Rule<T> {
 
 	private static final Pattern WHITESPACE = compile("\\s+");
 	private static final Pattern TRANSFORM = compile("\\s*>\\s*");
+	private static final Logger LOG = Logger.create(BaseRule.class);
 
 	private final String ruleText;
 
@@ -143,29 +143,30 @@ public class BaseRule<T> implements Rule<T> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-
-		for (Sequence<T> sequence : transform.keySet()) {
-			sb.append(sequence);
-			sb.append(' ');
-		}
-		sb.append("> ");
-		for (Sequence<T> sequence : transform.values()) {
-			sb.append(sequence);
-			sb.append(' ');
-		}
-		sb.append("/ ");
-		for (int i = 0; i < conditions.size(); i++) {
-			sb.append(conditions.get(i));
-			if (i < conditions.size() - 1) {
-				sb.append(" OR ");
-			}
-		}
-		for (Condition<T> exception : exceptions) {
-			sb.append(" NOT ");
-			sb.append(exception);
-		}
-		return sb.toString();
+//		StringBuilder sb = new StringBuilder();
+//
+//		for (Sequence<T> sequence : transform.keySet()) {
+//			sb.append(sequence);
+//			sb.append(' ');
+//		}
+//		sb.append("> ");
+//		for (Sequence<T> sequence : transform.values()) {
+//			sb.append(sequence);
+//			sb.append(' ');
+//		}
+//		sb.append("/ ");
+//		for (int i = 0; i < conditions.size(); i++) {
+//			sb.append(conditions.get(i));
+//			if (i < conditions.size() - 1) {
+//				sb.append(" OR ");
+//			}
+//		}
+//		for (Condition<T> exception : exceptions) {
+//			sb.append(" NOT ");
+//			sb.append(exception);
+//		}
+//		return sb.toString();
+		return ruleText;
 	}
 
 	private int matchSource(Sequence<T> sequence,
