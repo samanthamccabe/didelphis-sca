@@ -46,7 +46,6 @@ import static org.didelphis.language.automata.statemachines.StandardStateMachine
  * @author Samantha Fiona McCabe
  * @date 2013-04-28
  */
-@Slf4j
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @ToString (of = "conditionText", includeFieldNames = false)

@@ -6,7 +6,6 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import lombok.extern.slf4j.Slf4j;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -14,6 +13,7 @@ import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
+import org.didelphis.utilities.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
@@ -28,9 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
  *
  * @date 6/22/13 Templates.
  */
-@Slf4j
 class BaseRuleTest {
 
+	private static Logger LOG = Logger.create(BaseRuleTest.class);
+	
 	private static final FeatureModelLoader<Integer> LOADER =
 			IntegerFeature.emptyLoader();
 
@@ -588,7 +589,7 @@ class BaseRuleTest {
 			try {
 				executable.execute();
 			} catch (Throwable throwable) {
-				log.error("Unexpected failure encountered: {}", throwable);
+				LOG.error("Unexpected failure encountered: {}", throwable);
 			}
 		}
 	}

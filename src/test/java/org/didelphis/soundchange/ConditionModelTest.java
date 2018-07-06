@@ -20,8 +20,6 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,10 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @date 4/19/2015
  */
 public class ConditionModelTest {
-
-	private static final transient Logger LOGGER =
-			LoggerFactory.getLogger(ConditionModelTest.class);
-
+	
 	private static final SequenceFactory<Integer> FACTORY = loadModel();
 
 	@Test

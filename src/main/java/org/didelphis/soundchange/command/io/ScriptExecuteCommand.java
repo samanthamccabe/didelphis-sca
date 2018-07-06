@@ -11,8 +11,6 @@ import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.SoundChangeScript;
 import org.didelphis.soundchange.StandardScript;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -21,9 +19,6 @@ import java.util.Objects;
  * @date 2014-10-13
  */
 public class ScriptExecuteCommand<T> extends AbstractIoCommand {
-
-	private static final transient Logger LOGGER =
-			LoggerFactory.getLogger(ScriptExecuteCommand.class);
 
 	private final FeatureType<T> type;
 	private final ErrorLogger logger;
@@ -56,7 +51,7 @@ public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 		if (this == o) return true;
 		if (!(o instanceof ScriptExecuteCommand)) return false;
 		if (!super.equals(o)) return false;
-		ScriptExecuteCommand that = (ScriptExecuteCommand) o;
+		ScriptExecuteCommand<?> that = (ScriptExecuteCommand<?>) o;
 		return Objects.equals(logger, that.logger);
 	}
 

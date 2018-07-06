@@ -342,7 +342,7 @@ public class ScriptParser<T> {
 		Collections.addAll(list,
 				String.valueOf(handler.read(fullPath)).split("\r?\n|\r"));
 		FeatureModelLoader<T> loader =
-				new FeatureModelLoader<>(type, handler, list);
+				new FeatureModelLoader<>(fullPath, type, handler, list);
 		return loader.getFeatureMapping();
 	}
 

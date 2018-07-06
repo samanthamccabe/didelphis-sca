@@ -6,10 +6,11 @@
 
 package org.didelphis.soundchange.command.rule;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.experimental.FieldDefaults;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.FeatureArray;
@@ -26,12 +27,7 @@ import org.didelphis.soundchange.VariableStore;
 import org.didelphis.soundchange.parser.ParserMemory;
 import org.didelphis.utilities.Exceptions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -46,26 +42,26 @@ import static java.util.regex.Pattern.compile;
  * @date 2013-04-07
  * @since 0.0.0
  */
-@Slf4j
 @EqualsAndHashCode
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BaseRule<T> implements Rule<T> {
 
-	private static final Pattern BACKREFERENCE = compile("[$]([^$]*)(\\d+)");
-	private static final Pattern NOT = compile("\\s*not\\s*", CASE_INSENSITIVE);
-	private static final Pattern OR = compile("\\s*or\\s*", CASE_INSENSITIVE);
+	static Pattern BACKREFERENCE = compile("[$]([^$]*)(\\d+)");
+	static Pattern NOT = compile("\\s*not\\s*", CASE_INSENSITIVE);
+	static Pattern OR = compile("\\s*or\\s*", CASE_INSENSITIVE);
 
-	private static final Pattern WHITESPACE = compile("\\s+");
-	private static final Pattern TRANSFORM = compile("\\s*>\\s*");
+	static Pattern WHITESPACE = compile("\\s+");
+	static Pattern TRANSFORM = compile("\\s*>\\s*");
 
-	private final String ruleText;
+	String ruleText;
 
-	@Getter private final List<Condition<T>> conditions;
-	@Getter private final List<Condition<T>> exceptions;
+	@Getter List<Condition<T>> conditions;
+	@Getter List<Condition<T>> exceptions;
 
-	private final SequenceFactory<T> factory;
-	private final Map<Sequence<T>, Sequence<T>> transform;
-	private final RuleMatcher<T> ruleMatcher;
-	private final VariableStore variables;
+	SequenceFactory<T> factory;
+	Map<Sequence<T>, Sequence<T>> transform;
+	RuleMatcher<T> ruleMatcher;
+	VariableStore variables;
 
 	public BaseRule(String rule, ParserMemory<T> memory) {
 		ruleText = rule;
