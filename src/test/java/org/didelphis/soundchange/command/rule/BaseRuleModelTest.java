@@ -6,7 +6,6 @@
 
 package org.didelphis.soundchange.command.rule;
 
-import lombok.extern.slf4j.Slf4j;
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
@@ -34,11 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
  *
  * @date 6/22/13 Templates.
  */
-
 class BaseRuleModelTest {
 
-	private static final transient Logger LOG = Logger.create(BaseRuleModelTest.class);
-	
+	private static Logger LOG = Logger.create(BaseRuleTest.class);
+
 	private static final Set<String> EMPTY_SET = new HashSet<>();
 	private static final FeatureMapping<Integer> MODEL = loadModel();
 	private static final SequenceFactory<Integer> FACTORY =

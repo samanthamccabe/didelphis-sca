@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Samantha Fiona McCabe
  * @date 4/19/2015
  */
-class ConditionModelTest {
-
+public class ConditionModelTest {
+	
 	private static final SequenceFactory<Integer> FACTORY = loadModel();
 
 	@Test

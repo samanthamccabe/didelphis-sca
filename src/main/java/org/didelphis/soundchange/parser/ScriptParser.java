@@ -366,7 +366,7 @@ public class ScriptParser<T> {
 		CharSequence charSequence = handler.read(fullPath);
 		Collections.addAll(list, charSequence.toString().split("\r?\n|\r"));
 		FeatureModelLoader<T> loader =
-				new FeatureModelLoader<>(type, handler, list);
+				new FeatureModelLoader<>(fullPath, type, handler, list);
 		return loader.getFeatureMapping();
 	}
 

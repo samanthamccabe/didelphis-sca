@@ -14,19 +14,25 @@
 
 package org.didelphis.soundchange;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
 import org.didelphis.io.DiskFileHandler;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.features.IntegerFeature;
+import org.didelphis.utilities.Logger;
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2013-09-28
  */
 @UtilityClass
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class MainCommandLine {
-	private static final double NANO = 10.0E-9;
 	
+	Logger LOG = Logger.create(MainCommandLine.class);
+	double NANO = 10.0E-9;
+
 	public static void main(String... args) {
 		if (args.length == 0) {
 			throw new IllegalArgumentException("No arguments were provided!");
@@ -56,8 +62,7 @@ public final class MainCommandLine {
 
 				double elapsedTime = System.nanoTime() - startTime;
 				double time = elapsedTime * NANO;
-				System.out.println("Finished script " + arg + " in " + time + 
-						" seconds");
+				LOG.info("Finished script {} in {} seconds", arg, time);
 			}
 		}
 	}

@@ -155,7 +155,13 @@ public class VariableStore {
 		}
 
 		return list.stream()
-				.map(strings -> strings.stream().collect(Collectors.joining()))
+				.map(strings -> {
+					String sb = "";
+					for (String string: strings) {
+						sb += (string);
+					}
+					return sb;
+				})
 				.collect(Collectors.toList());
 	}
 

@@ -28,12 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
  *
  * @date 6/22/13 Templates.
  */
-
 class BaseRuleTest {
 
-	private static final transient Logger LOG = Logger.create(BaseRuleTest.class);
-
-
+	private static Logger LOG = Logger.create(BaseRuleTest.class);
+	
 	private static final FeatureModelLoader<Integer> LOADER =
 			IntegerFeature.emptyLoader();
 
