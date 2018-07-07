@@ -22,12 +22,6 @@ import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.utilities.Logger;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.stream.Collectors;
-
 /**
  * @author Samantha Fiona McCabe
  * @date 2013-09-28
