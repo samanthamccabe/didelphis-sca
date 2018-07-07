@@ -14,7 +14,6 @@
 
 package org.didelphis.soundchange;
 
-import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
@@ -34,8 +33,9 @@ public class ConditionModelTest {
 
 	@Test
 	void testBasicStateMachine01() {
-		Condition<Integer> condition =
-				new Condition<>("_a[+son, -hgh, +frn, -atr]+", FACTORY);
+		Condition<Integer> condition = new Condition<>("_a[+son, -hgh, +frn, -atr]+",
+				FACTORY
+		);
 
 		fail(condition, "xa");
 		test(condition, "xaa");
@@ -103,8 +103,9 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex02() {
-		Condition<Integer> condition =
-				new Condition<>("_[-con][-son]us#", FACTORY);
+		Condition<Integer> condition = new Condition<>("_[-con][-son]us#",
+				FACTORY
+		);
 
 		test(condition, "xapʰus");
 		test(condition, "xatʰus");
@@ -152,11 +153,8 @@ public class ConditionModelTest {
 
 	private static SequenceFactory<Integer> loadModel() {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-
-		FeatureModelLoader<Integer> loader =
-				new FeatureModelLoader<>(IntegerFeature.INSTANCE,
-						ClassPathFileHandler.INSTANCE, "AT_hybrid.model");
-
+		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
+				IntegerFeature.INSTANCE);
 		return new SequenceFactory<>(loader.getFeatureMapping(), mode);
 	}
 }

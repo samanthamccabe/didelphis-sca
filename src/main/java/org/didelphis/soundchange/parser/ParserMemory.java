@@ -47,9 +47,12 @@ public class ParserMemory<T> {
 		variables = new VariableStore(FormatterMode.NONE);
 		reserved = new HashSet<>();
 		formatterMode = FormatterMode.NONE;
-		featureMapping =
-				new FeatureModelLoader<>(type, NullFileHandler.INSTANCE,
-						"").getFeatureMapping();
+		FeatureModelLoader<T> loader = new FeatureModelLoader<>(
+				type,
+				NullFileHandler.INSTANCE,
+				""
+		);
+		featureMapping = loader.getFeatureMapping();
 	}
 
 	public ParserMemory(ParserMemory<T> memory) {

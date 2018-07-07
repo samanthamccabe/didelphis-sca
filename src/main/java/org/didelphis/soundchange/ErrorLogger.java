@@ -58,7 +58,7 @@ public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 
 		@Override
 		public String toString() {
-			return String.valueOf(line) + script;
+			return line + script;
 		}
 
 		public String getScript() {

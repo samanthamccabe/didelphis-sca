@@ -45,29 +45,30 @@ public final class MainCommandLine {
 		} else {
 			for (String arg : args) {
 				double startTime = System.nanoTime();
-				File file = new File(arg);
 
-				try (BufferedReader reader = new BufferedReader(
-						new FileReader(file))) {
-					String rules = reader.lines().collect(Collectors.joining());
+				DiskFileHandler handler = new DiskFileHandler("UTF-8");
 
-					// TODO: read dynamically somehow
-					FeatureType<?> type = IntegerFeature.INSTANCE;
+				CharSequence read = handler.read(arg);
 
-					SoundChangeScript<?> script =
-							new StandardScript<>(arg, type, rules,
-									new DiskFileHandler("UTF-8"),
-									new ErrorLogger());
-					script.process();
-				} catch (IOException e) {
-					LOG.error("Failed to open script {}",
-							file.getAbsolutePath(), e);
+				if (read == null) {
+					System.out.println("Unable to load file " + arg);
+					return;
 				}
+				
+				FeatureType<?> type = IntegerFeature.INSTANCE;
+
+				SoundChangeScript<?> script = new StandardScript<>(arg,
+						type,
+						read,
+						handler,
+						new ErrorLogger()
+				);
+				script.process();
+
 
 				double elapsedTime = System.nanoTime() - startTime;
 				double time = elapsedTime * NANO;
-				LOG.info("Finished script {} in {} seconds", file.getName(),
-						time);
+				LOG.info("Finished script {} in {} seconds", arg, time);
 			}
 		}
 	}

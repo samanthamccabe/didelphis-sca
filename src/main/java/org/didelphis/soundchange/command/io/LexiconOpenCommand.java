@@ -21,13 +21,13 @@ import java.util.Objects;
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
-public class LexiconOpenCommand extends AbstractLexiconIoCommand {
+public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 
-	private final LexiconMap lexicons;
-	private final SequenceFactory factory;
+	private final LexiconMap<T> lexicons;
+	private final SequenceFactory<T> factory;
 
-	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle,
-			FileHandler handler, SequenceFactory factory) {
+	public LexiconOpenCommand(LexiconMap<T> lexicons, String path, String handle,
+			FileHandler handler, SequenceFactory<T> factory) {
 		super(path, handle, handler);
 		this.lexicons = lexicons;
 		this.factory = factory;
@@ -38,7 +38,7 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 		if (this == o) return true;
 		if (!(o instanceof LexiconOpenCommand)) return false;
 		if (!super.equals(o)) return false;
-		LexiconOpenCommand that = (LexiconOpenCommand) o;
+		LexiconOpenCommand<?> that = (LexiconOpenCommand<?>) o;
 		return Objects.equals(lexicons, that.lexicons) &&
 				Objects.equals(factory, that.factory);
 	}
@@ -53,7 +53,8 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 		String path = getPath();
 		FileHandler handler = getHandler();
 
-		String data = String.valueOf(handler.read(path));
+		CharSequence charSequence = handler.read(path);
+		String data = charSequence == null ? "null" : charSequence.toString();
 		Collection<List<String>> rows = new ArrayList<>();
 		for (String line : data.split("\r?\n|\r", -1)) {
 			List<String> cells = new ArrayList<>();
@@ -61,7 +62,7 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 			rows.add(cells);
 		}
 
-		Lexicon lexicon = Lexicon.fromRows(factory, rows);
+		Lexicon<T> lexicon = Lexicon.fromRows(factory, rows);
 		lexicons.addLexicon(getHandle(), path, lexicon);
 	}
 

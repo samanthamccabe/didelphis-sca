@@ -24,38 +24,13 @@
         <version>0.3.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.didelphis.sca</groupId>
     <artifactId>didelphis-sca</artifactId>
+    <version>0.3.0-SNAPSHOT</version>
     
     <name>Didelphis Sound Change Applier</name>
-
+    
     <build>
         <plugins>
-            
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -69,6 +44,7 @@
                     </descriptorRefs>
                 </configuration>
             </plugin>
+            
         </plugins>
     </build>
 
@@ -78,6 +54,7 @@
     </properties>
 
     <dependencies>
+
         <!-- DIDELPHIS COMMON  -->
         <dependency>
             <groupId>org.didelphis.common</groupId>
@@ -102,7 +79,6 @@
             <artifactId>didelphis-common-utilities</artifactId>
             <version>${didelphis-common.version}</version>
         </dependency>
-        
     </dependencies>
 
 </project>

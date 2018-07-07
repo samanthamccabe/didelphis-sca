@@ -21,12 +21,12 @@ import java.util.Objects;
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
-public class LexiconWriteCommand extends AbstractLexiconIoCommand {
+public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
 
-	private final LexiconMap lexicons;
+	private final LexiconMap<T> lexicons;
 	private final FormatterMode mode;
 
-	public LexiconWriteCommand(LexiconMap lexParam, String path, String handle,
+	public LexiconWriteCommand(LexiconMap<T> lexParam, String path, String handle,
 			FileHandler name, FormatterMode modeParam) {
 		super(path, handle, name);
 		lexicons = lexParam;
@@ -36,25 +36,25 @@ public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 	@Override
 	public void run() {
 		// GET data from lexicons
-		Lexicon lexicon = lexicons.getLexicon(getHandle());
+		Lexicon<T> lexicon = lexicons.getLexicon(getHandle());
 
-		StringBuilder sb = new StringBuilder();
-		Iterator<List<Sequence>> i1 = lexicon.iterator();
+		String sb = "";
+		Iterator<List<Sequence<T>>> i1 = lexicon.iterator();
 		while (i1.hasNext()) {
-			Iterator<Sequence> i2 = i1.next().iterator();
+			Iterator<Sequence<T>> i2 = i1.next().iterator();
 			while (i2.hasNext()) {
-				Sequence sequence = i2.next();
-				sb.append(sequence);
+				Sequence<T> sequence = i2.next();
+				sb+=sequence;
 				if (i2.hasNext()) {
-					sb.append('\t');
+					sb += '\t';
 				}
 
 			}
 			if (i1.hasNext()) {
-				sb.append('\n');
+				sb +='\n';
 			}
 		}
-		String data = sb.toString().trim();
+		String data = sb.trim();
 		String normalized = mode.normalize(data);
 		getHandler().writeString(getPath(), normalized);
 	}
@@ -64,7 +64,7 @@ public class LexiconWriteCommand extends AbstractLexiconIoCommand {
 		if (this == o) return true;
 		if (!(o instanceof LexiconWriteCommand)) return false;
 		if (!super.equals(o)) return false;
-		LexiconWriteCommand that = (LexiconWriteCommand) o;
+		LexiconWriteCommand<?> that = (LexiconWriteCommand<?>) o;
 		return Objects.equals(lexicons, that.lexicons) && mode == that.mode;
 	}
 
