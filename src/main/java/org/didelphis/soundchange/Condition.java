@@ -84,32 +84,33 @@ public class Condition<T> {
 		if (conditionText.contains("_")) {
 			String[] conditions = conditionText.split("_", -1);
 			if (conditions.length == 1) {
-				Expression expression = parser.parseExpression(conditions[0]);
+				Expression expression = parser.parseExpression(
+						conditions[0],
+						ParseDirection.BACKWARD);
 				preCondition = create(
 						"M",
 						expression,
 						parser,
-						matcher,
-						ParseDirection.BACKWARD
+						matcher
 				);
 				postCondition = EmptyStateMachine.getInstance();
 			} else if (conditions.length == 2) {
-				Expression expression1 = parser.parseExpression(conditions[0]);
-				Expression expression2 = parser.parseExpression(conditions[1]);
+				Expression expression1 = parser.parseExpression(conditions[0],
+						ParseDirection.BACKWARD);
+				Expression expression2 = parser.parseExpression(conditions[1],
+						ParseDirection.FORWARD);
 
 				preCondition = create(
 						"X",
 						expression1,
 						parser,
-						matcher,
-						ParseDirection.BACKWARD
+						matcher
 				);
 				postCondition = create(
 						"Y",
 						expression2,
 						parser,
-						matcher,
-						ParseDirection.FORWARD
+						matcher
 				);
 			} else if (conditions.length == 0) {
 				preCondition = EmptyStateMachine.getInstance();

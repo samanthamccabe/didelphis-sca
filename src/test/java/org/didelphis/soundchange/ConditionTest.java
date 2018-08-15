@@ -671,6 +671,13 @@ class ConditionTest {
 		testFalse(condition, "xb", 0);
 		testFalse(condition, "xc", 0);
 	}
+	
+	@Test
+	void testUnknownFailure() {
+		Condition<Integer> condition = new Condition<>("{s c y}{s c y}+_{o}", FACTORY);
+		
+		testTrue(condition, "tusscyos", 5);
+	}
 
 	private static void testTrue(
 			SequenceFactory<Integer> factory,

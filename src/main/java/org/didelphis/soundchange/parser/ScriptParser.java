@@ -362,11 +362,11 @@ public class ScriptParser<T> {
 		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String fullPath = getPath(filePath, path);
 
-		List<String> list = new ArrayList<>();
-		CharSequence charSequence = handler.read(fullPath);
-		Collections.addAll(list, charSequence.toString().split("\r?\n|\r"));
-		FeatureModelLoader<T> loader =
-				new FeatureModelLoader<>(fullPath, type, handler, list);
+		FeatureModelLoader<T> loader = new FeatureModelLoader<>(
+				type,
+				handler,
+				fullPath
+		);
 		return loader.getFeatureMapping();
 	}
 
