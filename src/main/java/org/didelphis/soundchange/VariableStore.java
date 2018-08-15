@@ -78,18 +78,17 @@ public class VariableStore {
 
 	@Override
 	public String toString() {
-//		StringBuilder sb = new StringBuilder();
-//		variables.forEach((key, value) -> {
-//			sb.append(key);
-//			sb.append(" =");
-//			for (String sequence : value) {
-//				sb.append(' ');
-//				sb.append(sequence);
-//			}
-//			sb.append('\n');
-//		});
-//		return sb.toString().trim();
-		return variables.toString();
+		StringBuilder sb = new StringBuilder();
+		variables.forEach((key, value) -> {
+			sb.append(key);
+			sb.append(" =");
+			for (String sequence : value) {
+				sb.append(' ');
+				sb.append(sequence);
+			}
+			sb.append('\n');
+		});
+		return sb.toString().trim();
 	}
 
 	public void add(String command) {

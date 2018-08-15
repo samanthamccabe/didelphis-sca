@@ -32,6 +32,17 @@ class CompoundRuleTest {
 
 	@Test
 	void testCompound01() {
+
+		Rule<Integer> r1 = new BaseRule<>(
+				"a i u > e / #{m p t k}?{a i u}{p t k l n}_",
+				FACTORY
+		);
+
+		Rule<Integer> r2 = new BaseRule<>(
+				"e > 0 / {l n}_{p t k} or {p t k}_l",
+				FACTORY
+		);
+		
 		List<? extends Rule<Integer>> rules =
 				buildRules("a i u > e / #{m p t k}?{a i u}{p t k l n}_",
 						"e > 0 / {l n}_{p t k} or {p t k}_l");
@@ -46,7 +57,15 @@ class CompoundRuleTest {
 
 		LexiconMap<Integer> lexiconMap = new LexiconMap<>();
 		lexiconMap.addLexicon("default", "", lexicon);
-		new CompoundRule<>(rules, lexiconMap).run();
+//		new CompoundRule<>(rules, lexiconMap).run();
+
+		for (List<Sequence<Integer>> list : lexicon) {
+			for (Sequence<Integer> sequence : list) {
+				r1.apply(sequence);
+				r2.apply(sequence);
+			}
+		}
+
 		assertEquals(expected, lexicon);
 	}
 

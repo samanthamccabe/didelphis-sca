@@ -81,4 +81,26 @@ public class VariableStoreTest {
 				"[CONS] = pʰ tʰ kʰ p t k x ɣ";
 		Assertions.assertEquals(expected, vs.toString());
 	}
+
+	@Test
+	void testVariableExpansionComplex01() {
+		VariableStore vs = new VariableStore(FormatterMode.NONE);
+		
+		vs.add("@Q  = kʷʰ kʷ gʷ");
+		vs.add("@K  = kʰ  k  g");
+		vs.add("@KY = cʰ  c  ɟ");
+		vs.add("@P  = pʰ  p  b");
+		vs.add("@T  = tʰ  t  d");
+		vs.add("[PLOSIVE] = @P @T @KY @K @Q");
+
+		String expected = String.join("\n",
+				"@Q = kʷʰ kʷ gʷ",
+				"@K = kʰ k g",
+				"@KY = cʰ c ɟ",
+				"@P = pʰ p b",
+				"@T = tʰ t d",
+				"[PLOSIVE] = pʰ p b tʰ t d cʰ c ɟ kʰ k g kʷʰ kʷ gʷ"
+		);
+		Assertions.assertEquals(expected, vs.toString());
+	}
 }

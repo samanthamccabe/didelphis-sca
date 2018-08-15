@@ -14,6 +14,7 @@
 
 package org.didelphis.soundchange;
 
+import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
@@ -144,7 +145,7 @@ public class ConditionModelTest {
 	}
 
 	private static void test(Condition<Integer> condition, String target) {
-		assertTrue(condition.isMatch(FACTORY.toSequence(target), 0));
+		assertTrue(condition.isMatch(FACTORY.toSequence(target), 0), condition + " vs. " + target);
 	}
 
 	private static void fail(Condition<Integer> condition, String target) {
@@ -154,7 +155,10 @@ public class ConditionModelTest {
 	private static SequenceFactory<Integer> loadModel() {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
 		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
-				IntegerFeature.INSTANCE);
+				IntegerFeature.INSTANCE,
+				ClassPathFileHandler.INSTANCE,
+				"AT_hybrid.model"
+		);
 		return new SequenceFactory<>(loader.getFeatureMapping(), mode);
 	}
 }
