@@ -25,9 +25,14 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.Condition;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.soundchange.parser.ParserMemory;
-import org.didelphis.utilities.Exceptions;
+import org.didelphis.utilities.Templates;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -118,13 +123,10 @@ public class BaseRule<T> implements Rule<T> {
 				// together, or which are part of conditioning environments.
 				if (testIndex >= 0 && conditionsMatch(sequence, startIndex, testIndex)) {
 					// Now at this point, if everything worked, we can
-					Sequence<T> removed;
-					if (startIndex < testIndex) {
-						removed = sequence.remove(startIndex, testIndex);
-					} else {
-						removed = new BasicSequence<>(model);
-					}
-					
+					Sequence<T> removed = (startIndex < testIndex)
+							? sequence.remove(startIndex, testIndex)
+							: new BasicSequence<>(model);
+
 					Sequence<T> replacement = getReplacement(removed, target);
 					if (!replacement.isEmpty()) {
 						sequence.insert(replacement, startIndex);
@@ -223,21 +225,23 @@ public class BaseRule<T> implements Rule<T> {
 		if (ruleText.contains("/")) {
 			String[] array = ruleText.split("/");
 			if (array.length <= 1) {
-				throw ParseException.builder()
+				String message = Templates.create()
 						.add("Condition was empty.")
 						.data(ruleText)
 						.build();
+				throw new ParseException(message);
 			} else {
 				transformString = array[0].trim();
 				String conditionString = array[1].trim();
 				try {
 					parseCondition(conditionString);
 				} catch (ParseException e) {
-					throw ParseException.builder(e)
+					String message = Templates.create()
 							.add("Error while parsing condition '{}'")
 							.with(conditionString)
 							.data(ruleText)
 							.build();
+					throw new ParseException(message, e);
 				}
 			}
 		} else {
@@ -254,10 +258,11 @@ public class BaseRule<T> implements Rule<T> {
 			// Takes the first one off, and splits on the rest
 			for (String clause : NOT.split(notMatcher.replaceFirst(""))) {
 				if (OR.matcher(clause).find()) {
-					throw ParseException.builder()
+					String message = Templates.create()
 							.add("OR not allowed following a NOT")
 							.data(conditionString)
 							.build();
+					throw new ParseException(message);
 				}
 				exceptions.add(new Condition<>(
 						clause.trim(),
@@ -289,7 +294,7 @@ public class BaseRule<T> implements Rule<T> {
 	 * Generates an appropriate sequence by filling in backreferences based on
 	 * the provided maps.
 	 *
-	 * @param source
+	 * @param source the "source" pattern, which will be replaced by the target
 	 * @param target the "target" pattern; provides a template of indexed
 	 *               variables and backreferences to be filled in
 	 *
@@ -356,10 +361,11 @@ public class BaseRule<T> implements Rule<T> {
 				Segment<T> captured = ruleMatcher.getSequence(reference).get(0);
 				sequence.add(captured);
 			} else {
-				throw Exceptions.unsupportedOperation().add(
-						"The use of feature substitution in this manner",
-						"is not supported! "
-				).build();
+				String message = Templates.create()
+						.add("The use of feature substitution in this manner", 
+								"is not supported! ")
+						.build();
+				throw new UnsupportedOperationException(message);
 			}
 		} else {
 			String variable = symbol.isEmpty()
@@ -385,14 +391,14 @@ public class BaseRule<T> implements Rule<T> {
 			conditionMatch = true;
 		}
 
-		boolean exceptionMatch = false;
+		boolean noException = true;
 		if (eI.hasNext()) {
-			while (eI.hasNext() && !exceptionMatch) {
+			while (eI.hasNext() && noException) {
 				Condition<T> exception = eI.next();
-				exceptionMatch = exception.isMatch(word, start, end);
+				noException = !exception.isMatch(word, start, end);
 			}
 		}
-		return conditionMatch && !exceptionMatch;
+		return conditionMatch && noException;
 	}
 
 	private void parseTransform(String transformation) {
@@ -400,15 +406,17 @@ public class BaseRule<T> implements Rule<T> {
 			String[] array = TRANSFORM.split(transformation);
 
 			if (array.length <= 1) {
-				throw ParseException.builder()
+				String message = Templates.create()
 						.add("Malformed transformation.")
 						.data(transformation)
 						.build();
+				throw new ParseException(message);
 			} else if (transformation.contains("$[")) {
-				throw ParseException.builder().add(
+				String message = Templates.create().add(
 						"Malformed transformation!",
 						"Indexing with $[] is not permitted!"
 				).data(transformation).build();
+				throw new ParseException(message);
 			} else {
 				String sourceString =
 						WHITESPACE.matcher(array[0]).replaceAll(" ");
@@ -422,11 +430,12 @@ public class BaseRule<T> implements Rule<T> {
 				// fill in target for cases like "a b c > d"
 				if (sourceList.contains("0") &&
 						!(sourceList.size() == 1 && targetList.size() == 1)) {
-					throw ParseException.builder().add(
+					String message = Templates.create().add(
 							"A rule may only use \"0\" in the source if ",
 							"it is the only symbol in the source ",
 							"pattern and the target size is exactly 1"
 					).data(transformation).build();
+					throw new ParseException(message);
 				}
 
 				balanceTransform(sourceList, targetList, transformation);
@@ -440,10 +449,11 @@ public class BaseRule<T> implements Rule<T> {
 				}
 			}
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Missing \">\" sign!")
 					.data(ruleText)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 
@@ -458,10 +468,11 @@ public class BaseRule<T> implements Rule<T> {
 			boolean underspecified = features.contains(null) ||
 					features instanceof SparseFeatureArray;
 			if (underspecified && source.size() <= j) {
-				throw ParseException.builder().add(
+				String message = Templates.create().add(
 						"Unmatched underspecified segment in",
 						"target of rule."
 				).data(ruleText).build();
+				throw new ParseException(message);
 			}
 			j++;
 		}
@@ -494,10 +505,11 @@ public class BaseRule<T> implements Rule<T> {
 			@NonNull String transformation
 	) {
 		if (target.size() > source.size()) {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Target size cannot be greater than source size.")
 					.data(transformation)
 					.build();
+			throw new ParseException(message);
 		} else if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);
@@ -505,10 +517,12 @@ public class BaseRule<T> implements Rule<T> {
 					target.add(first);
 				}
 			} else {
-				throw ParseException.builder().add(
+				String message = Templates.create()
+						.add(
 						"Target and source sizes may only be uneven if",
 						"target size is exactly 1."
 				).data(transformation).build();
+				throw new ParseException(message);
 			}
 		}
 	}
