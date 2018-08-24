@@ -34,6 +34,7 @@ import org.didelphis.soundchange.command.io.ScriptExecuteCommand;
 import org.didelphis.soundchange.command.io.ScriptImportCommand;
 import org.didelphis.soundchange.command.rule.Rule;
 import org.didelphis.soundchange.command.rule.StandardRule;
+import org.didelphis.utilities.Templates;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -172,7 +173,7 @@ public class ScriptParser<T> {
 	private void parseCommand(List<String> lines, String command) {
 		FormatterMode formatterMode = memory.getFormatterMode();
 		if (startsWith(LOAD, command)) {
-			FeatureMapping<T> featureModel = loadModel(scriptPath, command, type, fileHandler, formatterMode);
+			FeatureMapping<T> featureModel = loadModel(scriptPath, command, type, fileHandler);
 			memory.setFeatureMapping(featureModel);
 		} else if (startsWith(EXECUTE, command)) {
 			executeScript(scriptPath, command);
@@ -252,10 +253,11 @@ public class ScriptParser<T> {
 			commands.add(new LexiconOpenCommand<>(memory.getLexicons(), fullPath,
 					handle, fileHandler, factory));
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Incorrectly formatted OPEN statement.")
 					.data(command)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 
@@ -279,10 +281,11 @@ public class ScriptParser<T> {
 			commands.add(new LexiconCloseCommand<>(memory.getLexicons(), fullPath,
 					handle, fileHandler, mode));
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Incorrectly formatted CLOSE statement.")
 					.data(command)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 
@@ -306,10 +309,11 @@ public class ScriptParser<T> {
 			commands.add(new LexiconWriteCommand<>(memory.getLexicons(), fullPath,
 					handle, fileHandler, mode));
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Incorrectly formatted WRITE statement.")
 					.data(command)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 
@@ -356,8 +360,7 @@ public class ScriptParser<T> {
 	}
 
 	private static <T> FeatureMapping<T> loadModel(String filePath,
-			CharSequence command, FeatureType<T> type, FileHandler handler,
-			FormatterMode mode) {
+			CharSequence command, FeatureType<T> type, FileHandler handler) {
 		String input = LOAD_PATTERN.matcher(command).replaceAll("");
 		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
 		String fullPath = getPath(filePath, path);
@@ -380,11 +383,12 @@ public class ScriptParser<T> {
 		try {
 			return FormatterMode.valueOf(mode.toUpperCase());
 		} catch (IllegalArgumentException e) {
-			throw ParseException.builder(e)
+			String message = Templates.create()
 					.add("Unsupported formatter mode {}")
 					.with(mode)
 					.data(command)
 					.build();
+			throw new ParseException(message, e);
 		}
 	}
 

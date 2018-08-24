@@ -17,6 +17,7 @@ package org.didelphis.soundchange;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.parsing.Segmenter;
+import org.didelphis.utilities.Templates;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,10 +105,11 @@ public class VariableStore {
 			}
 			variables.put(key, expanded);
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Variable definition can only contain one = sign.")
 					.data(command)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 

@@ -31,6 +31,7 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.structures.Suppliers;
 import org.didelphis.structures.maps.GeneralMultiMap;
 import org.didelphis.structures.maps.interfaces.MultiMap;
+import org.didelphis.utilities.Templates;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -116,16 +117,18 @@ public class Condition<T> {
 				preCondition = EmptyStateMachine.getInstance();
 				postCondition = EmptyStateMachine.getInstance();
 			} else {
-				throw ParseException.builder()
+				String message = Templates.create()
 						.add("Malformed Condition, multiple _ characters")
 						.data(condition)
 						.build();
+				throw new ParseException(message);
 			}
 		} else {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Malformed Condition, no _ character")
 					.data(condition)
 					.build();
+			throw new ParseException(message);
 		}
 	}
 

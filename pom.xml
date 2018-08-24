@@ -29,25 +29,59 @@
     
     <name>Didelphis Sound Change Applier</name>
     
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.didelphis.soundchange.MainCommandLine</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-            </plugin>
-            
-        </plugins>
-    </build>
-
+    <profiles>
+        <profile>
+            <id>assembly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>
+                                        org.didelphis.soundchange.MainCommandLine
+                                    </mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>
+                                    jar-with-dependencies
+                                </descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>transpile</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>de.mirkosertic.bytecoder</groupId>
+                        <artifactId>bytecoder-mavenplugin</artifactId>
+                        <version>2018-05-10-SNAPSHOT</version>
+                        <configuration>
+                            <mainClass>
+                                org.didelphis.soundchange.MainCommandLine
+                            </mainClass>
+                            <backend>js</backend>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
     <properties>    
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <didelphis-common.version>0.3.0-SNAPSHOT</didelphis-common.version>
