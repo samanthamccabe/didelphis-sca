@@ -35,7 +35,7 @@ public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 		String path = getPath();
 		FileHandler handler = getHandler();
 
-		CharSequence data = handler.read(path);
+		String data = handler.read(path);
 		SoundChangeScript<T> script =
 				new StandardScript<>(path, type, data, handler, logger);
 		script.process();

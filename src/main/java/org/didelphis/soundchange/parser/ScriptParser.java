@@ -20,6 +20,8 @@ package org.didelphis.soundchange.parser;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.didelphis.io.FileHandler;
+import org.didelphis.language.automata.Automaton;
+import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -32,17 +34,17 @@ import org.didelphis.soundchange.command.io.LexiconOpenCommand;
 import org.didelphis.soundchange.command.io.LexiconWriteCommand;
 import org.didelphis.soundchange.command.io.ScriptExecuteCommand;
 import org.didelphis.soundchange.command.io.ScriptImportCommand;
-import org.didelphis.soundchange.command.rule.Rule;
 import org.didelphis.soundchange.command.rule.StandardRule;
+import org.didelphis.utilities.Splitter;
 import org.didelphis.utilities.Templates;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static org.didelphis.soundchange.parser.ParserTerms.*;
 
 /**
  * @author Samantha Fiona McCabe
@@ -50,71 +52,10 @@ import java.util.regex.Pattern;
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScriptParser<T> {
-
-	static final String FILEHANDLE = "([A-Z0-9_]+)";
-	static final String FILEPATH = "[\"\']([^\"\']+)[\"\']";
-	static final String VAR_ELEMENT = "([^\\s/_>=<\\-:;,\\.\\$#!\\*\\+\\?\\{\\}\\(\\)\\|\\\\]|\\[[^\\]]+\\])+";
-
-	static final String AS = "\\s+(as\\s)?";
-	static final String S = "\\s+";
-
-	static final Pattern MODE = compile("MODE");
-	static final Pattern EXECUTE = compile("EXECUTE");
-	static final Pattern IMPORT = compile("IMPORT");
-	static final Pattern OPEN = compile("OPEN");
-	static final Pattern WRITE = compile("WRITE");
-	static final Pattern CLOSE = compile("CLOSE");
-	static final Pattern BREAK = compile("BREAK");
-	static final Pattern LOAD = compile("LOAD");
-	static final Pattern RESERVE = compile("RESERVE");
-	static final Pattern COMPOUND = compile("COMPOUND");
-	static final Pattern END = compile("END");
-
-	static final Pattern COMMENT_PATTERN = compile("%.*");
-	static final Pattern NEWLINE_PATTERN = compile("(\\r?\\n|\\r)");
-	static final Pattern RESERVE_PATTERN = compile(RESERVE, S);
-	static final Pattern WHITESPACE_PATTERN = compile(S);
-
-	static final Pattern CLOSE_PATTERN = compile(
-			CLOSE,
-			S,
-			FILEHANDLE,
-			AS,
-			FILEPATH
-	);
-	static final Pattern WRITE_PATTERN = compile(
-			WRITE,
-			S,
-			FILEHANDLE,
-			AS,
-			FILEPATH
-	);
-	static final Pattern OPEN_PATTERN = compile(
-			OPEN,
-			S,
-			FILEPATH,
-			AS,
-			FILEHANDLE
-	);
-	static final Pattern MODE_PATTERN = compile(MODE, S);
-	static final Pattern EXECUTE_PATTERN = compile(EXECUTE, S);
-	static final Pattern IMPORT_PATTERN = compile(IMPORT, S);
-	static final Pattern LOAD_PATTERN = compile(LOAD, S);
-	static final Pattern QUOTES_PATTERN = compile("\"|\'");
-
-	static final Pattern RULE_PATTERN = compile("(\\[[^\\]]+\\]|[^>])+\\s+>");
-	static final Pattern VAR_NEXT_LINE = compile(
-			"(",
-			VAR_ELEMENT,
-			"\\s+)*",
-			VAR_ELEMENT
-	);
-	static final Pattern RULE_CONTINUATION = compile("\\s*(/|or|not)");
-	static final Pattern PATH_PATTERN = compile("[\\\\/][^/\\\\]*$");
-
+	
 	final String scriptPath;
 	final FeatureType<T> type;
-	final CharSequence scriptData;
+	final String scriptData;
 	final FileHandler fileHandler;
 	final ErrorLogger logger;
 
@@ -124,14 +65,14 @@ public class ScriptParser<T> {
 	int lineNumber;
 
 	public ScriptParser(String scriptPath, FeatureType<T> type,
-			CharSequence scriptData, FileHandler fileHandler,
+			String scriptData, FileHandler fileHandler,
 			ErrorLogger logger) {
 		this(scriptPath, type, scriptData, fileHandler, logger,
 				new ParserMemory<>(type));
 	}
 
 	private ScriptParser(String scriptPath, FeatureType<T> type,
-			CharSequence scriptData, FileHandler fileHandler,
+			String scriptData, FileHandler fileHandler,
 			ErrorLogger logger, ParserMemory<T> memory) {
 
 		this.scriptPath = scriptPath;
@@ -146,19 +87,21 @@ public class ScriptParser<T> {
 
 	@Override
 	public String toString() {
-		return "ScriptParser{" + "scriptPath='" + scriptPath + '\'' + '}';
+		return "ScriptParser{scriptPath='" + scriptPath + "'}";
 	}
 
+	/**
+	 * @throws ParseException if any errors are encountered during processing
+	 */
 	public void parse() {
 		if (!commands.isEmpty()) {
 			return;
 		} // Cutoff
 
-		List<String> lines = getStrings(scriptData);
+		List<String> lines = Splitter.lines(scriptData);
 		for (; lineNumber < lines.size(); lineNumber++) {
 			String string = lines.get(lineNumber);
-			String command =
-					COMMENT_PATTERN.matcher(string).replaceAll("").trim();
+			String command = COMMENT.replace(string, "").trim();
 			if (!command.isEmpty()) {
 				int errorLine = lineNumber + 1;
 				try {
@@ -168,58 +111,16 @@ public class ScriptParser<T> {
 				}
 			}
 		}
-	}
 
-	private void parseCommand(List<String> lines, String command) {
-		FormatterMode formatterMode = memory.getFormatterMode();
-		if (startsWith(LOAD, command)) {
-			FeatureMapping<T> featureModel = loadModel(scriptPath, command, type, fileHandler);
-			memory.setFeatureMapping(featureModel);
-		} else if (startsWith(EXECUTE, command)) {
-			executeScript(scriptPath, command);
-		} else if (startsWith(IMPORT, command)) {
-			importScript(scriptPath, command);
-		} else if (startsWith(OPEN, command)) {
-			openLexicon(scriptPath, command, memory.factorySnapshot());
-		} else if (startsWith(WRITE, command)) {
-			writeLexicon(scriptPath, command, formatterMode);
-		} else if (startsWith(CLOSE, command)) {
-			closeLexicon(scriptPath, command, formatterMode);
-		} else if (command.contains("=")) {
-			String sb = command;
-			String next = nextLine(lines);
-			while ((next != null) && VAR_NEXT_LINE.matcher(next).matches() &&
-					!matchesOr(next, BREAK, COMPOUND, MODE)) {
-				sb += '\n' + next;
-				lineNumber++;
-				next = nextLine(lines);
+		Collection<ErrorLogger.Error> errors = logger.getErrors();
+		if (!errors.isEmpty()) {
+			Templates.Builder builder = Templates.create();
+			builder.add("Script compiled with errors:");
+			for (ErrorLogger.Error error : errors) {
+				builder.add(error.getMessage());
 			}
-			memory.getVariables().add(sb);
-		} else if (startsWith(RULE_PATTERN, command)) {
-			String sb = command;
-			String next = nextLine(lines);
-			while ((next != null) && startsWith(RULE_CONTINUATION, next)) {
-				sb += '\n' + next;
-				lineNumber++;
-				next = nextLine(lines);
-			}
-			ParserMemory<T> parserMemory = new ParserMemory<>(memory);
-			Rule<T> rule = new StandardRule<>(sb, parserMemory);
-			commands.add(rule);
-		} else if (startsWith(MODE, command)) {
-			memory.setFormatterMode(setNormalizer(command));
-		} else if (startsWith(RESERVE, command)) {
-			String reserve = RESERVE_PATTERN.matcher(command).replaceAll("");
-			Collections.addAll(memory.getReserved(), WHITESPACE_PATTERN.split(reserve));
-		} else if (startsWith(BREAK, command)) {
-			lineNumber = Integer.MAX_VALUE;
-		} else {
-			logger.add(scriptPath, lineNumber, command, "Unrecognized Command");
+			throw new ParseException(builder.build());
 		}
-	}
-
-	private static boolean startsWith(Pattern pattern, String string) {
-		return pattern.matcher(string).lookingAt();
 	}
 
 	public Queue<Runnable> getCommands() {
@@ -230,9 +131,60 @@ public class ScriptParser<T> {
 		return memory;
 	}
 
+	private void parseCommand(List<String> lines, String command) {
+		FormatterMode formatterMode = memory.getFormatterMode();
+		if (LOAD.matches(command)) {
+			FeatureMapping<T> featureModel = loadModel(scriptPath, command, type, fileHandler, formatterMode);
+			memory.setFeatureMapping(featureModel);
+		} else if (EXECUTE.matches(command)) {
+			executeScript(scriptPath, command);
+		} else if (IMPORT.matches(command)) {
+			importScript(scriptPath, command);
+		} else if (OPEN.matches(command)) {
+			openLexicon(scriptPath, command, memory.factorySnapshot());
+		} else if (WRITE.matches(command)) {
+			writeLexicon(scriptPath, command, formatterMode);
+		} else if (CLOSE.matches(command)) {
+			closeLexicon(scriptPath, command, formatterMode);
+		} else if (command.contains("=")) {
+			StringBuilder sb = new StringBuilder(command);
+			String next = nextLine(lines);
+			while ((next != null) && VAR_NEXT_LINE.matches(next) &&
+					!matchesOr(next, BREAK, COMPOUND, MODE)) {
+				sb.append('\n');
+				sb.append(next);
+				lineNumber++;
+				next = nextLine(lines);
+			}
+			memory.getVariables().add(sb.toString());
+		} else if (RULE.matches(command)) {
+			StringBuilder sb = new StringBuilder(command);
+			String next = nextLine(lines);
+			while ((next != null) && CONTINUATION.matches(next)) {
+				sb.append('\n');
+				sb.append(next);
+				lineNumber++;
+				next = nextLine(lines);
+			}
+			ParserMemory<T> parserMemory = new ParserMemory<>(memory);
+			commands.add(new StandardRule<>(sb.toString(), parserMemory));
+		} else if (MODE.matches(command)) {
+			memory.setFormatterMode(setNormalizer(command));
+		} else if (RESERVE.matches(command)) {
+			String reserve = RESERVE.replace(command, "");
+			List<String> list = Splitter.whitespace(reserve, Collections.emptyMap());
+			memory.getReserved().addAll(list);
+		} else if (BREAK.matches(command)) {
+			lineNumber = Integer.MAX_VALUE;
+		} else {
+			logger.add(scriptPath, lineNumber, command, "Unrecognized Command");
+		}
+	}
+
 	private String nextLine(List<String> lines) {
-		return (lineNumber + 1) < lines.size() ? lines.get(lineNumber + 1)
-				.trim() : null;
+		return (lineNumber + 1) < lines.size() 
+				? lines.get(lineNumber + 1).trim() 
+				: null;
 	}
 
 	/**
@@ -245,8 +197,8 @@ public class ScriptParser<T> {
 	 */
 	private void openLexicon(String filePath, String command,
 			SequenceFactory<T> factory) {
-		Matcher matcher = OPEN_PATTERN.matcher(command);
-		if (matcher.lookingAt()) {
+		Match<String> matcher = OPEN.match(command);
+		if (matcher.matches()) {
 			String path = matcher.group(1);
 			String handle = matcher.group(3);
 			String fullPath = getPath(filePath, path);
@@ -273,8 +225,8 @@ public class ScriptParser<T> {
 	 */
 	private void closeLexicon(String filePath, String command,
 			FormatterMode mode) {
-		Matcher matcher = CLOSE_PATTERN.matcher(command);
-		if (matcher.lookingAt()) {
+		Match<String> matcher = CLOSE.match(command);
+		if (matcher.matches()) {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
@@ -301,8 +253,8 @@ public class ScriptParser<T> {
 	 */
 	private void writeLexicon(String filePath, String command,
 			FormatterMode mode) {
-		Matcher matcher = WRITE_PATTERN.matcher(command);
-		if (matcher.lookingAt()) {
+		Match<String> matcher = WRITE.match(command);
+		if (matcher.matches()) {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
@@ -325,44 +277,35 @@ public class ScriptParser<T> {
 	 * @param filePath path of the parent script
 	 * @param command  the whole command starting with 'IMPORT'
 	 */
-	private void importScript(String filePath, CharSequence command) {
-		String input = IMPORT_PATTERN.matcher(command).replaceAll("");
-		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
-		CharSequence data = fileHandler.read(path);
+	private void importScript(String filePath, String command) {
+		String input = IMPORT.replace(command,"");
+		String path = QUOTES.replace(input,"");
+		String data = fileHandler.read(path);
 		String fullPath = getPath(filePath, path);
-		ScriptParser<T> scriptParser =
-				new ScriptParser<>(fullPath, type, data, fileHandler, logger,
-						memory);
+		ScriptParser<T> scriptParser = new ScriptParser<>(fullPath, type, data, fileHandler, logger, memory);
 		scriptParser.parse();
-		commands.add(new ScriptImportCommand(filePath, fileHandler, logger,
-				scriptParser.getCommands()));
+		commands.add(new ScriptImportCommand(filePath, fileHandler, logger, scriptParser.getCommands()));
 	}
 
 	/**
-	 * EXECUTE other rule files, which just does what that rule scriptPath does
-	 * in a separate process;
+	 * Executes the script in a separate process and memory structure from the
+	 * current one.
 	 *
 	 * @param filePath path of the parent script
 	 * @param command  the whole command starting with 'EXECUTE'
 	 */
-	private void executeScript(String filePath, CharSequence command) {
-		String input = EXECUTE_PATTERN.matcher(command).replaceAll("");
-		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
+	private void executeScript(String filePath, String command) {
+		String input = EXECUTE.replace(command,"");
+		String path = QUOTES.replace(input,"");
 		String fullPath = getPath(filePath, path);
-		commands.add(new ScriptExecuteCommand<>(fullPath, type, fileHandler,
-				logger));
-	}
-
-	private static List<String> getStrings(CharSequence scriptData) {
-		List<String> lines = new ArrayList<>();
-		Collections.addAll(lines, NEWLINE_PATTERN.split(scriptData));
-		return lines;
+		commands.add(new ScriptExecuteCommand<>(fullPath, type, fileHandler, logger));
 	}
 
 	private static <T> FeatureMapping<T> loadModel(String filePath,
-			CharSequence command, FeatureType<T> type, FileHandler handler) {
-		String input = LOAD_PATTERN.matcher(command).replaceAll("");
-		String path = QUOTES_PATTERN.matcher(input).replaceAll("");
+			String command, FeatureType<T> type, FileHandler handler,
+			FormatterMode mode) {
+		String input = LOAD.replace(command,"");
+		String path = QUOTES.replace(input,"");
 		String fullPath = getPath(filePath, path);
 
 		FeatureModelLoader<T> loader = new FeatureModelLoader<>(
@@ -374,12 +317,13 @@ public class ScriptParser<T> {
 	}
 
 	private static String getPath(String filePath, String path) {
-		return filePath.contains("/") || filePath.contains("\\") ?
-				PATH_PATTERN.matcher(filePath).replaceAll("/") + path : path;
+		return filePath.contains("/") || filePath.contains("\\")
+				? PATH.replace(filePath,"/") + path
+				: path;
 	}
 
-	private static FormatterMode setNormalizer(CharSequence command) {
-		String mode = MODE_PATTERN.matcher(command).replaceAll("");
+	private static FormatterMode setNormalizer(String command) {
+		String mode = MODE.replace(command,"");
 		try {
 			return FormatterMode.valueOf(mode.toUpperCase());
 		} catch (IllegalArgumentException e) {
@@ -391,22 +335,11 @@ public class ScriptParser<T> {
 			throw new ParseException(message, e);
 		}
 	}
-
-	private static Pattern compile(String start, String... regex) {
-		String sb = start;
-		for (String p : regex) {
-			sb += p;
-		}
-		return Pattern.compile(sb, Pattern.CASE_INSENSITIVE);
-	}
-
-	private static Pattern compile(Pattern pattern, String... regex) {
-		return compile(pattern.pattern(), regex);
-	}
-
-	private static boolean matchesOr(CharSequence string, Pattern... patterns) {
-		for (Pattern pattern : patterns) {
-			boolean matches = pattern.matcher(string).lookingAt();
+	
+	@SafeVarargs
+	private static boolean matchesOr(String string, Automaton<String>... patterns) {
+		for (Automaton<String> pattern : patterns) {
+			boolean matches = pattern.matches(string);
 			if (matches) {
 				return true;
 			}

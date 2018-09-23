@@ -32,7 +32,7 @@ public class StandardScript<T> implements SoundChangeScript<T> {
 	private final LexiconMap<T> lexicons;
 
 	public StandardScript(String filePath, FeatureType<T> type,
-			CharSequence script, FileHandler handler, ErrorLogger logger) {
+			String script, FileHandler handler, ErrorLogger logger) {
 		this.filePath = filePath;
 		this.handler = handler;
 

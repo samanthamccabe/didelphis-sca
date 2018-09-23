@@ -14,6 +14,9 @@
 
 package org.didelphis.soundchange;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import org.didelphis.language.automata.Regex;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.parsing.Segmenter;
@@ -21,13 +24,13 @@ import org.didelphis.utilities.Templates;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -37,15 +40,16 @@ import java.util.stream.Collectors;
  * @date 2013-09-23
  * @since 0.0.0
  */
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariableStore {
 
-	private static final int INITIAL_CAPACITY = 20;
+	static final int INITIAL_CAPACITY = 20;
 
-	private static final Pattern EQUALS_PATTERN = Pattern.compile("\\s*=\\s*");
-	private static final Pattern DELIMITER_PATTERN = Pattern.compile("\\s+");
+	static final Regex EQUALS_PATTERN    = new Regex("\\s*=\\s*");
+	static final Regex DELIMITER_PATTERN = new Regex("\\s+");
 
-	private final Map<String, List<String>> variables;
-	private Segmenter segmenter;
+	final Map<String, List<String>> variables;
+	Segmenter segmenter;
 
 	public VariableStore(Segmenter segmenter) {
 		this.segmenter = segmenter;
@@ -93,11 +97,11 @@ public class VariableStore {
 	}
 
 	public void add(String command) {
-		String[] parts = EQUALS_PATTERN.split(command.trim());
+		List<String> parts = EQUALS_PATTERN.split(command.trim());
 
-		if (parts.length == 2) {
-			String key = parts[0];
-			String[] elements = DELIMITER_PATTERN.split(parts[1]);
+		if (parts.size() == 2) {
+			String key = parts.get(0);
+			List<String> elements = DELIMITER_PATTERN.split(parts.get(1));
 
 			List<String> expanded = new ArrayList<>();
 			for (String value : elements) {
@@ -129,7 +133,8 @@ public class VariableStore {
 		List<List<String>> list = new ArrayList<>();
 		List<List<String>> swap = new ArrayList<>();
 
-		list.add(segmenter.split(element, getKeys()));
+		// TODO: unclear if this should be an empty map ************************
+		list.add(segmenter.split(element, getKeys(), Collections.emptyMap()));
 
 		boolean modified = true;
 		while (modified) {
@@ -157,11 +162,11 @@ public class VariableStore {
 
 		return list.stream()
 				.map(strings -> {
-					String sb = "";
+					StringBuilder sb = new StringBuilder();
 					for (String string: strings) {
-						sb += (string);
+						sb.append(string);
 					}
-					return sb;
+					return sb.toString();
 				})
 				.collect(Collectors.toList());
 	}
