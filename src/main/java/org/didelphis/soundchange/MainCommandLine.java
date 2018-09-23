@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
 import org.didelphis.io.DiskFileHandler;
+import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.utilities.Logger;
@@ -40,7 +41,7 @@ public final class MainCommandLine {
 			for (String arg : args) {
 				double startTime = System.nanoTime();
 
-				DiskFileHandler handler = new DiskFileHandler("UTF-8");
+				FileHandler handler = new DiskFileHandler("UTF-8");
 
 				String read = handler.read(arg);
 
