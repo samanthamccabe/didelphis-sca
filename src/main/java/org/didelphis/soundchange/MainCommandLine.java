@@ -42,10 +42,10 @@ public final class MainCommandLine {
 
 				DiskFileHandler handler = new DiskFileHandler("UTF-8");
 
-				CharSequence read = handler.read(arg);
+				String read = handler.read(arg);
 
 				if (read == null) {
-					System.out.println("Unable to load file " + arg);
+					LOG.error("Unable to load file {}", arg);
 					return;
 				}
 				

@@ -25,9 +25,14 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.Condition;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.soundchange.parser.ParserMemory;
-import org.didelphis.utilities.Exceptions;
+import org.didelphis.utilities.Templates;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -223,21 +228,23 @@ public class BaseRule<T> implements Rule<T> {
 		if (ruleText.contains("/")) {
 			String[] array = ruleText.split("/");
 			if (array.length <= 1) {
-				throw ParseException.builder()
+				String message = Templates.create()
 						.add("Condition was empty.")
 						.data(ruleText)
 						.build();
+				throw new ParseException(message);
 			} else {
 				transformString = array[0].trim();
 				String conditionString = array[1].trim();
 				try {
 					parseCondition(conditionString);
 				} catch (ParseException e) {
-					throw ParseException.builder(e)
+					String message = Templates.create()
 							.add("Error while parsing condition '{}'")
 							.with(conditionString)
 							.data(ruleText)
 							.build();
+					throw new ParseException(message, e);
 				}
 			}
 		} else {
@@ -254,10 +261,11 @@ public class BaseRule<T> implements Rule<T> {
 			// Takes the first one off, and splits on the rest
 			for (String clause : NOT.split(notMatcher.replaceFirst(""))) {
 				if (OR.matcher(clause).find()) {
-					throw ParseException.builder()
+					String message = Templates.create()
 							.add("OR not allowed following a NOT")
 							.data(conditionString)
 							.build();
+					throw new ParseException(message);
 				}
 				exceptions.add(new Condition<>(
 						clause.trim(),
@@ -356,10 +364,11 @@ public class BaseRule<T> implements Rule<T> {
 				Segment<T> captured = ruleMatcher.getSequence(reference).get(0);
 				sequence.add(captured);
 			} else {
-				throw Exceptions.unsupportedOperation().add(
+				String message = Templates.create().add(
 						"The use of feature substitution in this manner",
 						"is not supported! "
 				).build();
+				throw new UnsupportedOperationException(message);
 			}
 		} else {
 			String variable = symbol.isEmpty()
@@ -396,54 +405,59 @@ public class BaseRule<T> implements Rule<T> {
 	}
 
 	private void parseTransform(String transformation) {
-		if (transformation.contains(">")) {
-			String[] array = TRANSFORM.split(transformation);
-
-			if (array.length <= 1) {
-				throw ParseException.builder()
-						.add("Malformed transformation.")
-						.data(transformation)
-						.build();
-			} else if (transformation.contains("$[")) {
-				throw ParseException.builder().add(
-						"Malformed transformation!",
-						"Indexing with $[] is not permitted!"
-				).data(transformation).build();
-			} else {
-				String sourceString =
-						WHITESPACE.matcher(array[0]).replaceAll(" ");
-				String targetString =
-						WHITESPACE.matcher(array[1]).replaceAll(" ");
-
-				// Split strings, but not within brackets []
-				List<String> sourceList = parseToList(sourceString);
-				List<String> targetList = parseToList(targetString);
-
-				// fill in target for cases like "a b c > d"
-				if (sourceList.contains("0") &&
-						!(sourceList.size() == 1 && targetList.size() == 1)) {
-					throw ParseException.builder().add(
-							"A rule may only use \"0\" in the source if ",
-							"it is the only symbol in the source ",
-							"pattern and the target size is exactly 1"
-					).data(transformation).build();
-				}
-
-				balanceTransform(sourceList, targetList, transformation);
-
-				for (int i = 0; i < sourceList.size(); i++) {
-					// Also we need to correctly tokenize $1, $2 etc or $C1, $N2
-					Sequence<T> source = factory.toSequence(sourceList.get(i));
-					Sequence<T> target = factory.toSequence(targetList.get(i));
-					validateTransform(source, target);
-					transform.put(source, target);
-				}
-			}
-		} else {
-			throw ParseException.builder()
+		
+		if (!transformation.contains(">")) {
+			String message = Templates.create()
 					.add("Missing \">\" sign!")
 					.data(ruleText)
 					.build();
+			throw new ParseException(message);
+		}
+
+		if (transformation.contains("$[")) {
+			String message = Templates.create().add(
+					"Malformed transformation!",
+					"Indexing with $[] is not permitted!"
+			).data(transformation).build();
+			throw new ParseException(message);
+		}
+		
+		String[] array = TRANSFORM.split(transformation);
+
+		if (array.length <= 1) {
+			String message = Templates.create()
+					.add("Malformed transformation.")
+					.data(transformation)
+					.build();
+			throw new ParseException(message);
+		}
+
+		String sourceString = WHITESPACE.matcher(array[0]).replaceAll(" ");
+		String targetString = WHITESPACE.matcher(array[1]).replaceAll(" ");
+
+		// Split strings, but not within brackets []
+		List<String> sourceList = parseToList(sourceString);
+		List<String> targetList = parseToList(targetString);
+
+		// fill in target for cases like "a b c > d"
+		if (sourceList.contains("0") &&
+				!(sourceList.size() == 1 && targetList.size() == 1)) {
+			String message = Templates.create().add(
+					"A rule may only use \"0\" in the source if ",
+					"it is the only symbol in the source ",
+					"pattern and the target size is exactly 1"
+			).data(transformation).build();
+			throw new ParseException(message);
+		}
+
+		balanceTransform(sourceList, targetList, transformation);
+
+		for (int i = 0; i < sourceList.size(); i++) {
+			// Also we need to correctly tokenize $1, $2 etc or $C1, $N2
+			Sequence<T> source = factory.toSequence(sourceList.get(i));
+			Sequence<T> target = factory.toSequence(targetList.get(i));
+			validateTransform(source, target);
+			transform.put(source, target);
 		}
 	}
 
@@ -458,10 +472,11 @@ public class BaseRule<T> implements Rule<T> {
 			boolean underspecified = features.contains(null) ||
 					features instanceof SparseFeatureArray;
 			if (underspecified && source.size() <= j) {
-				throw ParseException.builder().add(
-						"Unmatched underspecified segment in",
-						"target of rule."
-				).data(ruleText).build();
+				String message = Templates.create()
+						.add("Unmatched underspecified segment in rule target.")
+						.data(ruleText)
+						.build();
+				throw new ParseException(message);
 			}
 			j++;
 		}
@@ -494,10 +509,11 @@ public class BaseRule<T> implements Rule<T> {
 			@NonNull String transformation
 	) {
 		if (target.size() > source.size()) {
-			throw ParseException.builder()
+			String message = Templates.create()
 					.add("Target size cannot be greater than source size.")
 					.data(transformation)
 					.build();
+			throw new ParseException(message);
 		} else if (target.size() < source.size()) {
 			if (target.size() == 1) {
 				String first = target.get(0);
@@ -505,10 +521,11 @@ public class BaseRule<T> implements Rule<T> {
 					target.add(first);
 				}
 			} else {
-				throw ParseException.builder().add(
+				String message = Templates.create().add(
 						"Target and source sizes may only be uneven if",
 						"target size is exactly 1."
 				).data(transformation).build();
+				throw new ParseException(message);
 			}
 		}
 	}
@@ -521,19 +538,24 @@ public class BaseRule<T> implements Rule<T> {
 	}
 
 	private static final class RuleMatcher<T> {
-		/* Tracks which variable values are matched by the "source" pattern;
-		   an entry (2 -> 4) would indicate that the source matched the 4th
-		   value of the 2nd variable. This permits proper mapping between source
-		   and target symbols when using backreferences and indexed variables */
+		
+		// Tracks which variable values are matched by the "source" pattern;
+		//   an entry (2 -> 4) would indicate that the source matched the 4th
+		//   value of the 2nd variable. This permits proper mapping between 
+		//   source and target symbols when using back-references and indexed
+		//   variables
 		private final Map<Integer, Integer> indexMap;
-		/* Track which variable in the rule was matched, by symbol */
+		
+		// Track which variable in the rule was matched, by symbol 
 		private final Map<Integer, String> variableMap;
-		/* The actual sequence matched in the input  */
+		
+		// The actual sequence matched in the input  
 		private final Map<Integer, Sequence<T>> sequenceMap;
-		/* Tracks the order of variables in the "source"
-		   pattern; i.e. the 2nd variable in the source pattern is referenced
-		   via {@code $2}. Unlike standard regular expressions, all variables
-		   are tracked, rather than tracking explicit groups */
+		
+		// Tracks the order of variables in the "source"
+		//   pattern; i.e. the 2nd variable in the source pattern is referenced
+		//   via {@code $2}. Unlike standard regular expressions, all variables
+		//   are tracked, rather than tracking explicit groups 
 		private int referenceIndex;
 
 		private RuleMatcher() {

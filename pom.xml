@@ -29,6 +29,33 @@
     
     <name>Didelphis Sound Change Applier</name>
     
+    <profiles>
+        <profile>
+            <id>transpile</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>de.mirkosertic.bytecoder</groupId>
+                        <artifactId>bytecoder-mavenplugin</artifactId>
+                        <version>2018-05-10-SNAPSHOT</version>
+                        <configuration>
+                            <mainClass>org.didelphis.soundchange.MainCommandLine</mainClass>
+                            <backend>js</backend>
+                            <debugOutput>true</debugOutput>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
     <build>
         <plugins>
             <plugin>

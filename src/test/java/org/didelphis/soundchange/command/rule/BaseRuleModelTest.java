@@ -17,16 +17,13 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.utilities.Logger;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /**
  * Created with IntelliJ IDEA. @author Samantha Fiona McCabe
@@ -53,7 +50,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testFeatureTransform01() {
-		BaseRule<Integer> rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"[-con, +son, -hgh, +frn, -atr] > [+hgh, +atr]",
 				FACTORY
 		);
@@ -66,13 +63,13 @@ class BaseRuleModelTest {
 
 	@Test
 	void testFeatureTransform02() {
-		BaseRule<Integer> rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"[+con, -son, -cnt, -rel, -voice] > [+rel]",
 				FACTORY
 		);
-		testRule(rule, "t", "ts");
+		testRule(rule, "t", "t͜s");
 		testRule(rule, "p", "pɸ");
-		testRule(rule, "tʰ", "tsʰ");
+		testRule(rule, "tʰ", "t͜sʰ");
 
 		testRule(rule, "s", "s");
 		testRule(rule, "d", "d");
@@ -80,10 +77,8 @@ class BaseRuleModelTest {
 
 	@Test
 	void testFeatureTransform03() {
-		BaseRule<Integer> rule = new BaseRule<>(
-				"[+con, -son, +voice] > [-voice] / _[+con, -son, -voice]",
-				FACTORY
-		);
+		String str = "[+con, -son, +voice] > [-voice] / _[+con, -son, -voice]";
+		Rule<Integer> rule = new BaseRule<>(str, FACTORY);
 		testRule(rule, "dt", "tt");
 		testRule(rule, "bt", "pt");
 
@@ -121,7 +116,7 @@ class BaseRuleModelTest {
 				FormatterMode.INTELLIGENT
 		);
 
-		BaseRule<Integer> rule = new BaseRule<>("CN > $2$1", store, factory);
+		Rule<Integer> rule = new BaseRule<>("CN > $2$1", store, factory);
 
 		testRule(rule, "pn", "np");
 		testRule(rule, "tn", "nt");
@@ -148,7 +143,7 @@ class BaseRuleModelTest {
 				FormatterMode.INTELLIGENT
 		);
 
-		BaseRule<Integer> rule = new BaseRule<>("CVN > $3V$1", store, factory);
+		Rule<Integer> rule = new BaseRule<>("CVN > $3V$1", store, factory);
 
 		testRule(rule, "pan", "nap");
 		testRule(rule, "tin", "nit");
@@ -174,7 +169,7 @@ class BaseRuleModelTest {
 				FormatterMode.INTELLIGENT
 		);
 
-		BaseRule<Integer> rule = new BaseRule<>("CN > $2$G1", store, factory);
+		Rule<Integer> rule = new BaseRule<>("CN > $2$G1", store, factory);
 
 		testRule(rule, "pn", "nb");
 		testRule(rule, "tn", "nd");
@@ -228,7 +223,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional01() {
-		BaseRule<Integer> rule = new BaseRule<>("a > o / g_", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > o / g_", FACTORY);
 
 		testRule(rule, FACTORY, "ga", "go");
 		testRule(rule, FACTORY, "adamagara", "adamagora");
@@ -236,7 +231,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional02() {
-		BaseRule<Integer> rule = new BaseRule<>("a > e / _c", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > e / _c", FACTORY);
 		testRule(rule, FACTORY, "abacaba", "abecaba");
 		testRule(rule, FACTORY, "ababaca", "ababeca");
 		testRule(rule, FACTORY, "acababa", "ecababa");
@@ -245,7 +240,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional03() {
-		BaseRule<Integer> rule = new BaseRule<>("a > e / _c+#", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > e / _c+#", FACTORY);
 		testRule(rule, FACTORY, "abac", "abec");
 		testRule(rule, FACTORY, "abacc", "abecc");
 		testRule(rule, FACTORY, "abaccc", "abeccc");
@@ -255,7 +250,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testUnconditional04() {
-		BaseRule<Integer> rule =
+		Rule<Integer> rule =
 				new BaseRule<>("eʔe aʔa eʔa aʔe > ē ā ā ē", FACTORY);
 		testRule(rule, FACTORY, "keʔe", "kē");
 		testRule(rule, FACTORY, "kaʔa", "kā");
@@ -265,7 +260,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional05() {
-		BaseRule<Integer> rule =
+		Rule<Integer> rule =
 				new BaseRule<>("r̄h l̄h > ər əl / _a", FACTORY);
 		testRule(rule, FACTORY, "kr̄ha", "kəra");
 		testRule(rule, FACTORY, "kl̄ha", "kəla");
@@ -274,7 +269,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional06() {
-		BaseRule<Integer> rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"pʰ tʰ kʰ cʰ > b d g ɟ / _{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ cʰ}",
 				FACTORY
 		);
@@ -288,7 +283,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional07() {
-		BaseRule<Integer> rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"pʰ tʰ kʰ kʲʰ > b d g ɟ / _{a e o}{pʰ tʰ kʰ kʲʰ}",
 				FACTORY
 		);
@@ -299,7 +294,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testConditional08() {
-		BaseRule<Integer> rule = new BaseRule<>("d > t / _#", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("d > t / _#", FACTORY);
 
 		testRule(rule, FACTORY, "abad", "abat");
 		testRule(rule, FACTORY, "abada", "abada");
@@ -307,7 +302,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testInsertion01() {
-		BaseRule<Integer> rule = new BaseRule<>("q > qn", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("q > qn", FACTORY);
 
 		testRule(rule, FACTORY, "aqa", "aqna");
 	}
@@ -355,7 +350,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testUnconditional03() {
-		BaseRule<Integer> rule = new BaseRule<>("ox > l", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("ox > l", FACTORY);
 
 		testRule(rule, FACTORY, "oxoxoxox", "llll");
 		testRule(rule, FACTORY, "moxmoxmoxmoxmox", "mlmlmlmlml");
@@ -422,7 +417,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testCompound01() {
-		BaseRule<Integer> rule = new BaseRule<>("a > b / x_ OR _y", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > b / x_ OR _y", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "aya", "bya");
@@ -432,7 +427,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testCompound02() {
-		BaseRule<Integer> rule = new BaseRule<>("a > b / x_ NOT _y", FACTORY);
+		Rule<Integer> rule = new BaseRule<>("a > b / x_ NOT _y", FACTORY);
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "axay", "axay");
@@ -449,7 +444,7 @@ class BaseRuleModelTest {
 				FormatterMode.INTELLIGENT
 		);
 
-		BaseRule<Integer> rule =
+		Rule<Integer> rule =
 				new BaseRule<>("a > b / C_ NOT x_", store, factory);
 
 		testRule(rule, factory, "axa", "axa");
@@ -459,7 +454,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testAliases01() {
-		BaseRule<Integer> rule = new BaseRule<>(
+		Rule<Integer> rule = new BaseRule<>(
 				"[alveolar, -continuant] > [retroflex] / r_",
 				new VariableStore(),
 				FACTORY
@@ -473,7 +468,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testAliases02() {
-		BaseRule<Integer> rule =
+		Rule<Integer> rule =
 				new BaseRule<>("[alveolar]y > [palatal]", FACTORY);
 
 		testRule(rule, FACTORY, "akya", "akya");
@@ -484,7 +479,7 @@ class BaseRuleModelTest {
 
 	@Test
 	void testAliases03() {
-		BaseRule<Integer> rule =
+		Rule<Integer> rule =
 				new BaseRule<>("[alveolar] > [palatal]", FACTORY);
 
 		testRule(rule, FACTORY, "aka", "aka");
@@ -501,23 +496,10 @@ class BaseRuleModelTest {
 			SequenceFactory<T> factory,
 			String seq,
 			String exp) {
-
-		Executable executable = () -> {
-			Sequence<T> sequence = factory.toSequence(seq);
-			Sequence<T> expected = factory.toSequence(exp);
-			Sequence<T> received = rule.apply(sequence);
-			assertEquals(expected, received);
-		};
-		
-		if (TIMEOUT) {
-			assertTimeoutPreemptively(Duration.ofSeconds(1), executable);
-		} else {
-			try {
-				executable.execute();
-			} catch (Throwable throwable) {
-				LOG.error("Unexpected failure encountered: {}", throwable);
-			}
-		}
+		Sequence<T> sequence = factory.toSequence(seq);
+		Sequence<T> expected = factory.toSequence(exp);
+		Sequence<T> received = rule.apply(sequence);
+		assertEquals(expected, received);
 	}
 
 	private static FeatureMapping<Integer> loadModel() {
