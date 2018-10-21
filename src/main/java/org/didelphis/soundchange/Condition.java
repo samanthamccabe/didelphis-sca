@@ -20,9 +20,7 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import org.didelphis.language.automata.expressions.Expression;
 import org.didelphis.language.automata.matching.Match;
-import org.didelphis.language.automata.matching.SequenceMatcher;
 import org.didelphis.language.automata.parsing.SequenceParser;
-import org.didelphis.language.automata.statemachines.EmptyStateMachine;
 import org.didelphis.language.automata.statemachines.StateMachine;
 import org.didelphis.language.parsing.ParseDirection;
 import org.didelphis.language.parsing.ParseException;
@@ -36,24 +34,21 @@ import org.didelphis.utilities.Templates;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.regex.Pattern.compile;
 import static org.didelphis.language.automata.statemachines.StandardStateMachine.create;
 
 /**
  * @author Samantha Fiona McCabe
- * @date 2013-04-28
  */
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @ToString (of = "conditionText", includeFieldNames = false)
 public class Condition<T> {
 
-	static Pattern WHITESPACE_PATTERN = compile("\\s+");
-	static Pattern OPEN_BRACE_PATTERN = compile("([\\[{(])\\s");
-	static Pattern CLOSE_BRACE_PATTERN = compile("\\s([]})])");
+//	static Regex WHITESPACE_PATTERN  = new Regex("\\s+");
+//	static Regex OPEN_BRACE_PATTERN  = new Regex("([\\[{(])\\s");
+//	static Regex CLOSE_BRACE_PATTERN = new Regex("\\s([\\]})])");
 
 	String conditionText;
 	StateMachine<Sequence<T>> preCondition;
@@ -65,7 +60,7 @@ public class Condition<T> {
 
 	public Condition(String condition, VariableStore variables,
 			SequenceFactory<T> factory) {
-		conditionText = cleanup(condition);
+		conditionText = condition;
 
 		Map<String, Collection<Sequence<T>>> map = new HashMap<>();
 		for (String key : variables.getKeys()) {
@@ -80,42 +75,31 @@ public class Condition<T> {
 				new GeneralMultiMap<>(map, Suppliers.ofList());
 
 		SequenceParser<T> parser = new SequenceParser<>(factory, multiMap);
-		SequenceMatcher<T> matcher = new SequenceMatcher<>(parser);
 
-		if (conditionText.contains("_")) {
+		if (conditionText.contains("_") || condition.trim().isEmpty()) {
 			String[] conditions = conditionText.split("_", -1);
+			Expression empty = parser.parseExpression("");
 			if (conditions.length == 1) {
 				Expression expression = parser.parseExpression(
 						conditions[0],
 						ParseDirection.BACKWARD);
-				preCondition = create(
-						"M",
-						expression,
-						parser,
-						matcher
-				);
-				postCondition = EmptyStateMachine.getInstance();
+				preCondition  = create("M", expression, parser);
+				postCondition = create("M", empty, parser);
 			} else if (conditions.length == 2) {
-				Expression expression1 = parser.parseExpression(conditions[0],
-						ParseDirection.BACKWARD);
-				Expression expression2 = parser.parseExpression(conditions[1],
-						ParseDirection.FORWARD);
+				Expression expression1 = parser.parseExpression(
+						conditions[0],
+						ParseDirection.BACKWARD
+				);
+				Expression expression2 = parser.parseExpression(
+						conditions[1],
+						ParseDirection.FORWARD
+				);
 
-				preCondition = create(
-						"X",
-						expression1,
-						parser,
-						matcher
-				);
-				postCondition = create(
-						"Y",
-						expression2,
-						parser,
-						matcher
-				);
+				preCondition  = create("X", expression1, parser);
+				postCondition = create("Y", expression2, parser);
 			} else if (conditions.length == 0) {
-				preCondition = EmptyStateMachine.getInstance();
-				postCondition = EmptyStateMachine.getInstance();
+				preCondition  = create("M", empty, parser);
+				postCondition = create("M", empty, parser);
 			} else {
 				String message = Templates.create()
 						.add("Malformed Condition, multiple _ characters")
@@ -130,12 +114,6 @@ public class Condition<T> {
 					.build();
 			throw new ParseException(message);
 		}
-	}
-
-	private static String cleanup(String string) {
-		string = WHITESPACE_PATTERN.matcher(string).replaceAll(" ");
-		string = OPEN_BRACE_PATTERN.matcher(string).replaceAll("$1");
-		return CLOSE_BRACE_PATTERN.matcher(string).replaceAll("$1");
 	}
 
 	public boolean isMatch(Sequence<T> word, int index) {

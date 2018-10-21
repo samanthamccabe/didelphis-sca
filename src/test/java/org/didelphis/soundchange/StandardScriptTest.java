@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class StandardScriptTest {
 
 	static ClassPathFileHandler CLASSPATH = ClassPathFileHandler.INSTANCE;
-	static FeatureModelLoader<Integer> EMPTY = IntegerFeature.emptyLoader();
+	static FeatureModelLoader<Integer> EMPTY = IntegerFeature.INSTANCE.emptyLoader();
 	static FeatureMapping<Integer> MAPPING = EMPTY.getFeatureMapping();
 	
 	static SequenceFactory<Integer> FACTORY_NONE 

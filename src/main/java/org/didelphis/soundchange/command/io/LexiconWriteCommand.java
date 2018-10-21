@@ -6,6 +6,8 @@
 
 package org.didelphis.soundchange.command.io;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.Lexicon;
@@ -14,13 +16,14 @@ import org.didelphis.soundchange.LexiconMap;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
+@ToString
+@EqualsAndHashCode
 public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
 
 	private final LexiconMap<T> lexicons;
@@ -57,25 +60,5 @@ public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
 		String data = sb.trim();
 		String normalized = mode.normalize(data);
 		getHandler().writeString(getPath(), normalized);
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof LexiconWriteCommand)) return false;
-		if (!super.equals(o)) return false;
-		LexiconWriteCommand<?> that = (LexiconWriteCommand<?>) o;
-		return Objects.equals(lexicons, that.lexicons) && mode == that.mode;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), lexicons, mode);
-	}
-
-	@Override
-	public String toString() {
-		return "LexiconWriteCommand{" + "lexicons=" + lexicons + ", mode=" +
-				mode + '}';
 	}
 }

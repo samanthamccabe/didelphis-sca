@@ -6,18 +6,18 @@
 
 package org.didelphis.soundchange.command.io;
 
+import lombok.EqualsAndHashCode;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.SoundChangeScript;
 import org.didelphis.soundchange.StandardScript;
 
-import java.util.Objects;
-
 /**
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
+@EqualsAndHashCode(callSuper = true)
 public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 
 	private final FeatureType<T> type;
@@ -44,19 +44,5 @@ public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 	@Override
 	public String toString() {
 		return "EXECUTE " + '\'' + getPath() + '\'';
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof ScriptExecuteCommand)) return false;
-		if (!super.equals(o)) return false;
-		ScriptExecuteCommand<?> that = (ScriptExecuteCommand<?>) o;
-		return Objects.equals(logger, that.logger);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), logger);
 	}
 }

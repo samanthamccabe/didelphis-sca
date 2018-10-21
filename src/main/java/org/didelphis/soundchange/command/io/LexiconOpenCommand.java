@@ -6,6 +6,8 @@
 
 package org.didelphis.soundchange.command.io;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -15,12 +17,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2014-10-13
  */
+@ToString
+@EqualsAndHashCode(callSuper = true)
 public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 
 	private final LexiconMap<T> lexicons;
@@ -31,21 +34,6 @@ public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 		super(path, handle, handler);
 		this.lexicons = lexicons;
 		this.factory = factory;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof LexiconOpenCommand)) return false;
-		if (!super.equals(o)) return false;
-		LexiconOpenCommand<?> that = (LexiconOpenCommand<?>) o;
-		return Objects.equals(lexicons, that.lexicons) &&
-				Objects.equals(factory, that.factory);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), lexicons, factory);
 	}
 
 	@Override
@@ -64,11 +52,5 @@ public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 
 		Lexicon<T> lexicon = Lexicon.fromRows(factory, rows);
 		lexicons.addLexicon(getHandle(), path, lexicon);
-	}
-
-	@Override
-	public String toString() {
-		return "LexiconOpenCommand{" + "lexicons=" + lexicons + ", factory=" +
-				factory + '}';
 	}
 }

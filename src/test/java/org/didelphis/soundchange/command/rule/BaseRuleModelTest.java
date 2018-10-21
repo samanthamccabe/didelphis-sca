@@ -38,9 +38,6 @@ class BaseRuleModelTest {
 	private static final FeatureMapping<Integer> MODEL = loadModel();
 	private static final SequenceFactory<Integer> FACTORY =
 			new SequenceFactory<>(MODEL, FormatterMode.INTELLIGENT);
-	
-	private static final boolean TIMEOUT = true;
-
 	@Test
 	void testFeatureTransformOutOfRange() {
 		assertThrows(ParseException.class,

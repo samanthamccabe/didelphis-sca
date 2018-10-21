@@ -117,7 +117,13 @@ public class ScriptParser<T> {
 			Templates.Builder builder = Templates.create();
 			builder.add("Script compiled with errors:");
 			for (ErrorLogger.Error error : errors) {
-				builder.add(error.getMessage());
+				builder.add("\n[{}] Line: {} --- {}\n{}");
+				builder.with(
+						error.getScript(),
+						error.getLine(),
+						error.getMessage(),
+						error.getData()
+				);
 			}
 			throw new ParseException(builder.build());
 		}
