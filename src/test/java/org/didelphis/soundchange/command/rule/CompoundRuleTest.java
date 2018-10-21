@@ -27,7 +27,7 @@ class CompoundRuleTest {
 
 	private static final SequenceFactory<Integer> FACTORY =
 			new SequenceFactory<>(
-					IntegerFeature.emptyLoader().getFeatureMapping(),
+					IntegerFeature.INSTANCE.emptyLoader().getFeatureMapping(),
 					FormatterMode.INTELLIGENT);
 
 	@Test

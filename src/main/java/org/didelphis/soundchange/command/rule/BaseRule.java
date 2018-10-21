@@ -11,6 +11,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import org.didelphis.language.automata.Regex;
+import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.FeatureArray;
@@ -34,13 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static java.util.regex.Pattern.compile;
 
 /**
  * @author Samantha Fiona McCabe
@@ -51,12 +47,11 @@ import static java.util.regex.Pattern.compile;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BaseRule<T> implements Rule<T> {
 
-	static Pattern BACKREFERENCE = compile("[$]([^$]*)(\\d+)");
-	static Pattern NOT = compile("\\s*not\\s*", CASE_INSENSITIVE);
-	static Pattern OR = compile("\\s*or\\s*", CASE_INSENSITIVE);
-
-	static Pattern WHITESPACE = compile("\\s+");
-	static Pattern TRANSFORM = compile("\\s*>\\s*");
+	static Regex BACKREF   = new Regex("\\$([^$]*)(\\d+)");
+	static Regex NOT       = new Regex("\\s*not\\s*", true);
+	static Regex OR        = new Regex("\\s*or\\s*", true);
+	static Regex SPACE     = new Regex("\\s+");
+	static Regex TRANSFORM = new Regex("\\s*>\\s*");
 
 	String ruleText;
 
@@ -255,29 +250,30 @@ public class BaseRule<T> implements Rule<T> {
 	}
 
 	private void parseCondition(String conditionString) {
-		Matcher notMatcher = NOT.matcher(conditionString);
-		if (notMatcher.lookingAt()) {
+		Match<String> notMatcher = NOT.match(conditionString);
+		if (notMatcher.matches()) {
 			// if there is no regular condition
 			// Takes the first one off, and splits on the rest
-			for (String clause : NOT.split(notMatcher.replaceFirst(""))) {
-				if (OR.matcher(clause).find()) {
+			for (String clause : NOT.split(conditionString)) {
+				Match<String> orMatch = OR.find(clause);
+				if (orMatch.matches()) {
 					String message = Templates.create()
 							.add("OR not allowed following a NOT")
 							.data(conditionString)
 							.build();
 					throw new ParseException(message);
 				}
-				exceptions.add(new Condition<>(
-						clause.trim(),
-						variables,
-						factory
-				));
+
+				String trim = clause.trim();
+				if (!trim.isEmpty()) {
+					exceptions.add(new Condition<>(trim, variables, factory));
+				}
 			}
 
-		} else if (notMatcher.find()) {
-			String[] split = NOT.split(conditionString, 2);
-			CharSequence conditionClauses = split[0];
-			CharSequence exceptionClauses = split[1];
+		} else if (NOT.find(conditionString).matches()) {
+			List<String> split = NOT.split(conditionString, 2);
+			String conditionClauses = split.get(0);
+			String exceptionClauses = split.get(1);
 
 			for (String con : OR.split(conditionClauses, -1)) {
 				conditions.add(new Condition<>(con, variables, factory));
@@ -288,6 +284,14 @@ public class BaseRule<T> implements Rule<T> {
 			}
 		} else {
 			for (String s : OR.split(conditionString, -1)) {
+				if (s.trim().isEmpty()){
+					String message = Templates.create()
+							.add("Found dangling OR: conditions to either side",
+									"cannot be blank")
+							.data(conditionString)
+							.build();
+					throw new ParseException(message);
+				}
 				conditions.add(new Condition<>(s, variables, factory));
 			}
 		}
@@ -313,7 +317,7 @@ public class BaseRule<T> implements Rule<T> {
 			Segment<T> segment = target.get(i);
 
 			String symbol = segment.getSymbol();
-			Matcher matcher = BACKREFERENCE.matcher(symbol);
+			Match<String> matcher = BACKREF.match(symbol);
 
 			if (matcher.matches()) {
 				Sequence<T> sequence = getReference(featureModel, matcher);
@@ -347,7 +351,7 @@ public class BaseRule<T> implements Rule<T> {
 
 	// Referent?
 	private Sequence<T> getReference(FeatureModel<T> model,
-			MatchResult matcher) {
+			Match<String> matcher) {
 		String symbol = matcher.group(1);
 		String digits = matcher.group(2);
 
@@ -358,7 +362,7 @@ public class BaseRule<T> implements Rule<T> {
 		if (integer == -1) {
 			// -1 means it was an underspecified feature
 			// but we need to know what was matched
-			if (symbol.isEmpty()) {
+			if (symbol == null || symbol.isEmpty()) {
 				sequence = new BasicSequence<>(model);
 				// add the captured segment
 				Segment<T> captured = ruleMatcher.getSequence(reference).get(0);
@@ -371,7 +375,7 @@ public class BaseRule<T> implements Rule<T> {
 				throw new UnsupportedOperationException(message);
 			}
 		} else {
-			String variable = symbol.isEmpty()
+			String variable = (symbol == null || symbol.isEmpty())
 					? ruleMatcher.getVariable(reference)
 					: symbol;
 			sequence = getVariableSequences(variable).get(integer);
@@ -422,9 +426,12 @@ public class BaseRule<T> implements Rule<T> {
 			throw new ParseException(message);
 		}
 		
-		String[] array = TRANSFORM.split(transformation);
+		List<String> array = TRANSFORM.split(transformation);
 
-		if (array.length <= 1) {
+		if (array.size() <= 1
+				|| array.get(0).isEmpty()
+				|| array.get(1).isEmpty()
+		) {
 			String message = Templates.create()
 					.add("Malformed transformation.")
 					.data(transformation)
@@ -432,8 +439,8 @@ public class BaseRule<T> implements Rule<T> {
 			throw new ParseException(message);
 		}
 
-		String sourceString = WHITESPACE.matcher(array[0]).replaceAll(" ");
-		String targetString = WHITESPACE.matcher(array[1]).replaceAll(" ");
+		String sourceString = SPACE.replace(array.get(0), " ");
+		String targetString = SPACE.replace(array.get(1), " ");
 
 		// Split strings, but not within brackets []
 		List<String> sourceList = parseToList(sourceString);

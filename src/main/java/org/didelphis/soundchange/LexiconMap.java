@@ -14,17 +14,20 @@
 
 package org.didelphis.soundchange;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.didelphis.language.phonetic.Lexicon;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2015-01-16
  */
+@ToString
+@EqualsAndHashCode
 public class LexiconMap<T> {
 
 	private final Map<String, String> paths;
@@ -73,24 +76,5 @@ public class LexiconMap<T> {
 	public Lexicon<T> remove(String handle) {
 		paths.remove(handle);
 		return lexicons.remove(handle);
-	}
-
-	@Override
-	public String toString() {
-		return "LexiconMap:" + lexicons;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof LexiconMap)) return false;
-		LexiconMap<?> that = (LexiconMap<?>) o;
-		return Objects.equals(paths, that.paths) &&
-				Objects.equals(lexicons, that.lexicons);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(paths, lexicons);
 	}
 }

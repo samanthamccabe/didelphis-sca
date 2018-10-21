@@ -34,10 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Created by samantha on 11/8/16.
  */
 class ScriptParserTest {
+	
 	@Test
 	void testMultilineVariable() {
-		String commands =
-				"" + "C = p  t  k \n" + "    ph th kh\n" + "    f  s  x \n";
+		String commands = "C = p t k\n" + "ph th kh\n" + "f s x\n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -51,8 +51,10 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableBracket() {
-		String commands = "" + "C = p   t   k  \n" + "    ph  th  kh \n" +
-				"    [P] [T] [K]\n";
+		String commands = 
+				"C = p t k\n" + 
+				"ph th kh\n" +
+				"[P] [T] [K]\n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -66,7 +68,7 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableOverparse() {
-		String commands = "" + "C   =  p   t   k \n" + "[W] = [X] [Y] [Z]";
+		String commands = "C = p t k\n" + "[W] = [X] [Y] [Z]";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);

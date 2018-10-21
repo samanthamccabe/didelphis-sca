@@ -6,14 +6,16 @@
 
 package org.didelphis.soundchange.command.io;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.didelphis.io.FileHandler;
-
-import java.util.Objects;
 
 /**
  * @author Samantha Fiona McCabe
  * @date 2014-10-15
  */
+@ToString
+@EqualsAndHashCode (callSuper = true)
 public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
 
 	private final String handle;
@@ -26,19 +28,5 @@ public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
 
 	public String getHandle() {
 		return handle;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof AbstractLexiconIoCommand)) return false;
-		if (!super.equals(o)) return false;
-		AbstractLexiconIoCommand that = (AbstractLexiconIoCommand) o;
-		return Objects.equals(handle, that.handle);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), handle);
 	}
 }

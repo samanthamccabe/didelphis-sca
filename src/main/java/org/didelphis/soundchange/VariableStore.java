@@ -42,9 +42,7 @@ import java.util.stream.Collectors;
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariableStore {
-
-	static final int INITIAL_CAPACITY = 20;
-
+	
 	static final Regex EQUALS_PATTERN    = new Regex("\\s*=\\s*");
 	static final Regex DELIMITER_PATTERN = new Regex("\\s+");
 
@@ -53,7 +51,7 @@ public class VariableStore {
 
 	public VariableStore(Segmenter segmenter) {
 		this.segmenter = segmenter;
-		variables = new LinkedHashMap<>(INITIAL_CAPACITY);
+		variables = new LinkedHashMap<>();
 	}
 
 	public VariableStore(VariableStore otherStore) {

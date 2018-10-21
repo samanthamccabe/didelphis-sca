@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ConditionTest {
 
 	private static final FeatureModelLoader<Integer> EMPTY =
-			IntegerFeature.emptyLoader();
+			IntegerFeature.INSTANCE.emptyLoader();
 
 	private static final SequenceFactory<Integer> FACTORY =
 			new SequenceFactory<>(EMPTY.getFeatureMapping(),

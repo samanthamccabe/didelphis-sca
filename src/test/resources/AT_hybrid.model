@@ -1,0 +1,270 @@
+%FEATURE_MODEL
+
+% Feature Model v0.7
+
+FEATURES %**********************************************************************
+consonantal	con	binary	%  0
+sonorant	son	binary	%  1
+continuant	cnt	binary	%  2
+ejective	eje	binary	%  3
+release		rel	binary	%  4
+lateral		lat	binary	%  5
+nasal		nas	binary	%  6
+labial		lab	binary	%  7
+round		rnd	binary	%  8
+coronal		cor	numeric	%  9
+dorsal		dor	binary	% 10
+front		frn	ternary	% 11
+high		hgh	ternary	% 12
+atr			atr	binary	% 13
+voice		vce	binary	% 14
+creaky		crk	ternary	% 15
+breathy		bth	binary	% 16
+distributed	dst	binary	% 17
+long		lng	binary	% 18
+upper		upr	binary	% 19
+
+ALIASES %***********************************************************************
+[+vot]    = [+breathy]
+[-vot]    = [-breathy]
+
+[high]    = [+high]
+[mid]     = [0:high]
+[low]     = [-high]
+
+[front]   = [+front]
+[central] = [0:front]
+[back]    = [-front]
+
+[noncoronal]   = [0:coronal]
+[dental]       = [1:coronal]
+[alveolar]     = [2:coronal]
+[postalveolar] = [3:coronal]
+[retroflex]    = [4:coronal, -distributed]
+[palatal]      = [4:coronal, +distributed, +front, +high]
+
+CONSTRAINTS %*******************************************************************
+% [+nas] and [+lat] cannot co-occur
+[+nasal]   > [-lateral]
+[+lateral] > [-nasal]
+
+% [-con] and [-son] cannot co-occur
+[-sonorant]    > [+consonantal]
+[-consonantal] > [+sonorant]
+
+% [continuant] only applies to [+consonantal]
+[-continuant]  > [+consonantal]
+[-consonantal] > [+continuant]
+
+% Segment can only be [+rel] if it is also [+consonantal, -continuant]
+[+release]     > [+consonantal]
+[+release]     > [-sonorant]
+
+[-consonantal] > [-release]
+[+continuant]  > [-release]
+[+sonorant]    > [-release]
+
+% Only obstruents (stops?) can be ejectives
+[+ejective] > [+consonantal, -sonorant, -continuant, -voice]
+
+[+sonorant]    > [-ejective]
+[-consonantal] > [-ejective]
+[+continuant]  > [-ejective]
+[+voice]       > [-ejective]
+
+% Distrubuted requires a closure or near closure
+[+distributed] > [+consonantal]
+[-consonantal] > [-distributed]
+
+% Obstruents default to ATR for no strong reason
+[-sonorant] > [-atr]
+[+atr] > [+sonorant]
+
+[+creaky]  > [-breathy, +voice]
+[+breathy] > [-creaky]
+
+% Coronal must be high, front
+[4:coronal, +distributed] > [+front, +high]
+
+[4:coronal, +distributed, back]    > [3:coronal]
+[4:coronal, +distributed, central] > [3:coronal]
+[4:coronal, +distributed, mid]     > [3:coronal]
+[4:coronal, +distributed, low]     > [3:coronal]
+
+%*******************************************************************************
+
+SYMBOLS
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+p̪	+	-	-	-	-	-	-	+	-	0	-	0	0	-	-	-	-	-	-	-
+b̪	+	-	-	-	-	-	-	+	-	0	-	0	0	-	+	-	-	-	-	-
+p	+	-	-	-	-	-	-	+	-	0	-	0	0	-	-	-	-	+	-	-
+b	+	-	-	-	-	-	-	+	-	0	-	0	0	-	+	-	-	+	-	-
+t	+	-	-	-	-	-	-	-	-	2	-	0	0	-	-	-	-	+	-	-
+d	+	-	-	-	-	-	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+ʈ	+	-	-	-	-	-	-	-	-	4	-	0	0	-	-	-	-	-	-	-
+ɖ	+	-	-	-	-	-	-	-	-	4	-	0	0	-	+	-	-	-	-	-
+c	+	-	-	-	-	-	-	-	-	4	-	+	+	-	-	-	-	+	-	-
+ɟ	+	-	-	-	-	-	-	-	-	4	-	+	+	-	+	-	-	+	-	-
+k	+	-	-	-	-	-	-	-	-	0	+	-	+	-	-	-	-	-	-	-
+g	+	-	-	-	-	-	-	-	-	0	+	-	+	-	+	-	-	-	-	-
+kp	+	-	-	-	-	-	-	+	-	0	+	-	+	-	-	-	-	-	-	-
+gb	+	-	-	-	-	-	-	+	-	0	+	-	+	-	+	-	-	-	-	-
+q	+	-	-	-	-	-	-	-	-	0	+	-	-	-	-	-	-	-	-	-
+ɢ	+	-	-	-	-	-	-	-	-	0	+	-	-	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+p͜f	+	-	-	-	+	-	-	+	-	0	-	0	0	-	-	-	-	-	-	-
+b͜v	+	-	-	-	+	-	-	+	-	0	-	0	0	-	+	-	-	-	-	-
+pɸ	+	-	-	-	+	-	-	+	-	0	-	0	0	-	-	-	-	+	-	-
+bβ	+	-	-	-	+	-	-	+	-	0	-	0	0	-	+	-	-	+	-	-
+tθ	+	-	-	-	+	-	-	-	-	1	-	0	0	-	-	-	-	+	-	-
+dð	+	-	-	-	+	-	-	-	-	1	-	0	0	-	+	-	-	+	-	-
+t͜s	+	-	-	-	+	-	-	-	-	2	-	0	0	-	-	-	-	+	-	-
+d͜z	+	-	-	-	+	-	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+tɬ	+	-	-	-	+	+	-	-	-	2	-	0	0	-	-	-	-	+	-	-
+dɮ	+	-	-	-	+	+	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+tʃ	+	-	-	-	+	-	-	-	-	3	-	0	0	-	-	-	-	+	-	-
+dʒ	+	-	-	-	+	-	-	-	-	3	-	0	0	-	+	-	-	+	-	-
+tɕ	+	-	-	-	+	-	-	-	-	3	-	+	+	-	-	-	-	+	-	-
+dʑ	+	-	-	-	+	-	-	-	-	3	-	+	+	-	+	-	-	+	-	-
+ʈʂ	+	-	-	-	+	-	-	-	-	4	-	0	0	-	-	-	-	-	-	-
+ɖʐ	+	-	-	-	+	-	-	-	-	4	-	0	0	-	+	-	-	-	-	-
+cç	+	-	-	-	+	-	-	-	-	4	-	+	+	-	-	-	-	+	-	-
+ɟʝ	+	-	-	-	+	-	-	-	-	4	-	0	0	-	+	-	-	+	-	-
+k͜x	+	-	-	-	+	-	-	-	-	0	+	-	+	-	-	-	-	-	-	-
+g͡ɣ	+	-	-	-	+	-	-	-	-	0	+	-	+	-	+	-	-	-	-	-
+qχ	+	-	-	-	+	-	-	-	-	0	+	-	0	-	-	-	-	-	-	-
+ɢʁ	+	-	-	-	+	-	-	-	-	0	+	-	0	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+f	+	-	+	-	-	-	-	+	-	0	-	0	0	-	-	-	-	-	-	-
+v	+	-	+	-	-	-	-	+	-	0	-	0	0	-	+	-	-	-	-	-
+ɸ	+	-	+	-	-	-	-	+	-	0	-	0	0	-	-	-	-	+	-	-
+β	+	-	+	-	-	-	-	+	-	0	-	0	0	-	+	-	-	+	-	-
+θ	+	-	+	-	-	-	-	-	-	1	-	0	0	-	-	-	-	+	-	-
+ð	+	-	+	-	-	-	-	-	-	1	-	0	0	-	+	-	-	+	-	-
+s	+	-	+	-	-	-	-	-	-	2	-	0	0	-	-	-	-	+	-	-
+z	+	-	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+ɬ	+	-	+	-	-	+	-	-	-	2	-	0	0	-	-	-	-	+	-	-
+ɮ	+	-	+	-	-	+	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+ʃ	+	-	+	-	-	-	-	-	-	3	-	0	0	-	-	-	-	+	-	-
+ʒ	+	-	+	-	-	-	-	-	-	3	-	0	0	-	+	-	-	+	-	-
+ɕ	+	-	+	-	-	-	-	-	-	3	-	+	+	-	-	-	-	+	-	-
+ʑ	+	-	+	-	-	-	-	-	-	3	-	+	+	-	+	-	-	+	-	-
+ʂ	+	-	+	-	-	-	-	-	-	4	-	0	0	-	-	-	-	-	-	-
+ʐ	+	-	+	-	-	-	-	-	-	4	-	0	0	-	+	-	-	-	-	-
+ç	+	-	+	-	-	-	-	-	-	4	-	+	+	-	-	-	-	+	-	-
+ʝ	+	-	+	-	-	-	-	-	-	4	-	0	0	-	+	-	-	+	-	-
+x	+	-	+	-	-	-	-	-	-	0	+	-	+	-	-	-	-	-	-	-
+ɣ	+	-	+	-	-	-	-	-	-	0	+	-	+	-	+	-	-	-	-	-
+χ	+	-	+	-	-	-	-	-	-	0	+	-	0	-	-	-	-	-	-	-
+ʁ	+	-	+	-	-	-	-	-	-	0	+	-	0	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+m	+	+	-	-	-	-	+	+	-	0	-	0	0	-	+	-	-	-	-	-
+ɱ	+	+	-	-	-	-	+	+	-	0	-	0	0	-	+	-	-	+	-	-
+n	+	+	-	-	-	-	+	-	-	2	-	0	0	-	+	-	-	+	-	-
+ɳ	+	+	-	-	-	-	+	-	-	4	-	0	0	-	+	-	-	-	-	-
+ɲ	+	+	-	-	-	-	+	-	-	4	-	+	+	-	+	-	-	+	-	-
+ŋ	+	+	-	-	-	-	+	-	-	0	+	-	+	-	+	-	-	-	-	-
+ŋm	+	+	-	-	-	-	+	+	-	0	+	-	+	-	+	-	-	-	-	-
+ɴ	+	+	-	-	-	-	+	-	-	0	+	-	-	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+r	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+%ɾ	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	?	-	-
+%ɹ	+	+	+	-	-	-	-	-	-	2	-	0	0	-	+	-	-	?	-	-
+%ɻ	+	+	+	-	-	-	-	-	-	4	-	0	0	-	+	-	-	?	-	-
+ɽ	+	+	+	-	-	-	-	-	-	4	-	0	0	-	+	-	-	+	-	-
+ʀ	+	+	+	-	-	-	-	-	-	0	+	-	+	-	+	-	-	-	-	-
+
+l	+	+	+	-	-	+	-	-	-	2	-	0	0	-	+	-	-	+	-	-
+ɫ	+	+	+	-	-	+	-	-	-	2	-	-	+	-	+	-	-	+	-	-
+ɭ	+	+	+	-	-	+	-	-	-	4	-	0	0	-	+	-	-	-	-	-
+%ɺ	+	+	+	-	-	+	-	-	-	4	-	0	0	-	+	-	-	?	-	-
+ʎ	+	+	+	-	-	+	-	-	-	4	-	+	+	-	+	-	-	+	-	-
+ʟ	+	+	+	-	-	+	-	-	-	0	+	-	+	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+i	-	+	+	-	-	-	-	-	-	0	-	+	+	+	+	-	-	-	-	-
+y	-	+	+	-	-	-	-	-	+	0	-	+	+	+	+	-	-	-	-	-
+ɪ	-	+	+	-	-	-	-	-	-	0	-	+	+	-	+	-	-	-	-	-
+ʏ	-	+	+	-	-	-	-	-	+	0	-	+	+	-	+	-	-	-	-	-
+
+ɯ	-	+	+	-	-	-	-	-	-	0	-	-	+	+	+	-	-	-	-	-
+u	-	+	+	-	-	-	-	-	+	0	-	-	+	+	+	-	-	-	-	-
+ɷ	-	+	+	-	-	-	-	-	-	0	-	-	+	-	+	-	-	-	-	-
+ʊ	-	+	+	-	-	-	-	-	+	0	-	-	+	-	+	-	-	-	-	-
+
+ə	-	+	+	-	-	-	-	-	-	0	-	0	0	-	+	-	-	-	-	-
+ɨ	-	+	+	-	-	-	-	-	-	0	-	0	+	-	+	-	-	-	-	-
+ʉ	-	+	+	-	-	-	-	-	+	0	-	0	+	-	+	-	-	-	-	-
+
+e	-	+	+	-	-	-	-	-	-	0	-	+	0	+	+	-	-	-	-	-
+ø	-	+	+	-	-	-	-	-	+	0	-	+	0	+	+	-	-	-	-	-
+ɛ	-	+	+	-	-	-	-	-	-	0	-	+	0	-	+	-	-	-	-	-
+œ	-	+	+	-	-	-	-	-	+	0	-	+	0	-	+	-	-	-	-	-
+
+ɤ	-	+	+	-	-	-	-	-	-	0	-	-	0	+	+	-	-	-	-	-
+o	-	+	+	-	-	-	-	-	+	0	-	-	0	+	+	-	-	-	-	-
+ʌ	-	+	+	-	-	-	-	-	-	0	-	-	0	-	+	-	-	-	-	-
+ɔ	-	+	+	-	-	-	-	-	+	0	-	-	0	-	+	-	-	-	-	-
+
+æ	-	+	+	-	-	-	-	-	-	0	-	+	-	+	+	-	-	-	-	-
+a	-	+	+	-	-	-	-	-	-	0	-	+	-	-	+	-	-	-	-	-
+ɶ	-	+	+	-	-	-	-	-	+	0	-	+	-	-	+	-	-	-	-	-
+ɐ	-	+	+	-	-	-	-	-	-	0	-	0	-	+	+	-	-	-	-	-
+ɑ	-	+	+	-	-	-	-	-	-	0	-	-	-	-	+	-	-	-	-	-
+ɒ	-	+	+	-	-	-	-	-	+	0	-	-	-	-	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+ʋ	-	+	+	-	-	-	-	+	+	0	-	0	0	+	+	-	-	-	-	-
+j	-	+	+	-	-	-	-	-	-	4	-	+	+	+	+	-	-	-	-	-
+ɥ	-	+	+	-	-	-	-	-	+	4	-	+	+	+	+	-	-	-	-	-
+ɰ	-	+	+	-	-	-	-	-	-	0	+	-	+	+	+	-	-	-	-	-
+ʍ	-	+	+	-	-	-	-	+	-	0	+	-	+	+	+	-	-	-	-	-
+w	-	+	+	-	-	-	-	+	+	0	+	-	+	+	+	-	-	-	-	-
+
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	vce	crk	brt	dst	lng	upr
+ħ	+	-	+	-	-	-	-	-	-	0	-	0	-	-	-	-	-	-	-	-
+ʕ	+	-	+	-	-	-	-	-	-	0	-	0	-	-	+	-	-	-	-	-
+
+ʔ	+	-	-	-	-	-	-	-	-	0	-	0	0	-	-	-	-	-	-	-
+h	+	-	+	-	-	-	-	-	-	0	-	0	0	-	-	-	-	-	-	-
+ɦ	+	-	+	-	-	-	-	-	-	0	-	0	0	-	+	-	-	-	-	-
+
+MODIFIERS
+%	con	son	cnt	eje	rel	lat	nas	lab	rnd	cor	dor	frn	hgt	atr	glt	crk	brt	dst	lng	upr
+◌ː																			+	
+◌̄																			+	
+◌ʲ												+	+							
+◌ʸ									+			+	+							
+◌ʷ									+				+							
+◌ʰ															-		+			
+◌ʱ															+		+			
+◌ʼ				-																
+◌ˀ				-																
+◌ʾ				-																
+◌ˁ													-	-						
+◌ʿ													-	-						
+◌̤															+		+			
+◌̰															+	+				
+◌̥															-					
+◌̘														+						
+◌̙														-						
+◌̪																		-		
+◌̺																		+		
+◌̺																		+		
+◌́																				+
+◌̂																			+	+
+◌̃							+													
+
+% Fallback diacritics for error diagnosis
+◌˙	+																			
+◌˟		+																		
+◌˃			+																	
+◌ˢ					+															
+◌ˡ						+														
+◌͚								+												
+◌͔												+								
+◌͕												-								
