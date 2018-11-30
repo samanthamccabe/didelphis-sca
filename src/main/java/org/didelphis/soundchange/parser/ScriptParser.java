@@ -38,6 +38,7 @@ import org.didelphis.soundchange.command.rule.StandardRule;
 import org.didelphis.utilities.Splitter;
 import org.didelphis.utilities.Templates;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,16 +65,30 @@ public class ScriptParser<T> {
 
 	int lineNumber;
 
-	public ScriptParser(String scriptPath, FeatureType<T> type,
-			String scriptData, FileHandler fileHandler,
-			ErrorLogger logger) {
-		this(scriptPath, type, scriptData, fileHandler, logger,
-				new ParserMemory<>(type));
+	public ScriptParser(
+			String scriptPath,
+			FeatureType<T> type,
+			String scriptData,
+			FileHandler fileHandler,
+			ErrorLogger logger
+	) {
+		this(scriptPath,
+				type,
+				scriptData,
+				fileHandler,
+				logger,
+				new ParserMemory<>(type)
+		);
 	}
 
-	private ScriptParser(String scriptPath, FeatureType<T> type,
-			String scriptData, FileHandler fileHandler,
-			ErrorLogger logger, ParserMemory<T> memory) {
+	private ScriptParser(
+			String scriptPath,
+			FeatureType<T> type,
+			String scriptData,
+			FileHandler fileHandler,
+			ErrorLogger logger,
+			ParserMemory<T> memory
+	) {
 
 		this.scriptPath = scriptPath;
 		this.type = type;
@@ -286,11 +301,27 @@ public class ScriptParser<T> {
 	private void importScript(String filePath, String command) {
 		String input = IMPORT.replace(command,"");
 		String path = QUOTES.replace(input,"");
-		String data = fileHandler.read(path);
-		String fullPath = getPath(filePath, path);
-		ScriptParser<T> scriptParser = new ScriptParser<>(fullPath, type, data, fileHandler, logger, memory);
-		scriptParser.parse();
-		commands.add(new ScriptImportCommand(filePath, fileHandler, logger, scriptParser.getCommands()));
+		try {
+			String data = fileHandler.read(path);
+			String fullPath = getPath(filePath, path);
+			ScriptParser<T> scriptParser = new ScriptParser<>(
+					fullPath,
+					type,
+					data,
+					fileHandler,
+					logger,
+					memory
+			);
+			scriptParser.parse();
+			commands.add(new ScriptImportCommand(
+					filePath,
+					fileHandler,
+					logger,
+					scriptParser.getCommands()
+			));
+		} catch (IOException e) {
+			throw new ParseException("Unable to read from import " + path, e);
+		}
 	}
 
 	/**

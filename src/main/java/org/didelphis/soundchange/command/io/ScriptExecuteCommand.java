@@ -12,6 +12,9 @@ import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.SoundChangeScript;
 import org.didelphis.soundchange.StandardScript;
+import org.didelphis.utilities.Logger;
+
+import java.io.IOException;
 
 /**
  * @author Samantha Fiona McCabe
@@ -19,6 +22,8 @@ import org.didelphis.soundchange.StandardScript;
  */
 @EqualsAndHashCode(callSuper = true)
 public class ScriptExecuteCommand<T> extends AbstractIoCommand {
+
+	private static final Logger LOG = Logger.create(ScriptExecuteCommand.class);
 
 	private final FeatureType<T> type;
 	private final ErrorLogger logger;
@@ -35,10 +40,19 @@ public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 		String path = getPath();
 		FileHandler handler = getHandler();
 
-		String data = handler.read(path);
-		SoundChangeScript<T> script =
-				new StandardScript<>(path, type, data, handler, logger);
-		script.process();
+		try {
+			String data = handler.read(path);
+			SoundChangeScript<T> script = new StandardScript<>(
+					path,
+					type,
+					data,
+					handler,
+					logger
+			);
+			script.process();
+		} catch (IOException e) {
+			LOG.error("Failed to read from path {}", path, e);
+		}
 	}
 
 	@Override

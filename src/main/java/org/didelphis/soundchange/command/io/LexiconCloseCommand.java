@@ -10,12 +10,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.parsing.FormatterMode;
-import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.LexiconMap;
-
-import java.util.Iterator;
-import java.util.List;
+import org.didelphis.utilities.Logger;
 
 /**
  * @author Samantha Fiona McCabe
@@ -25,39 +21,31 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class LexiconCloseCommand<T> extends AbstractLexiconIoCommand {
 
+	private static final Logger LOG = Logger.create(LexiconCloseCommand.class);
+
 	private final LexiconMap<T> lexicons;
 	private final FormatterMode mode;
 
-	public LexiconCloseCommand(LexiconMap<T> lexParam, String path, String handle,
-			FileHandler name, FormatterMode modeParam) {
+	private final LexiconWriteCommand<T> command;
+
+	public LexiconCloseCommand(
+			LexiconMap<T> lexicons,
+			String path,
+			String handle,
+			FileHandler name,
+			FormatterMode mode
+	) {
 		super(path, handle, name);
-		lexicons = lexParam;
-		mode = modeParam;
+		this.lexicons = lexicons;
+		this.mode = mode;
+
+		command = new LexiconWriteCommand<>(lexicons, path, handle, name, mode);
 	}
 
 	@Override
 	public void run() {
+		command.run();
 		// REMOVE data from lexicons
-		Lexicon<T> lexicon = lexicons.remove(getHandle());
-
-		String sb = "";
-		Iterator<List<Sequence<T>>> i1 = lexicon.iterator();
-		while (i1.hasNext()) {
-			Iterator<Sequence<T>> i2 = i1.next().iterator();
-			while (i2.hasNext()) {
-				Sequence<T> sequence = i2.next();
-				sb += sequence;
-				if (i2.hasNext()) {
-					sb += '\t';
-				}
-
-			}
-			if (i1.hasNext()) {
-				sb +='\n';
-			}
-		}
-		String data = sb.trim();
-		String normalized = mode.normalize(data);
-		getHandler().writeString(getPath(), normalized);
+		lexicons.remove(getHandle());
 	}
 }

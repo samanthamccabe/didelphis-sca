@@ -23,6 +23,8 @@ import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.utilities.Logger;
 
+import java.io.IOException;
+
 /**
  * @author Samantha Fiona McCabe
  * @date 2013-09-28
@@ -34,24 +36,15 @@ public final class MainCommandLine {
 	Logger LOG = Logger.create(MainCommandLine.class);
 	double NANO = 10.0E-9;
 
-	public static void main(String... args) {
+	public static void main(String... args) throws IOException {
 		if (args.length == 0) {
 			throw new IllegalArgumentException("No arguments were provided!");
 		} else {
 			for (String arg : args) {
 				double startTime = System.nanoTime();
-
 				FileHandler handler = new DiskFileHandler("UTF-8");
-
 				String read = handler.read(arg);
-
-				if (read == null) {
-					LOG.error("Unable to load file {}", arg);
-					return;
-				}
-				
 				FeatureType<?> type = IntegerFeature.INSTANCE;
-
 				SoundChangeScript<?> script = new StandardScript<>(arg,
 						type,
 						read,
@@ -59,7 +52,6 @@ public final class MainCommandLine {
 						new ErrorLogger()
 				);
 				script.process();
-
 
 				double elapsedTime = System.nanoTime() - startTime;
 				double time = elapsedTime * NANO;
