@@ -25,7 +25,7 @@
     </parent>
 
     <artifactId>didelphis-sca</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.2-SNAPSHOT</version>
     
     <name>Didelphis Sound Change Applier</name>
     
@@ -77,7 +77,7 @@
 
     <properties>    
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <didelphis-common.version>0.3.1-SNAPSHOT</didelphis-common.version>
+        <didelphis-common.version>0.3.2-SNAPSHOT</didelphis-common.version>
     </properties>
 
     <dependencies>

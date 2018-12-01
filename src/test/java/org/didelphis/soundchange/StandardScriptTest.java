@@ -28,6 +28,7 @@ import org.didelphis.language.phonetic.model.FeatureMapping;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,7 +109,7 @@ class StandardScriptTest {
 	}
 	
 	@Test
-	void testImportModelAndFormat() {
+	void testImportModelAndFormat() throws IOException {
 		String model = ClassPathFileHandler.INSTANCE.read("AT_hybrid.model");
 
 		String script1 =
@@ -173,7 +174,7 @@ class StandardScriptTest {
 	}
 
 	@Test
-	void testExecute() {
+	void testExecute() throws IOException {
 		Map<String, String> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
 
@@ -203,7 +204,7 @@ class StandardScriptTest {
 	}
 
 	@Test
-	void testExecuteLexiconFile() {
+	void testExecuteLexiconFile() throws IOException {
 		Map<String, String> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
 
@@ -233,7 +234,7 @@ class StandardScriptTest {
 	}
 
 	@Test
-	void testDebugLexiconFile() {
+	void testDebugLexiconFile() throws IOException {
 		Map<String, String> fileSystem = new HashMap<>();
 		FileHandler fileHandler = new MockFileHandler(fileSystem);
 
@@ -264,7 +265,7 @@ class StandardScriptTest {
 	}
 	
 	@Test
-	void testRuleLarge01() {
+	void testRuleLarge01() throws IOException {
 		String[] output = CLASSPATH.read("testRuleLargeOut01.lex").split("\n");
 
 		String script = joinLines(
@@ -295,7 +296,7 @@ class StandardScriptTest {
 				"B > 0 / #_c"
 		);
 
-		StandardScript<Integer> ignored = getScript(commands, NullFileHandler.INSTANCE);
+		getScript(commands, NullFileHandler.INSTANCE);
 	}
 
 	@Test

@@ -13,7 +13,9 @@ import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.LexiconMap;
+import org.didelphis.utilities.Logger;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,6 +27,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
+
+	private static final Logger LOG = Logger.create(LexiconOpenCommand.class);
 
 	private final LexiconMap<T> lexicons;
 	private final FormatterMode mode;
@@ -47,18 +51,23 @@ public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
 			Iterator<Sequence<T>> i2 = i1.next().iterator();
 			while (i2.hasNext()) {
 				Sequence<T> sequence = i2.next();
-				sb+=sequence;
+				sb += sequence;
 				if (i2.hasNext()) {
 					sb += '\t';
 				}
 
 			}
 			if (i1.hasNext()) {
-				sb +='\n';
+				sb += '\n';
 			}
 		}
 		String data = sb.trim();
 		String normalized = mode.normalize(data);
-		getHandler().writeString(getPath(), normalized);
+		String path = getPath();
+		try {
+			getHandler().writeString(path, normalized);
+		} catch (IOException e) {
+			LOG.error("Failed to write to path {}", path, e);
+		}
 	}
 }

@@ -38,10 +38,13 @@ import org.didelphis.soundchange.command.rule.StandardRule;
 import org.didelphis.utilities.Splitter;
 import org.didelphis.utilities.Templates;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import static org.didelphis.soundchange.parser.ParserTerms.*;
@@ -58,22 +61,35 @@ public class ScriptParser<T> {
 	final String scriptData;
 	final FileHandler fileHandler;
 	final ErrorLogger logger;
-
+	final Collection<String> paths;
 	final Queue<Runnable> commands;
 	final ParserMemory<T> memory;
-
 	int lineNumber;
 
-	public ScriptParser(String scriptPath, FeatureType<T> type,
-			String scriptData, FileHandler fileHandler,
-			ErrorLogger logger) {
-		this(scriptPath, type, scriptData, fileHandler, logger,
-				new ParserMemory<>(type));
+	public ScriptParser(
+			String scriptPath,
+			FeatureType<T> type,
+			String scriptData,
+			FileHandler fileHandler,
+			ErrorLogger logger
+	) {
+		this(scriptPath,
+				type,
+				scriptData,
+				fileHandler,
+				logger,
+				new ParserMemory<>(type)
+		);
 	}
 
-	private ScriptParser(String scriptPath, FeatureType<T> type,
-			String scriptData, FileHandler fileHandler,
-			ErrorLogger logger, ParserMemory<T> memory) {
+	private ScriptParser(
+			String scriptPath,
+			FeatureType<T> type,
+			String scriptData,
+			FileHandler fileHandler,
+			ErrorLogger logger,
+			ParserMemory<T> memory
+	) {
 
 		this.scriptPath = scriptPath;
 		this.type = type;
@@ -83,6 +99,11 @@ public class ScriptParser<T> {
 		this.memory = memory;
 
 		commands = new ArrayDeque<>();
+		paths = new HashSet<>();
+	}
+
+	public Collection<String> getPaths() {
+		return paths;
 	}
 
 	@Override
@@ -140,7 +161,11 @@ public class ScriptParser<T> {
 	private void parseCommand(List<String> lines, String command) {
 		FormatterMode formatterMode = memory.getFormatterMode();
 		if (LOAD.matches(command)) {
-			FeatureMapping<T> featureModel = loadModel(scriptPath, command, type, fileHandler, formatterMode);
+			FeatureMapping<T> featureModel = loadModel(
+					scriptPath,
+					command,
+					fileHandler
+			);
 			memory.setFeatureMapping(featureModel);
 		} else if (EXECUTE.matches(command)) {
 			executeScript(scriptPath, command);
@@ -178,7 +203,8 @@ public class ScriptParser<T> {
 			memory.setFormatterMode(setNormalizer(command));
 		} else if (RESERVE.matches(command)) {
 			String reserve = RESERVE.replace(command, "");
-			List<String> list = Splitter.whitespace(reserve, Collections.emptyMap());
+			Map<String, String> emptyMap = Collections.emptyMap();
+			List<String> list = Splitter.whitespace(reserve, emptyMap);
 			memory.getReserved().addAll(list);
 		} else if (BREAK.matches(command)) {
 			lineNumber = Integer.MAX_VALUE;
@@ -198,18 +224,25 @@ public class ScriptParser<T> {
 	 * scriptPath into a lexicon stored against the scriptPath-handle;
 	 *
 	 * @param filePath path of the parent script
-	 * @param command  the whole command staring from OPEN, specifying the path
-	 *                 and scriptPath-handle
+	 * @param command the whole command staring from OPEN, specifying the path
+	 * 		and scriptPath-handle
 	 */
-	private void openLexicon(String filePath, String command,
-			SequenceFactory<T> factory) {
+	private void openLexicon(
+			String filePath, String command, SequenceFactory<T> factory
+	) {
 		Match<String> matcher = OPEN.match(command);
 		if (matcher.matches()) {
 			String path = matcher.group(1);
 			String handle = matcher.group(3);
 			String fullPath = getPath(filePath, path);
-			commands.add(new LexiconOpenCommand<>(memory.getLexicons(), fullPath,
-					handle, fileHandler, factory));
+			commands.add(new LexiconOpenCommand<>(
+					memory.getLexicons(),
+					fullPath,
+					handle,
+					fileHandler,
+					factory
+			));
+			paths.add(fullPath);
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted OPEN statement.")
@@ -236,8 +269,13 @@ public class ScriptParser<T> {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
-			commands.add(new LexiconCloseCommand<>(memory.getLexicons(), fullPath,
-					handle, fileHandler, mode));
+			commands.add(new LexiconCloseCommand<>(
+					memory.getLexicons(),
+					fullPath,
+					handle,
+					fileHandler,
+					mode));
+			paths.add(fullPath);
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted CLOSE statement.")
@@ -264,8 +302,13 @@ public class ScriptParser<T> {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
-			commands.add(new LexiconWriteCommand<>(memory.getLexicons(), fullPath,
-					handle, fileHandler, mode));
+			commands.add(new LexiconWriteCommand<>(
+					memory.getLexicons(),
+					fullPath,
+					handle,
+					fileHandler,
+					mode));
+			paths.add(fullPath);
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted WRITE statement.")
@@ -286,11 +329,29 @@ public class ScriptParser<T> {
 	private void importScript(String filePath, String command) {
 		String input = IMPORT.replace(command,"");
 		String path = QUOTES.replace(input,"");
-		String data = fileHandler.read(path);
-		String fullPath = getPath(filePath, path);
-		ScriptParser<T> scriptParser = new ScriptParser<>(fullPath, type, data, fileHandler, logger, memory);
-		scriptParser.parse();
-		commands.add(new ScriptImportCommand(filePath, fileHandler, logger, scriptParser.getCommands()));
+		try {
+			String fullPath = getPath(filePath, path);
+			String data = fileHandler.read(path);
+			ScriptParser<T> scriptParser = new ScriptParser<>(
+					fullPath,
+					type,
+					data,
+					fileHandler,
+					logger,
+					memory
+			);
+			scriptParser.parse();
+			commands.add(new ScriptImportCommand(
+					filePath,
+					fileHandler,
+					logger,
+					scriptParser.getCommands()
+			));
+			paths.add(fullPath);
+			paths.addAll(scriptParser.getPaths());
+		} catch (IOException e) {
+			throw new ParseException("Unable to read from import " + path, e);
+		}
 	}
 
 	/**
@@ -298,18 +359,41 @@ public class ScriptParser<T> {
 	 * current one.
 	 *
 	 * @param filePath path of the parent script
-	 * @param command  the whole command starting with 'EXECUTE'
+	 * @param command the whole command starting with 'EXECUTE'
 	 */
 	private void executeScript(String filePath, String command) {
-		String input = EXECUTE.replace(command,"");
-		String path = QUOTES.replace(input,"");
+		String input = EXECUTE.replace(command, "");
+		String path = QUOTES.replace(input, "");
+		try {
 		String fullPath = getPath(filePath, path);
-		commands.add(new ScriptExecuteCommand<>(fullPath, type, fileHandler, logger));
+		String data = fileHandler.read(path);
+		ScriptParser<T> scriptParser = new ScriptParser<>(
+				fullPath,
+				type,
+				data,
+				fileHandler,
+				logger,
+				memory
+		);
+		scriptParser.parse();
+		commands.add(new ScriptExecuteCommand<>(
+				filePath,
+				fileHandler,
+				logger,
+				scriptParser.getCommands()
+		));
+		paths.add(fullPath);
+			paths.addAll(scriptParser.getPaths());
+		} catch (IOException e) {
+			throw new ParseException("Unable to read from import " + path, e);
+		}
 	}
 
-	private static <T> FeatureMapping<T> loadModel(String filePath,
-			String command, FeatureType<T> type, FileHandler handler,
-			FormatterMode mode) {
+	private FeatureMapping<T> loadModel(
+			String filePath,
+			String command,
+			FileHandler handler
+	) {
 		String input = LOAD.replace(command,"");
 		String path = QUOTES.replace(input,"");
 		String fullPath = getPath(filePath, path);
@@ -319,6 +403,7 @@ public class ScriptParser<T> {
 				handler,
 				fullPath
 		);
+		paths.add(fullPath);
 		return loader.getFeatureMapping();
 	}
 
@@ -341,9 +426,12 @@ public class ScriptParser<T> {
 			throw new ParseException(message, e);
 		}
 	}
-	
+
 	@SafeVarargs
-	private static boolean matchesOr(String string, Automaton<String>... patterns) {
+	private static boolean matchesOr(
+			String string,
+			Automaton<String>... patterns
+	) {
 		for (Automaton<String> pattern : patterns) {
 			boolean matches = pattern.matches(string);
 			if (matches) {

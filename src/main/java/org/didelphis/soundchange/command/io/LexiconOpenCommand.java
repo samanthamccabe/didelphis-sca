@@ -12,7 +12,9 @@ import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.soundchange.LexiconMap;
+import org.didelphis.utilities.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +27,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
+
+	private static final Logger LOG = Logger.create(LexiconOpenCommand.class);
 
 	private final LexiconMap<T> lexicons;
 	private final SequenceFactory<T> factory;
@@ -41,7 +45,12 @@ public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 		String path = getPath();
 		FileHandler handler = getHandler();
 
-		CharSequence charSequence = handler.read(path);
+		CharSequence charSequence = null;
+		try {
+			charSequence = handler.read(path);
+		} catch (IOException e) {
+			LOG.error("Failed to read from path {}", path, e);
+		}
 		String data = charSequence == null ? "null" : charSequence.toString();
 		Collection<List<String>> rows = new ArrayList<>();
 		for (String line : data.split("\r?\n|\r", -1)) {
