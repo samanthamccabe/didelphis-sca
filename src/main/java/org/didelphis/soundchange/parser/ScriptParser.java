@@ -18,6 +18,7 @@
 package org.didelphis.soundchange.parser;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.automata.Automaton;
@@ -40,9 +41,9 @@ import org.didelphis.utilities.Templates;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -61,9 +62,12 @@ public class ScriptParser<T> {
 	final String scriptData;
 	final FileHandler fileHandler;
 	final ErrorLogger logger;
-	final Collection<String> paths;
 	final Queue<Runnable> commands;
 	final ParserMemory<T> memory;
+	
+	@Getter
+	final List<ProjectFile> projectFiles;
+	
 	int lineNumber;
 
 	public ScriptParser(
@@ -99,11 +103,8 @@ public class ScriptParser<T> {
 		this.memory = memory;
 
 		commands = new ArrayDeque<>();
-		paths = new HashSet<>();
-	}
 
-	public Collection<String> getPaths() {
-		return paths;
+		projectFiles = new ArrayList<>();
 	}
 
 	@Override
@@ -235,6 +236,23 @@ public class ScriptParser<T> {
 			String path = matcher.group(1);
 			String handle = matcher.group(3);
 			String fullPath = getPath(filePath, path);
+
+			try {
+				String data = fileHandler.read(fullPath);
+				ProjectFile projectFile = new ProjectFile();
+				projectFile.setFileData(data);
+				projectFile.setFilePath(fullPath);
+				projectFile.setFileType(FileType.LEXICON_READ);
+				projectFiles.add(projectFile);
+			} catch (IOException e) {
+				String message = Templates.create()
+						.add("Unable to read data from lexicon with path {}")
+						.with(fullPath)
+						.data(command)
+						.build();
+				throw new ParseException(message, e);
+			}
+			
 			commands.add(new LexiconOpenCommand<>(
 					memory.getLexicons(),
 					fullPath,
@@ -242,7 +260,6 @@ public class ScriptParser<T> {
 					fileHandler,
 					factory
 			));
-			paths.add(fullPath);
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted OPEN statement.")
@@ -269,13 +286,18 @@ public class ScriptParser<T> {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
+
+			ProjectFile projectFile = new ProjectFile();
+			projectFile.setFilePath(fullPath);
+			projectFile.setFileType(FileType.LEXICON_WRITE);
+			projectFiles.add(projectFile);
+
 			commands.add(new LexiconCloseCommand<>(
 					memory.getLexicons(),
 					fullPath,
 					handle,
 					fileHandler,
 					mode));
-			paths.add(fullPath);
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted CLOSE statement.")
@@ -302,13 +324,19 @@ public class ScriptParser<T> {
 			String handle = matcher.group(1);
 			String path = matcher.group(3);
 			String fullPath = getPath(filePath, path);
+
+			ProjectFile projectFile = new ProjectFile();
+			projectFile.setFilePath(fullPath);
+			projectFile.setFileType(FileType.LEXICON_WRITE);
+			projectFiles.add(projectFile);
+
 			commands.add(new LexiconWriteCommand<>(
 					memory.getLexicons(),
 					fullPath,
 					handle,
 					fileHandler,
 					mode));
-			paths.add(fullPath);
+
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted WRITE statement.")
@@ -347,8 +375,15 @@ public class ScriptParser<T> {
 					logger,
 					scriptParser.getCommands()
 			));
-			paths.add(fullPath);
-			paths.addAll(scriptParser.getPaths());
+
+			ProjectFile projectFile = new ProjectFile();
+			projectFile.setFileType(FileType.SCRIPT);
+			projectFile.setFilePath(fullPath);
+			projectFile.setFileData(data);
+
+			projectFiles.add(projectFile);
+			projectFiles.addAll(scriptParser.getProjectFiles());
+
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
@@ -382,8 +417,15 @@ public class ScriptParser<T> {
 				logger,
 				scriptParser.getCommands()
 		));
-		paths.add(fullPath);
-			paths.addAll(scriptParser.getPaths());
+
+			ProjectFile projectFile = new ProjectFile();
+			projectFile.setFileType(FileType.SCRIPT);
+			projectFile.setFilePath(fullPath);
+			projectFile.setFileData(data);
+
+			projectFiles.add(projectFile);
+			projectFiles.addAll(scriptParser.getProjectFiles());
+
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
@@ -398,13 +440,26 @@ public class ScriptParser<T> {
 		String path = QUOTES.replace(input,"");
 		String fullPath = getPath(filePath, path);
 
-		FeatureModelLoader<T> loader = new FeatureModelLoader<>(
-				type,
-				handler,
-				fullPath
-		);
-		paths.add(fullPath);
-		return loader.getFeatureMapping();
+		try {
+			String data = handler.read(fullPath);
+			
+			FeatureModelLoader<T> loader = new FeatureModelLoader<>(
+					type,
+					handler,
+					fullPath
+			);
+			
+			// TODO: the model itself can contain imports
+			ProjectFile projectFile = new ProjectFile();
+			projectFile.setFileType(FileType.MODEL);
+			projectFile.setFilePath(fullPath);
+			projectFile.setFileData(data);
+
+			projectFiles.add(projectFile);
+			return loader.getFeatureMapping();
+		} catch (IOException e) {
+			throw new ParseException("Unable to read model " + fullPath, e);
+		}
 	}
 
 	private static String getPath(String filePath, String path) {
