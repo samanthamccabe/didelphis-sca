@@ -39,5 +39,5 @@ public class ParserTerms {
 	Regex VAR_NEXT_LINE = new Regex(CONTINUE);
 	Regex CONTINUATION  = new Regex("\\s*(/|or|not)", true);
 	Regex QUOTES        = new Regex("[\"']");
-	Regex PATH          = new Regex("[\\\\/][^/\\\\]*$");
+	Regex PATH          = new Regex("(.*[\\\\/])([^/\\\\]*)$");
 }

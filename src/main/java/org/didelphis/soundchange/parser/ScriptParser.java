@@ -241,7 +241,9 @@ public class ScriptParser<T> {
 				String data = fileHandler.read(fullPath);
 				ProjectFile projectFile = new ProjectFile();
 				projectFile.setFileData(data);
-				projectFile.setFilePath(fullPath);
+				projectFile.setAbsolutePath(fullPath);
+				projectFile.setRelativePath(path);
+				projectFile.setFileName(PATH.replace(path, "$2"));
 				projectFile.setFileType(FileType.LEXICON_READ);
 				projectFiles.add(projectFile);
 			} catch (IOException e) {
@@ -288,7 +290,9 @@ public class ScriptParser<T> {
 			String fullPath = getPath(filePath, path);
 
 			ProjectFile projectFile = new ProjectFile();
-			projectFile.setFilePath(fullPath);
+			projectFile.setAbsolutePath(fullPath);
+			projectFile.setRelativePath(path);
+			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 			projectFiles.add(projectFile);
 
@@ -326,7 +330,9 @@ public class ScriptParser<T> {
 			String fullPath = getPath(filePath, path);
 
 			ProjectFile projectFile = new ProjectFile();
-			projectFile.setFilePath(fullPath);
+			projectFile.setAbsolutePath(fullPath);
+			projectFile.setRelativePath(path);
+			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 			projectFiles.add(projectFile);
 
@@ -378,7 +384,9 @@ public class ScriptParser<T> {
 
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.SCRIPT);
-			projectFile.setFilePath(fullPath);
+			projectFile.setAbsolutePath(fullPath);
+			projectFile.setRelativePath(path);
+			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
 			projectFiles.add(projectFile);
@@ -420,7 +428,9 @@ public class ScriptParser<T> {
 
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.SCRIPT);
-			projectFile.setFilePath(fullPath);
+			projectFile.setAbsolutePath(fullPath);
+			projectFile.setRelativePath(path);
+			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
 			projectFiles.add(projectFile);
@@ -452,7 +462,9 @@ public class ScriptParser<T> {
 			// TODO: the model itself can contain imports
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.MODEL);
-			projectFile.setFilePath(fullPath);
+			projectFile.setAbsolutePath(fullPath);
+			projectFile.setRelativePath(path);
+			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
 			projectFiles.add(projectFile);

@@ -12,8 +12,8 @@ import lombok.experimental.FieldDefaults;
 public class ProjectFile {
 	
 	FileType fileType;
-	String   filePath;
 	String   fileData;
-	
-	
+	String   fileName;
+	String   absolutePath;
+	String   relativePath;
 }
