@@ -64,9 +64,6 @@ public class ScriptParser<T> {
 	final ErrorLogger logger;
 	final Queue<Runnable> commands;
 	final ParserMemory<T> memory;
-	
-	@Getter
-	final List<ProjectFile> projectFiles;
 
 	@Getter
 	final ProjectFile mainProjectFile;
@@ -112,9 +109,6 @@ public class ScriptParser<T> {
 		mainProjectFile.setRelativePath(scriptPath);
 		mainProjectFile.setFileData(scriptData);
 		mainProjectFile.setFileName(PATH.replace(scriptPath, "$2"));
-
-		projectFiles = new ArrayList<>();
-		projectFiles.add(mainProjectFile);
 	}
 
 	@Override
@@ -191,8 +185,10 @@ public class ScriptParser<T> {
 		} else if (command.contains("=")) {
 			StringBuilder sb = new StringBuilder(command);
 			String next = nextLine(lines);
-			while ((next != null) && VAR_NEXT_LINE.matches(next) &&
-					!matchesOr(next, BREAK, COMPOUND, MODE)) {
+			while ((next != null) &&
+				VAR_NEXT_LINE.matches(next) &&
+				!KEYWORDS.matches(next)
+			) {
 				sb.append('\n');
 				sb.append(next);
 				lineNumber++;
@@ -255,7 +251,6 @@ public class ScriptParser<T> {
 				projectFile.setFileName(PATH.replace(path, "$2"));
 				projectFile.setFileType(FileType.LEXICON_READ);
 
-				projectFiles.add(projectFile);
 				mainProjectFile.addChild(projectFile);
 			} catch (IOException e) {
 				String message = Templates.create()
@@ -305,7 +300,6 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 
-			projectFiles.add(projectFile);
 			mainProjectFile.addChild(projectFile);
 
 			commands.add(new LexiconCloseCommand<>(
@@ -346,7 +340,6 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 
-			projectFiles.add(projectFile);
 			mainProjectFile.addChild(projectFile);
 
 			commands.add(new LexiconWriteCommand<>(
@@ -401,10 +394,8 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
-			projectFiles.add(projectFile);
-			projectFiles.addAll(scriptParser.getProjectFiles());
-
-			mainProjectFile.addChild(projectFile);
+			ProjectFile mainProjectFile = scriptParser.getMainProjectFile();
+			this.mainProjectFile.addChild(mainProjectFile);
 
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
@@ -444,11 +435,11 @@ public class ScriptParser<T> {
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
+//
+//			projectFiles.add(projectFile);
+//			projectFiles.addAll(scriptParser.getProjectFiles());
 
-			projectFiles.add(projectFile);
-			projectFiles.addAll(scriptParser.getProjectFiles());
-
-			mainProjectFile.addChild(projectFile);
+			mainProjectFile.addChild(scriptParser.getMainProjectFile());
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
@@ -479,9 +470,6 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
-			projectFiles.add(projectFile);
-//			projectFiles.addAll(scriptParser.getProjectFiles());
-
 			mainProjectFile.addChild(projectFile);
 			return loader.getFeatureMapping();
 		} catch (IOException e) {
@@ -507,19 +495,5 @@ public class ScriptParser<T> {
 					.build();
 			throw new ParseException(message, e);
 		}
-	}
-
-	@SafeVarargs
-	private static boolean matchesOr(
-			String string,
-			Automaton<String>... patterns
-	) {
-		for (Automaton<String> pattern : patterns) {
-			boolean matches = pattern.matches(string);
-			if (matches) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

@@ -6,6 +6,7 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,6 +23,10 @@ public class ProjectFile {
 	String relativePath;
 
 	List<ProjectFile> children;
+
+	public List<ProjectFile> getChildren() {
+		return children != null ? children : Collections.emptyList();
+	}
 
 	public boolean hasChildren() {
 		return children != null && !children.isEmpty();

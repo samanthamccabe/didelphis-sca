@@ -42,21 +42,26 @@ class ScriptParserTest {
 		Map<String, String> map = new HashMap<>();
 
 		String variablesScript1 = "X = 1 2 3 4";
-		String variablesScript2 = "C = p t k q";
+		String variablesScript2 = "V = a e i o u";
+		String variablesScript3 = "C = p t k q\nIMPORT 'variables2'";
 
 		map.put("variables1", variablesScript1);
 		map.put("variables2", variablesScript2);
+		map.put("variables3", variablesScript3);
 
 		FileHandler handler = new MockFileHandler(map);
 
 		String commands = "" +
 				"IMPORT 'variables1'\n" +
-				"IMPORT 'variables1'\n";
+				"IMPORT 'variables3'\n";
 
 		ScriptParser<Integer> parser = getParser(commands, handler);
 		parser.parse();
 
-		assertEquals(2, parser.getMainProjectFile().getChildren().size());
+		ProjectFile mainProjectFile = parser.getMainProjectFile();
+		List<ProjectFile> children = mainProjectFile.getChildren();
+		assertEquals(2, children.size());
+		assertEquals(1, children.get(1).getChildren().size());
 	}
 
 	@Test
@@ -84,6 +89,25 @@ class ScriptParserTest {
 			ScriptParser<Integer> parser = getParser(data, instance);
 			parser.parse();
 		});
+	}
+
+	@Test
+	void testImportAfterMultilineVariable() {
+		String commands = "" +
+			"C = p  t  k  \n" +
+			"    ph th kh \n" +
+			"    f  s  x  \n" +
+			"IMPORT 'unknown'";
+
+		NullFileHandler handler = NullFileHandler.INSTANCE;
+		ScriptParser<Integer> parser = getParser(commands, handler);
+		parser.parse();
+
+		ParserMemory<Integer> memory = parser.getMemory();
+		VariableStore variableStore = memory.getVariables();
+		List<String> list = variableStore.get("C");
+
+		assertEquals(9, list.size());
 	}
 
 	@Test
