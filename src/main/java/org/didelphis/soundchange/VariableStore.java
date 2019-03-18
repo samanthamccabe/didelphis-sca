@@ -20,6 +20,7 @@ import org.didelphis.language.automata.Regex;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.parsing.Segmenter;
+import org.didelphis.soundchange.parser.ParserTerms;
 import org.didelphis.utilities.Templates;
 
 import java.util.ArrayList;
@@ -100,9 +101,11 @@ public class VariableStore {
 		if (parts.size() == 2) {
 			String key = parts.get(0);
 			List<String> elements = DELIMITER_PATTERN.split(parts.get(1));
-
 			List<String> expanded = new ArrayList<>();
 			for (String value : elements) {
+				if (ParserTerms.SPECIAL.matches(value)) {
+					throw new ParseException("Illegal value " + value);
+				}
 				expanded.addAll(expandVariables(value));
 			}
 			variables.put(key, expanded);

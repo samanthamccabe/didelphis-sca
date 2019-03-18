@@ -67,6 +67,9 @@ public class ScriptParser<T> {
 	
 	@Getter
 	final List<ProjectFile> projectFiles;
+
+	@Getter
+	final ProjectFile mainProjectFile;
 	
 	int lineNumber;
 
@@ -104,7 +107,14 @@ public class ScriptParser<T> {
 
 		commands = new ArrayDeque<>();
 
+		mainProjectFile = new ProjectFile();
+		mainProjectFile.setFileType(FileType.SCRIPT);
+		mainProjectFile.setRelativePath(scriptPath);
+		mainProjectFile.setFileData(scriptData);
+		mainProjectFile.setFileName(PATH.replace(scriptPath, "$2"));
+
 		projectFiles = new ArrayList<>();
+		projectFiles.add(mainProjectFile);
 	}
 
 	@Override
@@ -241,11 +251,12 @@ public class ScriptParser<T> {
 				String data = fileHandler.read(fullPath);
 				ProjectFile projectFile = new ProjectFile();
 				projectFile.setFileData(data);
-				projectFile.setAbsolutePath(fullPath);
 				projectFile.setRelativePath(path);
 				projectFile.setFileName(PATH.replace(path, "$2"));
 				projectFile.setFileType(FileType.LEXICON_READ);
+
 				projectFiles.add(projectFile);
+				mainProjectFile.addChild(projectFile);
 			} catch (IOException e) {
 				String message = Templates.create()
 						.add("Unable to read data from lexicon with path {}")
@@ -290,11 +301,12 @@ public class ScriptParser<T> {
 			String fullPath = getPath(filePath, path);
 
 			ProjectFile projectFile = new ProjectFile();
-			projectFile.setAbsolutePath(fullPath);
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
+
 			projectFiles.add(projectFile);
+			mainProjectFile.addChild(projectFile);
 
 			commands.add(new LexiconCloseCommand<>(
 					memory.getLexicons(),
@@ -330,11 +342,12 @@ public class ScriptParser<T> {
 			String fullPath = getPath(filePath, path);
 
 			ProjectFile projectFile = new ProjectFile();
-			projectFile.setAbsolutePath(fullPath);
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
+
 			projectFiles.add(projectFile);
+			mainProjectFile.addChild(projectFile);
 
 			commands.add(new LexiconWriteCommand<>(
 					memory.getLexicons(),
@@ -384,13 +397,14 @@ public class ScriptParser<T> {
 
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.SCRIPT);
-			projectFile.setAbsolutePath(fullPath);
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
 			projectFiles.add(projectFile);
 			projectFiles.addAll(scriptParser.getProjectFiles());
+
+			mainProjectFile.addChild(projectFile);
 
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
@@ -425,10 +439,8 @@ public class ScriptParser<T> {
 				logger,
 				scriptParser.getCommands()
 		));
-
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.SCRIPT);
-			projectFile.setAbsolutePath(fullPath);
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
@@ -436,6 +448,7 @@ public class ScriptParser<T> {
 			projectFiles.add(projectFile);
 			projectFiles.addAll(scriptParser.getProjectFiles());
 
+			mainProjectFile.addChild(projectFile);
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
@@ -462,12 +475,14 @@ public class ScriptParser<T> {
 			// TODO: the model itself can contain imports
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.MODEL);
-			projectFile.setAbsolutePath(fullPath);
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
 			projectFiles.add(projectFile);
+//			projectFiles.addAll(scriptParser.getProjectFiles());
+
+			mainProjectFile.addChild(projectFile);
 			return loader.getFeatureMapping();
 		} catch (IOException e) {
 			throw new ParseException("Unable to read model " + fullPath, e);

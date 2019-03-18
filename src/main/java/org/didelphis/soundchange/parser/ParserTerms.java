@@ -16,28 +16,27 @@ import org.didelphis.language.automata.Regex;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)
 public class ParserTerms {
 
-	private String HANDLE    = "(\\w+)";
-	private String FILE_PATH = "[\"\']([^\"\']+)[\"\']";
-	private String ELEMENT   = "([^\\s/_>=<\\-:;,.$#!*+?{}()|\\\\]|\\[[^\\]]+\\])+";
-	private String CONTINUE  = '(' + ELEMENT + "\\s+)*" + ELEMENT + '$';
-	private String AS        = "\\s+(as\\s+)?";
+	private final String HANDLE    = "(\\w+)";
+	private final String FILE_PATH = "[\"\']([^\"\']+)[\"\']";
+	private final String ELEMENT   = "([^\\s/_>=<\\-:;,.$#!*+?{}()|\\\\]|\\[[^\\]]+\\])+";
+	private final String CONTINUE  = '(' + ELEMENT + "\\s+)*" + ELEMENT + '$';
+	private final String AS        = "\\s+(as\\s+)?";
 
-	Regex COMMENT  = new Regex("%.*");
-	Regex COMPOUND = new Regex("COMPOUND",    true);
-	Regex BREAK    = new Regex("BREAK",       true);
-	Regex RESERVE  = new Regex("RESERVE\\s+", true);
-	Regex MODE     = new Regex("MODE\\s+",    true);
-	Regex EXECUTE  = new Regex("EXECUTE\\s+", true);
-	Regex IMPORT   = new Regex("IMPORT\\s+",  true);
-	Regex LOAD     = new Regex("LOAD\\s+",    true);
-	
-	Regex CLOSE    = new Regex("CLOSE\\s+" + HANDLE + AS + FILE_PATH, true);
-	Regex WRITE    = new Regex("WRITE\\s+" + HANDLE + AS + FILE_PATH, true);
-	Regex OPEN     = new Regex("OPEN\\s+" + FILE_PATH + AS + HANDLE,  true);
-	
-	Regex RULE          = new Regex("(\\[[^]]+]|[^>])+\\s+>");
-	Regex VAR_NEXT_LINE = new Regex(CONTINUE);
-	Regex CONTINUATION  = new Regex("\\s*(/|or|not)", true);
-	Regex QUOTES        = new Regex("[\"']");
-	Regex PATH          = new Regex("(.*[\\\\/])([^/\\\\]*)$");
+	public final Regex SPECIAL  = new Regex("[-=/_><;:,.$#!*+?{}()|\\\\]");
+	public final Regex COMMENT  = new Regex("%.*");
+	public final Regex COMPOUND = new Regex("COMPOUND",    true);
+	public final Regex BREAK    = new Regex("BREAK",       true);
+	public final Regex RESERVE  = new Regex("RESERVE\\s+", true);
+	public final Regex MODE     = new Regex("MODE\\s+",    true);
+	public final Regex EXECUTE  = new Regex("EXECUTE\\s+", true);
+	public final Regex IMPORT   = new Regex("IMPORT\\s+",  true);
+	public final Regex LOAD     = new Regex("LOAD\\s+",    true);
+	public final Regex CLOSE    = new Regex("CLOSE\\s+" + HANDLE + AS + FILE_PATH, true);
+	public final Regex WRITE    = new Regex("WRITE\\s+" + HANDLE + AS + FILE_PATH, true);
+	public final Regex OPEN     = new Regex("OPEN\\s+" + FILE_PATH + AS + HANDLE,  true);
+	public final Regex RULE          = new Regex("(\\[[^]]+]|[^>])+\\s+>");
+	public final Regex VAR_NEXT_LINE = new Regex(CONTINUE);
+	public final Regex CONTINUATION  = new Regex("\\s*(/|or|not)", true);
+	public final Regex QUOTES        = new Regex("[\"']");
+	public final Regex PATH          = new Regex("(.*[\\\\/])([^/\\\\]*)$");
 }

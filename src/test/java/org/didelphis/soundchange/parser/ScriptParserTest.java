@@ -18,26 +18,80 @@
 package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.FileHandler;
+import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
+import org.didelphis.language.parsing.ParseException;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.soundchange.ErrorLogger;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Created by samantha on 11/8/16.
- */
 class ScriptParserTest {
-	
+
+	@Test
+	void testProjectFileStructure() {
+		Map<String, String> map = new HashMap<>();
+
+		String variablesScript1 = "X = 1 2 3 4";
+		String variablesScript2 = "C = p t k q";
+
+		map.put("variables1", variablesScript1);
+		map.put("variables2", variablesScript2);
+
+		FileHandler handler = new MockFileHandler(map);
+
+		String commands = "" +
+				"IMPORT 'variables1'\n" +
+				"IMPORT 'variables1'\n";
+
+		ScriptParser<Integer> parser = getParser(commands, handler);
+		parser.parse();
+
+		assertEquals(2, parser.getMainProjectFile().getChildren().size());
+	}
+
+	@Test
+	void testIllegalCharacterinVariable() {
+		assertFails("C = >");
+		assertFails("C = |");
+		assertFails("C = .");
+		assertFails("C = ,");
+		assertFails("C = :");
+		assertFails("C = ;");
+		assertFails("C = <");
+		assertFails("C = /");
+		assertFails("C = \\");
+		assertFails("C = +");
+		assertFails("C = *");
+		assertFails("C = ?");
+		assertFails("C = #");
+		assertFails("C = $");
+		assertFails("C = !");
+	}
+
+	private static void assertFails(String data) {
+		assertThrows(ParseException.class, () -> {
+			NullFileHandler instance = NullFileHandler.INSTANCE;
+			ScriptParser<Integer> parser = getParser(data, instance);
+			parser.parse();
+		});
+	}
+
 	@Test
 	void testMultilineVariable() {
-		String commands = "C = p t k\n" + "ph th kh\n" + "f s x\n";
+		String commands =
+				"C = p  t  k  \n" +
+				"    ph th kh \n" +
+				"    f  s  x  \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -51,10 +105,10 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableBracket() {
-		String commands = 
-				"C = p t k\n" + 
-				"ph th kh\n" +
-				"[P] [T] [K]\n";
+		String commands = "" +
+				"C = p   t   k   \n" +
+				"    ph  th  kh  \n" +
+				"    [P] [T] [K] \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
@@ -68,7 +122,9 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableOverparse() {
-		String commands = "C = p t k\n" + "[W] = [X] [Y] [Z]";
+		String commands = "" +
+				"C   =  p   t   k  \n" +
+				"[W] = [X] [Y] [Z] \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
 		ScriptParser<Integer> parser = getParser(commands, handler);
