@@ -25,11 +25,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Created with IntelliJ IDEA. @author Samantha Fiona McCabe
- *
- * @date 6/22/13 Templates.
- */
 class BaseRuleModelTest {
 
 	private static Logger LOG = Logger.create(BaseRuleTest.class);

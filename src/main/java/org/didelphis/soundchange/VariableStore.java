@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
 /**
  * Class {@code VariableStore}
  *
- * @author Samantha Fiona McCabe
- * @date 2013-09-23
  * @since 0.0.0
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)

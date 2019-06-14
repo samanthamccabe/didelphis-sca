@@ -20,10 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2014-10-13
- */
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {

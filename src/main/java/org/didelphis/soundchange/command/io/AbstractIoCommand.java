@@ -9,10 +9,6 @@ package org.didelphis.soundchange.command.io;
 import lombok.EqualsAndHashCode;
 import org.didelphis.io.FileHandler;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2016-12-04
- */
 @EqualsAndHashCode
 public abstract class AbstractIoCommand implements Runnable {
 

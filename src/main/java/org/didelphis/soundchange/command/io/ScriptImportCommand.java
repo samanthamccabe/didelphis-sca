@@ -12,10 +12,6 @@ import org.didelphis.soundchange.ErrorLogger;
 
 import java.util.Queue;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2016-12-05
- */
 @EqualsAndHashCode (callSuper = true)
 public class ScriptImportCommand extends AbstractIoCommand {
 

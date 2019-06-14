@@ -25,10 +25,6 @@ import org.didelphis.utilities.Logger;
 
 import java.io.IOException;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2013-09-28
- */
 @UtilityClass
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class MainCommandLine {

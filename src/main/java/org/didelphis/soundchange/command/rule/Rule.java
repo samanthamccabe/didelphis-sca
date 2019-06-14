@@ -11,8 +11,6 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 import java.util.function.UnaryOperator;
 
 /**
- * @author Samantha Fiona McCabe
- * @date 2016-10-23
  * @since 0.1.0
  */
 @FunctionalInterface

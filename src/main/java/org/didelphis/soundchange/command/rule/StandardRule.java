@@ -14,8 +14,6 @@ import org.didelphis.soundchange.parser.ParserMemory;
 import java.util.List;
 
 /**
- * @author Samantha Fiona McCabe
- * @date 2016-10-24
  * @since 0.1.0
  */
 public class StandardRule<T> implements Rule<T> {

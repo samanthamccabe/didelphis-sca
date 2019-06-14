@@ -16,10 +16,6 @@ import org.didelphis.structures.contracts.Delegating;
 
 import java.util.List;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2016-10-23
- */
 @EqualsAndHashCode
 @ToString
 public class CompoundRule<T>

@@ -13,10 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2016-11-05
- */
 @Data
 public class ErrorLogger implements Iterable<ErrorLogger.Error> {
 

@@ -20,10 +20,6 @@ import org.didelphis.soundchange.parser.ScriptParser;
 
 import java.util.Queue;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2013-04-13
- */
 public class StandardScript<T> implements SoundChangeScript<T> {
 
 	private final FileHandler handler;

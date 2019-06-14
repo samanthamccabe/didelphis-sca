@@ -13,10 +13,6 @@ import org.didelphis.utilities.Logger;
 
 import java.util.Queue;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2014-10-13
- */
 @EqualsAndHashCode(callSuper = true)
 public class ScriptExecuteCommand<T> extends AbstractIoCommand {
 

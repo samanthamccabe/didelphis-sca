@@ -50,10 +50,6 @@ import java.util.Queue;
 
 import static org.didelphis.soundchange.parser.ParserTerms.*;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2016-11-08
- */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScriptParser<T> {
 	

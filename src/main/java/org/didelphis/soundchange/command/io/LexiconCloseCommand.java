@@ -13,10 +13,6 @@ import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.soundchange.LexiconMap;
 import org.didelphis.utilities.Logger;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2014-10-13
- */
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class LexiconCloseCommand<T> extends AbstractLexiconIoCommand {

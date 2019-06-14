@@ -18,10 +18,6 @@ import org.didelphis.io.FileHandler;
 
 import java.util.Queue;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2015-01-14
- */
 public interface SoundChangeScript<T> {
 
 	void process();

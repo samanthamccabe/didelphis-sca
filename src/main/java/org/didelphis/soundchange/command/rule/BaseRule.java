@@ -39,8 +39,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
- * @author Samantha Fiona McCabe
- * @date 2013-04-07
  * @since 0.0.0
  */
 @EqualsAndHashCode

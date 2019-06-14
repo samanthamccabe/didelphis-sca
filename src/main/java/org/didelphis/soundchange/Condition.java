@@ -38,9 +38,6 @@ import java.util.stream.Collectors;
 
 import static org.didelphis.language.automata.statemachines.StandardStateMachine.create;
 
-/**
- * @author Samantha Fiona McCabe
- */
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @ToString (of = "conditionText", includeFieldNames = false)

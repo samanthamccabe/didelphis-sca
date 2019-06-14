@@ -30,8 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * @author Samantha Fiona McCabe
- * @date 2013-07-07
  * @since 0.0.0
  */
 class ConditionTest {

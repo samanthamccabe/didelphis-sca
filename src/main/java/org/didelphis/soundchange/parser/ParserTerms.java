@@ -9,8 +9,6 @@ import org.didelphis.language.automata.Regex;
  * Class {@code ParserTerms}
  *
  * A holder for patterns used to parse scripts
- * 
- * @author Samantha Fiona McCabe
  */
 @UtilityClass
 @FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)

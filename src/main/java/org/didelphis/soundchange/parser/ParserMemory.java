@@ -30,8 +30,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author Samantha Fiona McCabe
- * @date 2016-11-08
  * @since 0.2.0
  */
 public class ParserMemory<T> {

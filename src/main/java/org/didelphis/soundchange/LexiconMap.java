@@ -22,10 +22,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2015-01-16
- */
 @ToString
 @EqualsAndHashCode
 public class LexiconMap<T> {

@@ -19,11 +19,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-
-/**
- * @author Samantha Fiona McCabe
- * @date 2014-10-13
- */
 @ToString
 @EqualsAndHashCode
 public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {

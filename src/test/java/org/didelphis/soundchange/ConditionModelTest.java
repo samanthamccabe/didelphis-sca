@@ -24,10 +24,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 4/19/2015
- */
 public class ConditionModelTest {
 	
 	private static final SequenceFactory<Integer> FACTORY = loadModel();

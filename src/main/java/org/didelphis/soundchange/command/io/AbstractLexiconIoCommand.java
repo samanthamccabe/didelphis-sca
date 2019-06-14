@@ -10,10 +10,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.didelphis.io.FileHandler;
 
-/**
- * @author Samantha Fiona McCabe
- * @date 2014-10-15
- */
 @ToString
 @EqualsAndHashCode (callSuper = true)
 public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
