@@ -43,10 +43,6 @@ import static org.didelphis.language.automata.statemachines.StandardStateMachine
 @ToString (of = "conditionText", includeFieldNames = false)
 public class Condition<T> {
 
-//	static Regex WHITESPACE_PATTERN  = new Regex("\\s+");
-//	static Regex OPEN_BRACE_PATTERN  = new Regex("([\\[{(])\\s");
-//	static Regex CLOSE_BRACE_PATTERN = new Regex("\\s([\\]})])");
-
 	String conditionText;
 	StateMachine<Sequence<T>> preCondition;
 	StateMachine<Sequence<T>> postCondition;

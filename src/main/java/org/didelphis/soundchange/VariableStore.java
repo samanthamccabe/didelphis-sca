@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariableStore {
-	
-	static final Regex EQUALS_PATTERN    = new Regex("\\s*=\\s*");
-	static final Regex DELIMITER_PATTERN = new Regex("\\s+");
+
+	private static final Regex EQUALS_PATTERN    = new Regex("\\s*=\\s*");
+	private static final Regex DELIMITER_PATTERN = new Regex("\\s+");
 
 	final Map<String, List<String>> variables;
 	Segmenter segmenter;

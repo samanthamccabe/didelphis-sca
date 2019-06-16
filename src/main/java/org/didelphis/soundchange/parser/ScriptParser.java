@@ -52,7 +52,7 @@ import static org.didelphis.soundchange.parser.ParserTerms.*;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScriptParser<T> {
-	
+
 	final String scriptPath;
 	final FeatureType<T> type;
 	final String scriptData;

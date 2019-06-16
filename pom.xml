@@ -25,10 +25,14 @@
     </parent>
 
     <artifactId>didelphis-sca</artifactId>
-    <version>0.3.2-SNAPSHOT</version>
-    
+    <version>0.3.3-SNAPSHOT</version>
     <name>Didelphis Sound Change Applier</name>
-    
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <main.class>org.didelphis.soundchange.MainCommandLine</main.class>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -36,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.didelphis.soundchange.MainCommandLine</mainClass>
+                            <mainClass>${main.class}</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -44,14 +48,8 @@
                     </descriptorRefs>
                 </configuration>
             </plugin>
-            
         </plugins>
     </build>
-
-    <properties>    
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <didelphis-common.version>0.3.2-SNAPSHOT</didelphis-common.version>
-    </properties>
 
     <dependencies>
 
@@ -59,25 +57,7 @@
         <dependency>
             <groupId>org.didelphis.common</groupId>
             <artifactId>didelphis-common-language</artifactId>
-            <version>${didelphis-common.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.didelphis.common</groupId>
-            <artifactId>didelphis-common-io</artifactId>
-            <version>${didelphis-common.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.didelphis.common</groupId>
-            <artifactId>didelphis-common-structures</artifactId>
-            <version>${didelphis-common.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.didelphis.common</groupId>
-            <artifactId>didelphis-common-utilities</artifactId>
-            <version>${didelphis-common.version}</version>
+            <version>0.3.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

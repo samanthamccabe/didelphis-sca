@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class LexiconWriteCommand<T> extends AbstractLexiconIoCommand {
 
 	private static final Logger LOG = Logger.create(LexiconOpenCommand.class);

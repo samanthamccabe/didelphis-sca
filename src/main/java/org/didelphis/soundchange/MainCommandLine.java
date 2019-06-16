@@ -26,11 +26,10 @@ import org.didelphis.utilities.Logger;
 import java.io.IOException;
 
 @UtilityClass
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class MainCommandLine {
-	
-	Logger LOG = Logger.create(MainCommandLine.class);
-	double NANO = 10.0E-9;
+
+	private final Logger LOG = Logger.create(MainCommandLine.class);
+	private final double NANO = 10.0E-9;
 
 	public static void main(String... args) throws IOException {
 		if (args.length == 0) {

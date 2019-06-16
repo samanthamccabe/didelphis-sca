@@ -45,11 +45,11 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BaseRule<T> implements Rule<T> {
 
-	static Regex BACKREF   = new Regex("\\$([^$]*)(\\d+)");
-	static Regex NOT       = new Regex("\\s*not\\s*", true);
-	static Regex OR        = new Regex("\\s*or\\s*", true);
-	static Regex SPACE     = new Regex("\\s+");
-	static Regex TRANSFORM = new Regex("\\s*>\\s*");
+	private static final Regex BACKREF   = new Regex("\\$([^$]*)(\\d+)");
+	private static final Regex NOT       = new Regex("\\s*not\\s*", true);
+	private static final Regex OR        = new Regex("\\s*or\\s*", true);
+	private static final Regex SPACE     = new Regex("\\s+");
+	private static final Regex TRANSFORM = new Regex("\\s*>\\s*");
 
 	String ruleText;
 
