@@ -65,11 +65,11 @@ class VariableStoreTest {
 		vs.add("R = r l");
 		vs.add("C = p t k R");
 
+		assertTrue(vs.getKeys().contains("R"));
 		assertTrue(vs.getKeys().contains("C"));
-		assertTrue(vs.getKeys().contains("C2"));
 
-		assertCorrect(vs, "C", "p", "t");
-		assertCorrect(vs, "C2", "pp", "pt", "tp", "tt");
+		assertCorrect(vs, "R", "r", "l");
+		assertCorrect(vs, "C", "p", "t", "k", "r", "l");
 	}
 
 	@Test
