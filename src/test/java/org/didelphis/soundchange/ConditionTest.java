@@ -20,6 +20,7 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -42,6 +43,7 @@ class ConditionTest {
 					FormatterMode.INTELLIGENT);
 
 	// We just need to see that this parses correctly
+	@DisplayName("Condition with underscore only")
 	@Test
 	void testEmptyCondition() {
 		Condition<Integer> ignored = new Condition<>("_", FACTORY);
@@ -58,6 +60,26 @@ class ConditionTest {
 	void testDoubleUnderscore() {
 		assertThrows(ParseException.class,
 				() -> new Condition<>("_ _", FACTORY));
+	}
+
+	@Test
+	void testPreconditionMatchingSimple() {
+		Condition<Integer> condition = new Condition<>("_x", FACTORY);
+		Sequence<Integer> sequence = FACTORY.toSequence("bax");
+
+		assertTrue(condition.isMatch(sequence, 1));
+		assertFalse(condition.isMatch(sequence, 0));
+		assertFalse(condition.isMatch(sequence, 2));
+	}
+
+	@Test
+	void testPostconditionMatchingSimple() {
+		Condition<Integer> condition = new Condition<>("b_", FACTORY);
+		Sequence<Integer> sequence = FACTORY.toSequence("bax");
+
+		assertTrue(condition.isMatch(sequence, 1));
+		assertFalse(condition.isMatch(sequence, 0));
+		assertFalse(condition.isMatch(sequence, 2));
 	}
 
 	@Test
@@ -122,7 +144,7 @@ class ConditionTest {
 				"xbabcb"
 		};
 
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 	}
 
 	@Test
@@ -130,8 +152,8 @@ class ConditionTest {
 
 		Condition<Integer> condition = new Condition<>("_d?ab", FACTORY);
 
-		testTrue(condition, "xab", 0);
-		testTrue(condition, "xdab", 0);
+		assertMatches(condition, "xab", 0);
+		assertMatches(condition, "xdab", 0);
 
 		assertFalse(condition.isMatch(FACTORY.toSequence("xadb"), 0));
 		assertFalse(condition.isMatch(FACTORY.toSequence("xacb"), 0));
@@ -144,10 +166,10 @@ class ConditionTest {
 		Condition<Integer> condition =
 				new Condition<>("_a(l(hamb)?ra)?#", FACTORY);
 
-		testTrue(condition, "xalhambra", 0);
-		testTrue(condition, "xalra", 0);
-		testTrue(condition, "xa", 0);
-		testFalse(condition, "xalh", 0);
+		assertMatches(condition, "xalhambra", 0);
+		assertMatches(condition, "xalra", 0);
+		assertMatches(condition, "xa", 0);
+		assertNoMatch(condition, "xalh", 0);
 	}
 
 	@Test
@@ -155,9 +177,9 @@ class ConditionTest {
 
 		Condition<Integer> condition = new Condition<>("_a(ba)?b", FACTORY);
 
-		testTrue(condition, "xab", 0);
-		testTrue(condition, "xabab", 0);
-		testFalse(condition, "xalh", 0);
+		assertMatches(condition, "xab", 0);
+		assertMatches(condition, "xabab", 0);
+		assertNoMatch(condition, "xalh", 0);
 	}
 
 	@Test
@@ -237,7 +259,7 @@ class ConditionTest {
 				"xdeoeoeoeob",
 				"xdeoooob",
 		};
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 	}
 
 	@Test
@@ -247,13 +269,13 @@ class ConditionTest {
 				"x", "xababab", "xab", "xabababab", "xabab", "xababababab"
 		};
 
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 
 		String[] negative = {
 				"xa", "xabababa", "xaba", "xababababa", "xababa", "xabababababa"
 		};
 
-		testNegative(condition, negative);
+		assertNoneMatch(condition, negative);
 	}
 
 	@Test
@@ -265,14 +287,14 @@ class ConditionTest {
 				"xab", "xaab", "xaaab", "xaaaab", "xaaaaab",
 		};
 
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 
-		testFalse(condition, "xb");
-		testFalse(condition, "xcb");
-		testFalse(condition, "xacb");
-		testFalse(condition, "xaacb");
-		testFalse(condition, "xaaacb");
-		testFalse(condition, "xba");
+		assertNoMatch(condition, "xb");
+		assertNoMatch(condition, "xcb");
+		assertNoMatch(condition, "xacb");
+		assertNoMatch(condition, "xaacb");
+		assertNoMatch(condition, "xaaacb");
+		assertNoMatch(condition, "xba");
 	}
 
 	@Test
@@ -295,7 +317,7 @@ class ConditionTest {
 				"xalhambhambra",
 				"xalhammmmbhambra"
 		};
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 	}
 
 	@Test
@@ -332,7 +354,7 @@ class ConditionTest {
 				"xalhammmmbraalhammmbra",
 		};
 
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 	}
 
 	@Test
@@ -365,7 +387,7 @@ class ConditionTest {
 				"x"
 		};
 
-		testPositive(condition, positive);
+		assertAllMatch(condition, positive);
 	}
 
 	@Test
@@ -373,10 +395,10 @@ class ConditionTest {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)(cd)(ef)", FACTORY);
 
-		testTrue(condition, "xabcdef", 0);
-		testFalse(condition, "xabcd", 0);
-		testFalse(condition, "xab", 0);
-		testFalse(condition, "bcdef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertNoMatch(condition, "xabcd", 0);
+		assertNoMatch(condition, "xab", 0);
+		assertNoMatch(condition, "bcdef", 0);
 
 	}
 
@@ -384,59 +406,59 @@ class ConditionTest {
 	void testGroups02() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)*(cd)(ef)", FACTORY);
-		testTrue(condition, "xcdef", 0);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xababcdef", 0);
-		testTrue(condition, "xabababcdef", 0);
+		assertMatches(condition, "xcdef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xababcdef", 0);
+		assertMatches(condition, "xabababcdef", 0);
 
-		testFalse(condition, "xabbcdef", 0);
-		testFalse(condition, "xacdef", 0);
-		testFalse(condition, "xabdef", 0);
-		testFalse(condition, "xabcef", 0);
-		testFalse(condition, "xabcdf", 0);
-		testFalse(condition, "xabcde", 0);
+		assertNoMatch(condition, "xabbcdef", 0);
+		assertNoMatch(condition, "xacdef", 0);
+		assertNoMatch(condition, "xabdef", 0);
+		assertNoMatch(condition, "xabcef", 0);
+		assertNoMatch(condition, "xabcdf", 0);
+		assertNoMatch(condition, "xabcde", 0);
 	}
 
 	@Test
 	void testGroups03() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)(cd)*(ef)", FACTORY);
-		testTrue(condition, "xabef", 0);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xabcdcdef", 0);
+		assertMatches(condition, "xabef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xabcdcdef", 0);
 	}
 
 	@Test
 	void testGroups04() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)(cd)(ef)*", FACTORY);
-		testTrue(condition, "xabcd", 0);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xabcdefef", 0);
+		assertMatches(condition, "xabcd", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xabcdefef", 0);
 	}
 
 	@Test
 	void testGroups05() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)?(cd)(ef)", FACTORY);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xcdef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xcdef", 0);
 	}
 
 	@Test
 	void testGroups06() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)(cd)?(ef)", FACTORY);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xabef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xabef", 0);
 	}
 
 	@Test
 	void testGroups07() {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)(cd)(ef)?", FACTORY);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "xabcd", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "xabcd", 0);
 	}
 
 	@Test
@@ -444,55 +466,55 @@ class ConditionTest {
 		Condition<Integer> condition =
 				new Condition<>("_(ab)?(cd)?(ef)?", FACTORY);
 
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "x", 0);
-		testTrue(condition, "xab", 0);
-		testTrue(condition, "xcd", 0);
-		testTrue(condition, "xef", 0);
-		testTrue(condition, "xabef", 0);
-		testTrue(condition, "xabcd", 0);
-		testTrue(condition, "xcdef", 0);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "x", 0);
+		assertMatches(condition, "xab", 0);
+		assertMatches(condition, "xcd", 0);
+		assertMatches(condition, "xef", 0);
+		assertMatches(condition, "xabef", 0);
+		assertMatches(condition, "xabcd", 0);
+		assertMatches(condition, "xcdef", 0);
 	}
 
 	@Test
 	void testFullCondition() {
 		Condition<Integer> condition =
 				new Condition<>("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?", FACTORY);
-		testTrue(condition, "xabcdef", 0);
-		testTrue(condition, "efxabcdef", 2);
-		testTrue(condition, "cdefxabcdef", 4);
-		testTrue(condition, "abcdefxabcdef", 6);
-		testTrue(condition, "abcdefxabcd", 6);
-		testTrue(condition, "abcdefxab", 6);
-		testTrue(condition, "abcdefx", 6);
+		assertMatches(condition, "xabcdef", 0);
+		assertMatches(condition, "efxabcdef", 2);
+		assertMatches(condition, "cdefxabcdef", 4);
+		assertMatches(condition, "abcdefxabcdef", 6);
+		assertMatches(condition, "abcdefxabcd", 6);
+		assertMatches(condition, "abcdefxab", 6);
+		assertMatches(condition, "abcdefx", 6);
 
-		testTrue(condition, "abx", 2);
-		testTrue(condition, "cdx", 2);
-		testTrue(condition, "efx", 2);
+		assertMatches(condition, "abx", 2);
+		assertMatches(condition, "cdx", 2);
+		assertMatches(condition, "efx", 2);
 
-		testTrue(condition, "abefx", 4);
-		testTrue(condition, "abcdx", 4);
-		testTrue(condition, "cdefx", 4);
+		assertMatches(condition, "abefx", 4);
+		assertMatches(condition, "abcdx", 4);
+		assertMatches(condition, "cdefx", 4);
 	}
 
 	@Test
 	void testSet01() {
 		Condition<Integer> condition = new Condition<>("_{a b c}ds", FACTORY);
-		testTrue(condition, "xads", 0);
-		testTrue(condition, "xbds", 0);
-		testTrue(condition, "xcds", 0);
-		testFalse(condition, "xds", 0);
+		assertMatches(condition, "xads", 0);
+		assertMatches(condition, "xbds", 0);
+		assertMatches(condition, "xcds", 0);
+		assertNoMatch(condition, "xds", 0);
 	}
 
 	@Test
 	void testSet02() {
 		Condition<Integer> condition =
 				new Condition<>("_{ab cd ef}tr", FACTORY);
-		testTrue(condition, "xabtr", 0);
-		testTrue(condition, "xcdtr", 0);
-		testTrue(condition, "xeftr", 0);
-		testFalse(condition, "xabcd", 0);
-		testFalse(condition, "xtr", 0);
+		assertMatches(condition, "xabtr", 0);
+		assertMatches(condition, "xcdtr", 0);
+		assertMatches(condition, "xeftr", 0);
+		assertNoMatch(condition, "xabcd", 0);
+		assertNoMatch(condition, "xtr", 0);
 	}
 
 	@Test
@@ -500,19 +522,19 @@ class ConditionTest {
 		Condition<Integer> condition =
 				new Condition<>("_{ab* cd+ ef}tr", FACTORY);
 
-		testTrue(condition, "xabtr", 0);
-		testTrue(condition, "xcdtr", 0);
-		testTrue(condition, "xeftr", 0);
+		assertMatches(condition, "xabtr", 0);
+		assertMatches(condition, "xcdtr", 0);
+		assertMatches(condition, "xeftr", 0);
 
-		testFalse(condition, "xacd", 0);
-		testFalse(condition, "xabbcd", 0);
-		testFalse(condition, "xabx", 0);
-		testFalse(condition, "xabcd", 0);
-		testFalse(condition, "xb", 0);
-		testFalse(condition, "x", 0);
-		testFalse(condition, "xc", 0);
-		testFalse(condition, "xcdef", 0);
-		testFalse(condition, "xtr", 0);
+		assertNoMatch(condition, "xacd", 0);
+		assertNoMatch(condition, "xabbcd", 0);
+		assertNoMatch(condition, "xabx", 0);
+		assertNoMatch(condition, "xabcd", 0);
+		assertNoMatch(condition, "xb", 0);
+		assertNoMatch(condition, "x", 0);
+		assertNoMatch(condition, "xc", 0);
+		assertNoMatch(condition, "xcdef", 0);
+		assertNoMatch(condition, "xtr", 0);
 	}
 
 	@Test
@@ -520,40 +542,40 @@ class ConditionTest {
 		Condition<Integer> condition =
 				new Condition<>("_{ab* (cd?)+ ((ae)*f)+}tr", FACTORY);
 
-		testTrue(condition, "xabtr", 0);
+		assertMatches(condition, "xabtr", 0);
 
-		testTrue(condition, "xcdtr", 0);
-		testTrue(condition, "xcctr", 0);
-		testTrue(condition, "xccctr", 0);
+		assertMatches(condition, "xcdtr", 0);
+		assertMatches(condition, "xcctr", 0);
+		assertMatches(condition, "xccctr", 0);
 
-		testTrue(condition, "xftr", 0);
-		testTrue(condition, "xfftr", 0);
-		testTrue(condition, "xaeftr", 0);
-		testTrue(condition, "xaeaeftr", 0);
-		testTrue(condition, "xaefaeftr", 0);
-		testTrue(condition, "xaefffffaeftr", 0);
+		assertMatches(condition, "xftr", 0);
+		assertMatches(condition, "xfftr", 0);
+		assertMatches(condition, "xaeftr", 0);
+		assertMatches(condition, "xaeaeftr", 0);
+		assertMatches(condition, "xaefaeftr", 0);
+		assertMatches(condition, "xaefffffaeftr", 0);
 
-		testFalse(condition, "xabcd", 0);
-		testFalse(condition, "xtr", 0);
+		assertNoMatch(condition, "xabcd", 0);
+		assertNoMatch(condition, "xtr", 0);
 	}
 
 	@Test
 	void testSet06() {
 		Condition<Integer> condition =
 				new Condition<>("_{ab {cd xy} ef}tr", FACTORY);
-		testTrue(condition, "xabtr", 0);
-		testTrue(condition, "xcdtr", 0);
-		testTrue(condition, "xeftr", 0);
-		testTrue(condition, "xxytr", 0);
-		testFalse(condition, "xabcd", 0);
-		testFalse(condition, "xtr", 0);
+		assertMatches(condition, "xabtr", 0);
+		assertMatches(condition, "xcdtr", 0);
+		assertMatches(condition, "xeftr", 0);
+		assertMatches(condition, "xxytr", 0);
+		assertNoMatch(condition, "xabcd", 0);
+		assertNoMatch(condition, "xtr", 0);
 	}
 
 	@Test
 	void testSet07() {
 		Condition<Integer> condition = new Condition<>("_{ x ɣ }", FACTORY);
-		testTrue(condition, "pxi");
-		testFalse(condition, "paxi");
+		assertMatches(condition, "pxi");
+		assertNoMatch(condition, "paxi");
 	}
 
 	@Test
@@ -567,18 +589,18 @@ class ConditionTest {
 				factoryParam
 		);
 
-		testTrue(factoryParam, condition, "pʰāḱʰus", 0);
-		testTrue(factoryParam, condition, "pʰentʰros", 0);
-		testTrue(factoryParam, condition, "pʰlaḱʰmēn", 0);
-		testTrue(factoryParam, condition, "pʰoutʰéyet", 0);
+		assertMatches(factoryParam, condition, "pʰāḱʰus", 0);
+		assertMatches(factoryParam, condition, "pʰentʰros", 0);
+		assertMatches(factoryParam, condition, "pʰlaḱʰmēn", 0);
+		assertMatches(factoryParam, condition, "pʰoutʰéyet", 0);
 
-		testFalse(factoryParam, condition, "pʰuǵos", 0);
+		assertNoMatch(factoryParam, condition, "pʰuǵos", 0);
 	}
 
 	@Test
 	void testAdditional01() {
-		testTrue(new Condition<>("_c+#", FACTORY), "abaccc", 2);
-		testTrue(new Condition<>("_#", FACTORY), "abad", 3);
+		assertMatches(new Condition<>("_c+#", FACTORY), "abaccc", 2);
+		assertMatches(new Condition<>("_#", FACTORY), "abad", 3);
 	}
 
 	@Test
@@ -599,18 +621,18 @@ class ConditionTest {
 				sequenceFactory
 		);
 
-		testTrue(sequenceFactory, condition, "abaptk", 2);
-		testTrue(sequenceFactory, condition, "abapppp", 2);
-		testTrue(sequenceFactory, condition, "ababdg", 2);
-		testTrue(sequenceFactory, condition, "abatʰkʰ", 2);
+		assertMatches(sequenceFactory, condition, "abaptk", 2);
+		assertMatches(sequenceFactory, condition, "abapppp", 2);
+		assertMatches(sequenceFactory, condition, "ababdg", 2);
+		assertMatches(sequenceFactory, condition, "abatʰkʰ", 2);
 
-		testTrue(sequenceFactory, condition, "abaptk", 3);
-		testTrue(sequenceFactory, condition, "abapppp", 3);
-		testTrue(sequenceFactory, condition, "ababdg", 3);
-		testTrue(sequenceFactory, condition, "abapʰtʰkʰ", 3);
+		assertMatches(sequenceFactory, condition, "abaptk", 3);
+		assertMatches(sequenceFactory, condition, "abapppp", 3);
+		assertMatches(sequenceFactory, condition, "ababdg", 3);
+		assertMatches(sequenceFactory, condition, "abapʰtʰkʰ", 3);
 
-		testFalse(sequenceFactory, condition, "abatʰkʰ", 1);
-		testFalse(sequenceFactory, condition, "abatʰkʰ", 0);
+		assertNoMatch(sequenceFactory, condition, "abatʰkʰ", 1);
+		assertNoMatch(sequenceFactory, condition, "abatʰkʰ", 0);
 	}
 
 	@Test
@@ -625,59 +647,59 @@ class ConditionTest {
 		);
 		Condition<Integer> condition = new Condition<>("_C+#", store, sequenceFactory);
 
-		testTrue(sequenceFactory, condition, "abatʰkʰ", 2);
+		assertMatches(sequenceFactory, condition, "abatʰkʰ", 2);
 	}
 
 	@Test
 	void testNegative00() {
 		Condition<Integer> condition = new Condition<>("_!a#", FACTORY);
 
-		testTrue(condition, "zb", 0);
-		testTrue(condition, "zc", 0);
-		testTrue(condition, "zd", 0);
-		testTrue(condition, "ze", 0);
+		assertMatches(condition, "zb", 0);
+		assertMatches(condition, "zc", 0);
+		assertMatches(condition, "zd", 0);
+		assertMatches(condition, "ze", 0);
 
-		testFalse(condition, "za", 0); // Good
+		assertNoMatch(condition, "za", 0); // Good
 	}
 
 	@Test
 	void testNegative01() {
 		Condition<Integer> condition = new Condition<>("_!(abc)#", FACTORY);
 
-		testTrue(condition, "zbab", 0);
-		testTrue(condition, "zcab", 0);
-		testTrue(condition, "zdab", 0);
-		testTrue(condition, "zeab", 0);
+		assertMatches(condition, "zbab", 0);
+		assertMatches(condition, "zcab", 0);
+		assertMatches(condition, "zdab", 0);
+		assertMatches(condition, "zeab", 0);
 
-		testTrue(condition, "zaba", 0);
-		testFalse(condition, "zabc", 0);
-		testTrue(condition, "zcba", 0);
-		testTrue(condition, "zaaa", 0);
+		assertMatches(condition, "zaba", 0);
+		assertNoMatch(condition, "zabc", 0);
+		assertMatches(condition, "zcba", 0);
+		assertMatches(condition, "zaaa", 0);
 	}
 
 	@Test
 	void testNegative02() {
 		Condition<Integer> condition = new Condition<>("_!{a b c}#", FACTORY);
 
-		testTrue(condition, "yz", 0);
-		testTrue(condition, "ym", 0);
-		testTrue(condition, "yr", 0);
-		testTrue(condition, "yd", 0);
+		assertMatches(condition, "yz", 0);
+		assertMatches(condition, "ym", 0);
+		assertMatches(condition, "yr", 0);
+		assertMatches(condition, "yd", 0);
 
-		testFalse(condition, "x!a", 0); // Good
-		testFalse(condition, "xa", 0);
-		testFalse(condition, "xb", 0);
-		testFalse(condition, "xc", 0);
+		assertNoMatch(condition, "x!a", 0); // Good
+		assertNoMatch(condition, "xa", 0);
+		assertNoMatch(condition, "xb", 0);
+		assertNoMatch(condition, "xc", 0);
 	}
 	
 	@Test
 	void testUnknownFailure() {
 		Condition<Integer> condition = new Condition<>("{s c y}{s c y}+_{o}", FACTORY);
 		
-		testTrue(condition, "tusscyos", 5);
+		assertMatches(condition, "tusscyos", 5);
 	}
 
-	private static void testTrue(
+	private static void assertMatches(
 			SequenceFactory<Integer> factory,
 			Condition<Integer> condition,
 			String testString,
@@ -690,44 +712,44 @@ class ConditionTest {
 		);
 	}
 
-	private static void testTrue(Condition<Integer> condition,
+	private static void assertMatches(Condition<Integer> condition,
 			String testString, int index) {
-		testTrue(FACTORY, condition, testString, index);
+		assertMatches(FACTORY, condition, testString, index);
 	}
 
-	private static void testFalse(SequenceFactory<Integer> factory,
+	private static void assertNoMatch(SequenceFactory<Integer> factory,
 			Condition<Integer> condition, String testString, int index) {
 		Sequence<Integer> word = factory.toSequence(testString);
 		assertFalse(condition.isMatch(word, index),
 				testString + " should not have matched " + condition + " but did.");
 	}
 
-	private static void testFalse(Condition<Integer> condition,
+	private static void assertNoMatch(Condition<Integer> condition,
 			String testString, int index) {
-		testFalse(FACTORY, condition, testString, index);
+		assertNoMatch(FACTORY, condition, testString, index);
 	}
 
-	private static void testFalse(Condition<Integer> condition,
+	private static void assertNoMatch(Condition<Integer> condition,
 			String testString) {
-		testFalse(condition, testString, 0);
+		assertNoMatch(condition, testString, 0);
 	}
 
-	private static void testTrue(Condition<Integer> condition,
+	private static void assertMatches(Condition<Integer> condition,
 			String testString) {
-		testTrue(condition, testString, 0);
+		assertMatches(condition, testString, 0);
 	}
 
-	private static void testPositive(Condition<Integer> condition,
-			String... positive) {
-		for (String p : positive) {
-			testTrue(condition, p, 0);
+	private static void assertAllMatch(Condition<Integer> condition,
+			String... positives) {
+		for (String positive : positives) {
+			assertMatches(condition, positive, 0);
 		}
 	}
 
-	private static void testNegative(Condition<Integer> condition,
-			String... negative) {
-		for (String n : negative) {
-			testFalse(condition, n, 0);
+	private static void assertNoneMatch(Condition<Integer> condition,
+			String... negatives) {
+		for (String negative : negatives) {
+			assertNoMatch(condition, negative, 0);
 		}
 	}
 }

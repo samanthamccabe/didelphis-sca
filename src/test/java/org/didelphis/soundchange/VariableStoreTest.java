@@ -14,14 +14,23 @@
 
 package org.didelphis.soundchange;
 
+import lombok.NonNull;
 import org.didelphis.language.parsing.FormatterMode;
+import org.didelphis.language.parsing.ParseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Created by samantha on 2/14/17.
- */
-public class VariableStoreTest {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class VariableStoreTest {
 
 	@Test
 	void testVariableComplex01() {
@@ -29,8 +38,11 @@ public class VariableStoreTest {
 		vs.add("C  = p t k");
 		vs.add("HC = hC");
 
-		String expected = "C = p t k\n" + "HC = hp ht hk";
-		Assertions.assertEquals(expected, vs.toString());
+		assertTrue(vs.getKeys().contains("C"));
+		assertTrue(vs.getKeys().contains("HC"));
+
+		assertCorrect(vs, "C", "p", "t", "k");
+		assertCorrect(vs, "HC", "hp", "ht", "hk");
 	}
 
 	@Test
@@ -39,8 +51,11 @@ public class VariableStoreTest {
 		vs.add("C  = p t ");
 		vs.add("C2 = CC");
 
-		String expected = "C = p t\n" + "C2 = pp pt tp tt";
-		Assertions.assertEquals(expected, vs.toString());
+		assertTrue(vs.getKeys().contains("C"));
+		assertTrue(vs.getKeys().contains("C2"));
+
+		assertCorrect(vs, "C", "p", "t");
+		assertCorrect(vs, "C2", "pp", "pt", "tp", "tt");
 	}
 
 	@Test
@@ -50,8 +65,11 @@ public class VariableStoreTest {
 		vs.add("R = r l");
 		vs.add("C = p t k R");
 
-		String expected = "R = r l\n" + "C = p t k r l";
-		Assertions.assertEquals(expected, vs.toString());
+		assertTrue(vs.getKeys().contains("C"));
+		assertTrue(vs.getKeys().contains("C2"));
+
+		assertCorrect(vs, "C", "p", "t");
+		assertCorrect(vs, "C2", "pp", "pt", "tp", "tt");
 	}
 
 	@Test
@@ -63,9 +81,16 @@ public class VariableStoreTest {
 		vs.add("L = R w y");
 		vs.add("C = p t k L N");
 
-		String expected = "" + "N = n m\n" + "R = r l\n" + "L = r l w y\n" +
-				"C = p t k r l w y n m";
-		Assertions.assertEquals(expected, vs.toString());
+		Set<String> keys = vs.getKeys();
+		assertTrue(keys.contains("N"));
+		assertTrue(keys.contains("R"));
+		assertTrue(keys.contains("L"));
+		assertTrue(keys.contains("C"));
+
+		assertCorrect(vs, "N", "n", "m");
+		assertCorrect(vs, "R", "r", "l");
+		assertCorrect(vs, "L", "r", "l", "w", "y");
+		assertCorrect(vs, "C", "p", "t", "k", "r", "l", "w", "y", "n", "m");
 	}
 
 	@Test
@@ -77,9 +102,16 @@ public class VariableStoreTest {
 		vs.add("CH = pʰ tʰ kʰ");
 		vs.add("[CONS] = CH C H");
 
-		String expected = "" + "C = p t k\n" + "H = x ɣ\n" + "CH = pʰ tʰ kʰ\n" +
-				"[CONS] = pʰ tʰ kʰ p t k x ɣ";
-		Assertions.assertEquals(expected, vs.toString());
+		Set<String> keys = vs.getKeys();
+		assertTrue(keys.contains("C"));
+		assertTrue(keys.contains("H"));
+		assertTrue(keys.contains("CH"));
+		assertTrue(keys.contains("[CONS]"));
+
+		assertCorrect(vs, "C", "p", "t", "k");
+		assertCorrect(vs, "H", "x", "ɣ");
+		assertCorrect(vs, "CH", "pʰ", "tʰ", "kʰ");
+		assertCorrect(vs, "[CONS]", "pʰ", "tʰ", "kʰ", "p", "t", "k", "x", "ɣ");
 	}
 
 	@Test
@@ -93,14 +125,37 @@ public class VariableStoreTest {
 		vs.add("@T  = tʰ  t  d");
 		vs.add("[PLOSIVE] = @P @T @KY @K @Q");
 
-		String expected = String.join("\n",
-				"@Q = kʷʰ kʷ gʷ",
-				"@K = kʰ k g",
-				"@KY = cʰ c ɟ",
-				"@P = pʰ p b",
-				"@T = tʰ t d",
-				"[PLOSIVE] = pʰ p b tʰ t d cʰ c ɟ kʰ k g kʷʰ kʷ gʷ"
-		);
-		Assertions.assertEquals(expected, vs.toString());
+		Set<String> keys = vs.getKeys();
+		assertTrue(keys.contains("@Q"));
+		assertTrue(keys.contains("@K"));
+		assertTrue(keys.contains("@KY"));
+		assertTrue(keys.contains("@P"));
+		assertTrue(keys.contains("@T"));
+		assertTrue(keys.contains("[PLOSIVE]"));
+
+		assertCorrect(vs, "@Q", "kʷʰ", "kʷ", "gʷ");
+		assertCorrect(vs, "@K", "kʰ", "k", "g");
+		assertCorrect(vs, "@KY", "cʰ", "c", "ɟ");
+		assertCorrect(vs, "@P", "pʰ", "p", "b");
+		assertCorrect(vs, "@T", "tʰ", "t", "d");
+		assertCorrect(vs, "[PLOSIVE]", "pʰ", "p", "b", "tʰ", "t", "d", "cʰ", "c", "ɟ", "kʰ", "k", "g", "kʷʰ", "kʷ", "gʷ");
+	}
+
+	@Test
+	void testMultipleEquals() {
+		VariableStore vs = new VariableStore(FormatterMode.NONE);
+		assertThrows(ParseException.class, () -> vs.add("A = B = C"));
+	}
+
+	private static List<String> toList(String... strings) {
+		return new ArrayList<>(Arrays.asList(strings));
+	}
+
+	private static void assertCorrect(
+			@NonNull VariableStore vs,
+			@NonNull String key,
+			@NonNull String... values
+	) {
+		assertEquals(toList(values), vs.get(key));
 	}
 }

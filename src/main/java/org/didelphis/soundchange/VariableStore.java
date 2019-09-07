@@ -15,6 +15,8 @@
 package org.didelphis.soundchange;
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import org.didelphis.language.automata.Regex;
 import org.didelphis.language.parsing.FormatterMode;
@@ -39,6 +41,8 @@ import java.util.stream.Collectors;
  *
  * @since 0.0.0
  */
+@ToString
+@EqualsAndHashCode
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariableStore {
 
@@ -78,21 +82,6 @@ public class VariableStore {
 		return variables.containsKey(symbol);
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		variables.forEach((key, value) -> {
-			sb.append(key);
-			sb.append(" =");
-			for (String sequence : value) {
-				sb.append(' ');
-				sb.append(sequence);
-			}
-			sb.append('\n');
-		});
-		return sb.toString().trim();
-	}
-
 	public void add(String command) {
 		List<String> parts = EQUALS_PATTERN.split(command.trim());
 
@@ -116,10 +105,6 @@ public class VariableStore {
 		}
 	}
 
-	public void addAll(VariableStore variableStore) {
-		variables.putAll(variableStore.variables);
-	}
-
 	public Set<String> getKeys() {
 		return variables.isEmpty() ? new HashSet<>() : variables.keySet();
 	}
@@ -132,11 +117,12 @@ public class VariableStore {
 		List<List<String>> list = new ArrayList<>();
 		List<List<String>> swap = new ArrayList<>();
 
-		// TODO: unclear if this should be an empty map ************************
-		list.add(segmenter.split(element, getKeys(), Collections.emptyMap()));
+		// Pass empty delimiters
+		Map<String, String> delimiters = Collections.emptyMap();
+		list.add(segmenter.split(element, getKeys(), delimiters));
 
-		boolean modified = true;
-		while (modified) {
+		boolean modified;
+		do {
 			modified = false;
 			for (List<String> strings : list) {
 				for (int i = 0; i < strings.size(); i++) {
@@ -157,7 +143,7 @@ public class VariableStore {
 				list = swap;
 				swap = new ArrayList<>();
 			}
-		}
+		} while (modified);
 
 		return list.stream()
 				.map(strings -> {
@@ -168,15 +154,5 @@ public class VariableStore {
 					return sb.toString();
 				})
 				.collect(Collectors.toList());
-	}
-
-	private String getBestMatch(String tail) {
-		String bestMatch = "";
-		for (String key : getKeys()) {
-			if (tail.startsWith(key) && bestMatch.length() < key.length()) {
-				bestMatch = key;
-			}
-		}
-		return bestMatch;
 	}
 }

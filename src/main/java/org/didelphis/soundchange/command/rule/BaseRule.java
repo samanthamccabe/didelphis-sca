@@ -114,15 +114,11 @@ public class BaseRule<T> implements Rule<T> {
 				// because it is possible, or even likely, that a language might
 				// have a set of multi-segment clusters which still pattern 
 				// together, or which are part of conditioning environments.
-				if (testIndex >= 0 && conditionsMatch(sequence, startIndex, testIndex)) {
+				if (testIndex >= 0 && matchesCondition(sequence, startIndex, testIndex)) {
 					// Now at this point, if everything worked, we can
-					Sequence<T> removed;
-					if (startIndex < testIndex) {
-						removed = sequence.remove(startIndex, testIndex);
-					} else {
-						removed = new BasicSequence<>(model);
-					}
-					
+					Sequence<T> removed = startIndex < testIndex
+							? sequence.remove(startIndex, testIndex)
+							: new BasicSequence<>(model);
 					Sequence<T> replacement = getReplacement(removed, target);
 					if (!replacement.isEmpty()) {
 						sequence.insert(replacement, startIndex);
@@ -303,7 +299,7 @@ public class BaseRule<T> implements Rule<T> {
 	 * @param target the "target" pattern; provides a template of indexed
 	 *               variables and backreferences to be filled in
 	 *
-	 * @return a Sequence<T> object with variables and references filled in
+	 * @return a Sequence object with variables and references filled in
 	 * according to the provided maps
 	 */
 	private Sequence<T> getReplacement(Sequence<T> source, Sequence<T> target) {
@@ -353,7 +349,7 @@ public class BaseRule<T> implements Rule<T> {
 		String symbol = matcher.group(1);
 		String digits = matcher.group(2);
 
-		int reference = Integer.valueOf(digits);
+		int reference = Integer.parseInt(digits);
 		int integer = ruleMatcher.getIndex(reference);
 
 		Sequence<T> sequence;
@@ -381,7 +377,7 @@ public class BaseRule<T> implements Rule<T> {
 		return sequence;
 	}
 
-	private boolean conditionsMatch(Sequence<T> word, int start, int end) {
+	private boolean matchesCondition(Sequence<T> word, int start, int end) {
 		Iterator<Condition<T>> cI = conditions.iterator();
 		Iterator<Condition<T>> eI = exceptions.iterator();
 
@@ -425,11 +421,7 @@ public class BaseRule<T> implements Rule<T> {
 		}
 		
 		List<String> array = TRANSFORM.split(transformation);
-
-		if (array.size() <= 1
-				|| array.get(0).isEmpty()
-				|| array.get(1).isEmpty()
-		) {
+		if (isMalformed(array)) {
 			String message = Templates.create()
 					.add("Malformed transformation.")
 					.data(transformation)
@@ -540,6 +532,12 @@ public class BaseRule<T> implements Rule<T> {
 		FeatureArray<T> features = segment.getFeatures();
 		return features instanceof SparseFeatureArray || 
 				type.listUndefined().stream().anyMatch(features::contains);
+	}
+
+	private static boolean isMalformed(List<String> array) {
+		return array.size() <= 1
+				|| array.get(0).isEmpty()
+				|| array.get(1).isEmpty();
 	}
 
 	private static final class RuleMatcher<T> {

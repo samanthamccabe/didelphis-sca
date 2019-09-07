@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Created by samantha on 10/27/16.
- */
 class CompoundRuleTest {
 
 	private static final SequenceFactory<Integer> FACTORY =

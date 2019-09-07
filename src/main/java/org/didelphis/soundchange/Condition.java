@@ -21,6 +21,7 @@ import lombok.experimental.FieldDefaults;
 import org.didelphis.language.automata.expressions.Expression;
 import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.automata.parsing.SequenceParser;
+import org.didelphis.language.automata.statemachines.StandardStateMachine;
 import org.didelphis.language.automata.statemachines.StateMachine;
 import org.didelphis.language.parsing.ParseDirection;
 import org.didelphis.language.parsing.ParseException;
@@ -35,8 +36,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.didelphis.language.automata.statemachines.StandardStateMachine.create;
 
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -69,16 +68,16 @@ public class Condition<T> {
 
 		SequenceParser<T> parser = new SequenceParser<>(factory, multiMap);
 
+		// A condition must be entirely empty or contain exactly one _
 		if (conditionText.contains("_") || condition.trim().isEmpty()) {
 			String[] conditions = conditionText.split("_", -1);
 			Expression empty = parser.parseExpression("");
-			if (conditions.length == 1) {
-				Expression expression = parser.parseExpression(
-						conditions[0],
-						ParseDirection.BACKWARD);
-				preCondition  = create("M", expression, parser);
-				postCondition = create("M", empty, parser);
-			} else if (conditions.length == 2) {
+
+			// note conditions should never have size 1 due to the behavior of
+			// String::split when called with limit -1; so long as the condition
+			// contains exactly one underscore character, the returned array
+			// should be guaranteed to have a size of two
+			if (conditions.length == 2) {
 				Expression expression1 = parser.parseExpression(
 						conditions[0],
 						ParseDirection.BACKWARD
@@ -88,11 +87,11 @@ public class Condition<T> {
 						ParseDirection.FORWARD
 				);
 
-				preCondition  = create("X", expression1, parser);
-				postCondition = create("Y", expression2, parser);
+				preCondition  = StandardStateMachine.create("X", expression1, parser);
+				postCondition = StandardStateMachine.create("Y", expression2, parser);
 			} else if (conditions.length == 0) {
-				preCondition  = create("M", empty, parser);
-				postCondition = create("M", empty, parser);
+				preCondition  = StandardStateMachine.create("M", empty, parser);
+				postCondition = StandardStateMachine.create("M", empty, parser);
 			} else {
 				String message = Templates.create()
 						.add("Malformed Condition, multiple _ characters")
