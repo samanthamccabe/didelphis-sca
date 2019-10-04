@@ -7,6 +7,7 @@
 package org.didelphis.soundchange;
 
 import lombok.Data;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

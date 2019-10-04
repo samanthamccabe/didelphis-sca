@@ -12,6 +12,7 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.LexiconMap;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

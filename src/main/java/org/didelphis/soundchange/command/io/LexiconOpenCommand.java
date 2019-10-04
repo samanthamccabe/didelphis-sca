@@ -8,6 +8,7 @@ package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.SequenceFactory;

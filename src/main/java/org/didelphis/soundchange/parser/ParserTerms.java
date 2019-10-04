@@ -3,6 +3,7 @@ package org.didelphis.soundchange.parser;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
+
 import org.didelphis.language.automata.Regex;
 
 /**

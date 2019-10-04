@@ -14,9 +14,8 @@
 
 package org.didelphis.soundchange;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
+
 import org.didelphis.io.DiskFileHandler;
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.features.FeatureType;

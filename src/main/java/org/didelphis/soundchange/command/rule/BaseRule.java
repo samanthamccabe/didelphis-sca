@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.language.automata.Regex;
 import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.parsing.ParseException;

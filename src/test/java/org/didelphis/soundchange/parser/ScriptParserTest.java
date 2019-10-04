@@ -21,9 +21,10 @@ import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.language.parsing.ParseException;
-import org.didelphis.soundchange.VariableStore;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.soundchange.ErrorLogger;
+import org.didelphis.soundchange.VariableStore;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;

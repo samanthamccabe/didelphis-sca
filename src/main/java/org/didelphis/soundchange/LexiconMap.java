@@ -16,6 +16,7 @@ package org.didelphis.soundchange;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import org.didelphis.language.phonetic.Lexicon;
 
 import java.util.Collection;

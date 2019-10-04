@@ -20,8 +20,8 @@ package org.didelphis.soundchange.parser;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.automata.Automaton;
 import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
@@ -41,7 +41,6 @@ import org.didelphis.utilities.Templates;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

@@ -16,6 +16,7 @@ package org.didelphis.soundchange;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
@@ -26,6 +27,7 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureMapping;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

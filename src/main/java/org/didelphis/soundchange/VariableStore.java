@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.language.automata.Regex;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;

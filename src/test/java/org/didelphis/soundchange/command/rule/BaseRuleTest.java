@@ -8,6 +8,7 @@ package org.didelphis.soundchange.command.rule;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -17,6 +18,7 @@ import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.utilities.Logger;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 

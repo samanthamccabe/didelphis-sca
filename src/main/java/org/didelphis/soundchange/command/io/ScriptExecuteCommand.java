@@ -7,6 +7,7 @@
 package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
+
 import org.didelphis.io.FileHandler;
 import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.utilities.Logger;

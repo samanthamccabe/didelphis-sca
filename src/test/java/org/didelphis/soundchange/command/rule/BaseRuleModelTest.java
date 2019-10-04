@@ -16,6 +16,7 @@ import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.utilities.Logger;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;

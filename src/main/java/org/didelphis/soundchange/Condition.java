@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+
 import org.didelphis.language.automata.expressions.Expression;
 import org.didelphis.language.automata.matching.Match;
 import org.didelphis.language.automata.parsing.SequenceParser;
