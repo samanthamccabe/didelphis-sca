@@ -18,17 +18,16 @@ import lombok.experimental.UtilityClass;
 
 import org.didelphis.io.DiskFileHandler;
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.phonetic.features.FeatureType;
-import org.didelphis.language.phonetic.features.IntegerFeature;
-import org.didelphis.utilities.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 @UtilityClass
 public final class MainCommandLine {
 
-	private final Logger LOG = Logger.create(MainCommandLine.class);
-	private final double NANO = 10.0E-9;
+	private static final Logger LOG = LogManager.getLogger(MainCommandLine.class);
 
 	public static void main(String... args) throws IOException {
 		if (args.length == 0) {
@@ -38,18 +37,21 @@ public final class MainCommandLine {
 				double startTime = System.nanoTime();
 				FileHandler handler = new DiskFileHandler("UTF-8");
 				String read = handler.read(arg);
-				FeatureType<?> type = IntegerFeature.INSTANCE;
-				SoundChangeScript<?> script = new StandardScript<>(arg,
-						type,
-						read,
-						handler,
-						new ErrorLogger()
-				);
-				script.process();
 
-				double elapsedTime = System.nanoTime() - startTime;
-				double time = elapsedTime * NANO;
-				LOG.info("Finished script {} in {} seconds", arg, time);
+				SoundChangeScript script = new StandardScript(
+						arg,
+						read,
+						handler
+				);
+
+				if (script.isInitialized()) {
+					script.process();
+					double elapsedTime = System.nanoTime() - startTime;
+					double time = elapsedTime / 1_000_000_000.0;
+					LOG.info("Finished script {} in {} seconds", arg, time);
+				} else {
+					LOG.error("Encountered compilation errors");
+				}
 			}
 		}
 	}

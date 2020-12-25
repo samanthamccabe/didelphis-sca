@@ -18,7 +18,6 @@
 package org.didelphis.soundchange.parser;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import org.didelphis.io.FileHandler;
@@ -27,9 +26,10 @@ import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.FeatureType;
+import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureMapping;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
-import org.didelphis.soundchange.ErrorLogger;
+import org.didelphis.soundchange.ScriptError;
 import org.didelphis.soundchange.command.io.LexiconCloseCommand;
 import org.didelphis.soundchange.command.io.LexiconOpenCommand;
 import org.didelphis.soundchange.command.io.LexiconWriteCommand;
@@ -39,10 +39,14 @@ import org.didelphis.soundchange.command.rule.StandardRule;
 import org.didelphis.utilities.Splitter;
 import org.didelphis.utilities.Templates;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -50,60 +54,48 @@ import java.util.Queue;
 import static org.didelphis.soundchange.parser.ParserTerms.*;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ScriptParser<T> {
+public class ScriptParser {
+
+	private static final Logger LOG = LogManager.getLogger(ScriptParser.class);
 
 	final String scriptPath;
-	final FeatureType<T> type;
-	final String scriptData;
+	final FeatureType type;
 	final FileHandler fileHandler;
-	final ErrorLogger logger;
-	final Queue<Runnable> commands;
-	final ParserMemory<T> memory;
+	final Deque<Runnable> commands;
+	final ParserMemory memory;
 
-	@Getter
-	final ProjectFile mainProjectFile;
-	
+	final List<String> scriptLines;
+
+	boolean useDebug;
+
 	int lineNumber;
 
 	public ScriptParser(
 			String scriptPath,
-			FeatureType<T> type,
 			String scriptData,
-			FileHandler fileHandler,
-			ErrorLogger logger
+			FileHandler fileHandler
 	) {
 		this(scriptPath,
-				type,
 				scriptData,
 				fileHandler,
-				logger,
-				new ParserMemory<>(type)
+				new ParserMemory()
 		);
 	}
 
 	private ScriptParser(
 			String scriptPath,
-			FeatureType<T> type,
 			String scriptData,
 			FileHandler fileHandler,
-			ErrorLogger logger,
-			ParserMemory<T> memory
+			ParserMemory memory
 	) {
+		scriptLines = Splitter.lines(scriptData);
 
 		this.scriptPath = scriptPath;
-		this.type = type;
-		this.scriptData = scriptData;
+		this.type = IntegerFeature.INSTANCE;
 		this.fileHandler = fileHandler;
-		this.logger = logger;
 		this.memory = memory;
 
 		commands = new ArrayDeque<>();
-
-		mainProjectFile = new ProjectFile();
-		mainProjectFile.setFileType(FileType.SCRIPT);
-		mainProjectFile.setRelativePath(scriptPath);
-		mainProjectFile.setFileData(scriptData);
-		mainProjectFile.setFileName(PATH.replace(scriptPath, "$2"));
 	}
 
 	@Override
@@ -114,54 +106,45 @@ public class ScriptParser<T> {
 	/**
 	 * @throws ParseException if any errors are encountered during processing
 	 */
-	public void parse() {
+	public boolean parse() {
 		if (!commands.isEmpty()) {
-			return;
+			LOG.warn("No commands were found to parses");
+			return false;
 		} // Cutoff
 
-		List<String> lines = Splitter.lines(scriptData);
-		for (; lineNumber < lines.size(); lineNumber++) {
-			String string = lines.get(lineNumber);
+		boolean success = true;
+		for (lineNumber = 0; lineNumber < scriptLines.size(); lineNumber++) {
+			String string = scriptLines.get(lineNumber);
 			String command = COMMENT.replace(string, "").trim();
 			if (!command.isEmpty()) {
-				int errorLine = lineNumber + 1;
 				try {
-					parseCommand(lines, command);
+					parseCommand(command);
 				} catch (ParseException e) {
-					logger.add(scriptPath, errorLine, "", e.getMessage());
+					success = false;
+					String received = new ScriptError()
+							.withMessage(e.getMessage())
+							.withScriptName(scriptPath)
+							.withLineNumber(lineNumber)
+							.withScripData(scriptLines)
+							.build();
+					LOG.error(received);
 				}
 			}
 		}
-
-		Collection<ErrorLogger.Error> errors = logger.getErrors();
-		if (!errors.isEmpty()) {
-			Templates.Builder builder = Templates.create();
-			builder.add("Script compiled with errors:");
-			for (ErrorLogger.Error error : errors) {
-				builder.add("\n[{}] Line: {} --- {}\n{}");
-				builder.with(
-						error.getScript(),
-						error.getLine(),
-						error.getMessage(),
-						error.getData()
-				);
-			}
-			throw new ParseException(builder.build());
-		}
+		return success;
 	}
 
 	public Queue<Runnable> getCommands() {
 		return commands;
 	}
 
-	public ParserMemory<T> getMemory() {
+	public ParserMemory getMemory() {
 		return memory;
 	}
 
-	private void parseCommand(List<String> lines, String command) {
-		FormatterMode formatterMode = memory.getFormatterMode();
+	private void parseCommand(String command) {
 		if (LOAD.matches(command)) {
-			FeatureMapping<T> featureModel = loadModel(
+			FeatureMapping featureModel = loadModel(
 					scriptPath,
 					command,
 					fileHandler
@@ -174,12 +157,12 @@ public class ScriptParser<T> {
 		} else if (OPEN.matches(command)) {
 			openLexicon(scriptPath, command, memory.factorySnapshot());
 		} else if (WRITE.matches(command)) {
-			writeLexicon(scriptPath, command, formatterMode);
+			writeLexicon(scriptPath, command, memory.factorySnapshot());
 		} else if (CLOSE.matches(command)) {
-			closeLexicon(scriptPath, command, formatterMode);
+			closeLexicon(scriptPath, command, memory.factorySnapshot());
 		} else if (command.contains("=")) {
 			StringBuilder sb = new StringBuilder(command);
-			String next = nextLine(lines);
+			String next = nextLine(scriptLines);
 			while ((next != null) &&
 				VAR_NEXT_LINE.matches(next) &&
 				!KEYWORDS.matches(next)
@@ -187,20 +170,22 @@ public class ScriptParser<T> {
 				sb.append('\n');
 				sb.append(next);
 				lineNumber++;
-				next = nextLine(lines);
+				next = nextLine(scriptLines);
 			}
 			memory.getVariables().add(sb.toString());
 		} else if (RULE.matches(command)) {
 			StringBuilder sb = new StringBuilder(command);
-			String next = nextLine(lines);
+			String next = nextLine(scriptLines);
 			while ((next != null) && CONTINUATION.matches(next)) {
 				sb.append('\n');
 				sb.append(next);
 				lineNumber++;
-				next = nextLine(lines);
+				next = nextLine(scriptLines);
 			}
-			ParserMemory<T> parserMemory = new ParserMemory<>(memory);
-			commands.add(new StandardRule<>(sb.toString(), parserMemory));
+			ParserMemory parserMemory = new ParserMemory(memory);
+			StandardRule rule = new StandardRule(sb.toString(), parserMemory, useDebug);
+			useDebug = false;
+			commands.add(rule);
 		} else if (MODE.matches(command)) {
 			memory.setFormatterMode(setNormalizer(command));
 		} else if (RESERVE.matches(command)) {
@@ -209,15 +194,28 @@ public class ScriptParser<T> {
 			List<String> list = Splitter.whitespace(reserve, emptyMap);
 			memory.getReserved().addAll(list);
 		} else if (BREAK.matches(command)) {
-			lineNumber = Integer.MAX_VALUE;
+			lineNumber = -1;
+		} else if (DEBUG.matches(command)) {
+			useDebug = true;
+			return;
 		} else {
-			logger.add(scriptPath, lineNumber, command, "Unrecognized Command");
+			String received = new ScriptError()
+					.withMessage("Unrecognized Command")
+					.withScriptName(scriptPath)
+					.withLineNumber(lineNumber)
+					.withScripData(scriptLines)
+					.build();
+			LOG.error(received);
 		}
+		useDebug = false;
 	}
 
+	@Nullable
 	private String nextLine(List<String> lines) {
-		return (lineNumber + 1) < lines.size() 
-				? lines.get(lineNumber + 1).trim() 
+		// 2020 - just gets the next line i guess
+		// seems like a weird way to do it
+		return (lineNumber + 1) < lines.size()
+				? lines.get(lineNumber + 1).trim()
 				: null;
 	}
 
@@ -230,7 +228,7 @@ public class ScriptParser<T> {
 	 * 		and scriptPath-handle
 	 */
 	private void openLexicon(
-			String filePath, String command, SequenceFactory<T> factory
+			String filePath, String command, SequenceFactory factory
 	) {
 		Match<String> matcher = OPEN.match(command);
 		if (matcher.matches()) {
@@ -245,18 +243,15 @@ public class ScriptParser<T> {
 				projectFile.setRelativePath(path);
 				projectFile.setFileName(PATH.replace(path, "$2"));
 				projectFile.setFileType(FileType.LEXICON_READ);
-
-				mainProjectFile.addChild(projectFile);
 			} catch (IOException e) {
 				String message = Templates.create()
 						.add("Unable to read data from lexicon with path {}")
 						.with(fullPath)
-						.data(command)
 						.build();
 				throw new ParseException(message, e);
 			}
-			
-			commands.add(new LexiconOpenCommand<>(
+
+			commands.add(new LexiconOpenCommand(
 					memory.getLexicons(),
 					fullPath,
 					handle,
@@ -266,7 +261,6 @@ public class ScriptParser<T> {
 		} else {
 			String message = Templates.create()
 					.add("Incorrectly formatted OPEN statement.")
-					.data(command)
 					.build();
 			throw new ParseException(message);
 		}
@@ -282,8 +276,11 @@ public class ScriptParser<T> {
 	 *
 	 * @throws ParseException
 	 */
-	private void closeLexicon(String filePath, String command,
-			FormatterMode mode) {
+	private void closeLexicon(
+			String filePath,
+			String command,
+			SequenceFactory factory
+	) {
 		Match<String> matcher = CLOSE.match(command);
 		if (matcher.matches()) {
 			String handle = matcher.group(1);
@@ -295,15 +292,22 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 
-			mainProjectFile.addChild(projectFile);
-
-			commands.add(new LexiconCloseCommand<>(
+			commands.add(new LexiconCloseCommand(
 					memory.getLexicons(),
 					fullPath,
 					handle,
 					fileHandler,
-					mode));
+					factory.getFeatureMapping(),
+					factory.getFormatterMode()));
 		} else {
+			String received = new ScriptError()
+					.withMessage("Incorrectly formatted CLOSE statement")
+					.withScriptName(scriptPath)
+					.withLineNumber(lineNumber)
+					.withScripData(scriptLines)
+					.build();
+			LOG.error(received);
+
 			String message = Templates.create()
 					.add("Incorrectly formatted CLOSE statement.")
 					.data(command)
@@ -322,8 +326,11 @@ public class ScriptParser<T> {
 	 *
 	 * @throws ParseException
 	 */
-	private void writeLexicon(String filePath, String command,
-			FormatterMode mode) {
+	private void writeLexicon(
+			String filePath,
+			String command,
+			SequenceFactory factory
+	) {
 		Match<String> matcher = WRITE.match(command);
 		if (matcher.matches()) {
 			String handle = matcher.group(1);
@@ -335,14 +342,13 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileType(FileType.LEXICON_WRITE);
 
-			mainProjectFile.addChild(projectFile);
-
-			commands.add(new LexiconWriteCommand<>(
+			commands.add(new LexiconWriteCommand(
 					memory.getLexicons(),
 					fullPath,
 					handle,
 					fileHandler,
-					mode));
+					factory.getFeatureMapping(),
+					factory.getFormatterMode()));
 
 		} else {
 			String message = Templates.create()
@@ -367,19 +373,16 @@ public class ScriptParser<T> {
 		try {
 			String fullPath = getPath(filePath, path);
 			String data = fileHandler.read(path);
-			ScriptParser<T> scriptParser = new ScriptParser<>(
+			ScriptParser scriptParser = new ScriptParser(
 					fullPath,
-					type,
 					data,
 					fileHandler,
-					logger,
 					memory
 			);
-			scriptParser.parse();
+			boolean success = scriptParser.parse();
 			commands.add(new ScriptImportCommand(
 					filePath,
 					fileHandler,
-					logger,
 					scriptParser.getCommands()
 			));
 
@@ -388,10 +391,6 @@ public class ScriptParser<T> {
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
-
-			ProjectFile mainProjectFile = scriptParser.getMainProjectFile();
-			this.mainProjectFile.addChild(mainProjectFile);
-
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
@@ -410,19 +409,16 @@ public class ScriptParser<T> {
 		try {
 		String fullPath = getPath(filePath, path);
 		String data = fileHandler.read(path);
-		ScriptParser<T> scriptParser = new ScriptParser<>(
+		ScriptParser scriptParser = new ScriptParser(
 				fullPath,
-				type,
 				data,
 				fileHandler,
-				logger,
 				memory
 		);
 		scriptParser.parse();
-		commands.add(new ScriptExecuteCommand<>(
+		commands.add(new ScriptExecuteCommand(
 				filePath,
 				fileHandler,
-				logger,
 				scriptParser.getCommands()
 		));
 			ProjectFile projectFile = new ProjectFile();
@@ -430,17 +426,12 @@ public class ScriptParser<T> {
 			projectFile.setRelativePath(path);
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
-//
-//			projectFiles.add(projectFile);
-//			projectFiles.addAll(scriptParser.getProjectFiles());
-
-			mainProjectFile.addChild(scriptParser.getMainProjectFile());
 		} catch (IOException e) {
 			throw new ParseException("Unable to read from import " + path, e);
 		}
 	}
 
-	private FeatureMapping<T> loadModel(
+	private FeatureMapping loadModel(
 			String filePath,
 			String command,
 			FileHandler handler
@@ -451,13 +442,12 @@ public class ScriptParser<T> {
 
 		try {
 			String data = handler.read(fullPath);
-			
-			FeatureModelLoader<T> loader = new FeatureModelLoader<>(
-					type,
+
+			FeatureModelLoader loader = new FeatureModelLoader(
 					handler,
 					fullPath
 			);
-			
+
 			// TODO: the model itself can contain imports
 			ProjectFile projectFile = new ProjectFile();
 			projectFile.setFileType(FileType.MODEL);
@@ -465,7 +455,6 @@ public class ScriptParser<T> {
 			projectFile.setFileName(PATH.replace(path, "$2"));
 			projectFile.setFileData(data);
 
-			mainProjectFile.addChild(projectFile);
 			return loader.getFeatureMapping();
 		} catch (IOException e) {
 			throw new ParseException("Unable to read model " + fullPath, e);
@@ -474,7 +463,7 @@ public class ScriptParser<T> {
 
 	private static String getPath(String filePath, String path) {
 		return filePath.contains("/") || filePath.contains("\\")
-				? PATH.replace(filePath,"/") + path
+				? PATH.replace(filePath,"$1") + path
 				: path;
 	}
 

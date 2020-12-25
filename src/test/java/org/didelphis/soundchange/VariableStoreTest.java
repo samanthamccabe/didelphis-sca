@@ -26,11 +26,40 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class VariableStoreTest {
+
+	@Test
+	void testVariableFeatures() {
+		VariableStore vs = new VariableStore(FormatterMode.NONE);
+		vs.add("P  = [+con -son]");
+	}
+
+	@Test
+	void testIllegalCharacterinVariable() {
+		assertFails("> = X");
+		assertFails("C = >");
+		assertFails("C = |");
+		assertFails("C = .");
+		assertFails("C = ,");
+		assertFails("C = :");
+		assertFails("C = ;");
+		assertFails("C = <");
+		assertFails("C = /");
+		assertFails("C = \\");
+		assertFails("C = +");
+		assertFails("C = *");
+		assertFails("C = ?");
+		assertFails("C = #");
+		assertFails("C = $");
+		assertFails("C = !");
+	}
+
+	private void assertFails(String string) {
+		VariableStore vs = new VariableStore(FormatterMode.NONE);
+		assertThrows(ParseException.class, ()->vs.add(string));
+	}
 
 	@Test
 	void testVariableComplex01() {
@@ -117,7 +146,7 @@ class VariableStoreTest {
 	@Test
 	void testVariableExpansionComplex01() {
 		VariableStore vs = new VariableStore(FormatterMode.NONE);
-		
+
 		vs.add("@Q  = kʷʰ kʷ gʷ");
 		vs.add("@K  = kʰ  k  g");
 		vs.add("@KY = cʰ  c  ɟ");

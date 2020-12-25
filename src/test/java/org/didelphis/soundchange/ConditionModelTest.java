@@ -17,21 +17,19 @@ package org.didelphis.soundchange;
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
-import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConditionModelTest {
-	
-	private static final SequenceFactory<Integer> FACTORY = loadModel();
+
+	private static final SequenceFactory FACTORY = loadModel();
 
 	@Test
 	void testBasicStateMachine01() {
-		Condition<Integer> condition = new Condition<>("_a[+son, -hgh, +frn, -atr]+",
+		Condition condition = new Condition("_a[+son, -hgh, +frn, -atr]+",
 				FACTORY
 		);
 
@@ -50,7 +48,7 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex01() {
-		Condition<Integer> condition = new Condition<>(
+		Condition condition = new Condition(
 				"_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
@@ -101,7 +99,7 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex02() {
-		Condition<Integer> condition = new Condition<>("_[-con][-son]us#",
+		Condition condition = new Condition("_[-con][-son]us#",
 				FACTORY
 		);
 
@@ -141,21 +139,20 @@ public class ConditionModelTest {
 		fail(condition, "xcʰeus");
 	}
 
-	private static void test(Condition<Integer> condition, String target) {
+	private static void test(Condition condition, String target) {
 		assertTrue(condition.isMatch(FACTORY.toSequence(target), 0), condition + " vs. " + target);
 	}
 
-	private static void fail(Condition<Integer> condition, String target) {
+	private static void fail(Condition condition, String target) {
 		assertFalse(condition.isMatch(FACTORY.toSequence(target), 0));
 	}
 
-	private static SequenceFactory<Integer> loadModel() {
+	private static SequenceFactory loadModel() {
 		FormatterMode mode = FormatterMode.INTELLIGENT;
-		FeatureModelLoader<Integer> loader = new FeatureModelLoader<>(
-				IntegerFeature.INSTANCE,
+		FeatureModelLoader loader = new FeatureModelLoader(
 				ClassPathFileHandler.INSTANCE,
 				"AT_hybrid.model"
 		);
-		return new SequenceFactory<>(loader.getFeatureMapping(), mode);
+		return new SequenceFactory(loader.getFeatureMapping(), mode);
 	}
 }

@@ -18,13 +18,15 @@ import org.didelphis.io.FileHandler;
 
 import java.util.Queue;
 
-public interface SoundChangeScript<T> {
+public interface SoundChangeScript {
 
 	void process();
 
 	Queue<Runnable> getCommands();
 
-	LexiconMap<T> getLexicons();
+	LexiconMap getLexicons();
 
 	FileHandler getHandler();
+
+	boolean isInitialized();
 }

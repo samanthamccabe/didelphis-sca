@@ -1,6 +1,6 @@
-##Didelphis Sound Change Applier##
+# Didelphis Sound Change Applier
 
-Samantha F McCabe, 2016
+Samantha F McCabe, 2019
 
 The Didelphis SCA is a powerful, script-driven sound-change applier program implemented in Java. It supports UTF-8 natively and has a rule syntax designed for clarity and similarity to sound change notation in linguistics.
 

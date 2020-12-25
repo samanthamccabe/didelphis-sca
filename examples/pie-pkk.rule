@@ -12,7 +12,7 @@ y w > i u
 
 C P T K V L > k p t k a r
 
-ā́  ḗ  ī́  ṓ  ū́  > â ê î ô û
+ā́ ḗ ī́ ṓ ū́ > â ê î ô û
 
 % For the sake of this example, we will not deal with stress
 % Which is not consistently marked in our data anyway
@@ -85,7 +85,9 @@ H > 0 / _{H i y}
 
 iH uH > ī ū
 
-au eu ou am em om > ā ē ō ā ē ō / _m#
+% au eu ou am em om > ā ē ō ā ē ō / _m#
+a e o > ā ē ō / _{ u m }m#
+u m > 0 / {ā ē ō}_m#
 
 % --- PHASE II ----------------------------------------------------------------
 
@@ -192,6 +194,5 @@ y w > iy uw / CC+_V
 
 % This may be a bit arbitrary
 əˉ ə > ū u / K_
-
 
 close LEXICON as 'pkk_lexicon.txt'

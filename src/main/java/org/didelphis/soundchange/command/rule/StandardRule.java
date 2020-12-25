@@ -16,33 +16,41 @@ import java.util.List;
 /**
  * @since 0.1.0
  */
-public class StandardRule<T> implements Rule<T> {
+public class StandardRule implements Rule {
 
-	private final LexiconMap<T> lexicons;
-	private final BaseRule<T> rule;
+	private final LexiconMap lexicons;
+	private final BaseRule rule;
 
-	public StandardRule(String rule, ParserMemory<T> memory) {
-		this.rule = new BaseRule<>(rule, memory);
+	public StandardRule(String rule, ParserMemory memory) {
+		this.rule = new BaseRule(rule, memory);
 		lexicons = memory.getLexicons();
 	}
 
+	public StandardRule(String rule, ParserMemory memory, boolean debug) {
+		this.rule = new BaseRule(rule, memory);
+		lexicons = memory.getLexicons();
+		if (debug) {
+			this.rule.setUseDebug(true);
+		}
+	}
+
 	@Override
-	public Sequence<T> apply(Sequence<T> sequence) {
+	public Sequence apply(Sequence sequence) {
 		return rule.apply(sequence);
 	}
 
 	@Override
-	public int applyAtIndex(Sequence<T> sequence, int index) {
+	public int applyAtIndex(Sequence sequence, int index) {
 		return rule.applyAtIndex(sequence, index);
 	}
 
 	@Override
 	public void run() {
-		for (Lexicon<T> lexicon : lexicons.values()) {
-			for (List<Sequence<T>> row : lexicon) {
+		for (Lexicon lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence<T> sequence = row.get(i);
-					Sequence<T> word = apply(sequence);
+					Sequence sequence = row.get(i);
+					Sequence word = apply(sequence);
 					row.set(i, word);
 				}
 			}

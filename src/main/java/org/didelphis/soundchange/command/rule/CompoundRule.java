@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import org.didelphis.language.phonetic.Lexicon;
-import org.didelphis.language.phonetic.sequences.BasicSequence;
+import org.didelphis.language.phonetic.sequences.PhoneticSequence;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.LexiconMap;
 import org.didelphis.structures.contracts.Delegating;
@@ -19,24 +19,24 @@ import java.util.List;
 
 @EqualsAndHashCode
 @ToString
-public class CompoundRule<T>
-		implements Rule<T>, Delegating<Iterable<? extends Rule<T>>> {
+public class CompoundRule
+		implements Rule, Delegating<Iterable<? extends Rule>> {
 
-	private final Iterable<? extends Rule<T>> rules;
-	private final LexiconMap<T> lexicons;
+	private final Iterable<? extends Rule> rules;
+	private final LexiconMap lexicons;
 
-	public CompoundRule(Iterable<? extends Rule<T>> rules,
-			LexiconMap<T> lexicons) {
+	public CompoundRule(Iterable<? extends Rule> rules,
+			LexiconMap lexicons) {
 		this.rules = rules;
 		this.lexicons = lexicons;
 	}
 
 	@Override
 	public void run() {
-		for (Lexicon<T> lexicon : lexicons.values()) {
-			for (List<Sequence<T>> row : lexicon) {
+		for (Lexicon lexicon : lexicons.values()) {
+			for (List<Sequence> row : lexicon) {
 				for (int i = 0; i < row.size(); i++) {
-					Sequence<T> word = apply(row.get(i));
+					Sequence word = apply(row.get(i));
 					row.set(i, word);
 				}
 			}
@@ -44,10 +44,10 @@ public class CompoundRule<T>
 	}
 
 	@Override
-	public Sequence<T> apply(Sequence<T> sequence) {
-		Sequence<T> output = new BasicSequence<>(sequence);
+	public Sequence apply(Sequence sequence) {
+		Sequence output = new PhoneticSequence(sequence);
 		for (int index = 0; index < output.size(); index++) {
-			for (Rule<T> rule : rules) {
+			for (Rule rule : rules) {
 				rule.applyAtIndex(output, index);
 			}
 		}
@@ -55,12 +55,12 @@ public class CompoundRule<T>
 	}
 
 	@Override
-	public int applyAtIndex(Sequence<T> sequence, int index) {
+	public int applyAtIndex(Sequence sequence, int index) {
 		return 0;
 	}
 
 	@Override
-	public Iterable<? extends Rule<T>> getDelegate() {
+	public Iterable<? extends Rule> getDelegate() {
 		return rules;
 	}
 }

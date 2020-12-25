@@ -21,8 +21,6 @@ import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.language.parsing.ParseException;
-import org.didelphis.language.phonetic.features.IntegerFeature;
-import org.didelphis.soundchange.ErrorLogger;
 import org.didelphis.soundchange.VariableStore;
 
 import org.junit.jupiter.api.Test;
@@ -33,8 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ScriptParserTest {
 
@@ -56,40 +53,18 @@ class ScriptParserTest {
 				"IMPORT 'variables1'\n" +
 				"IMPORT 'variables3'\n";
 
-		ScriptParser<Integer> parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands, handler);
 		parser.parse();
-
-		ProjectFile mainProjectFile = parser.getMainProjectFile();
-		List<ProjectFile> children = mainProjectFile.getChildren();
-		assertEquals(2, children.size());
-		assertEquals(1, children.get(1).getChildren().size());
-	}
-
-	@Test
-	void testIllegalCharacterinVariable() {
-		assertFails("C = >");
-		assertFails("C = |");
-		assertFails("C = .");
-		assertFails("C = ,");
-		assertFails("C = :");
-		assertFails("C = ;");
-		assertFails("C = <");
-		assertFails("C = /");
-		assertFails("C = \\");
-		assertFails("C = +");
-		assertFails("C = *");
-		assertFails("C = ?");
-		assertFails("C = #");
-		assertFails("C = $");
-		assertFails("C = !");
 	}
 
 	private static void assertFails(String data) {
-		assertThrows(ParseException.class, () -> {
-			NullFileHandler instance = NullFileHandler.INSTANCE;
-			ScriptParser<Integer> parser = getParser(data, instance);
-			parser.parse();
-		});
+		assertThrows(ParseException.class, () -> testParse(data));
+	}
+
+	private static void testParse(String data) {
+		NullFileHandler instance = NullFileHandler.INSTANCE;
+		ScriptParser parser = getParser(data, instance);
+		parser.parse();
 	}
 
 	@Test
@@ -101,10 +76,10 @@ class ScriptParserTest {
 			"IMPORT 'unknown'";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser<Integer> parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands, handler);
 		parser.parse();
 
-		ParserMemory<Integer> memory = parser.getMemory();
+		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> list = variableStore.get("C");
 
@@ -119,9 +94,9 @@ class ScriptParserTest {
 				"    f  s  x  \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser<Integer> parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory<Integer> memory = parser.getMemory();
+		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> list = variableStore.get("C");
 
@@ -136,9 +111,9 @@ class ScriptParserTest {
 				"    [P] [T] [K] \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser<Integer> parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory<Integer> memory = parser.getMemory();
+		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> list = variableStore.get("C");
 
@@ -152,9 +127,9 @@ class ScriptParserTest {
 				"[W] = [X] [Y] [Z] \n";
 
 		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser<Integer> parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands, handler);
 		parser.parse();
-		ParserMemory<Integer> memory = parser.getMemory();
+		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
 		List<String> cList = variableStore.get("C");
 		List<String> xList = variableStore.get("[W]");
@@ -165,10 +140,10 @@ class ScriptParserTest {
 	@Test
 	void reserveTest() {
 		String commands = "RESERVE ph th kh";
-		ScriptParser<Integer> parser =
+		ScriptParser parser =
 				getParser(commands, NullFileHandler.INSTANCE);
 		parser.parse();
-		ParserMemory<Integer> memory = parser.getMemory();
+		ParserMemory memory = parser.getMemory();
 		Collection<String> received = memory.getReserved();
 		Collection<String> expected = new HashSet<>();
 		expected.add("ph");
@@ -177,9 +152,21 @@ class ScriptParserTest {
 		assertEquals(expected, received);
 	}
 
-	private static ScriptParser<Integer> getParser(String commands,
+	@Test
+	void multilineRule() {
+		String commands = ""
+				+ "a > 0 / _# \\\n"
+				+ "    OR #_";
+		ScriptParser parser = getParser(commands, NullFileHandler.INSTANCE);
+		parser.parse();
+
+		assertFalse(parser.getCommands().isEmpty());
+	}
+
+	private static ScriptParser getParser(String commands,
 			FileHandler handler) {
-		return new ScriptParser<>("", IntegerFeature.INSTANCE, commands,
-				handler, new ErrorLogger());
+		return new ScriptParser("test_script",
+				commands,
+				handler);
 	}
 }

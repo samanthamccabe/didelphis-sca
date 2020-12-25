@@ -1,7 +1,5 @@
 package org.didelphis.soundchange.parser;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import lombok.experimental.UtilityClass;
 
 import org.didelphis.language.automata.Regex;
@@ -12,7 +10,6 @@ import org.didelphis.language.automata.Regex;
  * A holder for patterns used to parse scripts
  */
 @UtilityClass
-@FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)
 public class ParserTerms {
 
 	public final Regex KEYWORDS = new Regex("BREAK|RESERVE|MODE|EXECUTE|IMPORT|LOAD|CLOSE|WRITE|OPEN", true);
@@ -24,6 +21,7 @@ public class ParserTerms {
 
 	public final Regex SPECIAL  = new Regex("[-=/_><;:,.$#!*+?{}()|\\\\]");
 	public final Regex COMMENT  = new Regex("%.*");
+	public final Regex DEBUG    = new Regex("@DEBUG",      true);
 	public final Regex COMPOUND = new Regex("COMPOUND",    true);
 	public final Regex BREAK    = new Regex("BREAK",       true);
 	public final Regex RESERVE  = new Regex("RESERVE\\s+", true);

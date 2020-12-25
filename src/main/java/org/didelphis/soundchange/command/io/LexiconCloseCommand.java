@@ -7,36 +7,33 @@
 package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.parsing.FormatterMode;
+import org.didelphis.language.phonetic.model.FeatureMapping;
 import org.didelphis.soundchange.LexiconMap;
-import org.didelphis.utilities.Logger;
 
-@ToString
 @EqualsAndHashCode(callSuper = true)
-public class LexiconCloseCommand<T> extends AbstractLexiconIoCommand {
+public class LexiconCloseCommand extends AbstractLexiconIoCommand {
 
-	private static final Logger LOG = Logger.create(LexiconCloseCommand.class);
-
-	private final LexiconMap<T> lexicons;
+	private final LexiconMap lexicons;
 	private final FormatterMode mode;
 
-	private final LexiconWriteCommand<T> command;
+	private final LexiconWriteCommand command;
 
 	public LexiconCloseCommand(
-			LexiconMap<T> lexicons,
+			LexiconMap lexicons,
 			String path,
 			String handle,
 			FileHandler name,
+			FeatureMapping featureMapping,
 			FormatterMode mode
 	) {
 		super(path, handle, name);
 		this.lexicons = lexicons;
 		this.mode = mode;
 
-		command = new LexiconWriteCommand<>(lexicons, path, handle, name, mode);
+		command = new LexiconWriteCommand(lexicons, path, handle, name, featureMapping, mode);
 	}
 
 	@Override
@@ -44,5 +41,10 @@ public class LexiconCloseCommand<T> extends AbstractLexiconIoCommand {
 		command.run();
 		// REMOVE data from lexicons
 		lexicons.remove(getHandle());
+	}
+
+	@Override
+	public String toString() {
+		return "CLOSE "+getHandle()+" AS '"+getPath()+"'";
 	}
 }

@@ -27,46 +27,46 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @since 0.0.0
  */
 class ConditionTest {
 
-	private static final FeatureModelLoader<Integer> EMPTY =
+	private static final FeatureModelLoader EMPTY =
 			IntegerFeature.INSTANCE.emptyLoader();
 
-	private static final SequenceFactory<Integer> FACTORY =
-			new SequenceFactory<>(EMPTY.getFeatureMapping(),
-					FormatterMode.INTELLIGENT);
+	private static final SequenceFactory FACTORY =
+			new SequenceFactory(
+					EMPTY.getFeatureMapping(),
+					FormatterMode.INTELLIGENT
+			);
 
 	// We just need to see that this parses correctly
 	@DisplayName("Condition with underscore only")
 	@Test
 	void testEmptyCondition() {
-		Condition<Integer> ignored = new Condition<>("_", FACTORY);
+		Condition ignored = new Condition("_", FACTORY);
 	}
 
 	// We just need to see that this parses correctly
 	@Test
 	void testBadCondition() {
 		assertThrows(ParseException.class,
-				() -> new Condition<>("a_b_c", FACTORY));
+				() -> new Condition("a_b_c", FACTORY));
 	}
 
 	@Test
 	void testDoubleUnderscore() {
 		assertThrows(ParseException.class,
-				() -> new Condition<>("_ _", FACTORY));
+				() -> new Condition("_ _", FACTORY));
 	}
 
 	@Test
 	void testPreconditionMatchingSimple() {
-		Condition<Integer> condition = new Condition<>("_x", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("bax");
+		Condition condition = new Condition("_x", FACTORY);
+		Sequence sequence = FACTORY.toSequence("bax");
 
 		assertTrue(condition.isMatch(sequence, 1));
 		assertFalse(condition.isMatch(sequence, 0));
@@ -75,8 +75,8 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatchingSimple() {
-		Condition<Integer> condition = new Condition<>("b_", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("bax");
+		Condition condition = new Condition("b_", FACTORY);
+		Sequence sequence = FACTORY.toSequence("bax");
 
 		assertTrue(condition.isMatch(sequence, 1));
 		assertFalse(condition.isMatch(sequence, 0));
@@ -85,8 +85,8 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching01() {
-		Condition<Integer> condition = new Condition<>("a_x", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("balx");
+		Condition condition = new Condition("a_x", FACTORY);
+		Sequence sequence = FACTORY.toSequence("balx");
 
 		boolean match = condition.isMatch(sequence, 2);
 		assertTrue(match, "");
@@ -94,8 +94,8 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching02() {
-		Condition<Integer> condition = new Condition<>("b_#", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("aba");
+		Condition condition = new Condition("b_#", FACTORY);
+		Sequence sequence = FACTORY.toSequence("aba");
 
 		assertFalse(condition.isMatch(sequence, 0));
 		assertFalse(condition.isMatch(sequence, 1));
@@ -104,8 +104,8 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching03() {
-		Condition<Integer> condition = new Condition<>("b_lx", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("balx");
+		Condition condition = new Condition("b_lx", FACTORY);
+		Sequence sequence = FACTORY.toSequence("balx");
 
 		assertTrue(condition.isMatch(sequence, 1));
 		assertFalse(condition.isMatch(sequence, 2));
@@ -114,8 +114,8 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching04() {
-		Condition<Integer> condition = new Condition<>("_lxpld", FACTORY);
-		Sequence<Integer> sequence = FACTORY.toSequence("beralxpld");
+		Condition condition = new Condition("_lxpld", FACTORY);
+		Sequence sequence = FACTORY.toSequence("beralxpld");
 
 		assertTrue(condition.isMatch(sequence, 3));
 		assertFalse(condition.isMatch(sequence, 2));
@@ -124,7 +124,7 @@ class ConditionTest {
 	@Test
 	void testOptional01() {
 
-		Condition<Integer> condition = new Condition<>("_a?(b?c?)d?b", FACTORY);
+		Condition condition = new Condition("_a?(b?c?)d?b", FACTORY);
 
 		String[] positive = {
 				"xb",
@@ -151,7 +151,7 @@ class ConditionTest {
 	@Test
 	void testOptional02() {
 
-		Condition<Integer> condition = new Condition<>("_d?ab", FACTORY);
+		Condition condition = new Condition("_d?ab", FACTORY);
 
 		assertMatches(condition, "xab", 0);
 		assertMatches(condition, "xdab", 0);
@@ -164,8 +164,8 @@ class ConditionTest {
 	@Test
 	void testOptional03() {
 
-		Condition<Integer> condition =
-				new Condition<>("_a(l(hamb)?ra)?#", FACTORY);
+		Condition condition =
+				new Condition("_a(l(hamb)?ra)?#", FACTORY);
 
 		assertMatches(condition, "xalhambra", 0);
 		assertMatches(condition, "xalra", 0);
@@ -176,7 +176,7 @@ class ConditionTest {
 	@Test
 	void testOptional04() {
 
-		Condition<Integer> condition = new Condition<>("_a(ba)?b", FACTORY);
+		Condition condition = new Condition("_a(ba)?b", FACTORY);
 
 		assertMatches(condition, "xab", 0);
 		assertMatches(condition, "xabab", 0);
@@ -186,7 +186,7 @@ class ConditionTest {
 	@Test
 	void testStar01() {
 
-		Condition<Integer> condition = new Condition<>("_a*b", FACTORY);
+		Condition condition = new Condition("_a*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xab"), 0));
@@ -200,7 +200,7 @@ class ConditionTest {
 	@Test
 	void testStar02() {
 
-		Condition<Integer> condition = new Condition<>("_aa*b", FACTORY);
+		Condition condition = new Condition("_aa*b", FACTORY);
 
 		assertFalse(condition.isMatch(FACTORY.toSequence("xb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xab"), 0));
@@ -214,7 +214,7 @@ class ConditionTest {
 	@Test
 	void testStar03() {
 
-		Condition<Integer> condition = new Condition<>("_da*b", FACTORY);
+		Condition condition = new Condition("_da*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdab"), 0));
@@ -228,7 +228,7 @@ class ConditionTest {
 	@Test
 	void testStar04() {
 
-		Condition<Integer> condition = new Condition<>("_d(eo)*b", FACTORY);
+		Condition condition = new Condition("_d(eo)*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdeob"), 0));
@@ -240,7 +240,7 @@ class ConditionTest {
 	@Test
 	void testStar05() {
 
-		Condition<Integer> condition = new Condition<>("_d(eo*)*b", FACTORY);
+		Condition condition = new Condition("_d(eo*)*b", FACTORY);
 
 		String[] positive = {
 				"xdb",
@@ -265,7 +265,7 @@ class ConditionTest {
 
 	@Test
 	void testStar06() {
-		Condition<Integer> condition = new Condition<>("_(ab)*#", FACTORY);
+		Condition condition = new Condition("_(ab)*#", FACTORY);
 		String[] positive = {
 				"x", "xababab", "xab", "xabababab", "xabab", "xababababab"
 		};
@@ -282,7 +282,7 @@ class ConditionTest {
 	@Test
 	void testPlus01() {
 
-		Condition<Integer> condition = new Condition<>("_a+b", FACTORY);
+		Condition condition = new Condition("_a+b", FACTORY);
 
 		String[] positive = {
 				"xab", "xaab", "xaaab", "xaaaab", "xaaaaab",
@@ -301,8 +301,8 @@ class ConditionTest {
 	@Test
 	void testPlus02() {
 
-		Condition<Integer> condition =
-				new Condition<>("_a+l(ham+b)+ra", FACTORY);
+		Condition condition =
+				new Condition("_a+l(ham+b)+ra", FACTORY);
 
 		String[] positive = {
 				"xalhambra",
@@ -324,8 +324,8 @@ class ConditionTest {
 	@Test
 	void testPlus03() {
 
-		Condition<Integer> condition =
-				new Condition<>("_(a+l(ham+b)*ra)+", FACTORY);
+		Condition condition =
+				new Condition("_(a+l(ham+b)*ra)+", FACTORY);
 		String[] positive = {
 				"xalhambra",
 				"xaalhambra",
@@ -361,8 +361,8 @@ class ConditionTest {
 	@Test
 	void testStar07() {
 
-		Condition<Integer> condition =
-				new Condition<>("_(a+l(ham+b)+ra)*", FACTORY);
+		Condition condition =
+				new Condition("_(a+l(ham+b)+ra)*", FACTORY);
 
 		String[] positive = {
 				"xalhambra",
@@ -393,8 +393,8 @@ class ConditionTest {
 
 	@Test
 	void testGroups01() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)(cd)(ef)", FACTORY);
+		Condition condition =
+				new Condition("_(ab)(cd)(ef)", FACTORY);
 
 		assertMatches(condition, "xabcdef", 0);
 		assertNoMatch(condition, "xabcd", 0);
@@ -405,8 +405,8 @@ class ConditionTest {
 
 	@Test
 	void testGroups02() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)*(cd)(ef)", FACTORY);
+		Condition condition =
+				new Condition("_(ab)*(cd)(ef)", FACTORY);
 		assertMatches(condition, "xcdef", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xababcdef", 0);
@@ -422,8 +422,8 @@ class ConditionTest {
 
 	@Test
 	void testGroups03() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)(cd)*(ef)", FACTORY);
+		Condition condition =
+				new Condition("_(ab)(cd)*(ef)", FACTORY);
 		assertMatches(condition, "xabef", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcdcdef", 0);
@@ -431,8 +431,8 @@ class ConditionTest {
 
 	@Test
 	void testGroups04() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)(cd)(ef)*", FACTORY);
+		Condition condition =
+				new Condition("_(ab)(cd)(ef)*", FACTORY);
 		assertMatches(condition, "xabcd", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcdefef", 0);
@@ -440,32 +440,32 @@ class ConditionTest {
 
 	@Test
 	void testGroups05() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)?(cd)(ef)", FACTORY);
+		Condition condition =
+				new Condition("_(ab)?(cd)(ef)", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xcdef", 0);
 	}
 
 	@Test
 	void testGroups06() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)(cd)?(ef)", FACTORY);
+		Condition condition =
+				new Condition("_(ab)(cd)?(ef)", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabef", 0);
 	}
 
 	@Test
 	void testGroups07() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)(cd)(ef)?", FACTORY);
+		Condition condition =
+				new Condition("_(ab)(cd)(ef)?", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcd", 0);
 	}
 
 	@Test
 	void testGroups08() {
-		Condition<Integer> condition =
-				new Condition<>("_(ab)?(cd)?(ef)?", FACTORY);
+		Condition condition =
+				new Condition("_(ab)?(cd)?(ef)?", FACTORY);
 
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "x", 0);
@@ -479,8 +479,8 @@ class ConditionTest {
 
 	@Test
 	void testFullCondition() {
-		Condition<Integer> condition =
-				new Condition<>("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?", FACTORY);
+		Condition condition =
+				new Condition("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "efxabcdef", 2);
 		assertMatches(condition, "cdefxabcdef", 4);
@@ -500,7 +500,7 @@ class ConditionTest {
 
 	@Test
 	void testSet01() {
-		Condition<Integer> condition = new Condition<>("_{a b c}ds", FACTORY);
+		Condition condition = new Condition("_{a b c}ds", FACTORY);
 		assertMatches(condition, "xads", 0);
 		assertMatches(condition, "xbds", 0);
 		assertMatches(condition, "xcds", 0);
@@ -509,8 +509,8 @@ class ConditionTest {
 
 	@Test
 	void testSet02() {
-		Condition<Integer> condition =
-				new Condition<>("_{ab cd ef}tr", FACTORY);
+		Condition condition =
+				new Condition("_{ab cd ef}tr", FACTORY);
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
 		assertMatches(condition, "xeftr", 0);
@@ -520,8 +520,8 @@ class ConditionTest {
 
 	@Test
 	void testSet04() {
-		Condition<Integer> condition =
-				new Condition<>("_{ab* cd+ ef}tr", FACTORY);
+		Condition condition =
+				new Condition("_{ab* cd+ ef}tr", FACTORY);
 
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
@@ -540,8 +540,8 @@ class ConditionTest {
 
 	@Test
 	void testSet05() {
-		Condition<Integer> condition =
-				new Condition<>("_{ab* (cd?)+ ((ae)*f)+}tr", FACTORY);
+		Condition condition =
+				new Condition("_{ab* (cd?)+ ((ae)*f)+}tr", FACTORY);
 
 		assertMatches(condition, "xabtr", 0);
 
@@ -562,8 +562,8 @@ class ConditionTest {
 
 	@Test
 	void testSet06() {
-		Condition<Integer> condition =
-				new Condition<>("_{ab {cd xy} ef}tr", FACTORY);
+		Condition condition =
+				new Condition("_{ab {cd xy} ef}tr", FACTORY);
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
 		assertMatches(condition, "xeftr", 0);
@@ -574,18 +574,18 @@ class ConditionTest {
 
 	@Test
 	void testSet07() {
-		Condition<Integer> condition = new Condition<>("_{ x ɣ }", FACTORY);
+		Condition condition = new Condition("_{ x ɣ }", FACTORY);
 		assertMatches(condition, "pxi");
 		assertNoMatch(condition, "paxi");
 	}
 
 	@Test
 	void testComplex01() {
-		SequenceFactory<Integer> factoryParam = new SequenceFactory<>(
+		SequenceFactory factoryParam = new SequenceFactory(
 				EMPTY.getFeatureMapping(),
 				FormatterMode.INTELLIGENT
 		);
-		Condition<Integer> condition = new Condition<>(
+		Condition condition = new Condition(
 				"_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}",
 				factoryParam
 		);
@@ -600,8 +600,8 @@ class ConditionTest {
 
 	@Test
 	void testAdditional01() {
-		assertMatches(new Condition<>("_c+#", FACTORY), "abaccc", 2);
-		assertMatches(new Condition<>("_#", FACTORY), "abad", 3);
+		assertMatches(new Condition("_c+#", FACTORY), "abaccc", 2);
+		assertMatches(new Condition("_#", FACTORY), "abad", 3);
 	}
 
 	@Test
@@ -610,13 +610,13 @@ class ConditionTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 
-		SequenceFactory<Integer> sequenceFactory = new SequenceFactory<>(
+		SequenceFactory sequenceFactory = new SequenceFactory(
 				EMPTY.getFeatureMapping(),
 				store.getKeys(),
 				FormatterMode.INTELLIGENT
 		);
-		
-		Condition<Integer> condition = new Condition<>(
+
+		Condition condition = new Condition(
 				"_C+#",
 				store,
 				sequenceFactory
@@ -641,19 +641,19 @@ class ConditionTest {
 		VariableStore store = new VariableStore(FormatterMode.INTELLIGENT);
 		store.add("C = p t k b d g pʰ tʰ kʰ");
 		Set<String> reserved = Collections.singleton("C");
-		SequenceFactory<Integer> sequenceFactory = new SequenceFactory<>(
+		SequenceFactory sequenceFactory = new SequenceFactory(
 				EMPTY.getFeatureMapping(),
-				reserved, 
+				reserved,
 				FormatterMode.INTELLIGENT
 		);
-		Condition<Integer> condition = new Condition<>("_C+#", store, sequenceFactory);
+		Condition condition = new Condition("_C+#", store, sequenceFactory);
 
 		assertMatches(sequenceFactory, condition, "abatʰkʰ", 2);
 	}
 
 	@Test
 	void testNegative00() {
-		Condition<Integer> condition = new Condition<>("_!a#", FACTORY);
+		Condition condition = new Condition("_!a#", FACTORY);
 
 		assertMatches(condition, "zb", 0);
 		assertMatches(condition, "zc", 0);
@@ -665,7 +665,7 @@ class ConditionTest {
 
 	@Test
 	void testNegative01() {
-		Condition<Integer> condition = new Condition<>("_!(abc)#", FACTORY);
+		Condition condition = new Condition("_!(abc)#", FACTORY);
 
 		assertMatches(condition, "zbab", 0);
 		assertMatches(condition, "zcab", 0);
@@ -680,7 +680,7 @@ class ConditionTest {
 
 	@Test
 	void testNegative02() {
-		Condition<Integer> condition = new Condition<>("_!{a b c}#", FACTORY);
+		Condition condition = new Condition("_!{a b c}#", FACTORY);
 
 		assertMatches(condition, "yz", 0);
 		assertMatches(condition, "ym", 0);
@@ -692,62 +692,62 @@ class ConditionTest {
 		assertNoMatch(condition, "xb", 0);
 		assertNoMatch(condition, "xc", 0);
 	}
-	
+
 	@Test
 	void testUnknownFailure() {
-		Condition<Integer> condition = new Condition<>("{s c y}{s c y}+_{o}", FACTORY);
-		
+		Condition condition = new Condition("{s c y}{s c y}+_{o}", FACTORY);
+
 		assertMatches(condition, "tusscyos", 5);
 	}
 
 	private static void assertMatches(
-			SequenceFactory<Integer> factory,
-			Condition<Integer> condition,
+			SequenceFactory factory,
+			Condition condition,
 			String testString,
 			int index
 	) {
-		Sequence<Integer> word = factory.toSequence(testString);
+		Sequence word = factory.toSequence(testString);
 		assertTrue(condition.isMatch(word, index),
 				testString + " should have matched " + condition +
 						" but did not."
 		);
 	}
 
-	private static void assertMatches(Condition<Integer> condition,
+	private static void assertMatches(Condition condition,
 			String testString, int index) {
 		assertMatches(FACTORY, condition, testString, index);
 	}
 
-	private static void assertNoMatch(SequenceFactory<Integer> factory,
-			Condition<Integer> condition, String testString, int index) {
-		Sequence<Integer> word = factory.toSequence(testString);
+	private static void assertNoMatch(SequenceFactory factory,
+			Condition condition, String testString, int index) {
+		Sequence word = factory.toSequence(testString);
 		assertFalse(condition.isMatch(word, index),
 				testString + " should not have matched " + condition + " but did.");
 	}
 
-	private static void assertNoMatch(Condition<Integer> condition,
+	private static void assertNoMatch(Condition condition,
 			String testString, int index) {
 		assertNoMatch(FACTORY, condition, testString, index);
 	}
 
-	private static void assertNoMatch(Condition<Integer> condition,
+	private static void assertNoMatch(Condition condition,
 			String testString) {
 		assertNoMatch(condition, testString, 0);
 	}
 
-	private static void assertMatches(Condition<Integer> condition,
+	private static void assertMatches(Condition condition,
 			String testString) {
 		assertMatches(condition, testString, 0);
 	}
 
-	private static void assertAllMatch(Condition<Integer> condition,
+	private static void assertAllMatch(Condition condition,
 			String... positives) {
 		for (String positive : positives) {
 			assertMatches(condition, positive, 0);
 		}
 	}
 
-	private static void assertNoneMatch(Condition<Integer> condition,
+	private static void assertNoneMatch(Condition condition,
 			String... negatives) {
 		for (String negative : negatives) {
 			assertNoMatch(condition, negative, 0);

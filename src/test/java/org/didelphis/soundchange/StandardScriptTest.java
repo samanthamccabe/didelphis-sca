@@ -14,9 +14,6 @@
 
 package org.didelphis.soundchange;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-
 import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.io.FileHandler;
 import org.didelphis.io.MockFileHandler;
@@ -35,20 +32,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-@FieldDefaults(makeFinal =  true, level = AccessLevel.PRIVATE)
 class StandardScriptTest {
 
-	static ClassPathFileHandler CLASSPATH = ClassPathFileHandler.INSTANCE;
-	static FeatureModelLoader<Integer> EMPTY = IntegerFeature.INSTANCE.emptyLoader();
-	static FeatureMapping<Integer> MAPPING = EMPTY.getFeatureMapping();
-	
-	static SequenceFactory<Integer> FACTORY_NONE 
-			= new SequenceFactory<>(MAPPING, FormatterMode.NONE);
-	static SequenceFactory<Integer> FACTORY_INTELLIGENT 
-			= new SequenceFactory<>(MAPPING, FormatterMode.INTELLIGENT);
+	private static final ClassPathFileHandler CLASSPATH = ClassPathFileHandler.INSTANCE;
+	private static final FeatureModelLoader EMPTY = IntegerFeature.INSTANCE.emptyLoader();
+	private static final FeatureMapping MAPPING = EMPTY.getFeatureMapping();
+
+	private static final SequenceFactory FACTORY_NONE
+			= new SequenceFactory(MAPPING, FormatterMode.NONE);
+	private static final SequenceFactory FACTORY_INTELLIGENT
+			= new SequenceFactory(MAPPING, FormatterMode.INTELLIGENT);
 
 	@Test
 	void testImportVariables() {
@@ -70,7 +65,7 @@ class StandardScriptTest {
 		fileSystem.put("script1", script1);
 		fileSystem.put("lexicon", lexicon);
 
-		StandardScript<Integer> script = getScript(
+		StandardScript script = getScript(
 				script2,
 				new MockFileHandler(fileSystem)
 		);
@@ -109,7 +104,12 @@ class StandardScriptTest {
 	private static String joinLines(String... strings) {
 		return String.join("\n", strings);
 	}
-	
+
+	@Test
+	void testLoadModelWithRelativeSpec() throws IOException {
+		getScript("load  'model/AT_hybrid.mapping", ClassPathFileHandler.INSTANCE).process();
+	}
+
 	@Test
 	void testImportModelAndFormat() throws IOException {
 		String model = ClassPathFileHandler.INSTANCE.read("AT_hybrid.model");
@@ -196,7 +196,7 @@ class StandardScriptTest {
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript<Integer> script = getScript(executeRule, fileHandler);
+		StandardScript script = getScript(executeRule, fileHandler);
 
 		script.process();
 
@@ -226,7 +226,7 @@ class StandardScriptTest {
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript<Integer> script = getScript(executeRule, fileHandler);
+		StandardScript script = getScript(executeRule, fileHandler);
 
 		script.process();
 
@@ -257,7 +257,7 @@ class StandardScriptTest {
 		fileSystem.put("testRuleLarge01.txt", rules);
 
 		String executeRule = "EXECUTE 'testRuleLarge01.txt'";
-		StandardScript<Integer> script = getScript(executeRule, fileHandler);
+		StandardScript script = getScript(executeRule, fileHandler);
 
 		script.process();
 
@@ -265,7 +265,7 @@ class StandardScriptTest {
 
 		assertEquals(outpt.replaceAll("\r\n|\n|\r", "\n"), received);
 	}
-	
+
 	@Test
 	void testRuleLarge01() throws IOException {
 		String[] output = CLASSPATH.read("testRuleLargeOut01.lex").split("\n");
@@ -276,11 +276,11 @@ class StandardScriptTest {
 				"IMPORT 'testRuleLarge01.txt'"
 		);
 
-		SoundChangeScript<Integer> sca = getScript(script, CLASSPATH);
+		SoundChangeScript sca = getScript(script, CLASSPATH);
 		sca.process();
 
-		Lexicon<Integer> received = sca.getLexicons().getLexicon("LEXICON");
-		Lexicon<Integer> expected =
+		Lexicon received = sca.getLexicons().getLexicon("LEXICON");
+		Lexicon expected =
 				Lexicon.fromSingleColumn(FACTORY_INTELLIGENT,
 						Arrays.asList(output));
 		assertEquals(expected, received);
@@ -306,12 +306,12 @@ class StandardScriptTest {
 
 		String[] lexicon = {"apat", "takan", "kepak", "pik", "ket"};
 
-		SoundChangeScript<Integer> sca =
+		SoundChangeScript sca =
 				getScript("OPEN \'testLexicon.lex\' as TEST", CLASSPATH);
 		sca.process();
-		Lexicon<Integer> expected =
+		Lexicon expected =
 				Lexicon.fromSingleColumn(FACTORY_NONE, Arrays.asList(lexicon));
-		Lexicon<Integer> received = sca.getLexicons().getLexicon("TEST");
+		Lexicon received = sca.getLexicons().getLexicon("TEST");
 		assertEquals(expected, received);
 	}
 
@@ -329,7 +329,7 @@ class StandardScriptTest {
 		map.put("default.lex", joinLines("teha", "hen", "yeh"));
 
 		FileHandler handler = new MockFileHandler(map);
-		SoundChangeScript<Integer> script = getScript(commands, handler);
+		SoundChangeScript script = getScript(commands, handler);
 		script.process();
 
 		String received = map.get("received.lex");
@@ -356,7 +356,7 @@ class StandardScriptTest {
 				"CLOSE TEST as 'close.lex'"
 		);
 
-		SoundChangeScript<Integer> sca =
+		SoundChangeScript sca =
 				getScript(commands, new MockFileHandler(map));
 		sca.process();
 
@@ -366,8 +366,8 @@ class StandardScriptTest {
 		assertEquals(lexicon, map.get("close.lex"));
 	}
 
-	private static StandardScript<Integer> getScript(String commands, FileHandler handler) {
-		return new StandardScript<>("", IntegerFeature.INSTANCE, commands, handler, new ErrorLogger());
+	private static StandardScript getScript(String commands, FileHandler handler) {
+		return new StandardScript("", commands, handler);
 	}
 
 }

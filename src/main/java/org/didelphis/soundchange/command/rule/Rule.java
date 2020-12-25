@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
  * @since 0.1.0
  */
 @FunctionalInterface
-public interface Rule<T> extends UnaryOperator<Sequence<T>>, Runnable {
+public interface Rule extends UnaryOperator<Sequence>, Runnable {
 
 	/**
 	 * Applies the rule to the given input <i>in place</i>, that is, the object
@@ -27,10 +27,10 @@ public interface Rule<T> extends UnaryOperator<Sequence<T>>, Runnable {
 	 * Sequence}, <i>i.e.</i> the position of the cursor after this method has
 	 * been called
 	 */
-	int applyAtIndex(Sequence<T> sequence, int index);
+	int applyAtIndex(Sequence sequence, int index);
 
 	@Override
-	default Sequence<T> apply(Sequence<T> sequence) {
+	default Sequence apply(Sequence sequence) {
 		// Step through the word to see if the rule might apply, i.e. if the
 		// source pattern can be found
 		for (int index = 0; index < sequence.size(); ) {

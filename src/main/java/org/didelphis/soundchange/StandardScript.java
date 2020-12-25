@@ -15,34 +15,40 @@
 package org.didelphis.soundchange;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.language.phonetic.features.FeatureType;
 import org.didelphis.soundchange.parser.ScriptParser;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.text.DecimalFormat;
 import java.util.Queue;
 
-public class StandardScript<T> implements SoundChangeScript<T> {
+public class StandardScript implements SoundChangeScript {
+
+	private static final Logger LOG = LogManager.getLogger(StandardScript.class);
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.000");
 
 	private final FileHandler handler;
 	private final String filePath;
 	private final Queue<Runnable> commands;
-	private final LexiconMap<T> lexicons;
+	private final LexiconMap lexicons;
 
-	public StandardScript(String filePath, FeatureType<T> type,
-			String script, FileHandler handler, ErrorLogger logger) {
+	private final boolean isInitialized;
+
+	@Override
+	public boolean isInitialized() {
+		return isInitialized;
+	}
+
+	public StandardScript(String filePath, String script, FileHandler handler) {
 		this.filePath = filePath;
 		this.handler = handler;
 
-		ScriptParser<T> scriptParser = new ScriptParser<>(
-				filePath,
-				type,
-				script,
-				handler,
-				logger
-		);
-		scriptParser.parse();
+		ScriptParser parser = new ScriptParser(filePath, script, handler);
+		isInitialized = parser.parse();
 
-		lexicons = scriptParser.getMemory().getLexicons();
-		commands = scriptParser.getCommands();
+		lexicons = parser.getMemory().getLexicons();
+		commands = parser.getCommands();
 	}
 
 	@Override
@@ -56,14 +62,22 @@ public class StandardScript<T> implements SoundChangeScript<T> {
 	}
 
 	@Override
-	public LexiconMap<T> getLexicons() {
+	public LexiconMap getLexicons() {
 		return lexicons;
 	}
 
 	@Override
 	public void process() {
-		for (Runnable command : commands) {
-			command.run();
+		if (isInitialized) {
+			for (Runnable command : commands) {
+				LOG.info("Running rule: {}", command);
+				long startTime = System.nanoTime();
+				command.run();
+				double delta = (System.nanoTime() - startTime) / Math.pow(10, 9);
+				LOG.debug("Finished in {} seconds", DECIMAL_FORMAT.format(delta));
+			}
+		} else {
+			throw new IllegalStateException("Script is not initialized");
 		}
 	}
 

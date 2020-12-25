@@ -7,13 +7,14 @@
 package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.phonetic.Lexicon;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.soundchange.LexiconMap;
-import org.didelphis.utilities.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,17 +22,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@ToString
 @EqualsAndHashCode(callSuper = true)
-public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
+public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 
-	private static final Logger LOG = Logger.create(LexiconOpenCommand.class);
+	private static final Logger LOG = LogManager.getLogger(LexiconOpenCommand.class);
 
-	private final LexiconMap<T> lexicons;
-	private final SequenceFactory<T> factory;
+	private final LexiconMap lexicons;
+	private final SequenceFactory factory;
 
-	public LexiconOpenCommand(LexiconMap<T> lexicons, String path, String handle,
-			FileHandler handler, SequenceFactory<T> factory) {
+	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle,
+			FileHandler handler, SequenceFactory factory) {
 		super(path, handle, handler);
 		this.lexicons = lexicons;
 		this.factory = factory;
@@ -56,7 +56,12 @@ public class LexiconOpenCommand<T> extends AbstractLexiconIoCommand {
 			rows.add(cells);
 		}
 
-		Lexicon<T> lexicon = Lexicon.fromRows(factory, rows);
+		Lexicon lexicon = Lexicon.fromRows(factory, rows);
 		lexicons.addLexicon(getHandle(), path, lexicon);
+	}
+
+	@Override
+	public String toString() {
+		return "OPEN '"+getPath()+"' AS "+getHandle();
 	}
 }

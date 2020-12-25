@@ -25,12 +25,12 @@ import java.util.Map;
 
 @ToString
 @EqualsAndHashCode
-public class LexiconMap<T> {
+public class LexiconMap {
 
 	private final Map<String, String> paths;
-	private final Map<String, Lexicon<T>> lexicons;
+	private final Map<String, Lexicon> lexicons;
 
-	public LexiconMap(LexiconMap<T> map) {
+	public LexiconMap(LexiconMap map) {
 		paths = map.paths;
 		lexicons = map.lexicons;
 	}
@@ -40,17 +40,17 @@ public class LexiconMap<T> {
 		lexicons = new LinkedHashMap<>();
 	}
 
-	public void addLexicon(String handle, String path, Lexicon<T> words) {
+	public void addLexicon(String handle, String path, Lexicon words) {
 		paths.put(handle, path);
 		lexicons.put(handle, words);
 	}
 
-	public void addAll(LexiconMap<T> map) {
+	public void addAll(LexiconMap map) {
 		paths.putAll(map.paths);
 		lexicons.putAll(map.lexicons);
 	}
 
-	public Lexicon<T> getLexicon(String handle) {
+	public Lexicon getLexicon(String handle) {
 		return lexicons.get(handle);
 	}
 
@@ -66,11 +66,11 @@ public class LexiconMap<T> {
 		return lexicons.keySet();
 	}
 
-	public Collection<Lexicon<T>> values() {
+	public Collection<Lexicon> values() {
 		return lexicons.values();
 	}
 
-	public Lexicon<T> remove(String handle) {
+	public Lexicon remove(String handle) {
 		paths.remove(handle);
 		return lexicons.remove(handle);
 	}

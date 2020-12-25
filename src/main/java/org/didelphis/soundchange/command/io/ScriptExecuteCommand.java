@@ -9,24 +9,16 @@ package org.didelphis.soundchange.command.io;
 import lombok.EqualsAndHashCode;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.soundchange.ErrorLogger;
-import org.didelphis.utilities.Logger;
 
 import java.util.Queue;
 
 @EqualsAndHashCode(callSuper = true)
-public class ScriptExecuteCommand<T> extends AbstractIoCommand {
-
-	private static final Logger LOG = Logger.create(ScriptExecuteCommand.class);
-
-	private final ErrorLogger logger;
+public class ScriptExecuteCommand extends AbstractIoCommand {
 
 	private final Queue<Runnable> commands;
 
-	public ScriptExecuteCommand(String path, FileHandler handler,
-			ErrorLogger logger, Queue<Runnable> commands) {
+	public ScriptExecuteCommand(String path, FileHandler handler, Queue<Runnable> commands) {
 		super(path, handler);
-		this.logger = logger;
 		this.commands = commands;
 	}
 

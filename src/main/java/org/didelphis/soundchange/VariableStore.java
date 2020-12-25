@@ -26,9 +26,12 @@ import org.didelphis.language.parsing.Segmenter;
 import org.didelphis.soundchange.parser.ParserTerms;
 import org.didelphis.utilities.Templates;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -46,6 +49,8 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariableStore {
+
+	private static final Logger LOG = LogManager.getLogger(VariableStore.class);
 
 	private static final Regex EQUALS_PATTERN    = new Regex("\\s*=\\s*");
 	private static final Regex DELIMITER_PATTERN = new Regex("\\s+");
@@ -83,17 +88,34 @@ public class VariableStore {
 		return variables.containsKey(symbol);
 	}
 
-	public void add(String command) {
+	/**
+	 *
+	 * @param key
+	 * @param values
+	 */
+	public void add(String key, List<String> values) {
+		// TODO:
+	}
+
+	/**
+	 * Parse a variable definition statement
+	 * @param command variable definition; not null
+	 * @deprecated use {@link #add(String, List)} instead
+	 */
+	@Deprecated
+	public void add(@NotNull String command) {
 		List<String> parts = EQUALS_PATTERN.split(command.trim());
 
 		if (parts.size() == 2) {
 			String key = parts.get(0);
-			List<String> elements = DELIMITER_PATTERN.split(parts.get(1));
+
+			if (ParserTerms.SPECIAL.matches(key)) {
+				throw new ParseException("Invalid variable key: "+ key);
+			}
+
+			List<String> elements = parseToList(parts.get(1));
 			List<String> expanded = new ArrayList<>();
 			for (String value : elements) {
-				if (ParserTerms.SPECIAL.matches(value)) {
-					throw new ParseException("Illegal value " + value);
-				}
 				expanded.addAll(expandVariables(value));
 			}
 			variables.put(key, expanded);
@@ -104,6 +126,30 @@ public class VariableStore {
 					.build();
 			throw new ParseException(message);
 		}
+	}
+
+	private static List<String> parseToList(String source) {
+
+		source = source.replaceAll("\\s+"," ");
+
+		List<String> list = new ArrayList<>();
+		int start = 0;
+		int end = 0;
+
+		while (end < source.length()) {
+			char c = source.charAt(end);
+			if (c == ' ') {
+				list.add(source.substring(start, end));
+				end++;
+				start = end;
+			} else if (c == '[') {
+				end = source.indexOf(']', end);
+			} else {
+				end++;
+			}
+		}
+		list.add(source.substring(start, end));
+		return list;
 	}
 
 	public Set<String> getKeys() {
@@ -119,8 +165,15 @@ public class VariableStore {
 		List<List<String>> swap = new ArrayList<>();
 
 		// Pass empty delimiters
-		Map<String, String> delimiters = Collections.emptyMap();
-		list.add(segmenter.split(element, getKeys(), delimiters));
+		Map<String, String> delimiters = new HashMap<>();
+		delimiters.put("[","]");
+
+		if (ParserTerms.SPECIAL.matches(element)) {
+			throw new ParseException("Invalid variable value: " + element);
+		}
+
+		List<String> split = segmenter.split(element, getKeys(), delimiters);
+		list.add(split);
 
 		boolean modified;
 		do {
