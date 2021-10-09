@@ -18,65 +18,70 @@
 package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.FileHandler;
-import org.didelphis.io.MockFileHandler;
-import org.didelphis.io.NullFileHandler;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.soundchange.VariableStore;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
+import static org.didelphis.utilities.Strings.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
+@ExtendWith (MockitoExtension.class)
 class ScriptParserTest {
 
+	@Mock
+	private FileHandler fileHandler;
+
 	@Test
-	void testProjectFileStructure() {
-		Map<String, String> map = new HashMap<>();
+	void testProjectFileStructure() throws IOException {
 
-		String variablesScript1 = "X = 1 2 3 4";
-		String variablesScript2 = "V = a e i o u";
-		String variablesScript3 = "C = p t k q\nIMPORT 'variables2'";
+		String vars1 = "X = 1 2 3 4";
+		String vars2 = "V = a e i o u";
+		String vars3 = "C = p t k q\nIMPORT 'var2'";
 
-		map.put("variables1", variablesScript1);
-		map.put("variables2", variablesScript2);
-		map.put("variables3", variablesScript3);
+		when(fileHandler.read("var1")).thenReturn(vars1);
+		when(fileHandler.read("var2")).thenReturn(vars2);
+		when(fileHandler.read("var3")).thenReturn(vars3);
 
-		FileHandler handler = new MockFileHandler(map);
+		String commands = joinNL(
+				"IMPORT 'var1'\n",
+				"IMPORT 'var3'\n");
 
-		String commands = "" +
-				"IMPORT 'variables1'\n" +
-				"IMPORT 'variables3'\n";
-
-		ScriptParser parser = getParser(commands, handler);
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 	}
 
-	private static void assertFails(String data) {
+	private void assertFails(String data) {
 		assertThrows(ParseException.class, () -> testParse(data));
 	}
 
-	private static void testParse(String data) {
-		NullFileHandler instance = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(data, instance);
+	private void testParse(String data) {
+		ScriptParser parser = getParser(data);
 		parser.parse();
 	}
 
 	@Test
-	void testImportAfterMultilineVariable() {
-		String commands = "" +
-			"C = p  t  k  \n" +
-			"    ph th kh \n" +
-			"    f  s  x  \n" +
-			"IMPORT 'unknown'";
+	void testImportAfterMultilineVariable() throws IOException {
 
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		when(fileHandler.read(any())).thenReturn("");
+
+		String commands = joinNL(
+			"C = p  t  k  ",
+			"    ph th kh ",
+			"    f  s  x  ",
+			"IMPORT 'unknown'");
+
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 
 		ParserMemory memory = parser.getMemory();
@@ -88,13 +93,14 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariable() {
-		String commands =
-				"C = p  t  k  \n" +
-				"    ph th kh \n" +
-				"    f  s  x  \n";
 
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		String commands = joinNL(
+				"C = p  t  k  ",
+				"    ph th kh ",
+				"    f  s  x  "
+		);
+
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
@@ -105,13 +111,13 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableBracket() {
-		String commands = "" +
-				"C = p   t   k   \n" +
-				"    ph  th  kh  \n" +
-				"    [P] [T] [K] \n";
 
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		String commands = joinNL(
+				"C = p   t   k   ",
+				"    ph  th  kh  ",
+				"    [P] [T] [K] ");
+
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
@@ -122,12 +128,12 @@ class ScriptParserTest {
 
 	@Test
 	void testMultilineVariableOverparse() {
-		String commands = "" +
-				"C   =  p   t   k  \n" +
-				"[W] = [X] [Y] [Z] \n";
 
-		NullFileHandler handler = NullFileHandler.INSTANCE;
-		ScriptParser parser = getParser(commands, handler);
+		String commands = joinNL(
+				"C   =  p   t   k  ",
+				"[W] = [X] [Y] [Z] ");
+
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 		ParserMemory memory = parser.getMemory();
 		VariableStore variableStore = memory.getVariables();
@@ -140,8 +146,7 @@ class ScriptParserTest {
 	@Test
 	void reserveTest() {
 		String commands = "RESERVE ph th kh";
-		ScriptParser parser =
-				getParser(commands, NullFileHandler.INSTANCE);
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 		ParserMemory memory = parser.getMemory();
 		Collection<String> received = memory.getReserved();
@@ -154,19 +159,26 @@ class ScriptParserTest {
 
 	@Test
 	void multilineRule() {
-		String commands = ""
-				+ "a > 0 / _# \\\n"
-				+ "    OR #_";
-		ScriptParser parser = getParser(commands, NullFileHandler.INSTANCE);
+		String commands = joinNL(
+				"a > 0 / _#",
+				"    OR #_ ");
+		ScriptParser parser = getParser(commands);
 		parser.parse();
 
 		assertFalse(parser.getCommands().isEmpty());
 	}
 
-	private static ScriptParser getParser(String commands,
-			FileHandler handler) {
-		return new ScriptParser("test_script",
-				commands,
-				handler);
+	@Test
+	void newFormatRule() {
+		String command = joinNL(
+				"a1 a2 > b1 b2 / x1_   ",
+				"      | c1 c2 /   _x2 ",
+				"      | d1 d1         ");
+
+
+	}
+
+	private ScriptParser getParser(String commands) {
+		return new ScriptParser("test_script", commands, fileHandler);
 	}
 }

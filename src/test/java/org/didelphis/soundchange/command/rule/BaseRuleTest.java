@@ -529,6 +529,15 @@ class BaseRuleTest {
 		testRule(rule, FACTORY, "ayxaa", "byxaa");
 	}
 
+	@Test
+	void testIfThenElse01() {
+		String ruleExpression = ""
+				+ "ṗ ṭ ḳ > ( b  d  g / #_ )\n"
+				+ "        ( pp th x / _# )\n"
+				+ "        ( p  t  k      )";
+//		BaseRule rule = new BaseRule(ruleExpression, FACTORY);
+	}
+
 	/*======================================================================+
 	 | Exception Tests                                                      |
 	 +======================================================================*/

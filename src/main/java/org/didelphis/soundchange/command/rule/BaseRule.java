@@ -66,9 +66,10 @@ public class BaseRule implements Rule {
 	@Getter List<Condition> exceptions;
 
 	SequenceFactory factory;
+	RuleMatcher     ruleMatcher;
+	VariableStore   variables;
+
 	Map<Sequence, Sequence> transform;
-	RuleMatcher ruleMatcher;
-	VariableStore variables;
 
 	@NonFinal
 	@Setter

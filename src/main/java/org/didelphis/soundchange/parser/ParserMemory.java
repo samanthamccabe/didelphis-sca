@@ -51,6 +51,7 @@ public class ParserMemory {
 		featureMapping = loader.getFeatureMapping();
 	}
 
+	@Deprecated //TODO: analyze uses -
 	public ParserMemory(ParserMemory memory) {
 		lexicons = new LexiconMap(memory.lexicons);
 		variables = new VariableStore(memory.getVariables());

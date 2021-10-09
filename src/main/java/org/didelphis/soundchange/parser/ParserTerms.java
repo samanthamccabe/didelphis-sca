@@ -34,7 +34,7 @@ public class ParserTerms {
 	public final Regex OPEN     = new Regex("OPEN\\s+" + FILE_PATH + AS + HANDLE,  true);
 	public final Regex RULE          = new Regex("(\\[[^]]+]|[^>])+\\s+>");
 	public final Regex VAR_NEXT_LINE = new Regex(CONTINUE);
-	public final Regex CONTINUATION  = new Regex("\\s*(/|or|not)", true);
+	public final Regex CONTINUATION  = new Regex("\\s*(/|or|not|\\|)", true);
 	public final Regex QUOTES        = new Regex("[\"']");
 	public final Regex PATH          = new Regex("(.*[\\\\/])([^/\\\\]*)$");
 }
