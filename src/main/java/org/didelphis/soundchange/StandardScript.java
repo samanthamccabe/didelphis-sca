@@ -26,6 +26,7 @@ import java.util.Queue;
 public class StandardScript implements SoundChangeScript {
 
 	private static final Logger LOG = LogManager.getLogger(StandardScript.class);
+
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.000");
 
 	private final FileHandler handler;
@@ -70,11 +71,19 @@ public class StandardScript implements SoundChangeScript {
 	public void process() {
 		if (isInitialized) {
 			for (Runnable command : commands) {
-				LOG.info("Running rule: {}", command);
+				if (LOG.isDebugEnabled()) {
+					String string = '\n' + command.toString();
+					string = string.replace("\n", "\n        ");
+					LOG.debug("Running rule:{}", string);
+				}
 				long startTime = System.nanoTime();
 				command.run();
-				double delta = (System.nanoTime() - startTime) / Math.pow(10, 9);
-				LOG.debug("Finished in {} seconds", DECIMAL_FORMAT.format(delta));
+				if (LOG.isDebugEnabled()) {
+					long endTime = System.nanoTime();
+					double delta = (endTime - startTime) / Math.pow(10, 9);
+					String format = DECIMAL_FORMAT.format(delta);
+					LOG.debug("Finished in {} seconds", format);
+				}
 			}
 		} else {
 			throw new IllegalStateException("Script is not initialized");

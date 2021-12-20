@@ -20,24 +20,33 @@ import lombok.ToString;
 import org.didelphis.language.phonetic.Lexicon;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @ToString
 @EqualsAndHashCode
 public class LexiconMap {
 
+	private final Set<String>         debugKeys;
 	private final Map<String, String> paths;
 	private final Map<String, Lexicon> lexicons;
 
 	public LexiconMap(LexiconMap map) {
 		paths = map.paths;
 		lexicons = map.lexicons;
+		debugKeys = map.debugKeys;
 	}
 
 	public LexiconMap() {
 		paths = new LinkedHashMap<>();
 		lexicons = new LinkedHashMap<>();
+		debugKeys = new HashSet<>();
+	}
+
+	public void addDebug(String handle) {
+		debugKeys.add(handle);
 	}
 
 	public void addLexicon(String handle, String path, Lexicon words) {
@@ -56,6 +65,10 @@ public class LexiconMap {
 
 	public String getPath(String handle) {
 		return paths.get(handle);
+	}
+
+	public Set<String> getDebugKeys() {
+		return debugKeys;
 	}
 
 	public boolean hasHandle(String handle) {

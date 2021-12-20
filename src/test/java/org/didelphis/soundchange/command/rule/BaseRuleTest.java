@@ -514,10 +514,8 @@ class BaseRuleTest {
 
 	@Test
 	void testCompound07() {
+		//TODO: rewrite test
 		BaseRule rule = new BaseRule("a > b / x_ OR _y NOT _a NOT b_", FACTORY);
-
-		assertEquals(2, rule.getConditions().size());
-		assertEquals(2, rule.getExceptions().size());
 
 		testRule(rule, FACTORY, "axa", "axb");
 		testRule(rule, FACTORY, "aya", "bya");
@@ -527,15 +525,6 @@ class BaseRuleTest {
 		testRule(rule, FACTORY, "axbay", "axbay");
 		testRule(rule, FACTORY, "bayay", "bayby");
 		testRule(rule, FACTORY, "ayxaa", "byxaa");
-	}
-
-	@Test
-	void testIfThenElse01() {
-		String ruleExpression = ""
-				+ "ṗ ṭ ḳ > ( b  d  g / #_ )\n"
-				+ "        ( pp th x / _# )\n"
-				+ "        ( p  t  k      )";
-//		BaseRule rule = new BaseRule(ruleExpression, FACTORY);
 	}
 
 	/*======================================================================+
@@ -576,14 +565,10 @@ class BaseRuleTest {
 			String seq,
 			String exp
 	) {
-//		Executable executable = () -> {
 		Sequence sequence = factory.toSequence(seq);
 		Sequence expected = factory.toSequence(exp);
 		Sequence received = rule.apply(sequence);
 		assertEquals(expected, received);
-//		};
-
-//		executable.execute();
 	}
 
 	private static void assertThrowsParse(Executable executable) {

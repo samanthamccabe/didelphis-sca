@@ -19,6 +19,7 @@ package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.FileHandler;
 import org.didelphis.language.parsing.ParseException;
+import org.didelphis.soundchange.LexiconMap;
 import org.didelphis.soundchange.VariableStore;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.didelphis.utilities.Strings.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,6 +70,32 @@ class ScriptParserTest {
 	private void testParse(String data) {
 		ScriptParser parser = getParser(data);
 		parser.parse();
+	}
+
+	@Test
+	void testBlank() {
+		ScriptParser parser = getParser("\n   ");
+		assertTrue(parser.parse());
+	}
+
+	@Test
+	void testOpenDebug() {
+		String commands = joinNL(
+				"@debug",
+				"open 'path' as HANDLE ",
+				"a > b");
+
+		ScriptParser parser = getParser(commands);
+		parser.parse();
+
+		LexiconMap lexicons = parser.getMemory().getLexicons();
+
+		Set<String> debugKeys = lexicons.getDebugKeys();
+		assertTrue(debugKeys.contains("HANDLE"));
+
+		for (Runnable command : parser.getCommands()) {
+			command.run();
+		}
 	}
 
 	@Test
@@ -171,11 +199,13 @@ class ScriptParserTest {
 	@Test
 	void newFormatRule() {
 		String command = joinNL(
-				"a1 a2 > b1 b2 / x1_   ",
-				"      | c1 c2 /   _x2 ",
-				"      | d1 d1         ");
+				"[+con +velar +round] > [-round] / _[+round]      % Kw > K / {o u}",
+				"                     | [-velar -round +bilabial] % Kw > P");
 
+		ScriptParser parser = getParser(command);
+		boolean success = parser.parse();
 
+		assertTrue(success);
 	}
 
 	private ScriptParser getParser(String commands) {

@@ -10,10 +10,7 @@ import org.didelphis.language.phonetic.sequences.Sequence;
 
 import java.util.function.UnaryOperator;
 
-/**
- * @since 0.1.0
- */
-@FunctionalInterface
+
 public interface Rule extends UnaryOperator<Sequence>, Runnable {
 
 	/**
@@ -37,10 +34,5 @@ public interface Rule extends UnaryOperator<Sequence>, Runnable {
 			index = applyAtIndex(sequence, index);
 		}
 		return sequence;
-	}
-
-	@Override
-	default void run() {
-		// Does nothing
 	}
 }

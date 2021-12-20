@@ -8,7 +8,6 @@ package org.didelphis.soundchange.command.rule;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
@@ -27,7 +26,6 @@ import org.didelphis.language.phonetic.segments.Segment;
 import org.didelphis.language.phonetic.segments.StandardSegment;
 import org.didelphis.language.phonetic.sequences.PhoneticSequence;
 import org.didelphis.language.phonetic.sequences.Sequence;
-import org.didelphis.soundchange.Condition;
 import org.didelphis.soundchange.VariableStore;
 import org.didelphis.soundchange.parser.ParserMemory;
 import org.didelphis.utilities.Strings;
@@ -38,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,51 +53,54 @@ public class BaseRule implements Rule {
 	private static final Logger LOG = LogManager.getLogger(BaseRule.class);
 
 	private static final Regex BACKREF   = new Regex("\\$([^$]*)(\\d+)");
-	private static final Regex NOT       = new Regex("\\s*not\\s*", true);
-	private static final Regex OR        = new Regex("\\s*or\\s*", true);
+
 	private static final Regex SPACE     = new Regex("\\s+");
 	private static final Regex TRANSFORM = new Regex("\\s*>\\s*");
+	private static final Regex PIPE      = new Regex("\\s*\\|\\s*");
+	private static final Regex CONDITION = new Regex("\\s*/\\s*");
 
 	String ruleText;
-
-	@Getter List<Condition> conditions;
-	@Getter List<Condition> exceptions;
 
 	SequenceFactory factory;
 	RuleMatcher     ruleMatcher;
 	VariableStore   variables;
 
-	Map<Sequence, Sequence> transform;
+	// Symbols which can be transformed by the rule
+	List<Sequence> symbols;
+
+	// Transform targets and conditions
+	Map<Condition, List<Sequence>> conditionMap;
 
 	@NonFinal
 	@Setter
 	boolean useDebug;
 
 	public BaseRule(String rule, ParserMemory memory) {
-		ruleText = rule;
-		variables = memory.getVariables();
-		factory = memory.factorySnapshot();
-		ruleMatcher = new RuleMatcher();
-		transform = new LinkedHashMap<>();
-		exceptions = new ArrayList<>();
-		conditions = new ArrayList<>();
-		parseRule();
+		this(rule, memory.getVariables(), memory.factorySnapshot());
 	}
 
+	@Deprecated
 	BaseRule(String rule, VariableStore variables, SequenceFactory factory) {
 		this.factory = factory;
 		this.variables = variables;
 
 		ruleText = rule;
 		ruleMatcher = new RuleMatcher();
-		transform = new LinkedHashMap<>();
-		exceptions = new ArrayList<>();
-		conditions = new ArrayList<>();
+
+		symbols = new ArrayList<>();
+		conditionMap = new LinkedHashMap<>();
+
 		parseRule();
 	}
 
+
 	BaseRule(String rule, SequenceFactory factory) {
 		this(rule, new VariableStore(), factory);
+	}
+
+	@Override
+	public String toString() {
+		return ruleText;
 	}
 
 	@Override
@@ -116,38 +117,43 @@ public class BaseRule implements Rule {
 
 	@Override
 	public int applyAtIndex(Sequence sequence, int index) {
+
+		if (index >= sequence.size()) {
+			return index;
+		}
+
 		int startIndex = index;
 		boolean unmatched = true;
 		FeatureMapping mapping = factory.getFeatureMapping();
 		FeatureModel model = mapping.getFeatureModel();
 
+		String original = useDebug ? mapping.findBestSymbols(sequence) : "";
+
 		// Check each source pattern
-		for (Entry<Sequence, Sequence> entry : transform.entrySet()) {
-			Sequence source = entry.getKey();
-			Sequence target = entry.getValue();
+		for (int i = 0, symbolsSize = symbols.size(); i < symbolsSize; i++) {
+			Sequence source = symbols.get(i);
 
-			if (startIndex < sequence.size()) {
-				ruleMatcher.reset();
+			ruleMatcher.reset();
 
-				String original = useDebug ? mapping.findBestSymbols(sequence): "";
+			int testIndex = startIndex;
 
-				int testIndex = startIndex;
+			// Step through the current source pattern
+			testIndex = matchSource(sequence, source, testIndex);
 
-				// Step through the current source pattern
-				testIndex = matchSource(sequence, source, testIndex);
+			if (testIndex < 0) {
+				continue;
+			}
 
-				// This is checked second for a good reason: it may not be
-				// possible to know the length of the matching initial until
-				// it's been evaluated, esp. in the case of a variable whose
-				// elements are allowed to have a length greater than 1. This is
-				// because it is possible, or even likely, that a language might
-				// have a set of multi-segment clusters which still pattern
-				// together, or which are part of conditioning environments.
-				if (testIndex >= 0 && matchesCondition(sequence, startIndex, testIndex)) {
+			// find if the conditions match
+			for (Entry<Condition, List<Sequence>> entry : conditionMap.entrySet()) {
+				if (entry.getKey().isMatch(sequence, startIndex, testIndex)) {
+					Sequence target = entry.getValue().get(i);
+
 					// Now at this point, if everything worked, we can
 					Sequence removed = startIndex < testIndex
 							? sequence.remove(startIndex, testIndex)
 							: new PhoneticSequence(model);
+
 					Sequence replacement = getReplacement(removed, target);
 					if (!replacement.isEmpty()) {
 						sequence.insert(replacement, startIndex);
@@ -155,46 +161,26 @@ public class BaseRule implements Rule {
 
 					startIndex = testIndex + replacement.size() - removed.size();
 					unmatched = false;
-
-					if (useDebug) {
-						LOG.info("{} --> {}",
-								Strings.padRight(original, 10),
-								mapping.findBestSymbols(sequence)
-						);
-					}
+					break;
 				}
 			}
 		}
+
+		if (!unmatched && useDebug) {
+			LOG.info("{} --> {}",
+					Strings.padRight(original, 10),
+					mapping.findBestSymbols(sequence));
+		}
+
 		return unmatched ? startIndex + 1 : startIndex;
 	}
 
 	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-
-		for (Sequence sequence : transform.keySet()) {
-			sb.append(sequence);
-			sb.append(' ');
-		}
-		sb.append("> ");
-		for (Sequence sequence : transform.values()) {
-			sb.append(sequence);
-			sb.append(' ');
-		}
-		sb.append("/ ");
-		for (int i = 0; i < conditions.size(); i++) {
-			sb.append(conditions.get(i));
-			if (i < conditions.size() - 1) {
-				sb.append(" OR ");
-			}
-		}
-		for (Condition exception : exceptions) {
-			sb.append(" NOT ");
-			sb.append(exception);
-		}
-		return sb.toString();
+	public void run() {
+		// nothing?
 	}
 
+	// locates the
 	private int matchSource(Sequence sequence,
 			Sequence source,
 			int testIndex) {
@@ -221,11 +207,12 @@ public class BaseRule implements Rule {
 				}
 				// If none of the variable elements match, fail
 				index = elementMatches ? index : -1;
+			} else if (factory.getReservedStrings().contains(symbol)) {
+				index = subSequence.startsWith(segment) ? index + 1 : -1;
 			} else if (isUnderspecified(segment)) {
 				// This block excludes fully specified features, but we do not
-				// expect the use of bracket notation in this case
-
-				// Otherwise it's the same as a literal
+				// expect the use of bracket notation in this case,
+				// otherwise it's the same as a literal
 				if (subSequence.startsWith(segment)) {
 					ruleMatcher.addIndex(-1);
 					ruleMatcher.addVariable(symbol);
@@ -249,60 +236,59 @@ public class BaseRule implements Rule {
 	}
 
 	private void parseRule() {
-		String transformString;
-		// Check-and-parse for conditions
-		if (ruleText.contains("/")) {
-			String[] array = ruleText.split("/");
-			if (array.length <= 1) {
-				throw new ParseException("Condition was empty.");
-			} else {
-				transformString = array[0].trim();
-				String conditionString = array[1].trim();
-				parseCondition(conditionString);
-			}
-		} else {
-			transformString = ruleText;
-			conditions.add(new Condition("_", factory));
+
+		List<String> split = TRANSFORM.split(ruleText.trim());
+
+		if (split.size() < 2) {
+			throw new ParseException(""); // TODO:
 		}
-		parseTransform(transformString);
-	}
 
-	private void parseCondition(String conditionString) {
-		Match<String> notMatcher = NOT.match(conditionString);
-		if (notMatcher.matches()) {
-			// if there is no regular condition
-			// Takes the first one off, and splits on the restde
-			for (String clause : NOT.split(conditionString)) {
-				Match<String> orMatch = OR.find(clause);
-				if (orMatch.matches()) {
-					throw new ParseException("OR not allowed following a NOT");
-				}
+		String source = split.get(0).trim();
+		String transform = split.get(1).trim();
 
-				String trim = clause.trim();
-				if (!trim.isEmpty()) {
-					exceptions.add(new Condition(trim, variables, factory));
-				}
+		if (source.isEmpty()) {
+			throw new ParseException(""); // TODO:
+		}
+
+		if (transform.isEmpty()) {
+			throw new ParseException(""); // TODO:
+		}
+
+		// Populate the source symbols
+		parseToList(source).stream()
+				.map(factory::toSequence)
+				.forEach(symbols::add);
+
+		// Duplicates
+		if (new HashSet<>(symbols).size() != symbols.size()) {
+			throw new ParseException(""); // TODO:
+		}
+
+		List<String> transforms = PIPE.split(transform);
+		for (String item : transforms) {
+			List<String> splitTransform = CONDITION.split(item, 2);
+
+			String transformation = splitTransform.get(0);
+			if (transformation.contains("$[")) {
+				throw new ParseException("Indexing with $[] is not permitted");
 			}
 
-		} else if (NOT.find(conditionString).matches()) {
-			List<String> split = NOT.split(conditionString, 1);
-			String conditionClauses = split.get(0);
-			String exceptionClauses = split.get(1);
+			// Handle target symbol list
+			List<Sequence> target = parseToList(transformation).stream()
+					.map(factory::toSequence)
+					.collect(Collectors.toList());
+			balanceTransform(target);
+			validateTransform(target);
 
-			for (String con : OR.split(conditionClauses, -1)) {
-				conditions.add(new Condition(con, variables, factory));
+			// handle condition here
+			Condition condition;
+			if (splitTransform.size() > 1) {
+				String rawCondition = splitTransform.get(1);
+				condition = new ConditionGroup(variables, factory, rawCondition);
+			} else {
+				condition = new EmptyCondition();
 			}
-
-			for (String exc : NOT.split(exceptionClauses, -1)) {
-				exceptions.add(new Condition(exc, variables, factory));
-			}
-		} else {
-			for (String s : OR.split(conditionString, -1)) {
-				if (s.trim().isEmpty()){
-					throw new ParseException("Dangling OR");
-				}
-				conditions.add(new Condition(s, variables, factory));
-			}
+			conditionMap.put(condition, target);
 		}
 	}
 
@@ -391,91 +377,24 @@ public class BaseRule implements Rule {
 		return sequence;
 	}
 
-	private boolean matchesCondition(Sequence word, int start, int end) {
-		Iterator<Condition> cI = conditions.iterator();
-		Iterator<Condition> eI = exceptions.iterator();
-
-		boolean conditionMatch = false;
-
-		if (cI.hasNext()) {
-			while (cI.hasNext() && !conditionMatch) {
-				Condition condition = cI.next();
-				conditionMatch = condition.isMatch(word, start, end);
-			}
-		} else {
-			conditionMatch = true;
-		}
-
-		boolean exceptionMatch = false;
-		if (eI.hasNext()) {
-			while (eI.hasNext() && !exceptionMatch) {
-				Condition exception = eI.next();
-				exceptionMatch = exception.isMatch(word, start, end);
-			}
-		}
-		return conditionMatch && !exceptionMatch;
-	}
-
-	private void parseTransform(String transformation) {
-		if (!transformation.contains(">")) {
-			String message = Templates.create()
-					.add("Missing \">\" sign!")
-					.data(ruleText)
-					.build();
-			throw new ParseException(message);
-		}
-
-		if (transformation.contains("$[")) {
-			throw new ParseException("Indexing with $[] is not permitted");
-		}
-
-		List<String> array = TRANSFORM.split(transformation);
-		if (isMalformed(array)) {
-			throw new ParseException("Malformed transformation");
-		}
-
-		String sourceString = SPACE.replace(array.get(0), " ");
-		String targetString = SPACE.replace(array.get(1), " ");
-
-		// Split strings, but not within brackets []
-		List<String> sourceList = parseToList(sourceString);
-		List<String> targetList = parseToList(targetString);
-
-		// fill in target for cases like "a b c > d"
-		if (sourceList.contains("0") &&
-				!(sourceList.size() == 1 && targetList.size() == 1)) {
-			String message = Templates.create().add(
-					"A rule may only use \"0\" in the source if ",
-					"it is the only symbol in the source ",
-					"pattern and the target size is exactly 1"
-			).build();
-			throw new ParseException(message);
-		}
-
-		balanceTransform(sourceList, targetList);
-
-		for (int i = 0; i < sourceList.size(); i++) {
-			// Also we need to correctly tokenize $1, $2 etc or $C1, $N2
-			Sequence source = factory.toSequence(sourceList.get(i));
-			Sequence target = factory.toSequence(targetList.get(i));
-			validateTransform(source, target);
-			transform.put(source, target);
-		}
-	}
-
 	/**
 	 * Once converted to features, ensure that the rule's transform is well-
 	 * formed and has an appropriate structure
 	 */
-	private void validateTransform(Sequence source, Sequence target) {
-		int j = 0;
-		for (Segment segment : target) {
-			FeatureArray features = segment.getFeatures();
-			boolean underspecified = features instanceof SparseFeatureArray;
-			if (underspecified && source.size() <= j) {
-				throw new ParseException("Unmatched underspecified segment in rule target.");
+	private void validateTransform(List<Sequence> target) {
+		for (int i = 0; i < symbols.size(); i++) {
+			Sequence sourceSegments = symbols.get(i);
+			Sequence targetSegments = target.get(i);
+			int j = 0;
+			for (Segment segment : targetSegments) {
+				FeatureArray features = segment.getFeatures();
+				boolean underspecified = features instanceof SparseFeatureArray;
+				if (underspecified && sourceSegments.size() <= j) {
+					throw new ParseException(
+							"Unmatched underspecified segment in rule target.");
+				}
+				j++;
 			}
-			j++;
 		}
 	}
 
@@ -502,19 +421,17 @@ public class BaseRule implements Rule {
 		return list;
 	}
 
-	private static void balanceTransform(
-			@NonNull List<String> source,
-			@NonNull List<String> target
-	) {
-		if (target.size() > source.size()) {
+	private void balanceTransform(@NonNull List<Sequence> target) {
+		int size = symbols.size();
+		if (target.size() > size) {
 			String message = Templates.create()
 					.add("Target size cannot be greater than source size.")
 					.build();
 			throw new ParseException(message);
-		} else if (target.size() < source.size()) {
+		} else if (target.size() < size) {
 			if (target.size() == 1) {
-				String first = target.get(0);
-				while (target.size() < source.size()) {
+				Sequence first = target.get(0);
+				while (target.size() < size) {
 					target.add(first);
 				}
 			} else {
@@ -532,12 +449,6 @@ public class BaseRule implements Rule {
 		FeatureArray features = segment.getFeatures();
 		return features instanceof SparseFeatureArray ||
 				type.listUndefined().stream().anyMatch(features::contains);
-	}
-
-	private static boolean isMalformed(List<String> array) {
-		return array.size() <= 1
-				|| array.get(0).isEmpty()
-				|| array.get(1).isEmpty();
 	}
 
 	private static final class RuleMatcher {
@@ -601,6 +512,18 @@ public class BaseRule implements Rule {
 
 		private Sequence getSequence(Integer i) {
 			return sequenceMap.get(i);
+		}
+	}
+
+	private static final class EmptyCondition implements Condition {
+		@Override
+		public boolean isMatch(Sequence word, int index) {
+			return true;
+		}
+
+		@Override
+		public boolean isMatch(Sequence word, int startIndex, int endIndex) {
+			return true;
 		}
 	}
 }

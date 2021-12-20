@@ -12,7 +12,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.didelphis.soundchange;
+package org.didelphis.soundchange.command.rule;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -27,6 +27,7 @@ import org.didelphis.language.parsing.ParseDirection;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.VariableStore;
 import org.didelphis.structures.maps.GeneralMultiMap;
 import org.didelphis.structures.maps.interfaces.MultiMap;
 
@@ -38,18 +39,17 @@ import java.util.stream.Collectors;
 
 @EqualsAndHashCode
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class Condition {
+public class ConditionClause implements Condition {
 
 	String conditionText;
 	StateMachine<Sequence> preCondition;
 	StateMachine<Sequence> postCondition;
 
-	public Condition(String condition, SequenceFactory factory) {
+	public ConditionClause(String condition, SequenceFactory factory) {
 		this(condition, new VariableStore(), factory);
 	}
 
-	public Condition(String condition, VariableStore variables,
-			SequenceFactory factory) {
+	public ConditionClause(String condition, VariableStore variables, SequenceFactory factory) {
 		conditionText = condition;
 
 		Map<String, Collection<Sequence>> map = new HashMap<>();
@@ -98,24 +98,14 @@ public class Condition {
 		}
 	}
 
+	@Override
 	public boolean isMatch(Sequence word, int index) {
 		return isMatch(word, index, index + 1);
 	}
 
-	/**
-	 * Checks if this condition is applicable to the Sequence at the provided
-	 * index
-	 *
-	 * @param word       the Sequence to check
-	 * @param startIndex the first index of the targeted Sequence; cannot be
-	 *                   negative
-	 * @param endIndex   the last index of the targeted Sequence (exclusive);
-	 *                   cannot be negative
-	 *
-	 * @return Returns true if the condition isMatch
-	 */
+	@Override
 	public boolean isMatch(Sequence word, int startIndex, int endIndex) {
-		if (endIndex <= word.size() && startIndex <= endIndex) {
+		if (startIndex <= word.size() && startIndex <= endIndex) {
 			Sequence sequence = word.getReverseSequence();
 			int start = word.size() - startIndex;
 			Match<Sequence> preMatch  = preCondition.match(sequence, start);

@@ -18,6 +18,8 @@ import org.didelphis.io.ClassPathFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
+import org.didelphis.soundchange.command.rule.Condition;
+import org.didelphis.soundchange.command.rule.ConditionClause;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +31,7 @@ public class ConditionModelTest {
 
 	@Test
 	void testBasicStateMachine01() {
-		Condition condition = new Condition("_a[+son, -hgh, +frn, -atr]+",
+		Condition condition = new ConditionClause("_a[+son, -hgh, +frn, -atr]+",
 				FACTORY
 		);
 
@@ -48,7 +50,7 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex01() {
-		Condition condition = new Condition(
+		Condition condition = new ConditionClause(
 				"_[-con, +voice, -creaky][-son, -voice, +vot]us", FACTORY);
 
 		test(condition, "xapʰus");
@@ -99,7 +101,7 @@ public class ConditionModelTest {
 
 	@Test
 	void testComplex02() {
-		Condition condition = new Condition("_[-con][-son]us#",
+		Condition condition = new ConditionClause("_[-con][-son]us#",
 				FACTORY
 		);
 

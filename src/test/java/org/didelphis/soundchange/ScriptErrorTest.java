@@ -34,7 +34,7 @@ class ScriptErrorTest {
 				.withScriptName("script_name.rsca")
 				.withLineNumber(12)
 				.withDividerSize(20)
-				.withScripData(scriptData)
+				.withScriptData(scriptData)
 				.withErrorLength(2)
 				.withErrorPosition(5)
 				.build();
@@ -70,7 +70,7 @@ class ScriptErrorTest {
 				.withContextSize(3)
 				.withDividerSize(20)
 				.withLineNumber(12)
-				.withScripData(scriptData)
+				.withScriptData(scriptData)
 				.withErrorLength(2)
 				.withErrorPosition(5)
 				.build();

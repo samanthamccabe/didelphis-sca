@@ -20,6 +20,8 @@ import org.didelphis.language.phonetic.SequenceFactory;
 import org.didelphis.language.phonetic.features.IntegerFeature;
 import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
+import org.didelphis.soundchange.command.rule.Condition;
+import org.didelphis.soundchange.command.rule.ConditionClause;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @since 0.0.0
  */
-class ConditionTest {
+class ConditionClauseTest {
 
 	private static final FeatureModelLoader EMPTY =
 			IntegerFeature.INSTANCE.emptyLoader();
@@ -47,25 +49,26 @@ class ConditionTest {
 	@DisplayName("Condition with underscore only")
 	@Test
 	void testEmptyCondition() {
-		Condition ignored = new Condition("_", FACTORY);
+		Condition ignored = new ConditionClause("_", FACTORY);
+
 	}
 
 	// We just need to see that this parses correctly
 	@Test
 	void testBadCondition() {
 		assertThrows(ParseException.class,
-				() -> new Condition("a_b_c", FACTORY));
+				() -> new ConditionClause("a_b_c", FACTORY));
 	}
 
 	@Test
 	void testDoubleUnderscore() {
 		assertThrows(ParseException.class,
-				() -> new Condition("_ _", FACTORY));
+				() -> new ConditionClause("_ _", FACTORY));
 	}
 
 	@Test
 	void testPreconditionMatchingSimple() {
-		Condition condition = new Condition("_x", FACTORY);
+		Condition condition = new ConditionClause("_x", FACTORY);
 		Sequence sequence = FACTORY.toSequence("bax");
 
 		assertTrue(condition.isMatch(sequence, 1));
@@ -75,7 +78,7 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatchingSimple() {
-		Condition condition = new Condition("b_", FACTORY);
+		Condition condition = new ConditionClause("b_", FACTORY);
 		Sequence sequence = FACTORY.toSequence("bax");
 
 		assertTrue(condition.isMatch(sequence, 1));
@@ -85,7 +88,7 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching01() {
-		Condition condition = new Condition("a_x", FACTORY);
+		Condition condition = new ConditionClause("a_x", FACTORY);
 		Sequence sequence = FACTORY.toSequence("balx");
 
 		boolean match = condition.isMatch(sequence, 2);
@@ -94,7 +97,7 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching02() {
-		Condition condition = new Condition("b_#", FACTORY);
+		Condition condition = new ConditionClause("b_#", FACTORY);
 		Sequence sequence = FACTORY.toSequence("aba");
 
 		assertFalse(condition.isMatch(sequence, 0));
@@ -104,7 +107,7 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching03() {
-		Condition condition = new Condition("b_lx", FACTORY);
+		Condition condition = new ConditionClause("b_lx", FACTORY);
 		Sequence sequence = FACTORY.toSequence("balx");
 
 		assertTrue(condition.isMatch(sequence, 1));
@@ -114,7 +117,7 @@ class ConditionTest {
 
 	@Test
 	void testPostconditionMatching04() {
-		Condition condition = new Condition("_lxpld", FACTORY);
+		Condition condition = new ConditionClause("_lxpld", FACTORY);
 		Sequence sequence = FACTORY.toSequence("beralxpld");
 
 		assertTrue(condition.isMatch(sequence, 3));
@@ -124,7 +127,7 @@ class ConditionTest {
 	@Test
 	void testOptional01() {
 
-		Condition condition = new Condition("_a?(b?c?)d?b", FACTORY);
+		Condition condition = new ConditionClause("_a?(b?c?)d?b", FACTORY);
 
 		String[] positive = {
 				"xb",
@@ -151,7 +154,7 @@ class ConditionTest {
 	@Test
 	void testOptional02() {
 
-		Condition condition = new Condition("_d?ab", FACTORY);
+		Condition condition = new ConditionClause("_d?ab", FACTORY);
 
 		assertMatches(condition, "xab", 0);
 		assertMatches(condition, "xdab", 0);
@@ -165,7 +168,7 @@ class ConditionTest {
 	void testOptional03() {
 
 		Condition condition =
-				new Condition("_a(l(hamb)?ra)?#", FACTORY);
+				new ConditionClause("_a(l(hamb)?ra)?#", FACTORY);
 
 		assertMatches(condition, "xalhambra", 0);
 		assertMatches(condition, "xalra", 0);
@@ -176,7 +179,7 @@ class ConditionTest {
 	@Test
 	void testOptional04() {
 
-		Condition condition = new Condition("_a(ba)?b", FACTORY);
+		Condition condition = new ConditionClause("_a(ba)?b", FACTORY);
 
 		assertMatches(condition, "xab", 0);
 		assertMatches(condition, "xabab", 0);
@@ -186,7 +189,7 @@ class ConditionTest {
 	@Test
 	void testStar01() {
 
-		Condition condition = new Condition("_a*b", FACTORY);
+		Condition condition = new ConditionClause("_a*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xab"), 0));
@@ -200,7 +203,7 @@ class ConditionTest {
 	@Test
 	void testStar02() {
 
-		Condition condition = new Condition("_aa*b", FACTORY);
+		Condition condition = new ConditionClause("_aa*b", FACTORY);
 
 		assertFalse(condition.isMatch(FACTORY.toSequence("xb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xab"), 0));
@@ -214,7 +217,7 @@ class ConditionTest {
 	@Test
 	void testStar03() {
 
-		Condition condition = new Condition("_da*b", FACTORY);
+		Condition condition = new ConditionClause("_da*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdab"), 0));
@@ -228,7 +231,7 @@ class ConditionTest {
 	@Test
 	void testStar04() {
 
-		Condition condition = new Condition("_d(eo)*b", FACTORY);
+		Condition condition = new ConditionClause("_d(eo)*b", FACTORY);
 
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdb"), 0));
 		assertTrue(condition.isMatch(FACTORY.toSequence("xdeob"), 0));
@@ -240,7 +243,7 @@ class ConditionTest {
 	@Test
 	void testStar05() {
 
-		Condition condition = new Condition("_d(eo*)*b", FACTORY);
+		Condition condition = new ConditionClause("_d(eo*)*b", FACTORY);
 
 		String[] positive = {
 				"xdb",
@@ -265,7 +268,7 @@ class ConditionTest {
 
 	@Test
 	void testStar06() {
-		Condition condition = new Condition("_(ab)*#", FACTORY);
+		Condition condition = new ConditionClause("_(ab)*#", FACTORY);
 		String[] positive = {
 				"x", "xababab", "xab", "xabababab", "xabab", "xababababab"
 		};
@@ -282,7 +285,7 @@ class ConditionTest {
 	@Test
 	void testPlus01() {
 
-		Condition condition = new Condition("_a+b", FACTORY);
+		Condition condition = new ConditionClause("_a+b", FACTORY);
 
 		String[] positive = {
 				"xab", "xaab", "xaaab", "xaaaab", "xaaaaab",
@@ -302,7 +305,7 @@ class ConditionTest {
 	void testPlus02() {
 
 		Condition condition =
-				new Condition("_a+l(ham+b)+ra", FACTORY);
+				new ConditionClause("_a+l(ham+b)+ra", FACTORY);
 
 		String[] positive = {
 				"xalhambra",
@@ -325,7 +328,7 @@ class ConditionTest {
 	void testPlus03() {
 
 		Condition condition =
-				new Condition("_(a+l(ham+b)*ra)+", FACTORY);
+				new ConditionClause("_(a+l(ham+b)*ra)+", FACTORY);
 		String[] positive = {
 				"xalhambra",
 				"xaalhambra",
@@ -362,7 +365,7 @@ class ConditionTest {
 	void testStar07() {
 
 		Condition condition =
-				new Condition("_(a+l(ham+b)+ra)*", FACTORY);
+				new ConditionClause("_(a+l(ham+b)+ra)*", FACTORY);
 
 		String[] positive = {
 				"xalhambra",
@@ -394,7 +397,7 @@ class ConditionTest {
 	@Test
 	void testGroups01() {
 		Condition condition =
-				new Condition("_(ab)(cd)(ef)", FACTORY);
+				new ConditionClause("_(ab)(cd)(ef)", FACTORY);
 
 		assertMatches(condition, "xabcdef", 0);
 		assertNoMatch(condition, "xabcd", 0);
@@ -406,7 +409,7 @@ class ConditionTest {
 	@Test
 	void testGroups02() {
 		Condition condition =
-				new Condition("_(ab)*(cd)(ef)", FACTORY);
+				new ConditionClause("_(ab)*(cd)(ef)", FACTORY);
 		assertMatches(condition, "xcdef", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xababcdef", 0);
@@ -423,7 +426,7 @@ class ConditionTest {
 	@Test
 	void testGroups03() {
 		Condition condition =
-				new Condition("_(ab)(cd)*(ef)", FACTORY);
+				new ConditionClause("_(ab)(cd)*(ef)", FACTORY);
 		assertMatches(condition, "xabef", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcdcdef", 0);
@@ -432,7 +435,7 @@ class ConditionTest {
 	@Test
 	void testGroups04() {
 		Condition condition =
-				new Condition("_(ab)(cd)(ef)*", FACTORY);
+				new ConditionClause("_(ab)(cd)(ef)*", FACTORY);
 		assertMatches(condition, "xabcd", 0);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcdefef", 0);
@@ -441,7 +444,7 @@ class ConditionTest {
 	@Test
 	void testGroups05() {
 		Condition condition =
-				new Condition("_(ab)?(cd)(ef)", FACTORY);
+				new ConditionClause("_(ab)?(cd)(ef)", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xcdef", 0);
 	}
@@ -449,7 +452,7 @@ class ConditionTest {
 	@Test
 	void testGroups06() {
 		Condition condition =
-				new Condition("_(ab)(cd)?(ef)", FACTORY);
+				new ConditionClause("_(ab)(cd)?(ef)", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabef", 0);
 	}
@@ -457,7 +460,7 @@ class ConditionTest {
 	@Test
 	void testGroups07() {
 		Condition condition =
-				new Condition("_(ab)(cd)(ef)?", FACTORY);
+				new ConditionClause("_(ab)(cd)(ef)?", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "xabcd", 0);
 	}
@@ -465,7 +468,7 @@ class ConditionTest {
 	@Test
 	void testGroups08() {
 		Condition condition =
-				new Condition("_(ab)?(cd)?(ef)?", FACTORY);
+				new ConditionClause("_(ab)?(cd)?(ef)?", FACTORY);
 
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "x", 0);
@@ -480,7 +483,7 @@ class ConditionTest {
 	@Test
 	void testFullCondition() {
 		Condition condition =
-				new Condition("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?", FACTORY);
+				new ConditionClause("(ab)?(cd)?(ef)?_(ab)?(cd)?(ef)?", FACTORY);
 		assertMatches(condition, "xabcdef", 0);
 		assertMatches(condition, "efxabcdef", 2);
 		assertMatches(condition, "cdefxabcdef", 4);
@@ -500,7 +503,7 @@ class ConditionTest {
 
 	@Test
 	void testSet01() {
-		Condition condition = new Condition("_{a b c}ds", FACTORY);
+		Condition condition = new ConditionClause("_{a b c}ds", FACTORY);
 		assertMatches(condition, "xads", 0);
 		assertMatches(condition, "xbds", 0);
 		assertMatches(condition, "xcds", 0);
@@ -510,7 +513,7 @@ class ConditionTest {
 	@Test
 	void testSet02() {
 		Condition condition =
-				new Condition("_{ab cd ef}tr", FACTORY);
+				new ConditionClause("_{ab cd ef}tr", FACTORY);
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
 		assertMatches(condition, "xeftr", 0);
@@ -521,7 +524,7 @@ class ConditionTest {
 	@Test
 	void testSet04() {
 		Condition condition =
-				new Condition("_{ab* cd+ ef}tr", FACTORY);
+				new ConditionClause("_{ab* cd+ ef}tr", FACTORY);
 
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
@@ -541,7 +544,7 @@ class ConditionTest {
 	@Test
 	void testSet05() {
 		Condition condition =
-				new Condition("_{ab* (cd?)+ ((ae)*f)+}tr", FACTORY);
+				new ConditionClause("_{ab* (cd?)+ ((ae)*f)+}tr", FACTORY);
 
 		assertMatches(condition, "xabtr", 0);
 
@@ -563,7 +566,7 @@ class ConditionTest {
 	@Test
 	void testSet06() {
 		Condition condition =
-				new Condition("_{ab {cd xy} ef}tr", FACTORY);
+				new ConditionClause("_{ab {cd xy} ef}tr", FACTORY);
 		assertMatches(condition, "xabtr", 0);
 		assertMatches(condition, "xcdtr", 0);
 		assertMatches(condition, "xeftr", 0);
@@ -574,7 +577,7 @@ class ConditionTest {
 
 	@Test
 	void testSet07() {
-		Condition condition = new Condition("_{ x ɣ }", FACTORY);
+		Condition condition = new ConditionClause("_{ x ɣ }", FACTORY);
 		assertMatches(condition, "pxi");
 		assertNoMatch(condition, "paxi");
 	}
@@ -585,7 +588,7 @@ class ConditionTest {
 				EMPTY.getFeatureMapping(),
 				FormatterMode.INTELLIGENT
 		);
-		Condition condition = new Condition(
+		Condition condition = new ConditionClause(
 				"_{r l}?{a e o ā ē ō}{i u}?{n m l r}?{pʰ tʰ kʰ ḱʰ}",
 				factoryParam
 		);
@@ -600,8 +603,8 @@ class ConditionTest {
 
 	@Test
 	void testAdditional01() {
-		assertMatches(new Condition("_c+#", FACTORY), "abaccc", 2);
-		assertMatches(new Condition("_#", FACTORY), "abad", 3);
+		assertMatches(new ConditionClause("_c+#", FACTORY), "abaccc", 2);
+		assertMatches(new ConditionClause("_#", FACTORY), "abad", 3);
 	}
 
 	@Test
@@ -616,7 +619,7 @@ class ConditionTest {
 				FormatterMode.INTELLIGENT
 		);
 
-		Condition condition = new Condition(
+		Condition condition = new ConditionClause(
 				"_C+#",
 				store,
 				sequenceFactory
@@ -646,14 +649,14 @@ class ConditionTest {
 				reserved,
 				FormatterMode.INTELLIGENT
 		);
-		Condition condition = new Condition("_C+#", store, sequenceFactory);
+		Condition condition = new ConditionClause("_C+#", store, sequenceFactory);
 
 		assertMatches(sequenceFactory, condition, "abatʰkʰ", 2);
 	}
 
 	@Test
 	void testNegative00() {
-		Condition condition = new Condition("_!a#", FACTORY);
+		Condition condition = new ConditionClause("_!a#", FACTORY);
 
 		assertMatches(condition, "zb", 0);
 		assertMatches(condition, "zc", 0);
@@ -665,7 +668,7 @@ class ConditionTest {
 
 	@Test
 	void testNegative01() {
-		Condition condition = new Condition("_!(abc)#", FACTORY);
+		Condition condition = new ConditionClause("_!(abc)#", FACTORY);
 
 		assertMatches(condition, "zbab", 0);
 		assertMatches(condition, "zcab", 0);
@@ -680,7 +683,7 @@ class ConditionTest {
 
 	@Test
 	void testNegative02() {
-		Condition condition = new Condition("_!{a b c}#", FACTORY);
+		Condition condition = new ConditionClause("_!{a b c}#", FACTORY);
 
 		assertMatches(condition, "yz", 0);
 		assertMatches(condition, "ym", 0);
@@ -695,7 +698,7 @@ class ConditionTest {
 
 	@Test
 	void testUnknownFailure() {
-		Condition condition = new Condition("{s c y}{s c y}+_{o}", FACTORY);
+		Condition condition = new ConditionClause("{s c y}{s c y}+_{o}", FACTORY);
 
 		assertMatches(condition, "tusscyos", 5);
 	}

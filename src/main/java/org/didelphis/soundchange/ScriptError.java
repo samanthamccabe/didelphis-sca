@@ -64,7 +64,7 @@ public final class ScriptError {
 		return this;
 	}
 
-	public ScriptError withScripData(List<String> scriptData) {
+	public ScriptError withScriptData(List<String> scriptData) {
 		this.scriptData = scriptData;
 		return this;
 	}

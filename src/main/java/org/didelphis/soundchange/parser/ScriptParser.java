@@ -115,7 +115,7 @@ public class ScriptParser {
 		boolean success = true;
 		for (lineNumber = 0; lineNumber < scriptLines.size(); lineNumber++) {
 			String string = scriptLines.get(lineNumber);
-			String command = COMMENT.replace(string, "").trim();
+			String command = COMMENT.replace(string, "");
 			if (!command.isEmpty()) {
 				try {
 					parseCommand(command);
@@ -125,7 +125,7 @@ public class ScriptParser {
 							.withMessage(e.getMessage())
 							.withScriptName(scriptPath)
 							.withLineNumber(lineNumber)
-							.withScripData(scriptLines)
+							.withScriptData(scriptLines)
 							.build();
 					LOG.error(received);
 				}
@@ -162,25 +162,25 @@ public class ScriptParser {
 			closeLexicon(scriptPath, command, memory.factorySnapshot());
 		} else if (command.contains("=")) {
 			StringBuilder sb = new StringBuilder(command);
-			String next = nextLine(scriptLines);
+			String next = nextLine();
 			while ((next != null) &&
 				VAR_NEXT_LINE.matches(next) &&
 				!KEYWORDS.matches(next)
 			) {
 				sb.append('\n');
-				sb.append(next);
+				sb.append(COMMENT.replace(next, ""));
 				lineNumber++;
-				next = nextLine(scriptLines);
+				next = nextLine();
 			}
 			memory.getVariables().add(sb.toString());
 		} else if (RULE.matches(command)) {
 			StringBuilder sb = new StringBuilder(command);
-			String next = nextLine(scriptLines);
+			String next = nextLine();
 			while ((next != null) && CONTINUATION.matches(next)) {
 				sb.append('\n');
-				sb.append(next);
+				sb.append(COMMENT.replace(next, ""));
 				lineNumber++;
-				next = nextLine(scriptLines);
+				next = nextLine();
 			}
 			ParserMemory parserMemory = new ParserMemory(memory);
 			StandardRule rule = new StandardRule(sb.toString(), parserMemory, useDebug);
@@ -192,18 +192,21 @@ public class ScriptParser {
 			String reserve = RESERVE.replace(command, "");
 			Map<String, String> emptyMap = Collections.emptyMap();
 			List<String> list = Splitter.whitespace(reserve, emptyMap);
+			if (useDebug) {
+				LOG.info("");
+			}
 			memory.getReserved().addAll(list);
 		} else if (BREAK.matches(command)) {
 			lineNumber = -1;
 		} else if (DEBUG.matches(command)) {
 			useDebug = true;
 			return;
-		} else {
+		} else if (!command.isBlank()) {
 			String received = new ScriptError()
 					.withMessage("Unrecognized Command")
 					.withScriptName(scriptPath)
 					.withLineNumber(lineNumber)
-					.withScripData(scriptLines)
+					.withScriptData(scriptLines)
 					.build();
 			LOG.error(received);
 		}
@@ -211,11 +214,9 @@ public class ScriptParser {
 	}
 
 	@Nullable
-	private String nextLine(List<String> lines) {
-		// 2020 - just gets the next line i guess
-		// seems like a weird way to do it
-		return (lineNumber + 1) < lines.size()
-				? lines.get(lineNumber + 1).trim()
+	private String nextLine() {
+		return (lineNumber + 1) < scriptLines.size()
+				? scriptLines.get(lineNumber + 1)
 				: null;
 	}
 
@@ -256,7 +257,8 @@ public class ScriptParser {
 					fullPath,
 					handle,
 					fileHandler,
-					factory
+					factory,
+					useDebug
 			));
 		} else {
 			String message = Templates.create()
@@ -304,7 +306,7 @@ public class ScriptParser {
 					.withMessage("Incorrectly formatted CLOSE statement")
 					.withScriptName(scriptPath)
 					.withLineNumber(lineNumber)
-					.withScripData(scriptLines)
+					.withScriptData(scriptLines)
 					.build();
 			LOG.error(received);
 

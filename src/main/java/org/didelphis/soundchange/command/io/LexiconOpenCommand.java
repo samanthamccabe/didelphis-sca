@@ -30,11 +30,21 @@ public class LexiconOpenCommand extends AbstractLexiconIoCommand {
 	private final LexiconMap lexicons;
 	private final SequenceFactory factory;
 
-	public LexiconOpenCommand(LexiconMap lexicons, String path, String handle,
-			FileHandler handler, SequenceFactory factory) {
+	public LexiconOpenCommand(
+			LexiconMap lexicons,
+			String path,
+			String handle,
+			FileHandler handler,
+			SequenceFactory factory,
+			boolean useDebug
+	) {
 		super(path, handle, handler);
 		this.lexicons = lexicons;
 		this.factory = factory;
+		if (useDebug) {
+			LOG.debug("Adding handle {} to debug list", handle);
+			lexicons.addDebug(handle);
+		}
 	}
 
 	@Override

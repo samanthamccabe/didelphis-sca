@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.didelphis.utilities.Strings.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BaseRuleModelTest {
@@ -55,9 +56,9 @@ class BaseRuleModelTest {
 				"[+con, -son, -cnt, -rel, -voice] > [+rel]",
 				FACTORY
 		);
-		testRule(rule, "t", "t͜s");
+		testRule(rule, "t", "ts");
 		testRule(rule, "p", "pɸ");
-		testRule(rule, "tʰ", "t͜sʰ");
+		testRule(rule, "tʰ", "tsʰ");
 
 		testRule(rule, "s", "s");
 		testRule(rule, "d", "d");
@@ -474,6 +475,79 @@ class BaseRuleModelTest {
 		testRule(rule, FACTORY, "apa", "apa");
 		testRule(rule, FACTORY, "ata", "aca");
 		testRule(rule, FACTORY, "asa", "aça");
+	}
+
+	@Test
+	void testIfThenElse01() {
+		String ruleExpression = joinNL(
+				"pʼ tʼ kʼ > b  d  g / #_",
+				"         | pp th x / _#",
+				"         | p  t  k");
+		BaseRule rule = new BaseRule(ruleExpression, FACTORY);
+
+		testRule(rule, FACTORY, "pa", "pa");
+		testRule(rule, FACTORY, "ta", "ta");
+		testRule(rule, FACTORY, "ka", "ka");
+
+		testRule(rule, FACTORY, "pʼa", "ba");
+		testRule(rule, FACTORY, "tʼa", "da");
+		testRule(rule, FACTORY, "kʼa", "ga");
+
+		testRule(rule, FACTORY, "apʼ", "app");
+		testRule(rule, FACTORY, "atʼ", "ath");
+		testRule(rule, FACTORY, "akʼ", "ax");
+
+		testRule(rule, FACTORY, "apʼa", "apa");
+		testRule(rule, FACTORY, "atʼa", "ata");
+		testRule(rule, FACTORY, "akʼa", "aka");
+
+		testRule(rule, FACTORY, "apa", "apa");
+		testRule(rule, FACTORY, "ata", "ata");
+		testRule(rule, FACTORY, "aka", "aka");
+	}
+
+	@Test
+	void testIfThenElse02() {
+		String ruleExpression = joinNL(
+				"kʷʰ kʷ gʷ > kʰ k g / [vowel +round]_ or _[vowel +round]",
+				"          | pʰ p b");
+		BaseRule rule = new BaseRule(ruleExpression, FACTORY);
+
+		testRule(rule, FACTORY, "kʷe", "pe");
+		testRule(rule, FACTORY, "ekʷ", "ep");
+		testRule(rule, FACTORY, "kʷo", "ko");
+		testRule(rule, FACTORY, "okʷ", "ok");
+		testRule(rule, FACTORY, "kʷó", "kó");
+		testRule(rule, FACTORY, "ókʷ", "ók");
+		testRule(rule, FACTORY, "kʷō", "kō");
+		testRule(rule, FACTORY, "ōkʷ", "ōk");
+		testRule(rule, FACTORY, "protīkʷo", "protīko");
+	}
+
+	@Test
+	void testReservedLaryngeals() {
+		String ruleExpression = "h₁ h₂ h₃ h₄ > ʔ x ɣ ʕ";
+
+		Set<String> reserved = Set.of("h₁", "h₂", "h₃", "h₄");
+
+		SequenceFactory factory = new SequenceFactory(
+				MODEL,
+				reserved,
+				FormatterMode.INTELLIGENT
+		);
+
+		BaseRule rule = new BaseRule(ruleExpression, factory);
+
+		testRule(rule, factory, "h₁", "ʔ");
+		testRule(rule, factory, "h₂", "x");
+		testRule(rule, factory, "h₃", "ɣ");
+		testRule(rule, factory, "h₄", "ʕ");
+	}
+
+	@Test
+	void testOddball() {
+		String expression = "[vowel]h > [+lng] / _{[+con] i u j w #}";
+
 	}
 
 	private static void testRule(Rule rule, String seq, String exp) {
