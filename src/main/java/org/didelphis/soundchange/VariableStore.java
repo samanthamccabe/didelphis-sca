@@ -14,9 +14,7 @@
 
 package org.didelphis.soundchange;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import org.didelphis.language.automata.Regex;
@@ -56,7 +54,10 @@ public class VariableStore {
 	private static final Regex DELIMITER_PATTERN = new Regex("\\s+");
 
 	final Map<String, List<String>> variables;
-	Segmenter segmenter;
+
+	@Getter
+    @Setter
+    Segmenter segmenter;
 
 	public VariableStore(Segmenter segmenter) {
 		this.segmenter = segmenter;
@@ -72,15 +73,7 @@ public class VariableStore {
 		this(FormatterMode.NONE);
 	}
 
-	public Segmenter getSegmenter() {
-		return segmenter;
-	}
-
-	public void setSegmenter(Segmenter segmenter) {
-		this.segmenter = segmenter;
-	}
-
-	public boolean isEmpty() {
+    public boolean isEmpty() {
 		return variables.isEmpty();
 	}
 
