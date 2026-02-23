@@ -18,30 +18,21 @@
 package org.didelphis.soundchange.parser;
 
 import org.didelphis.io.FileHandler;
+import org.didelphis.io.MockFileHandler;
 import org.didelphis.language.parsing.ParseException;
 import org.didelphis.soundchange.LexiconMap;
 import org.didelphis.soundchange.VariableStore;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.didelphis.utilities.Strings.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
-@ExtendWith (MockitoExtension.class)
 class ScriptParserTest {
 
-	@Mock
 	private FileHandler fileHandler;
 
 	@Test
@@ -51,9 +42,16 @@ class ScriptParserTest {
 		String vars2 = "V = a e i o u";
 		String vars3 = "C = p t k q\nIMPORT 'var2'";
 
-		when(fileHandler.read("var1")).thenReturn(vars1);
-		when(fileHandler.read("var2")).thenReturn(vars2);
-		when(fileHandler.read("var3")).thenReturn(vars3);
+		Map<String, String> map = new HashMap<>();
+		map.put("var1", vars1);
+		map.put("var2", vars2);
+		map.put("var3", vars3);
+
+		fileHandler = new MockFileHandler(map);
+
+//		when(fileHandler.read("var1")).thenReturn(vars1);
+//		when(fileHandler.read("var2")).thenReturn(vars2);
+//		when(fileHandler.read("var3")).thenReturn(vars3);
 
 		String commands = joinNL(
 				"IMPORT 'var1'\n",
@@ -80,6 +78,12 @@ class ScriptParserTest {
 
 	@Test
 	void testOpenDebug() {
+
+		Map<String, String> map = new HashMap<>();
+		map.put("path", "");
+
+		fileHandler = new MockFileHandler(map);
+
 		String commands = joinNL(
 				"@debug",
 				"open 'path' as HANDLE ",
@@ -101,7 +105,9 @@ class ScriptParserTest {
 	@Test
 	void testImportAfterMultilineVariable() throws IOException {
 
-		when(fileHandler.read(any())).thenReturn("");
+		Map<String, String> map = new HashMap<>();
+		map.put("unknown", "");
+		fileHandler = new MockFileHandler(map);
 
 		String commands = joinNL(
 			"C = p  t  k  ",

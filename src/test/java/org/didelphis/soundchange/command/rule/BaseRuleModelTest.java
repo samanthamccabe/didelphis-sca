@@ -545,8 +545,14 @@ class BaseRuleModelTest {
 	}
 
 	@Test
-	void testOddball() {
-		String expression = "[vowel]h > [+lng] / _{[+con] i u j w #}";
+	void tesAliases() {
+		String expression = joinNL(
+				"[+con +velar +round] > [-round] / _[+round]",
+				"                     | [-velar -round +bilabial]"
+		);
+
+		BaseRule rule = new BaseRule(expression, FACTORY);
+
 
 	}
 

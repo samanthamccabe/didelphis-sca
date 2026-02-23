@@ -21,11 +21,10 @@
     <parent>
         <groupId>org.didelphis</groupId>
         <artifactId>didelphis-root</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
     </parent>
 
     <artifactId>didelphis-sca</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
     <name>Didelphis Sound Change Applier</name>
 
     <properties>
@@ -58,7 +57,7 @@
         <dependency>
             <groupId>org.didelphis.common</groupId>
             <artifactId>didelphis-common-language</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>0.7.0</version>
         </dependency>
     </dependencies>
 
