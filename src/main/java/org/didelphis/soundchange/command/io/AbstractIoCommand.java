@@ -8,8 +8,10 @@ package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
 
+import lombok.Getter;
 import org.didelphis.io.FileHandler;
 
+@Getter
 @EqualsAndHashCode
 public abstract class AbstractIoCommand implements Runnable {
 
@@ -21,11 +23,4 @@ public abstract class AbstractIoCommand implements Runnable {
 		this.handler = handler;
 	}
 
-	public String getPath() {
-		return path;
-	}
-
-	public FileHandler getHandler() {
-		return handler;
-	}
 }

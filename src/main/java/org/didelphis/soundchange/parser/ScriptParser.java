@@ -18,6 +18,7 @@
 package org.didelphis.soundchange.parser;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import org.didelphis.io.FileHandler;
@@ -58,12 +59,12 @@ public class ScriptParser {
 
 	private static final Logger LOG = LogManager.getLogger(ScriptParser.class);
 
-	final String scriptPath;
-	final FeatureType type;
-	final FileHandler fileHandler;
-	final Deque<Runnable> commands;
+	@Getter
 	final ParserMemory memory;
 
+	final String scriptPath;
+	final FileHandler fileHandler;
+	final Deque<Runnable> commands;
 	final List<String> scriptLines;
 
 	boolean useDebug;
@@ -91,7 +92,6 @@ public class ScriptParser {
 		scriptLines = Splitter.lines(scriptData);
 
 		this.scriptPath = scriptPath;
-		this.type = IntegerFeature.INSTANCE;
 		this.fileHandler = fileHandler;
 		this.memory = memory;
 
@@ -138,11 +138,7 @@ public class ScriptParser {
 		return commands;
 	}
 
-	public ParserMemory getMemory() {
-		return memory;
-	}
-
-	private void parseCommand(String command) {
+    private void parseCommand(String command) {
 		if (LOAD.matches(command)) {
 			FeatureMapping featureModel = loadModel(
 					scriptPath,

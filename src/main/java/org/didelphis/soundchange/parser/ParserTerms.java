@@ -14,7 +14,7 @@ public class ParserTerms {
 
 	public final Regex KEYWORDS = new Regex("BREAK|RESERVE|MODE|EXECUTE|IMPORT|LOAD|CLOSE|WRITE|OPEN", true);
 	private final String HANDLE    = "(\\w+)";
-	private final String FILE_PATH = "[\"\']([^\"\']+)[\"\']";
+	private final String FILE_PATH = "[\"']([^\"']+)[\"']";
 	private final String ELEMENT   = "([^\\s/_>=<\\-:;,.$#!*+?{}()|\\\\]|\\[[^\\]]+\\])+";
 	private final String CONTINUE  = '(' + ELEMENT + "\\s+)*" + ELEMENT + '$';
 	private final String AS        = "\\s+(as\\s+)?";

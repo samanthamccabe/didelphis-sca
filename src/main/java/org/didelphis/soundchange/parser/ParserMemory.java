@@ -17,6 +17,8 @@
 
 package org.didelphis.soundchange.parser;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.didelphis.io.NullFileHandler;
 import org.didelphis.language.parsing.FormatterMode;
 import org.didelphis.language.phonetic.SequenceFactory;
@@ -31,13 +33,16 @@ import java.util.Set;
 /**
  * @since 0.2.0
  */
+@Getter
 public class ParserMemory {
+	@Setter
+	private FeatureMapping featureMapping;
+
 	private final LexiconMap lexicons;
 	private final VariableStore variables;
 	private final Set<String> reserved;
 
 	private FormatterMode formatterMode;
-	private FeatureMapping featureMapping;
 
 	public ParserMemory() {
 		lexicons = new LexiconMap();
@@ -66,36 +71,12 @@ public class ParserMemory {
 		return new SequenceFactory(featureMapping, set, formatterMode);
 	}
 
-	public LexiconMap getLexicons() {
-		return lexicons;
-	}
-
-	public VariableStore getVariables() {
-		return variables;
-	}
-
-	public Set<String> getReserved() {
-		return reserved;
-	}
-
-	public FormatterMode getFormatterMode() {
-		return formatterMode;
-	}
-
-	public void setFormatterMode(FormatterMode formatterMode) {
+    public void setFormatterMode(FormatterMode formatterMode) {
 		this.formatterMode = formatterMode;
 		variables.setSegmenter(this.formatterMode);
 	}
 
-	public FeatureMapping getFeatureMapping() {
-		return featureMapping;
-	}
-
-	public void setFeatureMapping(FeatureMapping featureMapping) {
-		this.featureMapping = featureMapping;
-	}
-
-	@Override
+    @Override
 	public String toString() {
 		return "ParserMemory{" + "lexicons=" + lexicons + ", variables=" +
 				variables + ", reserved=" + reserved + ", formatterMode=" +

@@ -7,10 +7,12 @@
 package org.didelphis.soundchange.command.io;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import org.didelphis.io.FileHandler;
 
+@Getter
 @ToString
 @EqualsAndHashCode (callSuper = true)
 public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
@@ -23,7 +25,4 @@ public abstract class AbstractLexiconIoCommand extends AbstractIoCommand {
 		this.handle = handle;
 	}
 
-	public String getHandle() {
-		return handle;
-	}
 }

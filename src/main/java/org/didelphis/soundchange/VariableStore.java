@@ -87,7 +87,16 @@ public class VariableStore {
 	 * @param values
 	 */
 	public void add(String key, List<String> values) {
-		// TODO:
+
+		if (ParserTerms.SPECIAL.matches(key)) {
+			throw new ParseException("Invalid variable key: "+ key);
+		}
+
+		List<String> expanded = new ArrayList<>();
+		for (String value : values) {
+			expanded.addAll(expandVariables(value));
+		}
+		variables.put(key, expanded);
 	}
 
 	/**
@@ -98,20 +107,10 @@ public class VariableStore {
 	@Deprecated
 	public void add(@NotNull String command) {
 		List<String> parts = EQUALS_PATTERN.split(command.trim());
-
 		if (parts.size() == 2) {
 			String key = parts.get(0);
-
-			if (ParserTerms.SPECIAL.matches(key)) {
-				throw new ParseException("Invalid variable key: "+ key);
-			}
-
 			List<String> elements = parseToList(parts.get(1));
-			List<String> expanded = new ArrayList<>();
-			for (String value : elements) {
-				expanded.addAll(expandVariables(value));
-			}
-			variables.put(key, expanded);
+			add(key, elements);
 		} else {
 			String message = Templates.create()
 					.add("Variable definition can only contain one = sign.")

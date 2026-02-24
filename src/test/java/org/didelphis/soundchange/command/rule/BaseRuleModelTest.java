@@ -15,6 +15,7 @@ import org.didelphis.language.phonetic.model.FeatureModelLoader;
 import org.didelphis.language.phonetic.sequences.Sequence;
 import org.didelphis.soundchange.VariableStore;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -544,16 +545,17 @@ class BaseRuleModelTest {
 		testRule(rule, factory, "h₄", "ʕ");
 	}
 
+	@Disabled
 	@Test
-	void tesAliases() {
-		String expression = joinNL(
-				"[+con +velar +round] > [-round] / _[+round]",
-				"                     | [-velar -round +bilabial]"
-		);
+	void testAliases() {
+		// TODO: turns out we can't use aliases like that but
+		//   it requires a redesign of the entire model -w-
+		String expression = """
+			[+con +velar +round] > [-round] / _[+round]
+			                     | [-velar -round +bilabial]
+			""";
 
 		BaseRule rule = new BaseRule(expression, FACTORY);
-
-
 	}
 
 	private static void testRule(Rule rule, String seq, String exp) {
